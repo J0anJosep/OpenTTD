@@ -259,21 +259,16 @@ Dimension BaseVehicleListWindow::GetActionDropdownSize(bool show_autoreplace, bo
 /**
  * Display the Action dropdown window.
  * @param show_autoreplace If true include the autoreplace item.
- * @param show_group If true include group-related stuff.
+ * @param group_window true if we are showing groups list, false if showing vehicles list
  * @return Itemlist for dropdown
  */
-DropDownList *BaseVehicleListWindow::BuildActionDropdownList(bool show_autoreplace, bool show_group)
+DropDownList *BaseVehicleListWindow::BuildActionDropdownList(bool show_autoreplace, bool group_window) const
 {
 	DropDownList *list = new DropDownList();
 
 	if (show_autoreplace) *list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_REPLACE_VEHICLES, ADI_REPLACE, false);
 	*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_SEND_FOR_SERVICING, ADI_SERVICE, false);
 	*list->Append() = new DropDownListStringItem(this->vehicle_depot_name[this->vli.vtype], ADI_DEPOT, false);
-
-	if (show_group) {
-		*list->Append() = new DropDownListStringItem(STR_GROUP_ADD_SHARED_VEHICLE, ADI_ADD_SHARED, false);
-		*list->Append() = new DropDownListStringItem(STR_GROUP_REMOVE_ALL_VEHICLES, ADI_REMOVE_ALL, false);
-	}
 
 	return list;
 }
@@ -1910,9 +1905,13 @@ public:
 				break;
 
 			case WID_VL_SORT_BY_PULLDOWN:// Select sorting criteria dropdown menu
-				ShowDropDownMenu(this, this->vehicle_sorter_names, this->vehicles.SortType(), WID_VL_SORT_BY_PULLDOWN, 0,
-						(this->vli.vtype == VEH_TRAIN || this->vli.vtype == VEH_ROAD) ? 0 : (1 << 10));
-				return;
+				if (show == VLS_GROUPS) {
+					ShowDropDownMenu(this, this->group_sorter_names, this->groups.SortType(), WID_VL_SORT_BY_PULLDOWN, 0, 0);
+				} else {
+					ShowDropDownMenu(this, this->vehicle_sorter_names, this->vehicles.SortType(), WID_VL_SORT_BY_PULLDOWN, 0,
+							(this->vli.vtype == VEH_TRAIN || this->vli.vtype == VEH_ROAD) ? 0 : (1 << 10));
+				}
+				break;
 
 			case WID_VL_LIST: { // Matrix to show vehicles
 				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_VL_LIST);
@@ -1943,8 +1942,8 @@ public:
 				break;
 
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownList(VehicleListIdentifier(this->window_number).type == VL_STANDARD, false);
-				ShowDropDownList(this, list, 0, WID_VL_MANAGE_VEHICLES_DROPDOWN);
+				DropDownList *list = this->BuildActionDropdownList(VehicleListIdentifier(this->window_number).type == VL_STANDARD, this->show == VLS_GROUPS);
+				ShowDropDownList(this, list, 0, WID_VL_MANAGE_VEHICLES_DROPDOWN, 0, true);
 				break;
 			}
 
