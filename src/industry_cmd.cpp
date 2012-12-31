@@ -135,7 +135,10 @@ const IndustryTileSpec *GetIndustryTileSpec(IndustryGfx gfx)
 
 Industry::~Industry()
 {
-	if (CleaningPool()) return;
+	if (CleaningPool()) {
+		delete [] this->footprint;
+		return;
+	}
 
 	/* Industry can also be destroyed when not fully initialized.
 	 * This means that we do not have to clear tiles either.
@@ -182,6 +185,8 @@ Industry::~Industry()
 
 	DeleteSubsidyWith(ST_INDUSTRY, this->index);
 	CargoPacket::InvalidateAllFrom(ST_INDUSTRY, this->index);
+
+	delete [] this->footprint;
 }
 
 /**
@@ -194,6 +199,40 @@ void Industry::PostDestructor(size_t index)
 	Station::RecomputeIndustriesNearForAll();
 }
 
+/**
+ * Initialize the footprint array
+ * @note	footprint is a bool array of size "number of tiles of this->location"
+ * 		footprint[k] = true  if when running a TILE_AREA_LOOP, the k-tile belongs to this industry
+ * 		footprint[k] = false if when running a TILE_AREA_LOOP, the k-tile doesn't belong to this industry
+ */
+void Industry::SetFootprint() {
+	assert(this->location.w != 0 && this->location.h != 0);
+	delete [] this->footprint;
+
+	if (!_settings_game.station.precise_catchment) {
+		this->footprint = NULL;
+		return;
+	}
+
+	this->footprint = NewCustomBitMap(this->location.w * this->location.h);
+	bool complete = true;
+
+	BitMapIndex mask_index;
+	TILE_AREA_LOOP(tile, this->location) {
+		if (this->TileBelongsToIndustry(tile) ||
+				(tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile))) {
+			SetBit(this->footprint[mask_index.word_index], mask_index.bit_index);
+		} else {
+			complete = false;
+		}
+		++mask_index;
+	}
+
+	if (complete) {
+		delete [] this->footprint;
+		this->footprint = NULL;
+	}
+}
 
 /**
  * Return a random valid industry.
@@ -516,12 +555,13 @@ static bool TransportIndustryGoods(TileIndex tile)
 	const IndustrySpec *indspec = GetIndustrySpec(i->type);
 	bool moved_cargo = false;
 
-	StationFinder stations(i->location, NULL);
-	StationList neutral;
+	StationList stations;
 
 	if (i->neutral_station != NULL && !_settings_game.station.serve_neutral_industries) {
 		/* Industry has a neutral station. Use it and ignore any other nearby stations. */
-		neutral.insert(i->neutral_station);
+		*stations.insert(i->neutral_station) = i->neutral_station;
+	} else {
+		FindStationsAroundTiles(i->location, i->footprint, &stations);
 	}
 
 	for (uint j = 0; j < lengthof(i->produced_cargo_waiting); j++) {
@@ -534,7 +574,7 @@ static bool TransportIndustryGoods(TileIndex tile)
 
 			i->this_month_production[j] += cw;
 
-			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, neutral.size() != 0 ? &neutral : stations.GetStations());
+			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, &stations);
 			i->this_month_transported[j] += am;
 
 			moved_cargo |= (am != 0);
@@ -1818,6 +1858,8 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 		}
 	} while ((++it)->ti.x != -0x80);
 
+	i->SetFootprint();
+
 	if (GetIndustrySpec(i->type)->behaviour & INDUSTRYBEH_PLANT_ON_BUILT) {
 		for (uint j = 0; j != 50; j++) PlantRandomFarmField(i);
 	}
@@ -2430,7 +2472,7 @@ static int WhoCanServiceIndustry(Industry *ind)
 {
 	/* Find all stations within reach of the industry */
 	StationList stations;
-	FindStationsAroundTiles(ind->location, NULL, &stations);
+	FindStationsAroundTiles(ind->location, ind->footprint, &stations);
 
 	if (stations.size() == 0) return 0; // No stations found at all => nobody services
 

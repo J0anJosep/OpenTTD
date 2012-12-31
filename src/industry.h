@@ -42,6 +42,8 @@ enum ProductionLevels {
  */
 struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 	TileArea location;                                     ///< Location of the industry
+	CustomBitMap *footprint;                               ///< NOSAVE: Bool array of tiles of this->location that belong
+			//to this industry (when used combined with MASKED_TILE_AREA_LOOP(tile, this->location, this->footprint))
 	Town *town;                                            ///< Nearest town
 	Station *neutral_station;                              ///< Associated neutral station
 	CargoID produced_cargo[INDUSTRY_NUM_OUTPUTS];          ///< 16 production cargo slots
@@ -75,8 +77,10 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 
 	PersistentStorage *psa;             ///< Persistent storage for NewGRF industries.
 
-	Industry(TileIndex tile = INVALID_TILE) : location(tile, 0, 0) {}
+	Industry(TileIndex tile = INVALID_TILE) : location(tile, 0, 0), footprint(NULL) {}
 	~Industry();
+
+	void SetFootprint();
 
 	void RecomputeProductionMultipliers();
 
