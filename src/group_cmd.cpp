@@ -1268,6 +1268,52 @@ bool ShouldBeGrouped(Vehicle *v, Vehicle *v2, GroupedByType grouped_by_type)
 }
 
 /**
+ * Writes the cargo of a GroupStatistics to a string
+ * @param buffer first position to write of the string
+ * @param last last position of the string
+ * @param stat GroupStatistics with the cargo
+ * @see CmdBuildGroupsOfVehicleType
+ */
+void AddCargoString(char *buffer, char *last, GroupStatistics &stat)
+{
+	bool cargo_written = false;
+
+	for (CargoID i = 0; i < NUM_CARGO && buffer < last; i++) {
+		if (stat.DoesGroupCarryCargoType(i)) {
+			/* Marker */
+			if (cargo_written) buffer += seprintf(buffer, last, "/");
+			else cargo_written = true;
+
+			/* Write cargo */
+			buffer = GetString(buffer, CargoSpec::Get(i)->name, last);
+		}
+	}
+
+	if (!cargo_written) seprintf(buffer, last, "No cargo");
+}
+
+/**
+ * Given a vehicle, add its destinations to a string
+ * @param buffer first position to write of the string
+ * @param last last position of the string_func
+ * @param v vehicle which has the order_list with destinations to append
+ * @see CmdBuildGroupsOfVehicleType
+ */
+void AddDestinationsString(char *buffer, char *last, Vehicle *v)
+{
+	SmallVector<DestinationID, 32> destinations = GetDestinations(v->orders.list, 1);
+	bool is_first = true;
+
+	for (uint i = 0; i < destinations.Length() && buffer < last; i++) {
+		if (!is_first) buffer += seprintf(buffer, last, "/");
+		else is_first = false;
+
+		SetDParam(0, destinations[i]);
+		buffer = GetString(buffer, STR_STATION_NAME, last);
+	}
+}
+
+/**
  * Rebuilds groups for a vehicle type given a certain criteria.
  * @param tile unused
  * @param flags type of operation
@@ -1308,6 +1354,7 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 	GroupStatistics::Get(_current_company, ALL_GROUP, vt).num_vehicle = 0;
 	GroupStatistics::Get(_current_company, ALL_GROUP, vt).ClearProfits();
 
+	Group *g;
 	uint i = 0; // Number of vehicles already checked.
 	uint j = 0; // Number of already created groups.
 
@@ -1321,7 +1368,7 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 		/* A new group for vehicle v is needed. */
 		if (!Group::CanAllocateItem()) return CMD_ERROR;
 
-		Group *g = new Group(_current_company);
+		g = new Group(_current_company);
 		g->replace_protection = false;
 		g->vehicle_type = vt;
 		j++;
@@ -1348,6 +1395,36 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 		/* Once we have all vehicles on group, update the cargo_types. */
 		g->statistics.UpdateCargoTypes();
 
+		/* Assign group name. */
+		char new_name[MAX_LENGTH_GROUP_NAME_CHARS];
+		char *buffer = new_name, *last = &new_name[MAX_LENGTH_GROUP_NAME_CHARS - 1];
+		switch (grouped_by_type) {
+			case GBT_ORDER_SIMPLE:
+				SetDParam(0, j);
+				buffer = GetString(buffer, STR_GROUP_SCHEDULE, last);
+				AddCargoString(buffer, last, g->statistics);
+				break;
+			case GBT_ORDER_STATIONS:
+				buffer += seprintf(buffer, last, "(%u) ", g->statistics.order_lists.Length());
+				AddDestinationsString(buffer, last, v);
+				break;
+			case GBT_1ST_ENGINE_CLASS_CARGO:
+			case GBT_CARGO:
+				AddCargoString(buffer, last, g->statistics);
+				break;
+			case GBT_1ST_ENGINE:
+				SetDParam(0, v->engine_type);
+				buffer = GetString(buffer, STR_ENGINE_NAME, last);
+				break;
+			case GBT_CARGO_ORDER:
+				SetDParam(0, j);
+				buffer = GetString(buffer, STR_GROUP_SCHEDULE, last);
+				AddDestinationsString(buffer, last, v);
+				break;
+			default: NOT_REACHED();
+		}
+
+		g->name = stredup(new_name);
 		i++;
 	}
 
@@ -1370,6 +1447,23 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 			const Vehicle *v = Group::Get(involved_groups[0])->GetVehicleOfGroup();
 			assert(v != NULL);
 
+			/* Assign group name. */
+			char new_name[MAX_LENGTH_GROUP_NAME_CHARS];
+			char *buffer = new_name, *last = &new_name[MAX_LENGTH_GROUP_NAME_CHARS - 1];
+
+			switch (grouped_by_type) {
+				case GBT_CARGO_ORDER:
+					AddCargoString(buffer, last, Group::Get(involved_groups[0])->statistics);
+					break;
+				case GBT_1ST_ENGINE_CLASS_CARGO:
+					buffer = GetString(buffer, STR_LIVERY_DEFAULT + GetEngineLiveryScheme(v->engine_type, INVALID_ENGINE, v), last);
+					buffer += seprintf(buffer, last, ":");
+					break;
+				default: NOT_REACHED();
+			}
+
+			new_parent_group->name = stredup(new_name);
+
 			for (uint i = involved_groups.Length(); i--; ) {
 				Group *iter = Group::Get(involved_groups[i]);
 				switch (grouped_by_type) {
@@ -1391,6 +1485,17 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 			}
 		}
 	}
+
+	/* Remove name duplicates. */
+	FOR_ALL_GROUPS(g) {
+		if (g->vehicle_type != vt) continue;
+		if (g->owner != _current_company) continue;
+		if(!IsUniqueGroupName(g->name, g)) {
+			free(g->name);
+			g->name = NULL;
+		}
+	}
+
 
 	/* Update DEFAULT_GROUP statistics. */
 	GroupStatistics::Get(_current_company, DEFAULT_GROUP, vt).Clear();
