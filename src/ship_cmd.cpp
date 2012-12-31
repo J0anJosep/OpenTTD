@@ -33,6 +33,7 @@
 #include "company_base.h"
 #include "tunnelbridge_map.h"
 #include "zoom_func.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 
@@ -331,37 +332,32 @@ static bool CheckShipLeaveDepot(Ship *v)
 	TileIndex tile = v->tile;
 	Axis axis = GetShipDepotAxis(tile);
 
-	DiagDirection north_dir = ReverseDiagDir(AxisToDiagDir(axis));
-	TileIndex north_neighbour = TILE_ADD(tile, TileOffsByDiagDir(north_dir));
+	/* Check we can reserve the depot track */
+	if (HasWaterTrackReservation(tile)) return true;
+
 	DiagDirection south_dir = AxisToDiagDir(axis);
-	TileIndex south_neighbour = TILE_ADD(tile, 2 * TileOffsByDiagDir(south_dir));
+	DiagDirection north_dir = ReverseDiagDir(south_dir);
 
+	TileIndex north_neighbour = TILE_ADD(tile, TileOffsByDiagDir(north_dir));
 	TrackBits north_tracks = DiagdirReachesTracks(north_dir) & GetTileShipTrackStatus(north_neighbour);
-	TrackBits south_tracks = DiagdirReachesTracks(south_dir) & GetTileShipTrackStatus(south_neighbour);
-	if (north_tracks && south_tracks) {
-		/* Ask pathfinder for best direction */
-		bool reverse = false;
-		bool path_found;
-		switch (_settings_game.pf.pathfinder_for_ships) {
-			case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_tracks, path_found) == INVALID_TRACK; break; // OPF always allows reversing
-			case VPF_NPF: reverse = NPFShipCheckReverse(v); break;
-			case VPF_YAPF: reverse = YapfShipCheckReverse(v); break;
-			default: NOT_REACHED();
-		}
-		if (reverse) north_tracks = TRACK_BIT_NONE;
+
+	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), south_dir))) return true;
+	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), north_dir))) return true;
+
+	/* Ask pathfinder for best direction */
+	bool reverse = false;
+	bool path_found;
+	switch (_settings_game.pf.pathfinder_for_ships) {
+		case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_tracks, path_found) == INVALID_TRACK; break; // OPF always allows reversing
+		case VPF_NPF: reverse = NPFShipCheckReverse(v); break;
+		case VPF_YAPF: reverse = YapfShipCheckReverse(v); break;
+		default: NOT_REACHED();
 	}
 
-	if (north_tracks) {
-		/* Leave towards north */
-		v->direction = DiagDirToDir(north_dir);
-	} else if (south_tracks) {
-		/* Leave towards south */
-		v->direction = DiagDirToDir(south_dir);
-	} else {
-		/* Both ways blocked */
-		return false;
-	}
+	/* Leave towards south if reverse. */
+	v->direction = DiagDirToDir(reverse ? south_dir : north_dir);
 
+	if (!SetWaterTrackReservation(tile, (Track)axis, true)) NOT_REACHED();
 	v->state = AxisToTrackBits(axis);
 	v->vehstatus &= ~VS_HIDDEN;
 
@@ -447,7 +443,18 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 		default: NOT_REACHED();
 	}
 
+	/* A path is being found */
 	v->HandlePathfindingResult(path_found);
+
+	/* The path is not free now */
+	if (track != INVALID_TRACK && !DoWaterPathReservation(tile, TrackEnterdirToTrackdir(track, enterdir))) {
+		/* Track couldn't be reserved, so if there are alternatives, take them. */
+		track = FindFirstTrack(tracks);
+		Trackdir trackdir = TrackEnterdirToTrackdir(track, enterdir);
+		assert(IsWaterPositionFree(tile, trackdir));
+		if (!SetWaterTrackReservation(tile, track, true)) NOT_REACHED();
+	}
+
 	return track;
 }
 
@@ -568,6 +575,8 @@ static void ShipController(Ship *v)
 
 					case OT_GOTO_DEPOT:
 						if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
+							assert(v->tile == v->dest_tile);
+							SetWaterTrackReservation(v->tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
 							VehicleEnterDepot(v);
 							return;
 						}
@@ -603,12 +612,24 @@ static void ShipController(Ship *v)
 
 			DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 			assert(diagdir != INVALID_DIAGDIR);
+
+			/* Choose a ship track */
 			tracks = GetAvailShipTracks(gp.new_tile, diagdir);
 			if (tracks == TRACK_BIT_NONE) goto reverse_direction;
 
-			/* Choose a direction, and continue if we find one */
-			track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
-			if (track == INVALID_TRACK) goto reverse_direction;
+			/* If we can continue path, do it */
+			if (tracks & GetReservedWaterTracks(gp.new_tile)) {
+				tracks &= GetReservedWaterTracks(gp.new_tile);
+				track = TrackBitsToTrack(tracks);
+			} else {
+				/* Of the available tracks, get only those that can be reserved */
+				tracks = GetFreeWaterTrackReservation(gp.new_tile, TrackBitsToTrackdirBits(tracks) & DiagdirReachesTrackdirs(diagdir));
+				if (tracks == TRACK_BIT_NONE) goto reverse_direction;
+
+				/* Choose a direction, and continue if we find one */
+				track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
+				if (track == INVALID_TRACK) goto reverse_direction;
+			}
 
 			b = _ship_subcoord[diagdir][track];
 
@@ -620,6 +641,7 @@ static void ShipController(Ship *v)
 			if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
 			if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
+				SetWaterTrackReservation(gp.old_tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
 				v->tile = gp.new_tile;
 				v->state = TrackToTrackBits(track);
 
