@@ -78,6 +78,7 @@ struct GroupStatistics {
 	DropDownList *BuildSharedOrdersDropdown() const;
 
 	SmallVector<Vehicle *, 32> GetListOfFirstSharedVehicles() const;
+	SpriteID SetGroupProfitSpriteID() const;
 };
 
 /** Group data. */
