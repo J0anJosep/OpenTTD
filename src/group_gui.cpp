@@ -51,7 +51,7 @@ static const NWidgetPart _nested_group_widgets[] = {
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_GL_ALL_VEHICLES), SetFill(1, 0), EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_GL_DEFAULT_VEHICLES), SetFill(1, 0), EndContainer(),
 			NWidget(NWID_HORIZONTAL),
-				NWidget(WWT_MATRIX, COLOUR_GREY, WID_GL_LIST_GROUP), SetMatrixDataTip(1, 0, STR_GROUPS_CLICK_ON_GROUP_FOR_TOOLTIP),
+				NWidget(WWT_MATRIX, COLOUR_GREY, WID_GL_LIST_GROUP), SetMatrixDataTip(1, 0, STR_NULL),
 						SetFill(1, 0), SetResize(0, 1), SetScrollbar(WID_GL_LIST_GROUP_SCROLLBAR),
 				NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_GL_LIST_GROUP_SCROLLBAR),
 			EndContainer(),
@@ -856,6 +856,59 @@ public:
 			str = STR_GROUP_NAME;
 		}
 		ShowQueryString(str, STR_GROUP_RENAME_CAPTION, MAX_LENGTH_GROUP_NAME_CHARS, this, CS_ALPHANUMERAL, QSF_ENABLE_DEFAULT | QSF_LEN_IN_CHARS);
+	}
+
+	virtual void OnMouseOver(Point pt, int widget)
+	{
+		/* Mouse is over... */
+		GroupID new_group_over = INVALID_GROUP;
+		switch (widget) {
+			case WID_GL_ALL_VEHICLES: // ... the 'all' group.
+				new_group_over = ALL_GROUP;
+				break;
+
+			case WID_GL_DEFAULT_VEHICLES: // ... the 'default' group.
+				new_group_over = DEFAULT_GROUP;
+				break;
+
+			case WID_GL_LIST_GROUP: { // ... the list of custom groups.
+				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
+				if (id_g < this->groups.Length()) new_group_over = this->groups[id_g]->index;
+				break;
+			}
+		}
+
+		/* Mark widgets as dirty if the group changed. */
+		if (new_group_over != this->group_over) {
+			this->DirtyHighlightedGroupWidget();
+			this->group_over = new_group_over;
+			this->DirtyHighlightedGroupWidget();
+		}
+
+		/* Cast directly a hover event */
+		if (this->group_over != INVALID_GROUP) this->OnHover(pt, widget);
+	}
+
+	virtual void OnHover(Point pt, int widget)
+	{
+		if (this->group_over == INVALID_GROUP) return;
+		GroupStatistics *stat = NULL;
+		switch (widget) {
+			case WID_GL_ALL_VEHICLES:
+			case WID_GL_DEFAULT_VEHICLES:
+				stat = &(GroupStatistics::Get(this->vli.company, widget == WID_GL_ALL_VEHICLES ? ALL_GROUP : DEFAULT_GROUP, this->vli.vtype));
+				break;
+			case WID_GL_LIST_GROUP:
+				stat = &(Group::Get(this->group_over)->statistics);
+			default: break;
+		}
+		/* Show tooltip window */
+		if (stat->num_profit_vehicle == 0) return;
+		uint64 args[3];
+		args[0] = stat->profit_last_year;
+		args[1] = stat->profit_last_year / stat->num_profit_vehicle;
+		args[2] = stat->min_profit_vehicle >> 8;
+		GuiShowTooltips(this, STR_GROUPS_GROUP_LIST_TOOLTIP, 3, args);
 	}
 
 	/**
