@@ -324,6 +324,53 @@ void OrderList::Initialize(Order *chain, Vehicle *v)
 }
 
 /**
+ * Get the max unpunctuality of a vehicle chain
+ * @param delay: 1 -> only delayed vehicles are considered (no earlier); 0 -> delayed & earlier vehicles
+ * @return Ticks (absolute value) of the max delayed/unpunctual vehicle
+ */
+Ticks OrderList::GetMaxUnpunctuality(bool delay) const
+{
+	Ticks max_delay = 0;
+	for (Vehicle *v = this->GetFirstSharedVehicle(); v != NULL; v = v->NextShared()) {
+		max_delay = max(max_delay, delay ? v->lateness_counter: abs(v->lateness_counter));
+	}
+	return max_delay;
+}
+
+/**
+ * Return the % of unpuncutality of the most unpuntual (delayed and early) vehicle
+ */
+int OrderList::GetRelativeUnpunctuality() const
+{
+	int relative = 100 * this->GetMaxUnpunctuality(false);
+	assert(this->IsCompleteTimetable());
+	relative /= this->GetTimetableDurationIncomplete();
+	return relative;
+}
+
+/**
+ * Return the colour for a text based on the type of orderlist
+ * @return red if invalid or empty, gold if unpunctual, light blue if autofilling, black otherwise
+ */
+TextColour OrderList::GetOrderListTypeColour() const
+{
+	switch (this->ol_type) {
+		case OLT_INVALID:
+		case OLT_EMPTY:
+		case OLT_EMPTY_GROUP:
+			return TC_RED;
+		case OLT_UNPUNCTUAL:
+			return TC_GOLD;
+		case OLT_AUTOFILLING:
+			return TC_LIGHT_BLUE;
+		/* OLT_CONDITIONAL OLT_COMPLETE OLT_INCOMPLETE OLT_IMPLICIT */
+		default:
+			break;
+	}
+	return TC_BLACK;
+}
+
+/**
  * Free a complete order chain.
  * @param keep_orderlist If this is true only delete the orders, otherwise also delete the OrderList.
  * @note do not use on "current_order" vehicle orders!
