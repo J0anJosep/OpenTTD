@@ -297,7 +297,10 @@
     <ClCompile Include="..\src\order_backup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\pbs.cpp">
+    <ClCompile Include="..\src\pbs_rail.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pbs_water.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\progress.cpp">
@@ -898,6 +901,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pbs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pbs_rail.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pbs_water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\progress.h">

@@ -26,7 +26,7 @@
 #include "tunnelbridge.h"
 #include "elrail_func.h"
 #include "town.h"
-#include "pbs.h"
+#include "pbs_rail.h"
 #include "company_base.h"
 #include "core/backup_type.hpp"
 #include "date_func.h"
