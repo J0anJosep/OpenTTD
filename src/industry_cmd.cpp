@@ -186,6 +186,8 @@ Industry::~Industry()
 	DeleteSubsidyWith(ST_INDUSTRY, this->index);
 	CargoPacket::InvalidateAllFrom(ST_INDUSTRY, this->index);
 
+	Station::RecomputeIndustriesNearArea(this->location, this->footprint);
+
 	delete [] this->footprint;
 }
 
@@ -196,7 +198,6 @@ Industry::~Industry()
 void Industry::PostDestructor(size_t index)
 {
 	InvalidateWindowData(WC_INDUSTRY_DIRECTORY, 0, 0);
-	Station::RecomputeIndustriesNearForAll();
 }
 
 /**
@@ -1813,13 +1814,13 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 	} while ((++it)->ti.x != -0x80);
 
 	i->SetFootprint();
+	Station::RecomputeIndustriesNearArea(i->location, i->footprint);
 
 	if (GetIndustrySpec(i->type)->behaviour & INDUSTRYBEH_PLANT_ON_BUILT) {
 		for (uint j = 0; j != 50; j++) PlantRandomFarmField(i);
 	}
 	InvalidateWindowData(WC_INDUSTRY_DIRECTORY, 0, 0);
 
-	Station::RecomputeIndustriesNearForAll();
 }
 
 /**
