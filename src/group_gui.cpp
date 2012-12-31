@@ -118,7 +118,6 @@ private:
 	GroupID group_over;    ///< Group over which a vehicle is dragged, INVALID_GROUP if none
 	GroupID group_confirm; ///< Group awaiting delete confirmation
 	GroupID group_highlight;///< Group that contains selected vehicle
-	GUIGroupList groups;   ///< List of groups
 	uint tiny_step_height; ///< Step height for the group list
 	Scrollbar *group_sb;
 
