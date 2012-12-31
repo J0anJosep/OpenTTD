@@ -568,11 +568,9 @@ CommandCost CmdAddSharedVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32
 		FOR_ALL_VEHICLES(v) {
 			if (v->type == type && v->IsPrimaryVehicle()) {
 				if (v->group_id != id_g) continue;
-
-				/* For each shared vehicles add it to the group */
-				for (Vehicle *v2 = v->FirstShared(); v2 != NULL; v2 = v2->NextShared()) {
-					if (v2->group_id != id_g) DoCommand(tile, id_g, v2->index, flags, CMD_ADD_VEHICLE_GROUP, text);
-				}
+				Vehicle *v2 = v->FirstShared();
+				if (v2 != v && v2->group_id == id_g) continue;
+				DoCommand(tile, id_g,  v2->index | 1 << 31, flags, CMD_ADD_VEHICLE_GROUP, text);
 			}
 		}
 
