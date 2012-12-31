@@ -113,6 +113,7 @@ private:
 	GroupID group_rename;  ///< Group being renamed, INVALID_GROUP if none
 	GroupID group_over;    ///< Group over which a vehicle is dragged, INVALID_GROUP if none
 	GroupID group_confirm; ///< Group awaiting delete confirmation
+	GroupID group_highlight;///< Group that contains selected vehicle
 	GUIGroupList groups;   ///< List of groups
 	uint tiny_step_height; ///< Step height for the group list
 	Scrollbar *group_sb;
@@ -244,8 +245,11 @@ private:
 
 		if (g_id == NEW_GROUP) return;
 
+		/* is a vehicle of this group selected? */
+		bool is_veh_selected = !IsAllGroupID(g_id) && this->vehicle_sel != INVALID_VEHICLE && group_highlight == g_id;
+
 		/* draw the selected group in white, else we draw it in black */
-		TextColour colour = g_id == this->vli.index ? TC_WHITE : TC_BLACK;
+		TextColour colour = this->vli.index == g_id || is_veh_selected ? TC_WHITE : TC_BLACK;
 		const GroupStatistics &stats = GroupStatistics::Get(this->vli.company, g_id, this->vli.vtype);
 		bool rtl = _current_text_dir == TD_RTL;
 
@@ -343,6 +347,7 @@ public:
 		this->group_sel = INVALID_GROUP;
 		this->group_rename = INVALID_GROUP;
 		this->group_over = INVALID_GROUP;
+		this->group_highlight = INVALID_GROUP;
 
 		this->vehicles.SetListing(*this->sorting);
 		this->vehicles.ForceRebuild();
@@ -655,6 +660,7 @@ public:
 				if (VehicleClicked(v)) break;
 
 				this->vehicle_sel = v->index;
+				this->group_highlight = v->group_id;
 
 				SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
 				SetMouseCursorVehicle(v, EIT_IN_LIST);
