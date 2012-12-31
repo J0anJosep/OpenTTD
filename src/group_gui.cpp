@@ -619,7 +619,7 @@ public:
 				break;
 
 			case WID_GL_MANAGE_VEHICLES_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownList(true, Group::IsValidID(this->vli.index));
+				DropDownList *list = this->BuildActionDropdownList(true, Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index));
 				ShowDropDownList(this, list, 0, WID_GL_MANAGE_VEHICLES_DROPDOWN);
 				break;
 			}
@@ -717,7 +717,7 @@ public:
 					}
 
 					case ADI_ADD_SHARED: // Add shared Vehicles
-						assert(Group::IsValidID(this->vli.index));
+						assert(Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index));
 
 						DoCommandP(0, this->vli.index, this->vli.vtype, CMD_ADD_SHARED_VEHICLE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_ADD_SHARED_VEHICLE));
 						break;
