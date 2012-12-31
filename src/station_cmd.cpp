@@ -674,6 +674,10 @@ void Station::AfterStationTileSetChange(bool adding, const TileArea ta, StationT
 	DirtyCompanyInfrastructureWindows(this->owner);
 	InvalidateWindowData(WC_STATION_LIST, this->owner, 0);
 
+	TileArea ta_extended;
+	ta_extended.CopyAndExtend(ta, Station::GetCatchmentRadius(type));
+	Industry::RecomputeStationsNearArea(ta_extended);
+
 	byte widget_index;
 	switch (type) {
 		case STATION_RAIL:
@@ -1579,6 +1583,9 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 		st->RecomputeIndustriesNear();
 	}
 
+	ta.AddRadius(Station::GetCatchmentRadius(STATION_RAIL));
+	Industry::RecomputeStationsNearArea(ta);
+
 	/* Now apply the rail cost to the number that we deleted */
 	return ret;
 }
@@ -1657,11 +1664,14 @@ static CommandCost RemoveRailStation(TileIndex tile, DoCommandFlag flags)
 	}
 
 	Station *st = Station::GetByTile(tile);
+	TileArea ta = st->train_station;
+	ta.AddRadius(Station::GetCatchmentRadius(STATION_RAIL));
 	CommandCost cost = RemoveRailStation(st, flags, _price[PR_CLEAR_STATION_RAIL]);
 
 	if (flags & DC_EXEC) {
 		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
+		Industry::RecomputeStationsNearArea(ta);
 	}
 
 	return cost;
@@ -3845,6 +3855,8 @@ void DeleteOilRig(TileIndex tile)
 	st->UpdateVirtCoord();
 	st->UpdateCatchment();
 	st->RecomputeIndustriesNear();
+	const TileArea ta(tile, 1, 1, Station::GetCatchmentRadius(STATION_OILRIG));
+	Industry::RecomputeStationsNearArea(ta);
 	if (!st->IsInUse()) delete st;
 }
 

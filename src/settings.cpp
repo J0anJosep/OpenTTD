@@ -64,6 +64,7 @@
 #include "roadveh.h"
 #include "fios.h"
 #include "strings_func.h"
+#include "industry.h"
 
 #include "void_map.h"
 #include "station_base.h"
@@ -1315,6 +1316,8 @@ static bool StationCatchmentChanged(int32 p1)
 		st->RecomputeIndustriesNear();
 		UpdateStationAcceptance(st, true);
 	}
+
+	Industry::RecomputeStationsNearForAll();
 
 	InvalidateWindowClassesData(WC_STATION_LIST);
 	InvalidateWindowClassesData(WC_STATION_VIEW);
