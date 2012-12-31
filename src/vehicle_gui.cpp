@@ -1660,7 +1660,11 @@ public:
 		switch (widget) {
 			case WID_VL_SORT_ORDER:
 				/* draw arrow pointing up/down for ascending/descending sorting */
-				this->DrawSortButtonState(widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				if (show == VLS_GROUPS) {
+					this->DrawSortButtonState(widget, this->groups.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				} else {
+					this->DrawSortButtonState(widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				}
 				break;
 
 			case WID_VL_LIST:
@@ -1697,7 +1701,8 @@ public:
 
 		/* Set text of sort by dropdown widget. */
 		this->GetWidget<NWidgetCore>(WID_VL_SORT_BY_PULLDOWN)->widget_data =
-				this->vehicle_sorter_names[this->vehicles.SortType()];
+				show == VLS_VEHICLES ?
+						this->vehicle_sorter_names[this->vehicles.SortType()] : this->group_sorter_names[this->groups.SortType()];
 
 		this->DrawWidgets();
 	}
@@ -1706,7 +1711,11 @@ public:
 	{
 		switch (widget) {
 			case WID_VL_SORT_ORDER: // Flip sorting method ascending/descending
-				this->vehicles.ToggleSortOrder();
+				if (show == VLS_GROUPS) {
+					this->groups.ToggleSortOrder();
+				} else {
+					this->vehicles.ToggleSortOrder();
+				}
 				this->SetDirty();
 				break;
 
@@ -1721,6 +1730,13 @@ public:
 
 				const Vehicle *v = this->vehicles[id_v];
 				if (!VehicleClicked(v)) ShowVehicleViewWindow(v);
+				break;
+			}
+
+			case WID_VL_DUAL: {
+				/* Toggle panel */
+				this->show = this->show == VLS_GROUPS ? VLS_VEHICLES : VLS_GROUPS;
+				this->SetDirty();
 				break;
 			}
 
