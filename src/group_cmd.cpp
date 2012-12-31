@@ -410,6 +410,28 @@ CommandCost CmdDeleteGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 }
 
 /**
+ * Checks that a new group name is unique.
+ * @param name
+ * @param given_group
+ */
+static bool IsUniqueGroupName(const char *name, const Group *given_group)
+{
+	const Group *g;
+
+	FOR_ALL_GROUPS(g) {
+		if (g->owner == given_group->owner &&
+				g->vehicle_type == given_group->vehicle_type &&
+				g->index != given_group->index &&
+				g->parent == given_group->parent &&
+				g->name != NULL &&
+				strcmp(g->name, name) == 0)
+			return false;
+	}
+
+	return true;
+}
+
+/**
  * Delete group names of a given company and a vehicle type.
  * @param tile unused
  * @param flags type of operation
@@ -471,6 +493,7 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		bool reset = StrEmpty(text);
 		if (!reset) {
 			if (Utf8StringLength(text) >= MAX_LENGTH_GROUP_NAME_CHARS) return CMD_ERROR;
+			if (!IsUniqueGroupName(text, g)) return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
 		}
 
 		if (flags & DC_EXEC) {
@@ -494,6 +517,10 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			/* Ensure request parent isn't child of group.
 			 * This is the only place that infinite loops are prevented. */
 			if (GroupIsInGroup(pg->index, g->index)) return CMD_ERROR;
+			/* Prevent two children of the same group to have equal names. */
+			if (!IsUniqueGroupName(g->name, g)) {
+				return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
+			}
 		}
 		if (flags & DC_EXEC) {
 			g->parent = (pg == NULL) ? INVALID_GROUP : pg->index;
