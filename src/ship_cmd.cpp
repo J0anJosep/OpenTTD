@@ -493,6 +493,34 @@ static const byte _ship_subcoord[4][6][3] = {
 	}
 };
 
+/**
+ * Stuff to do when a ship reaches a dock destination tile (not oil rig)
+ * @param v ship that reaches its dock destination tile
+ * @param t tile (dock tile)
+ * @pre current order of ship is go to a station
+ * @note must check if it is still the valid dock destination
+ */
+static void ShipReachesDockDestTile(Ship *v, TileIndex t) {
+	Station *st = Station::Get(v->current_order.GetDestination());
+	/* Check station has water facilities */
+	if ((st->facilities & FACIL_DOCK) == 0) {
+		/* If not, vehicle is lost */
+		v->HandlePathfindingResult(false);
+		return;
+	}
+
+	if (IsDockTile(t) && Station::GetByTile(t) == st) {
+		/* Process station in the orderlist */
+		v->last_station_visited = v->current_order.GetDestination();
+		ShipArrivesAt(v, st);
+		v->BeginLoading();
+	} else {
+		/* Destination station has water facilities
+		 * but they have been moved to another tile */
+		v->dest_tile = TileAddByDiagDir(st->dock_tile, GetDockDirection(st->dock_tile));
+	}
+}
+
 static void ShipController(Ship *v)
 {
 	uint32 r;
@@ -532,48 +560,48 @@ static void ShipController(Ship *v)
 				r = VehicleEnterTile(v, gp.new_tile, gp.x, gp.y);
 				if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
-				/* A leave station order only needs one tick to get processed, so we can
-				 * always skip ahead. */
-				if (v->current_order.IsType(OT_LEAVESTATION)) {
-					v->current_order.Free();
-					SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-				} else if (v->dest_tile != 0) {
-					/* We have a target, let's see if we reached it... */
-					if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-							DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
-						/* We got within 3 tiles of our target buoy, so let's skip to our
-						 * next order */
-						UpdateVehicleTimetable(v, true);
-						v->IncrementRealOrderIndex();
-						v->current_order.MakeDummy();
-					} else {
-						/* Non-buoy orders really need to reach the tile */
-						if (v->dest_tile == gp.new_tile) {
-							if (v->current_order.IsType(OT_GOTO_DEPOT)) {
-								if ((gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
-									VehicleEnterDepot(v);
-									return;
-								}
-							} else if (v->current_order.IsType(OT_GOTO_STATION)) {
-								v->last_station_visited = v->current_order.GetDestination();
+				switch (v->current_order.GetType()) {
+					case OT_LEAVESTATION:
+						/* A leave station order only needs one tick to get processed,
+						 * so we can always skip ahead. */
+						v->current_order.Free();
+						SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
+						break;
 
-								/* Process station in the orderlist. */
-								Station *st = Station::Get(v->current_order.GetDestination());
-								if (st->facilities & FACIL_DOCK) { // ugly, ugly workaround for problem with ships able to drop off cargo at wrong stations
-									ShipArrivesAt(v, st);
-									v->BeginLoading();
-								} else { // leave stations without docks right aways
-									v->current_order.MakeLeaveStation();
-									v->IncrementRealOrderIndex();
-								}
-							}
+					case OT_GOTO_DEPOT:
+						if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
+							VehicleEnterDepot(v);
+							return;
 						}
-					}
+						break;
+
+					case OT_GOTO_STATION:
+						/* Oil rigs won't be processed here as they will reverse when reaching the tile */
+						if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
+							ShipReachesDockDestTile(v, gp.new_tile);
+						}
+						break;
+
+					default: break;
 				}
 			}
 		} else {
 			/* New tile */
 			if (!IsValidTile(gp.new_tile)) goto reverse_direction;
+
+			if (v->current_order.IsType(OT_GOTO_WAYPOINT)) {
+				if (DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
+					UpdateVehicleTimetable(v, true);
+					v->IncrementRealOrderIndex();
+					v->current_order.MakeDummy();
+				}
+			} else if (v->dest_tile == gp.new_tile && v->current_order.IsType(OT_GOTO_STATION) && IsTileType(gp.new_tile, MP_INDUSTRY)) {
+				/* Workaround to deal with oil rigs. */
+				v->last_station_visited = v->current_order.GetDestination();
+				ShipArrivesAt(v, Station::Get(v->last_station_visited));
+				v->BeginLoading();
+				goto reverse_direction;
+			}
 
 			DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 			assert(diagdir != INVALID_DIAGDIR);
