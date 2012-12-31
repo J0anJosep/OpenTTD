@@ -289,6 +289,17 @@ private:
 		}
 	}
 
+	/**
+	 * Returns the current selected group position on groups list, or groups.Length() if not found
+	 * Used when deleting groups to select a close group
+	 */
+	uint FindGroupListPosition() const
+	{
+		for (uint gli = groups.Length(); gli--;)
+			if (this->vli.index == this->groups[gli]->index) return gli;
+		return groups.Length();
+	}
+
 public:
 	VehicleGroupWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
 	{
@@ -598,15 +609,25 @@ public:
 			}
 
 			case WID_GL_CREATE_GROUP: { // Create a new group
-				DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_CREATE), CcCreateGroup);
+				/* If a new group is created, select it */
+				if (DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_CREATE), CcCreateGroup))
+					this->vli.index = _new_group_id;
 				break;
 			}
 
 			case WID_GL_DELETE_GROUP: { // Delete the selected group
-				GroupID group = this->vli.index;
-				this->vli.index = ALL_GROUP;
-
-				DoCommandP(0, group, 0, CMD_DELETE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_DELETE));
+				uint gli_index = this->FindGroupListPosition();
+				if (!DoCommandP(0, this->vli.index, 0, CMD_DELETE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_DELETE))) break;
+				/* If a group is deleted, select closest group */
+				if (this->groups.Length() > 1) {
+					if (gli_index != groups.Length() - 1) { //next if possible
+						this->vli.index = this->groups[gli_index + 1]->index;
+					} else { //previous if possible
+						this->vli.index = this->groups[gli_index - 1]->index;
+					}
+				} else	{ //select ALL_GROUP otherwise
+					this->vli.index = ALL_GROUP;
+				}
 				break;
 			}
 
