@@ -1380,6 +1380,35 @@ static int DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Vehi
 }
 
 /**
+ * Draws a small order list of a group
+ * @param group
+ * @param left
+ * @param right
+ * @param y: vertical position
+ * @return it returns the position of most left/right pixel drawn (ltr/rtl)
+ */
+static int DrawSmallOrderList(const Group *g, int left, int right, int y)
+{
+	int next_margin = InitTempMargin(left, right, false);
+	SmallVector<Vehicle *, 32>  vector = g->statistics.GetListOfFirstSharedVehicles();
+
+	/* Only draw OrderList if there is one OrderList for the whole group */
+	if (vector.Length() == 1) {
+		uint i = 0;
+		for (const Order *order = vector[0]->GetOrder(0); order != NULL && i < 4; order = order->next) {
+			if (order->IsType(OT_GOTO_STATION)) {
+				SetDParam(0, order->GetDestination());
+				DrawString2(left + 6, right - 6, y, next_margin, STR_TINY_BLACK_STATION);
+				y += FONT_HEIGHT_SMALL;
+				i++;
+			}
+		}
+	}
+
+	return next_margin;
+}
+
+/**
  * Draws an image of a vehicle chain
  * @param v         Front vehicle
  * @param left      The minimum horizontal position
@@ -1417,6 +1446,79 @@ uint GetVehicleListHeight(VehicleType type, uint divisor)
 	/* Make sure the height is dividable by divisor */
 	uint rem = base % divisor;
 	return base + (rem == 0 ? 0 : divisor - rem);
+}
+
+/**
+ * Draw all the group list items.
+ * @param line_height      Height of a single item line.
+ * @param r                Rectangle with edge positions of the matrix widget.
+ */
+void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect &r) const
+{
+	/* left and right bounds where to draw */
+	int left = r.left + WD_MATRIX_LEFT;
+	int right = r.right - WD_MATRIX_RIGHT;
+
+	/* horizontal space to add sometimes */
+	int space = 5;
+
+	/* during each for, next_margin is updated each time we draw something
+	 * at the end, it contains where to start drawing the next column of data */
+	int next_margin = InitTempMargin(left, right, false);
+	AddSpace(space, next_margin, false);
+	UpdateMarginsEnd(next_margin, left, right, false);
+
+	int y = r.top;
+
+	uint vscroll_max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->groups.Length());
+
+	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
+		const Group *g = this->groups[i];
+
+		/* NAME OF GROUP */
+		SetDParam(0, STR_GROUP_NAME);
+		SetDParam(1, g->index);
+		DrawString2(left, right, y + 2, next_margin, STR_BLACK_STRING);
+
+		/* draw the number of vehicles of the group */
+		SetDParam(0, g->statistics.num_vehicle);
+		DrawString2(left + 5, right - 5, y + 4 + FONT_HEIGHT_NORMAL, next_margin, STR_TINY_COMMA, TC_BLACK);
+
+		y += line_height;
+	}
+
+	y = r.top;
+	AddSpace(space, next_margin, false);
+	/* update left and right so we can start drawing next column */
+	UpdateMarginsEnd(next_margin, left, right, false);
+
+	if (this->vli.vtype >= VEH_SHIP) {
+		/* DrawSmallOrderLists */
+		int end = next_margin;
+		for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
+			end = DrawSmallOrderList(this->groups[i], left, right, y);
+			UpdateMarginEnd(end, next_margin, false);
+			y += line_height;
+		}
+
+		y = r.top;
+		AddSpace(space, next_margin, false);
+		UpdateMarginsEnd(next_margin, left, right, false);
+	}
+
+	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
+		SmallVector<Vehicle *, 32>  vector = this->groups[i]->statistics.GetListOfFirstSharedVehicles();
+		if (vector.Length() == 0) break;
+		Vehicle *v = vector[0];
+		SetDParam(0, v->GetDisplayProfitThisYear());
+		SetDParam(1, v->GetDisplayProfitLastYear());
+
+		DrawVehicleImage(v, left, right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+		DrawString(left, right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
+
+		y += line_height;
+	}
+
 }
 
 /**
@@ -1626,26 +1728,26 @@ public:
 							 * and we should close the window when deleting the order. */
 							NOT_REACHED();
 						}
-						SetDParam(0, this->vscroll->GetCount());
+						SetDParam(0, this->vehicles.Length());
 						break;
 
 					case VL_STANDARD: // Company Name
 						SetDParam(0, STR_COMPANY_NAME);
 						SetDParam(1, this->vli.index);
-						SetDParam(3, this->vscroll->GetCount());
+						SetDParam(3, this->vehicles.Length());
 						break;
 
 					case VL_STATION_LIST: // Station/Waypoint Name
 						SetDParam(0, Station::IsExpected(BaseStation::Get(this->vli.index)) ? STR_STATION_NAME : STR_WAYPOINT_NAME);
 						SetDParam(1, this->vli.index);
-						SetDParam(3, this->vscroll->GetCount());
+						SetDParam(3, this->vehicles.Length());
 						break;
 
 					case VL_DEPOT_LIST:
 						SetDParam(0, STR_DEPOT_CAPTION);
 						SetDParam(1, this->vli.vtype);
 						SetDParam(2, this->vli.index);
-						SetDParam(3, this->vscroll->GetCount());
+						SetDParam(3, this->vehicles.Length());
 						break;
 					default: NOT_REACHED();
 				}
@@ -1667,7 +1769,11 @@ public:
 				break;
 
 			case WID_VL_LIST:
-				this->DrawVehicleListItems(INVALID_VEHICLE, this->resize.step_height, r);
+				if (show == VLS_VEHICLES) {
+					this->DrawVehicleListItems(INVALID_VEHICLE, this->resize.step_height, r);
+				} else {
+					this->DrawGroupListItems(this->resize.step_height, r);
+				}
 				break;
 		}
 	}
