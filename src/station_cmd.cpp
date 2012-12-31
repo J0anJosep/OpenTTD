@@ -3799,7 +3799,7 @@ void FindStationsAroundTiles(const TileArea &location, const BitMap *mask, Stati
 const StationList *StationFinder::GetStations()
 {
 	if (this->tile != INVALID_TILE) {
-		FindStationsAroundTiles(*this, NULL, &this->stations);
+		FindStationsAroundTiles(*this, this->mask, &this->stations);
 		this->tile = INVALID_TILE;
 	}
 	return &this->stations;
