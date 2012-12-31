@@ -373,7 +373,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 			int8 y_offs = GB(GetRegister(0x100), 8, 8);
 			TileIndex testtile = TILE_MASK(this->tile + TileDiffXY(x_offs, y_offs));
 
-			StationFinder stations(TileArea(testtile, 1, 1));
+			StationFinder stations(TileArea(testtile, 1, 1), NULL);
 			const StationList *sl = stations.GetStations();
 
 			/* Collect acceptance stats. */
