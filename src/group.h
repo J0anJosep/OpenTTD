@@ -77,6 +77,8 @@ struct GroupStatistics {
 
 	/* Return objects */
 	DropDownList *BuildSharedOrdersDropdown() const;
+
+	SpriteID SetGroupProfitSpriteID() const;
 };
 
 /** Group data. */
