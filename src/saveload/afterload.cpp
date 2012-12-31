@@ -295,6 +295,8 @@ static void InitializeWindowsAndCaches()
 		st->RecomputeIndustriesNear();
 	}
 
+	Industry::RecomputeStationsNearForAll();
+
 	RebuildSubsidisedSourceAndDestinationCache();
 
 	/* Towns have a noise controlled number of airports system
