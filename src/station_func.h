@@ -28,8 +28,8 @@ void FindStationsAroundTiles(const TileArea &location, const CustomBitMap *mask,
 void ShowStationViewWindow(StationID station);
 void UpdateAllStationVirtCoords();
 
-CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad);
-CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad, CargoTypes *always_accepted = NULL, const Industry *ind = NULL);
+CargoArray GetProductionAroundTiles(const TileArea ta, const CustomBitMap *mask);
+CargoArray GetAcceptanceAroundTiles(const TileArea ta, const CustomBitMap *mask, CargoTypes *always_accepted = NULL, const Industry *ind = NULL);
 
 void UpdateStationAcceptance(Station *st, bool show_msg);
 

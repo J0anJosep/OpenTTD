@@ -469,53 +469,28 @@ static void ShowRejectOrAcceptNews(const Station *st, uint num_items, CargoID *c
 }
 
 /**
- * Get the cargo types being produced around the tile (in a rectangle).
- * @param tile Northtile of area
- * @param w X extent of the area
- * @param h Y extent of the area
- * @param rad Search radius in addition to the given area
+ * Get the cargo types being produced on given area
+ * @param ta TileArea to check
+ * @param mask containing a bool array mask of tiles of ta really to check
  */
-CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad)
+CargoArray GetProductionAroundTiles(const TileArea ta, const CustomBitMap *mask)
 {
 	CargoArray produced;
+	Industry *i;
 
-	int x = TileX(tile);
-	int y = TileY(tile);
+	MASKED_TILE_AREA_LOOP(tile, ta, mask) {
+		if (IsTileType(tile, MP_INDUSTRY)) {
+			i = Industry::GetByTile(tile);
 
-	/* expand the region by rad tiles on each side
-	 * while making sure that we remain inside the board. */
-	int x2 = min(x + w + rad, MapSizeX());
-	int x1 = max(x - rad, 0);
+			/* Skip industry with neutral station */
+			if (i->neutral_station != NULL && !_settings_game.station.serve_neutral_industries) continue;
 
-	int y2 = min(y + h + rad, MapSizeY());
-	int y1 = max(y - rad, 0);
-
-	assert(x1 < x2);
-	assert(y1 < y2);
-	assert(w > 0);
-	assert(h > 0);
-
-	TileArea ta(TileXY(x1, y1), TileXY(x2 - 1, y2 - 1));
-
-	/* Loop over all tiles to get the produced cargo of
-	 * everything except industries */
-	TILE_AREA_LOOP(tile, ta) AddProducedCargo(tile, produced);
-
-	/* Loop over the industries. They produce cargo for
-	 * anything that is within 'rad' from their bounding
-	 * box. As such if you have e.g. a oil well the tile
-	 * area loop might not hit an industry tile while
-	 * the industry would produce cargo for the station.
-	 */
-	const Industry *i;
-	FOR_ALL_INDUSTRIES(i) {
-		if (!ta.Intersects(i->location)) continue;
-		/* Skip industry with neutral station */
-		if (i->neutral_station != NULL && !_settings_game.station.serve_neutral_industries) continue;
-
-		for (uint j = 0; j < lengthof(i->produced_cargo); j++) {
-			CargoID cargo = i->produced_cargo[j];
-			if (cargo != CT_INVALID) produced[cargo]++;
+			for (uint j = 0; j < lengthof(i->produced_cargo); j++) {
+				CargoID cargo = i->produced_cargo[j];
+				if (cargo != CT_INVALID) produced[cargo]++;
+			}
+		} else {
+			 AddProducedCargo(tile, produced);
 		}
 	}
 
@@ -523,48 +498,28 @@ CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad)
 }
 
 /**
- * Get the acceptance of cargoes around the tile in 1/8.
- * @param tile Center of the search area
- * @param w X extent of area
- * @param h Y extent of area
- * @param rad Search radius in addition to given area
+ * Get the acceptance of cargoes around given area
+ * @param ta (previously extended) area to check
+ * @param mask tiles of area really to be checked
  * @param always_accepted bitmask of cargo accepted by houses and headquarters; can be NULL
  * @param ind Industry associated with neutral station (e.g. oil rig) or NULL
  */
-CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad, CargoTypes *always_accepted, const Industry *ind)
+CargoArray GetAcceptanceAroundTiles(TileArea ta, const CustomBitMap *mask, CargoTypes *always_accepted, const Industry *ind)
 {
 	CargoArray acceptance;
 	if (always_accepted != NULL) *always_accepted = 0;
 
-	int x = TileX(tile);
-	int y = TileY(tile);
-
-	/* expand the region by rad tiles on each side
-	 * while making sure that we remain inside the board. */
-	int x2 = min(x + w + rad, MapSizeX());
-	int y2 = min(y + h + rad, MapSizeY());
-	int x1 = max(x - rad, 0);
-	int y1 = max(y - rad, 0);
-
-	assert(x1 < x2);
-	assert(y1 < y2);
-	assert(w > 0);
-	assert(h > 0);
-
-	for (int yc = y1; yc != y2; yc++) {
-		for (int xc = x1; xc != x2; xc++) {
-			TileIndex tile = TileXY(xc, yc);
-
-			if (!_settings_game.station.serve_neutral_industries) {
-				if (ind != NULL) {
-					if (!IsTileType(tile, MP_INDUSTRY)) continue;
-					if (Industry::GetByTile(tile) != ind) continue;
-				} else {
-					if (IsTileType(tile, MP_INDUSTRY) && Industry::GetByTile(tile)->neutral_station != NULL) continue;
-				}
+	MASKED_TILE_AREA_LOOP(tile, ta, mask) {
+		if (!_settings_game.station.serve_neutral_industries) {
+			if (ind != NULL) {
+				if (!IsTileType(tile, MP_INDUSTRY)) continue;
+				if (Industry::GetByTile(tile) != ind) continue;
+			} else {
+				if (IsTileType(tile, MP_INDUSTRY) && Industry::GetByTile(tile)->neutral_station != NULL) continue;
 			}
-			AddAcceptedCargo(tile, acceptance, always_accepted);
 		}
+
+		AddAcceptedCargo(tile, acceptance, always_accepted);
 	}
 
 	return acceptance;
@@ -583,14 +538,11 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 	/* And retrieve the acceptance. */
 	CargoArray acceptance;
 	if (!st->rect.IsEmpty()) {
-		acceptance = GetAcceptanceAroundTiles(
-			TileXY(st->rect.left, st->rect.top),
-			st->rect.right  - st->rect.left + 1,
-			st->rect.bottom - st->rect.top  + 1,
-			st->GetCatchmentRadius(),
-			&st->always_accepted,
-			_settings_game.station.serve_neutral_industries ? NULL : st->industry
-		);
+		acceptance = GetAcceptanceAroundTiles(st->GetStationCatchmentArea(),
+				st->GetStationCatchmentFootprint(),
+				&st->always_accepted,
+				_settings_game.station.serve_neutral_industries ? NULL : st->industry
+			);
 	}
 
 	/* Adjust in case our station only accepts fewer kinds of goods */
