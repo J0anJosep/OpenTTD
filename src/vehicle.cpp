@@ -2807,3 +2807,27 @@ void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8 num_vehicles)
 		}
 	}
 }
+
+/**
+ * Returns the types of cargo a vehicle can carry
+ * @param vehicle involved
+ */
+uint32 GetCargoType(const Vehicle *v, bool check_refit_orders)
+{
+	uint32 cargo_types = 0;
+	for (const Vehicle *u = v; u != NULL; u = u->Next())
+	{
+		if (u->cargo_cap == 0) continue;
+		SetBit(cargo_types, u->cargo_type);
+	}
+
+	if (check_refit_orders) {
+		Order *order;
+		FOR_VEHICLE_ORDERS(v, order) {
+			if (!order->IsType(OT_GOTO_DEPOT) && !order->IsType(OT_GOTO_STATION)) continue;
+			if (order->IsRefit() && !HasBit(cargo_types, order->GetRefitCargo())) SetBit(cargo_types, order->GetRefitCargo());
+		}
+	}
+
+	return cargo_types;
+}
