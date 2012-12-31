@@ -3370,6 +3370,27 @@ STR_GROUP_REPLACE_PROTECTION_TOOLTIP                            :{BLACK}Click to
 STR_GROUP_VEHICLE_WINDOW_TOOLTIP                                :{BLACK}Open a vehicle window for this group
 STR_GROUP_ORDERS_TOOLTIP                                        :{BLACK}Orders of first vehicle of the list (+CTRL, timetable instead)
 
+STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID                         :{RED}Inv
+STR_GROUP_LIST_TIMETABLE_ABBREV_EMPTY                           :{RED}Emp
+STR_GROUP_LIST_TIMETABLE_ABBREV_AUTOFILLING                     :{LTBLUE}Aut
+STR_GROUP_LIST_TIMETABLE_ABBREV_UNPUNCTUAL                      :{GOLD}Unp
+STR_GROUP_LIST_TIMETABLE_ABBREV_CONDITIONAL                     :Con
+STR_GROUP_LIST_TIMETABLE_ABBREV_COMPLETE                        :Com
+STR_GROUP_LIST_TIMETABLE_ABBREV_INCOMPLETE                      :Inc
+STR_GROUP_LIST_TIMETABLE_ABBREV_EMPTY_GROUP                     :{RED}GiE
+STR_GROUP_LIST_TIMETABLE_ABBREV_IMPLICIT                        :{GRAY}Imp
+
+STR_ORDERLIST_TYPE_INVALID                                      :Invalid order
+STR_ORDERLIST_TYPE_EMPTY                                        :Empty orders list
+STR_ORDERLIST_TYPE_AUTOFILLING                                  :Autofilling timetable
+STR_ORDERLIST_TYPE_UNPUNCTUAL                                   :Unpunctual timetable
+STR_ORDERLIST_TYPE_CONDITIONAL                                  :Conditional orders
+STR_ORDERLIST_TYPE_COMPLETE                                     :Complete timetable
+STR_ORDERLIST_TYPE_INCOMPLETE                                   :Incomplete timetable
+STR_ORDERLIST_TYPE_EMPTY_GROUP                                  :Group without orders
+STR_ORDERLIST_TYPE_IMPLICIT                                     :Implicit orders
+STR_ORDERLIST_TYPE_MARK_INCOMPLETE                              :incomplete
+
 STR_GROUP_VEHICLE_WINDOW_STR                                    :{STRING} {COMMA} Vehicle{P "" s}, {COMMA} Order{P "" s}{STRING}
 STR_GROUP_VEHICLE_WINDOW_STR_1ST                                :: {STATION}{STRING}
 STR_GROUP_VEHICLE_WINDOW_STR_ADDED                              :, {STATION}{STRING}
