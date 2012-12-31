@@ -573,8 +573,6 @@ CommandCost CmdAddSharedVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32
 				DoCommand(tile, id_g,  v2->index | 1 << 31, flags, CMD_ADD_VEHICLE_GROUP, text);
 			}
 		}
-
-		InvalidateWindowData(GetWindowClassForVehicleType(type), VehicleListIdentifier(VL_GROUP_LIST, type, _current_company).Pack());
 	}
 
 	return CommandCost();
@@ -610,8 +608,6 @@ CommandCost CmdRemoveAllVehiclesGroup(TileIndex tile, DoCommandFlag flags, uint3
 				DoCommand(tile, DEFAULT_GROUP, v->index, flags, CMD_ADD_VEHICLE_GROUP, text);
 			}
 		}
-
-		InvalidateWindowData(GetWindowClassForVehicleType(g->vehicle_type), VehicleListIdentifier(VL_GROUP_LIST, g->vehicle_type, _current_company).Pack());
 	}
 
 	return CommandCost();
