@@ -29,6 +29,7 @@
 #include "company_base.h"
 #include "water.h"
 #include "company_gui.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 
@@ -323,7 +324,9 @@ CommandCost CmdBuildBuoy(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		if (wp->town == NULL) MakeDefaultName(wp);
 
+		TrackBits tracks = GetReservedWaterTracks(tile);
 		MakeBuoy(tile, wp->index, GetWaterClass(tile));
+		SetWaterTrackReservation(tile, tracks);
 		MarkTileDirtyByTile(tile);
 
 		wp->UpdateVirtCoord();
@@ -362,7 +365,9 @@ CommandCost RemoveBuoy(TileIndex tile, DoCommandFlag flags)
 		/* We have to set the water tile's state to the same state as before the
 		 * buoy was placed. Otherwise one could plant a buoy on a canal edge,
 		 * remove it and flood the land (if the canal edge is at level 0) */
+		TrackBits tracks = GetReservedWaterTracks(tile);
 		MakeWaterKeepingClass(tile, GetTileOwner(tile));
+		SetWaterTrackReservation(tile, tracks);
 
 		wp->rect.AfterRemoveTile(wp, tile);
 
