@@ -30,3 +30,8 @@ projects/*.vcproj.*.user
 projects/*.vcxproj.user
 src/rev.cpp
 src/os/windows/ottdres.rc
+*~
+*.rej
+*.orig
+*kate-swp
+out
