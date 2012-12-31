@@ -1394,10 +1394,15 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		const Vehicle *v = this->vehicles[i];
 		StringID str;
 
+		/* Highlight the vehicle if it is selected. */
+		if (selected_vehicle == v->index) {
+			GfxFillRect(left, y + WD_FRAMERECT_TOP, right, y + line_height - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
+		}
+
 		SetDParam(0, v->GetDisplayProfitThisYear());
 		SetDParam(1, v->GetDisplayProfitLastYear());
 
-		DrawVehicleImage(v, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
+		DrawVehicleImage(v, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_LIST, 0);
 		DrawString(text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 
 		if (v->name != NULL) {
