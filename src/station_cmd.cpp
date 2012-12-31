@@ -744,11 +744,13 @@ static void DeleteStationIfEmpty(BaseStation *st)
 /**
  * After adding/removing tiles to station, update some station-related stuff.
  * @param adding True if adding tiles, false if removing them.
+ * @param ta The tiles of the station that have may changed.
  * @param type StationType being modified.
  */
-void Station::AfterStationTileSetChange(bool adding, StationType type)
+void Station::AfterStationTileSetChange(bool adding, const TileArea ta, StationType type)
 {
 	this->UpdateVirtCoord();
+	this->UpdateCatchment();
 	this->RecomputeIndustriesNear();
 	DirtyCompanyInfrastructureWindows(this->owner);
 	if (adding) InvalidateWindowData(WC_STATION_LIST, this->owner, 0);
@@ -1462,7 +1464,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 		}
 
 		st->MarkTilesDirty(false);
-		st->AfterStationTileSetChange(true, STATION_RAIL);
+		st->AfterStationTileSetChange(true, new_location, STATION_RAIL);
 	}
 
 	return cost;
@@ -1656,6 +1658,7 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 
 		if (st->train_station.tile == INVALID_TILE) SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_TRAINS);
 		st->MarkTilesDirty(false);
+		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
 	}
 
@@ -1739,7 +1742,10 @@ static CommandCost RemoveRailStation(TileIndex tile, DoCommandFlag flags)
 	Station *st = Station::GetByTile(tile);
 	CommandCost cost = RemoveRailStation(st, flags, _price[PR_CLEAR_STATION_RAIL]);
 
-	if (flags & DC_EXEC) st->RecomputeIndustriesNear();
+	if (flags & DC_EXEC) {
+		st->UpdateCatchment();
+		st->RecomputeIndustriesNear();
+	}
 
 	return cost;
 }
@@ -1928,7 +1934,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	}
 
 	if (st != NULL) {
-		st->AfterStationTileSetChange(true, type ? STATION_TRUCK: STATION_BUS);
+		st->AfterStationTileSetChange(true, roadstop_area, type ? STATION_TRUCK: STATION_BUS);
 	}
 	return cost;
 }
@@ -2036,7 +2042,7 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags)
 
 		st->rect.AfterRemoveTile(st, tile);
 
-		st->AfterStationTileSetChange(false, is_truck ? STATION_TRUCK: STATION_BUS);
+		st->AfterStationTileSetChange(false, TileArea(tile, 1, 1), is_truck ? STATION_TRUCK: STATION_BUS);
 
 		/* Update the tile area of the truck/bus stop */
 		if (is_truck) {
@@ -2349,7 +2355,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 		Company::Get(st->owner)->infrastructure.airport++;
 
-		st->AfterStationTileSetChange(true, STATION_AIRPORT);
+		st->AfterStationTileSetChange(true, st->airport, STATION_AIRPORT);
 		InvalidateWindowData(WC_STATION_VIEW, st->index, -1);
 
 		if (_settings_game.economy.station_noise_level) {
@@ -2434,7 +2440,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 
 		Company::Get(st->owner)->infrastructure.airport--;
 
-		st->AfterStationTileSetChange(false, STATION_AIRPORT);
+		st->AfterStationTileSetChange(false, st->airport, STATION_AIRPORT);
 
 		DeleteNewGRFInspectWindow(GSF_AIRPORTS, st->index);
 	}
@@ -2567,7 +2573,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		MakeDock(tile, st->owner, st->index, direction, wc);
 
-		st->AfterStationTileSetChange(true, STATION_DOCK);
+		st->AfterStationTileSetChange(true, dock_area, STATION_DOCK);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_STATION_DOCK]);
@@ -2601,7 +2607,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 		Company::Get(st->owner)->infrastructure.station -= 2;
 
-		st->AfterStationTileSetChange(false, STATION_DOCK);
+		st->AfterStationTileSetChange(false, TileArea(tile1,tile2), STATION_DOCK);
 
 		/* All ships that were going to our station, can't go to it anymore.
 		 * Just clear the order, then automatically the next appropriate order
@@ -3956,6 +3962,7 @@ void BuildOilRig(TileIndex tile)
 
 	st->UpdateVirtCoord();
 	_viewport_sign_kdtree.Insert(ViewportSignKdtreeItem::MakeStation(st->index));
+	st->UpdateCatchment();
 	UpdateStationAcceptance(st, false);
 	st->RecomputeIndustriesNear();
 }
@@ -3974,6 +3981,7 @@ void DeleteOilRig(TileIndex tile)
 	st->rect.AfterRemoveTile(st, tile);
 
 	st->UpdateVirtCoord();
+	st->UpdateCatchment();
 	st->RecomputeIndustriesNear();
 	if (!st->IsInUse()) delete st;
 }
