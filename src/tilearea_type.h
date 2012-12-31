@@ -30,9 +30,11 @@ struct OrthogonalTileArea {
 	{
 	}
 
+	OrthogonalTileArea(TileIndex tile, uint8 w, uint8 h, uint radius);
 	OrthogonalTileArea(TileIndex start, TileIndex end);
 
 	void Add(TileIndex to_add);
+	void AddRadius(uint radius);
 
 	/**
 	 * Clears the 'tile area', i.e. make the tile invalid.
@@ -44,7 +46,10 @@ struct OrthogonalTileArea {
 		this->h    = 0;
 	}
 
+	void CopyAndExtend(const OrthogonalTileArea ta, uint radius);
+
 	bool Intersects(const OrthogonalTileArea &ta) const;
+	void IntersectionWith(const OrthogonalTileArea ta);
 
 	bool Contains(TileIndex tile) const;
 
@@ -230,5 +235,10 @@ public:
  * @param ta  The tile area to search over.
  */
 #define TILE_AREA_LOOP(var, ta) for (OrthogonalTileIterator var(ta); var != INVALID_TILE; ++var)
+
+#define MASKED_TILE_AREA_LOOP(var, ta, mask) \
+	uint _index = 0; \
+	for (OrthogonalTileIterator var(ta); var != INVALID_TILE; ++var, _index++) \
+		if (mask == NULL || mask[_index])
 
 #endif /* TILEAREA_TYPE_H */
