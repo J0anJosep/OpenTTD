@@ -50,6 +50,7 @@ void GroupStatistics::Clear()
 	this->ClearProfits();
 	this->order_lists.Clear();
 	this->ol_type = OLT_EMPTY_GROUP;
+	this->ClearCargo();
 
 	/* This is also called when NewGRF change. So the number of engines might have changed. Reallocate. */
 	free(this->num_engines);
@@ -137,6 +138,17 @@ void GroupStatistics::Clear()
 		if (v == NULL) continue;
 		GroupStatistics::GetAllGroup(v).order_lists.Include(order_list);
 	}
+
+	FOR_ALL_GROUPS(g) {
+		g->statistics.UpdateCargoTypes();
+	}
+
+	FOR_ALL_COMPANIES(c) {
+		for (VehicleType type = VEH_BEGIN; type < VEH_COMPANY_END; type++) {
+			GroupStatistics::UpdateCargo(c->index, ALL_GROUP, type);
+			GroupStatistics::UpdateCargo(c->index, DEFAULT_GROUP, type);
+		}
+	}
 }
 
 /**
@@ -162,6 +174,12 @@ void GroupStatistics::Clear()
 			stats.RemoveOrderList(v);
 			stats.RemoveOrderListType(v);
 		}
+	}
+
+	/* Cargo */
+	for (const Vehicle *u = v; u != NULL; u = u->Next()) {
+		stats.act_cargo[u->cargo_type]	+= u->cargo.StoredCount() * delta;
+		stats.max_cargo[u->cargo_type]	+= u->cargo_cap * delta;
 	}
 
 	if (v->age > VEHICLE_PROFIT_MIN_AGE) VehicleReachedProfitAge(v, delta);
@@ -280,6 +298,43 @@ static inline void UpdateNumEngineGroup(const Vehicle *v, GroupID old_g, GroupID
 }
 
 /**
+ * Update the cargo a specific group is carrying
+ * @param company owner of the group
+ * @param id_g specific groupID
+ */
+/* static */ void GroupStatistics::UpdateCargo(CompanyID company, GroupID id_g, VehicleType type)
+{
+	GroupStatistics &stats = GroupStatistics::Get(company, id_g, type);
+	stats.ClearCargo();
+
+	for (uint i = stats.order_lists.Length(); i--;) {
+		for (Vehicle *v = stats.order_lists[i]->GetFirstSharedVehicle(); v != NULL; v = v->NextShared()) {
+			if (v->group_id == id_g || id_g == ALL_GROUP) {
+				for (const Vehicle *u = v; u != NULL; u = u->Next()) {
+					stats.act_cargo[u->cargo_type] += u->cargo.StoredCount();
+					stats.max_cargo[u->cargo_type] += u->cargo_cap;
+				}
+			}
+		}
+	}
+	stats.UpdateCargoTypes();
+}
+
+/* static */ void GroupStatistics::UpdateCargoForVehicleType(CompanyID company, VehicleType vtype)
+{
+	GroupStatistics::UpdateCargo(company, ALL_GROUP, vtype);
+	GroupStatistics::UpdateCargo(company, DEFAULT_GROUP, vtype);
+
+	/* rest of groups */
+	Group *g;
+	FOR_ALL_GROUPS(g) {
+		if (g->vehicle_type == vtype && g->owner == company) {
+			GroupStatistics::UpdateCargo(company, g->index, vtype);
+		}
+	}
+}
+
+/**
  * Update group orderlisttype when a vehicle is added to the group
  * @param new_ol new type of orderlist added to the group
  */
@@ -340,6 +395,28 @@ void GroupStatistics::RemoveOrderList(const Vehicle *v)
 }
 
 /**
+ * Updates the cargo_types field,
+ * looking for cargos that can be carried with vehicles of this group
+ * also looking for refit orders
+ */
+void GroupStatistics::UpdateCargoTypes()
+{
+	this->cargo_types = 0;
+
+	//for all refit orders for vehicles of this group
+	for (uint i = order_lists.Length(); i--;) {
+		for (Order *order = order_lists[i]->GetFirstOrder(); order != NULL; order = order->next) {
+			if ((order->IsType(OT_GOTO_DEPOT) || order->IsType(OT_GOTO_STATION)) && order->IsRefit()) SetBit(this->cargo_types, order->GetRefitCargo());
+		}
+	}
+
+	//for the 32 bits of cargo_types...
+	for (CargoID i = 0; i < NUM_CARGO; i++) {
+		if (this->max_cargo[i] > 0) SetBit(this->cargo_types, i);
+	}
+}
+
+/**
  * Returns a DropDownList containing the different orderlists on the group
  */
 DropDownList *GroupStatistics::BuildSharedOrdersDropdown() const
@@ -395,6 +472,15 @@ bool GroupStatistics::HasGroupOrderListType(OrderListType ol_type) const
 		if (order_lists[i]->IsListType(ol_type)) return true;
 	}
 	return false;
+}
+
+/**
+ * Chek if a group has capacity for a type of cargo (maybe hidden as a refit order)
+ * @return 1 if has capacity or a refit order for the cargo; 0 otherwise
+ */
+bool GroupStatistics::DoesGroupCarryCargoType(CargoID cargo) const
+{
+	return HasBit(this->cargo_types, cargo);
 }
 
 /**
