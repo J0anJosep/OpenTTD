@@ -488,7 +488,7 @@ public:
 
 	void UpdateVirtCoord();
 
-	void AfterStationTileSetChange(bool adding, StationType type);
+	void AfterStationTileSetChange(bool adding, const TileArea ta, StationType type);
 
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
 	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
