@@ -962,6 +962,8 @@ CommandCost CmdBuyEngineRights(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	if (flags & DC_EXEC) {
 		SetBit(e->company_rights, p1);
 		InvalidateWindowData(WC_ENGINE_RIGHTS, _current_company);
+		SetWindowClassesDirty(WC_REPLACE_VEHICLE); // Redraw the autoreplace window
+		SetWindowClassesDirty(WC_BUILD_VEHICLE); // The build vehicle windows need updating as well
 	}
 
 	return cost;
