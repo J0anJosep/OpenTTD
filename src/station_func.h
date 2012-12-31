@@ -27,8 +27,8 @@ void FindStationsAroundTiles(const TileArea &location, const bool *mask, Station
 void ShowStationViewWindow(StationID station);
 void UpdateAllStationVirtCoords();
 
-CargoArray GetProductionAroundTiles(TileIndex tile, int w, int h, int rad);
-CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad, uint32 *always_accepted = NULL);
+CargoArray GetProductionAroundTiles(const TileArea ta, const bool *mask);
+CargoArray GetAcceptanceAroundTiles(const TileArea ta, const bool *mask, uint32 *always_accepted = NULL);
 
 void UpdateStationAcceptance(Station *st, bool show_msg);
 
