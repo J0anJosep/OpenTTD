@@ -34,6 +34,8 @@
 
 #include "safeguards.h"
 
+static const uint UNPUNCTUALITY_PERCENTAGE = 50;
+
 /* DestinationID must be at least as large as every these below, because it can
  * be any of them
  */
@@ -252,6 +254,7 @@ Order::Order(uint32 packed)
  */
 void InvalidateVehicleOrder(const Vehicle *v, int data)
 {
+	v->UpdateListType();
 	SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 
 	if (data != 0) {
@@ -317,6 +320,7 @@ void OrderList::Initialize(Order *chain, Vehicle *v)
 
 	GroupStatistics::Get(v).order_lists.Include(this);
 	GroupStatistics::GetAllGroup(v).order_lists.Include(this);
+	if (v->orders.list != NULL) this->UpdateListType();
 }
 
 /**
@@ -638,6 +642,94 @@ void OrderList::DebugCheckSanity() const
 	DEBUG(misc, 6, "... detected %u orders (%u manual), %u vehicles, %i timetabled, %i total",
 			(uint)this->num_orders, (uint)this->num_manual_orders,
 			this->num_vehicles, this->timetable_duration, this->total_duration);
+}
+
+/**
+ * Returns if the object has the property of ol_type
+ * (completely timetabled, empty, an invalid order...)
+ */
+bool OrderList::IsListType(OrderListType ol_type) const
+{
+	Order *order;
+	switch (ol_type) {
+		case OLT_INVALID:
+			for (order = first; order != NULL; order = order->next) {
+				if (order->GetType() == OT_DUMMY) return true;
+			}
+			return false;
+		case OLT_EMPTY:
+			return this->num_orders == 0;
+		case OLT_AUTOFILLING:
+			for (Vehicle *v = this->first_shared; v != NULL; v = v->NextShared()) {
+				if (HasBit(v->vehicle_flags, VF_AUTOFILL_TIMETABLE))
+					return true;
+			}
+			return false;
+		case OLT_UNPUNCTUAL:
+			if (!IsListType(OLT_COMPLETE)) return false;
+			for (Vehicle *v = this->first_shared; v != NULL; v = v->NextShared()) {
+				if ( 100 * abs(v->lateness_counter) * v->orders.list->GetNumVehicles() > UNPUNCTUALITY_PERCENTAGE * (uint)this->GetTimetableTotalDuration()) return true;
+			}
+			return false;
+		case OLT_CONDITIONAL:
+			for (order = first; order != NULL; order = order->next) {
+				if (order->GetType() == OT_CONDITIONAL || (order->GetType() == OT_GOTO_STATION && (order->GetLoadType() & OLF_FULL_LOAD_ANY) != 0)) return true;
+			}
+			return false;
+		case OLT_COMPLETE:
+			return this->IsCompleteTimetable();
+		case OLT_INCOMPLETE:
+			return !this->IsCompleteTimetable();
+		case OLT_EMPTY_GROUP:
+			return false;
+		case OLT_IMPLICIT:
+			for (order = first; order != NULL; order = order->next) {
+				if (order->GetType() == OT_IMPLICIT) return true;
+			}
+			return false;
+		default: NOT_REACHED();
+	}
+	return false;
+}
+
+/**
+ * Checks the type of the list; then, calls to CheckChange(ol_type) passing which type of list it is
+ * If an invalid order: type is olt_invalid
+ * if empty: type is olt_empty
+ * ...
+ * Uses same order as OrderListType enum
+ */
+void OrderList::UpdateListType()
+{
+	for (uint i = OLT_BEGIN; i < OLT_END; i++) {
+		if (IsListType((OrderListType)i)) return ChangeOrderListType((OrderListType)i);
+	}
+}
+
+/**
+ * OrderList is of type new_ol; detects if it must be updated and does so
+ */
+void OrderList::ChangeOrderListType(OrderListType new_ol)
+{
+	/* No change: return */
+	if (this->ol_type == new_ol) return;
+
+	this->ol_type = new_ol;
+	SmallVector<GroupID, 32> groups;
+	for (Vehicle *v = this->GetFirstSharedVehicle(); v != NULL; v = v->NextShared()) {
+		groups.Include(v->group_id);
+	}
+	for (int i = groups.Length(); i--;) {
+		GroupStatistics &stats = GroupStatistics::Get(this->GetFirstSharedVehicle()->owner, groups[i], this->GetFirstSharedVehicle()->type);
+
+		if (stats.ol_type >= this->GetOrderListType() && !( stats.ol_type == OLT_AUTOFILLING && this->GetOrderListType() == OLT_INCOMPLETE)) stats.ol_type = new_ol;
+		else {
+			stats.ol_type = OLT_EMPTY_GROUP;
+			for (int j = stats.order_lists.Length(); j--;) {
+				stats.ol_type = min(stats.ol_type, stats.order_lists[j]->ol_type);
+			}
+		}
+	}
 }
 
 /**
