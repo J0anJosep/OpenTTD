@@ -421,7 +421,11 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 	} else {
 		Group *g;
 		FOR_ALL_GROUPS(g) {
-			if (g->owner == old_owner) g->owner = new_owner;
+			if (g->owner == old_owner) {
+				g->owner = new_owner;
+				free(g->name);
+				g->name = NULL;
+			}
 		}
 	}
 
