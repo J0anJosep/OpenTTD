@@ -782,6 +782,12 @@ public:
 		}
 	}
 
+	EventState OnCTRLStateChange()
+	{
+		this->SetWidgetDirty(WID_GL_LIST_VEHICLE);
+		return ES_NOT_HANDLED;
+	}
+
 	void ShowRenameGroupWindow(GroupID group, bool empty)
 	{
 		assert(Group::IsValidID(group));
