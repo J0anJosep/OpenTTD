@@ -264,12 +264,14 @@ private:
 
 	Ticks timetable_duration;         ///< NOSAVE: Total timetabled duration of the order list.
 	Ticks total_duration;             ///< NOSAVE: Total (timetabled or not) duration of the order list.
+	OrderListType ol_type;            ///< NOSAVE: Empty/Autofilling/Conditional orders/(In)Complete Timetable...
 
 public:
 	/** Default constructor producing an invalid order list. */
 	OrderList(VehicleOrderID num_orders = INVALID_VEH_ORDER_ID)
-		: first(NULL), num_orders(num_orders), num_manual_orders(0), num_vehicles(0), first_shared(NULL),
-		  timetable_duration(0), total_duration(0) { }
+			: first(NULL), num_orders(num_orders), num_manual_orders(0),
+			num_vehicles(0), first_shared(NULL),
+			timetable_duration(0), total_duration(0), ol_type(OLT_EMPTY) { }
 
 	/**
 	 * Create an order list with the given order chain for the given vehicle.
@@ -390,6 +392,15 @@ public:
 	void FreeChain(bool keep_orderlist = false);
 
 	void DebugCheckSanity() const;
+
+	/**
+	 * Returns the type of the list (invalid, complete...)
+	 **/
+	inline OrderListType GetOrderListType() const { return this->ol_type; }
+
+	bool IsListType(OrderListType ol_type) const;
+	void UpdateListType();
+	void ChangeOrderListType(OrderListType new_ol);
 };
 
 #define FOR_ALL_ORDERS_FROM(var, start) FOR_ALL_ITEMS_FROM(Order, order_index, var, start)
