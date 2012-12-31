@@ -1854,7 +1854,21 @@ public:
 	virtual void OnPaint()
 	{
 		this->BuildVehicleList();
-		this->SortVehicleList();
+		this->BuildGroupList();
+
+		switch (show) {
+			case VLS_VEHICLES:
+				this->SortVehicleList();
+				this->vscroll->SetCount(this->vehicles.Length());
+				break;
+
+			case VLS_GROUPS:
+				this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
+				this->vscroll->SetCount(this->groups.Length());
+				break;
+			case VLS_BOTH:
+				break;
+		}
 
 		if (this->vehicles.Length() == 0 && this->IsWidgetLowered(WID_VL_MANAGE_VEHICLES_DROPDOWN)) {
 			HideDropDownMenu(this);
@@ -1978,7 +1992,7 @@ public:
 
 	virtual void OnGameTick()
 	{
-		if (this->vehicles.NeedResort()) {
+		if (this->vehicles.NeedResort() || this->groups.NeedResort()) {
 			StationID station = (this->vli.type == VL_STATION_LIST) ? this->vli.index : INVALID_STATION;
 
 			DEBUG(misc, 3, "Periodic resort %d list company %d at station %d", this->vli.vtype, this->owner, station);
@@ -2003,14 +2017,17 @@ public:
 			this->vli.index = GB(data, 0, 20);
 			this->window_number = this->vli.Pack();
 			this->vehicles.ForceRebuild();
+			this->groups.ForceRebuild();
 			return;
 		}
 
 		if (data == 0) {
 			/* This needs to be done in command-scope to enforce rebuilding before resorting invalid data */
 			this->vehicles.ForceRebuild();
+			this->groups.ForceRebuild();
 		} else {
 			this->vehicles.ForceResort();
+			this->groups.ForceResort();
 		}
 	}
 };
