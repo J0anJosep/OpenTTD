@@ -347,6 +347,19 @@ SmallVector<Vehicle *, 32> GroupStatistics::GetListOfFirstSharedVehicles() const
 	return vector;
 }
 
+/**
+ * Return the group profit icon
+ * it is calculated using the profit of the vehicle with worst profit last year
+ * @return SpriteID
+ */
+SpriteID GroupStatistics::SetGroupProfitSpriteID() const
+{
+	if (this->num_profit_vehicle == 0 ) return SPR_PROFIT_NA;
+	if (this->min_profit_vehicle < 0) return SPR_PROFIT_NEGATIVE;
+	if (this->min_profit_vehicle >> 8 < VEHICLE_PROFIT_THRESHOLD) return SPR_PROFIT_SOME;
+	return SPR_PROFIT_LOT;
+}
+
 Group::Group(Owner owner)
 {
 	this->owner = owner;
