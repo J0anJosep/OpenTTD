@@ -516,7 +516,7 @@ static bool TransportIndustryGoods(TileIndex tile)
 	const IndustrySpec *indspec = GetIndustrySpec(i->type);
 	bool moved_cargo = false;
 
-	StationFinder stations(i->location);
+	StationFinder stations(i->location, NULL);
 	StationList neutral;
 
 	if (i->neutral_station != NULL && !_settings_game.station.serve_neutral_industries) {
