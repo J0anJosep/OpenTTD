@@ -12,10 +12,14 @@
 #ifndef INDUSTRY_TYPE_H
 #define INDUSTRY_TYPE_H
 
+#include "core/smallvec_type.hpp"
+
 typedef uint16 IndustryID;
 typedef uint16 IndustryGfx;
 typedef uint8 IndustryType;
 struct Industry;
+
+typedef SmallVector<Industry *, 4> IndustryList;
 
 struct IndustrySpec;
 struct IndustryTileSpec;
