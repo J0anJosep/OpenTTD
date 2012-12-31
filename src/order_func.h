@@ -15,6 +15,7 @@
 #include "order_type.h"
 #include "vehicle_type.h"
 #include "company_type.h"
+#include "core/smallvec_type.hpp"
 
 /* Functions */
 void RemoveOrderFromAllVehicles(OrderType type, DestinationID destination);
@@ -34,5 +35,6 @@ void DrawOrderString(const Vehicle *v, const Order *order, int order_index, int 
 #define MAX_SERVINT_DAYS   800
 
 uint16 GetServiceIntervalClamped(uint interval, bool ispercent);
+SmallVector<DestinationID, 32> GetDestinations(const OrderList *order_list, bool not_repeated_and_sorted = false);
 
 #endif /* ORDER_FUNC_H */
