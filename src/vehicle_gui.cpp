@@ -137,6 +137,89 @@ uint GetUnitNumberDigits(VehicleList &vehicles)
 	return 2;
 }
 
+/**
+ * (Re)Build a group list
+ */
+bool BaseVehicleListWindow::BuildGroupList()
+{
+	if (!this->groups.NeedRebuild()) return true;
+	this->groups.Clear();
+
+	Group *g;
+	const Vehicle *v;
+
+	switch (this->vli.type) {
+		case VL_STATION_LIST:
+			FOR_ALL_GROUPS(g) {
+				if (g->owner == vli.company && g->vehicle_type == this->vli.vtype) {
+					bool continue_flag = true;
+					SmallVector<Vehicle *, 32> vector = g->statistics.GetListOfFirstSharedVehicles();
+					for (uint i = vector.Length(); continue_flag && i--;) {
+						v = vector[i];
+						const Order *order;
+						FOR_VEHICLE_ORDERS(v, order) {
+							if ((order->IsType(OT_GOTO_STATION) || order->IsType(OT_GOTO_WAYPOINT) || order->IsType(OT_IMPLICIT))
+									&& order->GetDestination() == this->vli.index) {
+								*this->groups.Append() = g;
+								continue_flag = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+			break;
+
+			case VL_SHARED_ORDERS:
+				/* Add all groups from this vehicle's shared order list
+				 * we assume one shared order list for each group
+				 * we can get the vehicle, we can find its group and add it */
+				v = Vehicle::GetIfValid(this->vli.index);
+				if (v == NULL || v->type != this->vli.vtype || !v->IsPrimaryVehicle() || IsDefaultGroupID(v->group_id)) return false;
+				g = Group::GetIfValid(v->group_id);
+				*this->groups.Append() = g;
+				break;
+
+			case VL_GROUP_LIST:
+			case VL_STANDARD: {
+				/* on these cases, we add any group */
+				FOR_ALL_GROUPS(g) {
+					if (g->owner == vli.company && g->vehicle_type == this->vli.vtype) {
+						*this->groups.Append() = g;
+					}
+				}
+				break;
+			}
+
+			case VL_DEPOT_LIST:
+				FOR_ALL_GROUPS(g) {
+					if ( g->owner == vli.company && g->vehicle_type == this->vli.vtype) {
+						bool continue_flag = true;
+						SmallVector<Vehicle *, 32> vector = g->statistics.GetListOfFirstSharedVehicles();
+						for (uint i = vector.Length(); continue_flag && i--;) {
+							const Vehicle *v = vector[i];
+							const Order *order;
+							FOR_VEHICLE_ORDERS(v, order) {
+								if (order->IsType(OT_GOTO_DEPOT) && !(order->GetDepotActionType() & ODATFB_NEAREST_DEPOT) && order->GetDestination() == this->vli.index) {
+									*this->groups.Append() = g;
+									continue_flag = false;
+									break;
+								}
+							}
+						}
+					}
+				}
+				break;
+
+			default:
+				return false;
+		}
+
+	this->groups.Compact();
+	this->groups.RebuildDone();
+	return true;
+}
+
 void BaseVehicleListWindow::BuildVehicleList()
 {
 	if (!this->vehicles.NeedRebuild()) return;
@@ -1653,6 +1736,8 @@ public:
 		this->vehicles.SetListing(*this->sorting);
 		this->vehicles.ForceRebuild();
 		this->vehicles.NeedResort();
+		this->groups.ForceRebuild();
+		this->groups.NeedResort();
 
 		/* Set up the window widgets */
 		this->GetWidget<NWidgetCore>(WID_VL_LIST)->tool_tip = STR_VEHICLE_LIST_TRAIN_LIST_TOOLTIP + this->vli.vtype;

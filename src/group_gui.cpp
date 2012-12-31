@@ -124,28 +124,6 @@ private:
 	Dimension column_size[VGC_END]; ///< Size of the columns in the group list.
 
 	/**
-	 * (Re)Build the group list.
-	 *
-	 * @param owner The owner of the window
-	 */
-	void BuildGroupList(Owner owner)
-	{
-		if (!this->groups.NeedRebuild()) return;
-
-		this->groups.Clear();
-
-		const Group *g;
-		FOR_ALL_GROUPS(g) {
-			if (g->owner == owner && g->vehicle_type == this->vli.vtype) {
-				*this->groups.Append() = g;
-			}
-		}
-
-		this->groups.Compact();
-		this->groups.RebuildDone();
-	}
-
-	/**
 	 * Compute tiny_step_height and column_size
 	 * @return Total width required for the group list.
 	 */
@@ -316,7 +294,7 @@ public:
 
 		this->groups.ForceRebuild();
 		this->groups.NeedResort();
-		this->BuildGroupList(vli.company);
+		this->BuildGroupList();
 		this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
 
 		this->GetWidget<NWidgetCore>(WID_GL_CAPTION)->widget_data = STR_VEHICLE_LIST_TRAIN_CAPTION + this->vli.vtype;
@@ -450,7 +428,7 @@ public:
 		this->BuildVehicleList();
 		this->SortVehicleList();
 
-		this->BuildGroupList(this->owner);
+		this->BuildGroupList();
 		this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
 
 		this->group_sb->SetCount(this->groups.Length());
