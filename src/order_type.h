@@ -44,8 +44,23 @@ enum OrderType {
 	OT_DUMMY         = 5,
 	OT_GOTO_WAYPOINT = 6,
 	OT_CONDITIONAL   = 7,
-	OT_IMPLICIT     = 8,
+	OT_IMPLICIT      = 8,
 	OT_END
+};
+
+/** Types of lists, sorted by importance */
+enum OrderListType {
+	OLT_BEGIN = 0,
+	OLT_INVALID = OLT_BEGIN,//< list has an invalid order
+	OLT_EMPTY,              //< list has no invalid orders but is empty
+	OLT_AUTOFILLING,        //< no invalid, no empty, with an autofilling on course
+	OLT_UNPUNCTUAL,         //< complete and unpunctual
+	OLT_CONDITIONAL,        //< with a conditional order
+	OLT_COMPLETE,           //< not previous cases: complete timetable without conditional orders
+	OLT_INCOMPLETE,         //< no conditional orders, timetable incomplete
+	OLT_EMPTY_GROUP,        //< only for groups, when 0 vehicles on group
+	OLT_IMPLICIT,           //< for filtering: to find vehicles/groups that have implicit orders
+	OLT_END,
 };
 
 /** It needs to be 8bits, because we save and load it as such */
