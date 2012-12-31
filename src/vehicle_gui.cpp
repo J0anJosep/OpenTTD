@@ -1566,11 +1566,14 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 		UpdateMarginsEnd(next_margin2, left2, right2, false);
 		SpriteID sprite = g->statistics.SetGroupProfitSpriteID();
 		Dimension d = GetSpriteSize(sprite);
-		DrawSprite2(d.width, left2, right2, y + 6 + FONT_HEIGHT_NORMAL + (FONT_HEIGHT_SMALL - d.height) / 2, next_margin2, sprite, PAL_NONE, false);
+		DrawSprite2(d.width, left2, right2, y + 3 + FONT_HEIGHT_NORMAL + (FONT_HEIGHT_NORMAL - d.height) / 2, next_margin2, sprite, PAL_NONE, false);
+		AddSpace(5, next_margin2, false);
+		UpdateMarginsEnd(next_margin2, left2, right2, false);
+		DrawString2(left2, right2, y + 3 + FONT_HEIGHT_NORMAL, next_margin2, STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + g->statistics.ol_type, TC_BLACK);
 		AddSpace(5, next_margin2, false);
 		UpdateMarginsEnd(next_margin2, left2, right2, false);
 		SetDParam(0, g->statistics.num_vehicle);
-		DrawString2(left2, right2, y + 6 + FONT_HEIGHT_NORMAL, next_margin, STR_TINY_COMMA, TC_BLACK);
+		DrawString2(left2, right2, y + 3 + FONT_HEIGHT_NORMAL, next_margin, STR_JUST_COMMA, TC_BLACK);
 
 		y += line_height;
 	}
