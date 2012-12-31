@@ -7,22 +7,13 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file pbs.h PBS support routines */
+/** @file pbs.h PBS struct */
 
 #ifndef PBS_H
 #define PBS_H
 
 #include "tile_type.h"
-#include "direction_type.h"
 #include "track_type.h"
-#include "vehicle_type.h"
-
-TrackBits GetReservedTrackbits(TileIndex t);
-
-void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool b);
-
-bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations = true);
-void UnreserveRailTrack(TileIndex tile, Track t);
 
 /** This struct contains information about the end of a reserved path. */
 struct PBSTileInfo {
@@ -43,23 +34,5 @@ struct PBSTileInfo {
 	 */
 	PBSTileInfo(TileIndex _t, Trackdir _td, bool _okay) : tile(_t), trackdir(_td), okay(_okay) {}
 };
-
-PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res = NULL);
-bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool include_line_end, bool forbid_90deg = false);
-bool IsWaitingPositionFree(const Train *v, TileIndex tile, Trackdir trackdir, bool forbid_90deg = false);
-
-Train *GetTrainForReservation(TileIndex tile, Track track);
-
-/**
- * Check whether some of tracks is reserved on a tile.
- *
- * @param tile the tile
- * @param tracks the tracks to test
- * @return true if at least on of tracks is reserved
- */
-static inline bool HasReservedTracks(TileIndex tile, TrackBits tracks)
-{
-	return (GetReservedTrackbits(tile) & tracks) != TRACK_BIT_NONE;
-}
 
 #endif /* PBS_H */
