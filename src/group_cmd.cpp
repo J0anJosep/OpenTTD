@@ -467,7 +467,7 @@ CommandCost CmdDeleteGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		DeleteWindowById(WC_REPLACE_VEHICLE, g->vehicle_type);
 		delete g;
 
-		InvalidateWindowData(GetWindowClassForVehicleType(vt), VehicleListIdentifier(VL_GROUP_LIST, vt, _current_company).Pack());
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(vt));
 		InvalidateWindowData(WC_COMPANY_COLOUR, _current_company, vt);
 	}
 
@@ -604,7 +604,7 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 
 	if (flags & DC_EXEC) {
 		InvalidateWindowData(WC_REPLACE_VEHICLE, g->vehicle_type, 1);
-		InvalidateWindowData(GetWindowClassForVehicleType(g->vehicle_type), VehicleListIdentifier(VL_GROUP_LIST, g->vehicle_type, _current_company).Pack());
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(g->vehicle_type));
 		InvalidateWindowData(WC_COMPANY_COLOUR, g->owner, g->vehicle_type);
 	}
 
@@ -694,7 +694,7 @@ CommandCost CmdAddVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);
 		SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 		SetWindowDirty(WC_VEHICLE_DETAILS, v->index);
-		InvalidateWindowData(GetWindowClassForVehicleType(v->type), VehicleListIdentifier(VL_GROUP_LIST, v->type, _current_company).Pack());
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type));
 	}
 
 	return CommandCost();
