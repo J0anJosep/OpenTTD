@@ -692,7 +692,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\pbs.cpp"
+				RelativePath=".\..\src\pbs_rail.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\pbs_water.cpp"
 				>
 			</File>
 			<File
@@ -1497,6 +1501,14 @@
 			</File>
 			<File
 				RelativePath=".\..\src\pbs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\pbs_rail.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\pbs_water.h"
 				>
 			</File>
 			<File
