@@ -135,7 +135,10 @@ const IndustryTileSpec *GetIndustryTileSpec(IndustryGfx gfx)
 
 Industry::~Industry()
 {
-	if (CleaningPool()) return;
+	if (CleaningPool()) {
+		delete [] this->footprint;
+		return;
+	}
 
 	/* Industry can also be destroyed when not fully initialized.
 	 * This means that we do not have to clear tiles either.
@@ -182,6 +185,8 @@ Industry::~Industry()
 
 	DeleteSubsidyWith(ST_INDUSTRY, this->index);
 	CargoPacket::InvalidateAllFrom(ST_INDUSTRY, this->index);
+
+	delete [] this->footprint;
 }
 
 /**
@@ -194,6 +199,27 @@ void Industry::PostDestructor(size_t index)
 	Station::RecomputeIndustriesNearForAll();
 }
 
+/**
+ * Initialize the footprint array
+ * @note	footprint is a bool array of size "number of tiles of this->location"
+ * 		footprint[k] = true  if when running a TILE_AREA_LOOP, the k-tile belongs to this industry
+ * 		footprint[k] = false if when running a TILE_AREA_LOOP, the k-tile doesn't belong to this industry
+ */
+void Industry::SetFootprint() {
+	assert(this->location.w != 0 && this->location.h != 0);
+	delete [] this->footprint;
+	this->footprint = new bool[this->location.w * this->location.h]();
+
+	uint mask_index = 0;
+	TILE_AREA_LOOP(tile, this->location) {
+		if (this->TileBelongsToIndustry(tile)) {
+			this->footprint[mask_index] = true;
+		} else {
+			if (tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile)) this->footprint[mask_index] = true;
+		}
+		mask_index++;
+	}
+}
 
 /**
  * Return a random valid industry.
@@ -497,7 +523,8 @@ static void TransportIndustryGoods(TileIndex tile)
 	const IndustrySpec *indspec = GetIndustrySpec(i->type);
 	bool moved_cargo = false;
 
-	StationFinder stations(i->location, NULL);
+	StationList stations;
+	FindStationsAroundTiles(i->location, i->footprint, &stations);
 
 	for (uint j = 0; j < lengthof(i->produced_cargo_waiting); j++) {
 		uint cw = min(i->produced_cargo_waiting[j], 255);
@@ -509,7 +536,7 @@ static void TransportIndustryGoods(TileIndex tile)
 
 			i->this_month_production[j] += cw;
 
-			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, stations.GetStations());
+			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, &stations);
 			i->this_month_transported[j] += am;
 
 			moved_cargo |= (am != 0);
@@ -1772,6 +1799,8 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 		}
 	} while ((++it)->ti.x != -0x80);
 
+	i->SetFootprint();
+
 	if (GetIndustrySpec(i->type)->behaviour & INDUSTRYBEH_PLANT_ON_BUILT) {
 		for (uint j = 0; j != 50; j++) PlantRandomFarmField(i);
 	}
@@ -2383,7 +2412,7 @@ static int WhoCanServiceIndustry(Industry *ind)
 {
 	/* Find all stations within reach of the industry */
 	StationList stations;
-	FindStationsAroundTiles(ind->location, NULL, &stations);
+	FindStationsAroundTiles(ind->location, ind->footprint, &stations);
 
 	if (stations.Length() == 0) return 0; // No stations found at all => nobody services
 
