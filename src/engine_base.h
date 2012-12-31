@@ -197,4 +197,7 @@ static inline const AircraftVehicleInfo *AircraftVehInfo(EngineID e)
 	return &Engine::Get(e)->u.air;
 }
 
+Money CalculateCostForBuyingAnEngine(CompanyID company);
+bool BuyRightsBeforeBuildingVehicle(const Engine *e, CompanyID company);
+
 #endif /* ENGINE_BASE_H */
