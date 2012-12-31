@@ -954,7 +954,7 @@ void ShowCompanyGroup(CompanyID company, VehicleType vehicle_type)
 {
 	if (!Company::IsValidID(company)) return;
 
-	WindowNumber num = VehicleListIdentifier(VL_GROUP_LIST, vehicle_type, company).Pack();
+	WindowNumber num = VehicleListIdentifier(VL_GROUPS_WINDOW, vehicle_type, company).Pack();
 	if (vehicle_type == VEH_TRAIN) {
 		AllocateWindowDescFront<VehicleGroupWindow>(&_train_group_desc, num);
 	} else {
@@ -971,7 +971,7 @@ void ShowCompanyGroup(CompanyID company, VehicleType vehicle_type)
  */
 static inline VehicleGroupWindow *FindVehicleGroupWindow(VehicleType vt, Owner owner)
 {
-	return (VehicleGroupWindow *)FindWindowById(GetWindowClassForVehicleType(vt), VehicleListIdentifier(VL_GROUP_LIST, vt, owner).Pack());
+	return (VehicleGroupWindow *)FindWindowById(GetWindowClassForVehicleType(vt), VehicleListIdentifier(VL_GROUPS_WINDOW, vt, owner).Pack());
 }
 
 /**

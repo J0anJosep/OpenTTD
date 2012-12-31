@@ -181,6 +181,16 @@ bool BaseVehicleListWindow::BuildGroupList()
 				break;
 
 			case VL_GROUP_LIST:
+				/* only the group which refers to this group will be shown */
+				if (!IsAllGroupID(this->vli.index)) {
+					/* only the group which refers to this group will be shown */
+					g = Group::GetIfValid(this->vli.index);
+					if (g != NULL && g->vehicle_type == this->vli.vtype && g->owner == vli.company) *this->groups.Append() = g;
+					break;
+				}
+				/* fall through in case of all_group */
+
+			case VL_GROUPS_WINDOW:
 			case VL_STANDARD: {
 				/* on these cases, we add any group */
 				FOR_ALL_GROUPS(g) {
@@ -1846,6 +1856,23 @@ public:
 						SetDParam(2, this->vli.index);
 						SetDParam(3, this->vehicles.Length());
 						break;
+
+					case VL_GROUP_LIST:
+						switch(this->vli.index) {
+							case ALL_GROUP:
+								SetDParam(0, STR_GROUP_ALL_TRAINS + this->vli.vtype);
+								break;
+							case DEFAULT_GROUP:
+								SetDParam(0, STR_GROUP_DEFAULT_TRAINS + this->vli.vtype);
+								break;
+							default:
+								SetDParam(0, STR_GROUP_NAME);
+								SetDParam(1, this->vli.index);
+								break;
+						}
+						SetDParam(3, this->vehicles.Length());
+						break;
+
 					default: NOT_REACHED();
 				}
 				break;
@@ -2124,6 +2151,10 @@ void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type, TileInde
 	ShowVehicleListWindowLocal(company, VL_DEPOT_LIST, vehicle_type, depot_airport_index);
 }
 
+void ShowGroupVehicleListWindow(CompanyID company, VehicleType vehicle_type, GroupID index)
+{
+	ShowVehicleListWindowLocal(company, VL_GROUP_LIST, vehicle_type, index);
+}
 
 /* Unified vehicle GUI - Vehicle Details Window */
 
