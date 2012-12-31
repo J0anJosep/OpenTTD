@@ -635,6 +635,10 @@ public:
 	 */
 	inline VehicleOrderID GetNumManualOrders() const { return (this->orders.list == NULL) ? 0 : this->orders.list->GetNumManualOrders(); }
 
+	OrderListType GetOrderListType() const { return this->orders.list == NULL ? OLT_EMPTY : this->orders.list->GetOrderListType(); }
+
+	void UpdateListType() const { if (this->orders.list != NULL) this->orders.list->UpdateListType(); }
+
 	/**
 	 * Get the next station the vehicle will stop at.
 	 * @return ID of the next station the vehicle will stop at or INVALID_STATION.
