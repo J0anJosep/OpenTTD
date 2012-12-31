@@ -61,7 +61,7 @@ struct GroupStatistics {
 
 	static void CountVehicle(const Vehicle *v, int delta);
 	static void CountEngine(const Vehicle *v, int delta);
-	static void VehicleReachedProfitAge(const Vehicle *v);
+	static void VehicleReachedProfitAge(const Vehicle *v, int delta);
 
 	static void UpdateProfits();
 	static void UpdateAfterLoad();
