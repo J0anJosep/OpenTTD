@@ -18,6 +18,7 @@
 #include "station_type.h"
 #include "engine_type.h"
 #include "company_type.h"
+#include "group_type.h"
 
 void ShowVehicleRefitWindow(const Vehicle *v, VehicleOrderID order, Window *parent, bool auto_refit = false);
 
@@ -53,6 +54,7 @@ void ShowVehicleListWindow(const Vehicle *v);
 void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type);
 void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type, StationID station);
 void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type, TileIndex depot_tile);
+void ShowGroupVehicleListWindow(CompanyID company, VehicleType vehicle_type, GroupID index);
 
 /**
  * Get the height of a single vehicle in the GUIs.

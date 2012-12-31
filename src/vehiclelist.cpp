@@ -147,6 +147,7 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 			break;
 
 		case VL_GROUP_LIST:
+		case VL_GROUPS_WINDOW:
 			if (vli.index != ALL_GROUP) {
 				FOR_ALL_VEHICLES(v) {
 					if (v->type == vli.vtype && v->IsPrimaryVehicle() &&
