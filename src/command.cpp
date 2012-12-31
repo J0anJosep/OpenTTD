@@ -105,6 +105,7 @@ CommandProc CmdSetCompanyColour;
 CommandProc CmdIncreaseLoan;
 CommandProc CmdDecreaseLoan;
 
+CommandProc CmdBuyEngineRights;
 CommandProc CmdWantEnginePreview;
 
 CommandProc CmdRenameVehicle;
@@ -268,6 +269,7 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdIncreaseLoan,                                   0, CMDT_MONEY_MANAGEMENT      ), // CMD_INCREASE_LOAN
 	DEF_CMD(CmdDecreaseLoan,                                   0, CMDT_MONEY_MANAGEMENT      ), // CMD_DECREASE_LOAN
 
+	DEF_CMD(CmdBuyEngineRights,                                0, CMDT_VEHICLE_MANAGEMENT    ), // CMD_BUY_ENGINE_RIGHTS
 	DEF_CMD(CmdWantEnginePreview,                              0, CMDT_VEHICLE_MANAGEMENT    ), // CMD_WANT_ENGINE_PREVIEW
 
 	DEF_CMD(CmdRenameVehicle,                                  0, CMDT_OTHER_MANAGEMENT      ), // CMD_RENAME_VEHICLE

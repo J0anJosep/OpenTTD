@@ -892,6 +892,83 @@ CommandCost CmdSetVehicleVisibility(TileIndex tile, DoCommandFlag flags, uint32 
 }
 
 /**
+ * Check if a company needs to pay rights for using an engine.
+ * @param e Engine to check.
+ * @param company Company trying to buy a vehicle.
+ * @return true if company needs to pay now for using that engine.
+ * @note If the company has exclusive preview, it is considered as it has temporal rights to use the engine.
+ *       This means that the company doesn't need to pay during the exclusive preview.
+ *       But it will have to pay if it buys another engine after the exclusive preview.
+ */
+bool BuyRightsBeforeBuildingVehicle(const Engine *e, CompanyID company)
+{
+	if (!_settings_game.vehicle.buy_engine_rights) return false;
+
+	/* If engine is in exclusive preview period and the company is the one granted with the preview,
+	 * then there is no need to pay for the engine rights right now. */
+	if (e->flags & ENGINE_EXCLUSIVE_PREVIEW && HasBit(e->company_avail, company)) return false;
+
+	return !HasBit(e->company_rights, company);
+}
+
+/**
+ * *Get the cost for buy rights for an engine
+ * @param company
+ * @param vehicle_type
+ * @return the cost of buying the rights for an engine of \a vehicle_type for company \a company
+ */
+Money CalculateCostForBuyingAnEngine(CompanyID company)
+{
+	uint engine_number = 0;
+	uint transport_types = 0;
+	bool *transport_types_seen = CallocT<bool>(VEH_COMPANY_END);
+	Engine *e;
+	FOR_ALL_ENGINES(e) {
+		if (HasBit(e->company_rights, company)) {
+			transport_types_seen[e->type] = true;
+			engine_number++;
+		}
+	}
+
+	for (uint i = VEH_COMPANY_END; i--;) {
+		if (transport_types_seen[i]) transport_types++;
+	}
+
+	free(transport_types_seen);
+
+	/* TODO: Find more appropriate cost. */
+	uint shift = transport_types * engine_number;
+	if (shift > 30) shift = 30;
+	return (Money)(1 << shift);
+}
+
+/**
+ * Buy the rights to use an engine
+ * @param tile unused
+ * @param flags operation to perform
+ * @param p1 CompanyID
+ * @param p2 EngineID
+ * @param text unused
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdBuyEngineRights(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	Engine *e = Engine::GetIfValid(p2);
+	if (e == NULL || p1 != _current_company) return CMD_ERROR;
+
+	if (HasBit(e->company_rights, p1)) return CMD_ERROR;
+
+	CommandCost cost(EXPENSES_NEW_VEHICLES, CalculateCostForBuyingAnEngine((CompanyID)p1));
+
+	if (flags & DC_EXEC) {
+		SetBit(e->company_rights, p1);
+		InvalidateWindowData(WC_ENGINE_RIGHTS, _current_company);
+	}
+
+	return cost;
+}
+
+/**
  * Accept an engine prototype. XXX - it is possible that the top-company
  * changes while you are waiting to accept the offer? Then it becomes invalid
  * @param tile unused

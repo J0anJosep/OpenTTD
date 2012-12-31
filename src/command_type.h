@@ -239,6 +239,7 @@ enum Commands {
 	CMD_INCREASE_LOAN,                ///< increase the loan from the bank
 	CMD_DECREASE_LOAN,                ///< decrease the loan from the bank
 
+	CMD_BUY_ENGINE_RIGHTS,            ///< buy rights to use a certain type of engine
 	CMD_WANT_ENGINE_PREVIEW,          ///< confirm the preview of an engine
 
 	CMD_RENAME_VEHICLE,               ///< rename a whole vehicle
