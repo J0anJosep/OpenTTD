@@ -104,22 +104,24 @@ typedef TinyEnumT<Trackdir> TrackdirByte;
  * direction (corresponding to the Track enum) and 8-13 in the other direction.
  */
 enum TrackdirBits {
-	TRACKDIR_BIT_NONE     = 0x0000, ///< No track build
-	TRACKDIR_BIT_X_NE     = 0x0001, ///< Track x-axis, direction north-east
-	TRACKDIR_BIT_Y_SE     = 0x0002, ///< Track y-axis, direction south-east
-	TRACKDIR_BIT_UPPER_E  = 0x0004, ///< Track upper, direction east
-	TRACKDIR_BIT_LOWER_E  = 0x0008, ///< Track lower, direction east
-	TRACKDIR_BIT_LEFT_S   = 0x0010, ///< Track left, direction south
-	TRACKDIR_BIT_RIGHT_S  = 0x0020, ///< Track right, direction south
-	/* Again, note the two missing values here. This enables trackdir -> track conversion by doing (trackdir & 0xFF) */
-	TRACKDIR_BIT_X_SW     = 0x0100, ///< Track x-axis, direction south-west
-	TRACKDIR_BIT_Y_NW     = 0x0200, ///< Track y-axis, direction north-west
-	TRACKDIR_BIT_UPPER_W  = 0x0400, ///< Track upper, direction west
-	TRACKDIR_BIT_LOWER_W  = 0x0800, ///< Track lower, direction west
-	TRACKDIR_BIT_LEFT_N   = 0x1000, ///< Track left, direction north
-	TRACKDIR_BIT_RIGHT_N  = 0x2000, ///< Track right, direction north
-	TRACKDIR_BIT_MASK     = 0x3F3F, ///< Bitmask for bit-operations
-	INVALID_TRACKDIR_BIT  = 0xFFFF, ///< Flag for an invalid trackdirbit value
+	TRACKDIR_BIT_NONE     = 0,         ///< No track build
+	TRACKDIR_BIT_X_NE     = 1 << 0,    ///< Track x-axis, direction north-east
+	TRACKDIR_BIT_Y_SE     = 1 << 1,    ///< Track y-axis, direction south-east
+	TRACKDIR_BIT_UPPER_E  = 1 << 2,    ///< Track upper, direction east
+	TRACKDIR_BIT_LOWER_E  = 1 << 3,    ///< Track lower, direction east
+	TRACKDIR_BIT_LEFT_S   = 1 << 4,    ///< Track left, direction south
+	TRACKDIR_BIT_RIGHT_S  = 1 << 5,    ///< Track right, direction south
+	/* Again, note the two missing values here.
+	 * This enables trackdir -> track conversion by doing (trackdir & 0xFF)
+	 * and track -> trackdirs by doing (track * 0x101). */
+	TRACKDIR_BIT_X_SW     = 1 << 8,     ///< Track x-axis, direction south-west
+	TRACKDIR_BIT_Y_NW     = 1 << 9,     ///< Track y-axis, direction north-west
+	TRACKDIR_BIT_UPPER_W  = 1 << 10,    ///< Track upper, direction west
+	TRACKDIR_BIT_LOWER_W  = 1 << 11,    ///< Track lower, direction west
+	TRACKDIR_BIT_LEFT_N   = 1 << 12,    ///< Track left, direction north
+	TRACKDIR_BIT_RIGHT_N  = 1 << 13,    ///< Track right, direction north
+	INVALID_TRACKDIR_BIT  = UINT16_MAX, ///< Flag for an invalid trackdirbit value
+	TRACKDIR_BIT_MASK     = UINT16_MAX & ~(1 << 6 | 1 << 7),    ///< Bitmask for bit-operations;
 };
 DECLARE_ENUM_AS_BIT_SET(TrackdirBits)
 typedef SimpleTinyEnumT<TrackdirBits, uint16> TrackdirBitsShort;
