@@ -562,7 +562,11 @@ CommandCost CmdAddSharedVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32
 {
 	VehicleType type = Extract<VehicleType, 0, 3>(p2);
 	GroupID id_g = p1;
-	if (!Group::IsValidID(id_g) || !IsCompanyBuildableVehicleType(type)) return CMD_ERROR;
+	if (!(Group::IsValidID(id_g) || IsDefaultGroupID(id_g)) || !IsCompanyBuildableVehicleType(type)) return CMD_ERROR;
+	if (!IsDefaultGroupID(id_g)) {
+		Group *g = Group::GetIfValid(id_g);
+		if (g == NULL || g->owner != _current_company) return CMD_ERROR;
+	}
 
 	if (flags & DC_EXEC) {
 		Vehicle *v;
@@ -571,7 +575,7 @@ CommandCost CmdAddSharedVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32
 		 * then add all shared vehicles of this front engine to the group id_g */
 		FOR_ALL_VEHICLES(v) {
 			if (v->type == type && v->IsPrimaryVehicle()) {
-				if (v->group_id != id_g) continue;
+				if (v->group_id != id_g || v->owner != _current_company) continue;
 				Vehicle *v2 = v->FirstShared();
 				if (v2 != v && v2->group_id == id_g) continue;
 				DoCommand(tile, id_g,  v2->index | 1 << 31, flags, CMD_ADD_VEHICLE_GROUP, text);
