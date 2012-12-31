@@ -41,7 +41,7 @@
 #include "newgrf_railtype.h"
 #include "waypoint_base.h"
 #include "waypoint_func.h"
-#include "pbs.h"
+#include "pbs_rail.h"
 #include "debug.h"
 #include "core/random_func.hpp"
 #include "company_base.h"
