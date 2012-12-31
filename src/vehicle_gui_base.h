@@ -28,6 +28,7 @@ typedef GUIList<const Group*> GUIGroupList;
 
 struct BaseVehicleListWindow : public Window {
 	GUIVehicleList vehicles;  ///< The list of vehicles
+	GUIGroupList groups;      ///< List of groups
 	ShowingList show;         ///< Which list to show (except for groups window)
 	Listing *sorting;         ///< Pointer to the vehicle type related sorting.
 	byte unitnumber_digits;   ///< The number of digits of the highest unit number
