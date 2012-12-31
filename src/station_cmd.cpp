@@ -3186,13 +3186,13 @@ void TriggerWatchedCargoCallbacks(Station *st)
 	if (cargoes == 0) return;
 
 	/* Loop over all houses in the catchment. */
-	Rect r = st->GetCatchmentRect();
-	TileArea ta(TileXY(r.left, r.top), TileXY(r.right, r.bottom));
-	TILE_AREA_LOOP(tile, ta) {
-		if (IsTileType(tile, MP_HOUSE)) {
-			WatchedCargoCallback(tile, cargoes);
-		}
-	}
+	const TileArea &ta = st->GetStationCatchmentArea();
+	const bool *footprint = st->GetStationCatchmentFootprint();
+	MASKED_TILE_AREA_LOOP(tile, ta, footprint) {
+ 		if (IsTileType(tile, MP_HOUSE)) {
+ 			WatchedCargoCallback(tile, cargoes);
+ 		}
+ 	}
 }
 
 /**
