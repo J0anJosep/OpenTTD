@@ -276,6 +276,26 @@ private:
 		return groups.Length();
 	}
 
+	/**
+	 * Display the dropdowns for group window
+	 */
+	DropDownList *BuildActionDropdownGroups() const
+	{
+		DropDownList *list = new DropDownList();
+
+		*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_REPLACE_VEHICLES, ADI_REPLACE, false);
+		*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_SEND_FOR_SERVICING, ADI_SERVICE, false);
+		*list->Append() = new DropDownListStringItem(this->vehicle_depot_name[this->vli.vtype], ADI_DEPOT, false);
+
+		if (Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index)) {
+			*list->Append() = new DropDownListStringItem(STR_GROUP_ADD_SHARED_VEHICLE, ADI_ADD_SHARED, false);
+		}
+		if (Group::IsValidID(this->vli.index)) {
+			*list->Append() = new DropDownListStringItem(STR_GROUP_REMOVE_ALL_VEHICLES, ADI_REMOVE_ALL, false);
+		}
+		return list;
+	}
+
 public:
 	VehicleGroupWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
 	{
@@ -637,7 +657,7 @@ public:
 				break;
 
 			case WID_GL_MANAGE_VEHICLES_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownList(true, Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index));
+				DropDownList *list = this->BuildActionDropdownGroups();
 				ShowDropDownList(this, list, 0, WID_GL_MANAGE_VEHICLES_DROPDOWN);
 				break;
 			}
