@@ -43,6 +43,12 @@ struct GroupStatistics {
 	/* Order Lists of vehicles of this group */
 	OrderListList order_lists;              ///< all different OrderLists of the group
 
+	/* Cargo information */
+	uint32 cargo_types;                     ///< cargo types this group carries (also refit orders)
+	CargoArray act_cargo;                   ///< cargo carried
+	CargoArray max_cargo;                   ///< total cargo capacity
+
+
 	GroupStatistics();
 	~GroupStatistics();
 
@@ -61,6 +67,13 @@ struct GroupStatistics {
 		this->autoreplace_finished = false;
 	}
 
+	void ClearCargo()
+	{
+		this->act_cargo.Clear();
+		this->max_cargo.Clear();
+		cargo_types = 0;
+	}
+
 	static GroupStatistics &Get(CompanyID company, GroupID id_g, VehicleType type);
 	static GroupStatistics &Get(const Vehicle *v);
 	static GroupStatistics &GetAllGroup(const Vehicle *v);
@@ -72,17 +85,20 @@ struct GroupStatistics {
 	static void UpdateProfits();
 	static void UpdateAfterLoad();
 	static void UpdateAutoreplace(CompanyID company);
+	static void UpdateCargo(CompanyID company, GroupID id_g, VehicleType type);
+	static void UpdateCargoForVehicleType(CompanyID company, VehicleType type);
 
 	/* Update info */
 	void AddOrderListType(const OrderListType new_ol);
 	void RemoveOrderListType(const Vehicle *vehicle_to_take_out);
 	void UpdateMinProfit(const Vehicle *vehicle_to_take_out, const GroupID g_id);
 	void RemoveOrderList(const Vehicle *v);
+	void UpdateCargoTypes();
 
 	/* Return objects */
 	DropDownList *BuildSharedOrdersDropdown() const;
 	bool HasGroupOrderListType(OrderListType ol_type) const;
-
+	bool DoesGroupCarryCargoType(CargoID cargo) const;
 	SmallVector<Vehicle *, 32> GetListOfFirstSharedVehicles() const;
 	SpriteID SetGroupProfitSpriteID() const;
 };
