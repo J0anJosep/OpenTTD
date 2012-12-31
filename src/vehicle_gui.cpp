@@ -1554,8 +1554,18 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 		DrawString2(left, right, y + 2, next_margin, STR_BLACK_STRING);
 
 		/* draw the number of vehicles of the group */
+		int left2 = left;
+		int right2 = right;
+		int next_margin2 = InitTempMargin(left, right, false);
+		AddSpace(5, next_margin2, false);
+		UpdateMarginsEnd(next_margin2, left2, right2, false);
+		SpriteID sprite = g->statistics.SetGroupProfitSpriteID();
+		Dimension d = GetSpriteSize(sprite);
+		DrawSprite2(d.width, left2, right2, y + 6 + FONT_HEIGHT_NORMAL + (FONT_HEIGHT_SMALL - d.height) / 2, next_margin2, sprite, PAL_NONE, false);
+		AddSpace(5, next_margin2, false);
+		UpdateMarginsEnd(next_margin2, left2, right2, false);
 		SetDParam(0, g->statistics.num_vehicle);
-		DrawString2(left + 5, right - 5, y + 4 + FONT_HEIGHT_NORMAL, next_margin, STR_TINY_COMMA, TC_BLACK);
+		DrawString2(left2, right2, y + 6 + FONT_HEIGHT_NORMAL, next_margin, STR_TINY_COMMA, TC_BLACK);
 
 		y += line_height;
 	}
@@ -1583,9 +1593,12 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 		const Vehicle *v = this->groups[i].g->GetVehicleOfGroup();
 		if (v != NULL) DrawVehicleImage(v, left, right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 
-		SetDParam(0, v->GetDisplayProfitThisYear());
-		SetDParam(1, v->GetDisplayProfitLastYear());
-		DrawString(left, right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
+		const GroupStatistics &stat = this->groups[i]->statistics;
+		if (stat.num_profit_vehicle > 0) {
+			SetDParam(0, stat.profit_last_year);
+			SetDParam(1, stat.profit_last_year / (OverflowSafeInt64)stat.num_profit_vehicle);
+			DrawString(left, right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_GROUP_PROFIT);
+		}
 
 		y += line_height;
 	}
