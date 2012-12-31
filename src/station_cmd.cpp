@@ -1636,6 +1636,7 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 
 		if (st->train_station.tile == INVALID_TILE) SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_TRAINS);
 		st->MarkTilesDirty(false);
+		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
 	}
 
@@ -1720,6 +1721,7 @@ static CommandCost RemoveRailStation(TileIndex tile, DoCommandFlag flags)
 	CommandCost cost = RemoveRailStation(st, flags, _price[PR_CLEAR_STATION_RAIL]);
 
 	if (flags & DC_EXEC) {
+		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
 	}
 
@@ -3921,6 +3923,7 @@ void BuildOilRig(TileIndex tile)
 	st->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);
 
 	st->UpdateVirtCoord();
+	st->UpdateCatchment();
 	UpdateStationAcceptance(st, false);
 	st->RecomputeIndustriesNear();
 }
@@ -3939,6 +3942,7 @@ void DeleteOilRig(TileIndex tile)
 	st->rect.AfterRemoveTile(st, tile);
 
 	st->UpdateVirtCoord();
+	st->UpdateCatchment();
 	st->RecomputeIndustriesNear();
 	if (!st->IsInUse()) delete st;
 }
