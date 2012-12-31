@@ -18,8 +18,11 @@
 #include "vehicle_type.h"
 #include "engine_type.h"
 #include "livery.h"
+#include "order_type.h"
+#include "widgets/dropdown_type.h"
 
 typedef Pool<Group, GroupID, 16, 64000> GroupPool;
+typedef SmallVector<const OrderList *, 32> OrderListList;
 extern GroupPool _group_pool; ///< Pool of groups.
 
 /** Statistics and caches on the vehicles in a group. */
@@ -32,6 +35,9 @@ struct GroupStatistics {
 
 	uint16 num_profit_vehicle;              ///< Number of vehicles considered for profit statistics;
 	Money profit_last_year;                 ///< Sum of profits for all vehicles.
+
+	/* Order Lists of vehicles of this group */
+	OrderListList order_lists;              ///< all different OrderLists of the group
 
 	GroupStatistics();
 	~GroupStatistics();
@@ -61,6 +67,10 @@ struct GroupStatistics {
 	static void UpdateProfits();
 	static void UpdateAfterLoad();
 	static void UpdateAutoreplace(CompanyID company);
+
+	void RemoveOrderList(const Vehicle *v);
+
+	DropDownList *BuildSharedOrdersDropdown() const;
 };
 
 /** Group data. */
@@ -77,6 +87,8 @@ struct Group : GroupPool::PoolItem<&_group_pool> {
 
 	Group(CompanyID owner = INVALID_COMPANY);
 	~Group();
+
+	const Vehicle *GetVehicleOfGroup() const;
 };
 
 
