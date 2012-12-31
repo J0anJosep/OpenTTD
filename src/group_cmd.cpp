@@ -162,12 +162,7 @@ void GroupStatistics::Clear()
 		}
 	}
 
-	if (v->age > VEHICLE_PROFIT_MIN_AGE) {
-		stats_all.num_profit_vehicle += delta;
-		stats_all.profit_last_year += v->GetDisplayProfitLastYear() * delta;
-		stats.num_profit_vehicle += delta;
-		stats.profit_last_year += v->GetDisplayProfitLastYear() * delta;
-	}
+	if (v->age > VEHICLE_PROFIT_MIN_AGE) VehicleReachedProfitAge(v, delta);
 }
 
 /**
@@ -185,15 +180,17 @@ void GroupStatistics::Clear()
 /**
  * Add a vehicle to the profit sum of its group.
  */
-/* static */ void GroupStatistics::VehicleReachedProfitAge(const Vehicle *v)
+/* static */ void GroupStatistics::VehicleReachedProfitAge(const Vehicle *v, int delta)
 {
+	assert(delta == 1 || delta == -1);
+
 	GroupStatistics &stats_all = GroupStatistics::GetAllGroup(v);
 	GroupStatistics &stats = GroupStatistics::Get(v);
 
-	stats_all.num_profit_vehicle++;
-	stats_all.profit_last_year += v->GetDisplayProfitLastYear();
-	stats.num_profit_vehicle++;
-	stats.profit_last_year += v->GetDisplayProfitLastYear();
+	stats_all.num_profit_vehicle += delta;
+	stats_all.profit_last_year += v->GetDisplayProfitLastYear() * delta;
+	stats.num_profit_vehicle += delta;
+	stats.profit_last_year += v->GetDisplayProfitLastYear() * delta;
 }
 
 /**
@@ -218,7 +215,7 @@ void GroupStatistics::Clear()
 
 	const Vehicle *v;
 	FOR_ALL_VEHICLES(v) {
-		if (v->IsPrimaryVehicle() && v->age > VEHICLE_PROFIT_MIN_AGE) GroupStatistics::VehicleReachedProfitAge(v);
+		if (v->IsPrimaryVehicle() && v->age > VEHICLE_PROFIT_MIN_AGE) GroupStatistics::VehicleReachedProfitAge(v, 1);
 	}
 }
 
