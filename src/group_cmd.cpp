@@ -31,7 +31,7 @@ GroupID _new_group_id;
 GroupPool _group_pool("Group");
 INSTANTIATE_POOL_METHODS(Group)
 
-GroupStatistics::GroupStatistics()
+GroupStatistics::GroupStatistics() : min_profit_vehicle(INT64_MAX)
 {
 	this->num_engines = CallocT<uint16>(Engine::GetPoolSize());
 }
@@ -47,8 +47,7 @@ GroupStatistics::~GroupStatistics()
 void GroupStatistics::Clear()
 {
 	this->num_vehicle = 0;
-	this->num_profit_vehicle = 0;
-	this->profit_last_year = 0;
+	this->ClearProfits();
 	this->order_lists.Clear();
 
 	/* This is also called when NewGRF change. So the number of engines might have changed. Reallocate. */
@@ -189,8 +188,17 @@ void GroupStatistics::Clear()
 
 	stats_all.num_profit_vehicle += delta;
 	stats_all.profit_last_year += v->GetDisplayProfitLastYear() * delta;
+	stats_all.min_profit_vehicle = min(stats_all.min_profit_vehicle, v->profit_last_year);
 	stats.num_profit_vehicle += delta;
 	stats.profit_last_year += v->GetDisplayProfitLastYear() * delta;
+
+	if (delta == 1) {
+		stats.min_profit_vehicle = min(stats.min_profit_vehicle, v->profit_last_year);
+		stats_all.min_profit_vehicle = min(stats_all.min_profit_vehicle, v->profit_last_year);
+	} else {
+		if (stats_all.min_profit_vehicle == v->profit_last_year) stats_all.UpdateMinProfit(v, ALL_GROUP);
+		if (stats.min_profit_vehicle == v->profit_last_year) stats.UpdateMinProfit(v, v->group_id);
+	}
 }
 
 /**
@@ -265,6 +273,21 @@ static inline void UpdateNumEngineGroup(const Vehicle *v, GroupID old_g, GroupID
 
 		/* Increase the num engines in the new group */
 		GroupStatistics::Get(v->owner, new_g, v->type).num_engines[v->engine_type]++;
+	}
+}
+
+/**
+ * When a vehicle is taken out and the min profit of a group is the one of the vehicle
+ * recalculates which is the new min profit
+ */
+void GroupStatistics::UpdateMinProfit(const Vehicle *vehicle_to_take_out, const GroupID g_id)
+{
+	min_profit_vehicle = INT64_MAX;
+	Vehicle *v;
+	FOR_ALL_VEHICLES(v) {
+		/* revise: nasty */
+		if (v->IsPrimaryVehicle() && (v->group_id == g_id || g_id == ALL_GROUP) && v->owner == vehicle_to_take_out->owner && v->type == vehicle_to_take_out->type && v->age > VEHICLE_PROFIT_MIN_AGE && v != vehicle_to_take_out)
+			this->min_profit_vehicle = min(this->min_profit_vehicle, v->profit_last_year);
 	}
 }
 
