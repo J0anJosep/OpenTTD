@@ -1374,6 +1374,10 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 	int right = r.right - WD_MATRIX_RIGHT;
 	int width = right - left;
 	bool rtl = _current_text_dir == TD_RTL;
+	OrderList *order_list = NULL;
+	if (_ctrl_pressed && selected_vehicle != INVALID_VEHICLE) {
+		order_list = Vehicle::Get(selected_vehicle)->orders.list;
+	}
 
 	int text_offset = max<int>(GetSpriteSize(SPR_PROFIT_LOT).width, GetDigitWidth() * this->unitnumber_digits) + WD_FRAMERECT_RIGHT;
 	int text_left  = left  + (rtl ?           0 : text_offset);
@@ -1395,7 +1399,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		StringID str;
 
 		/* Highlight the vehicle if it is selected. */
-		if (selected_vehicle == v->index) {
+		if (selected_vehicle == v->index || (_ctrl_pressed && v->orders.list == order_list)) {
 			GfxFillRect(left, y + WD_FRAMERECT_TOP, right, y + line_height - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
 		}
 
