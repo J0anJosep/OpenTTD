@@ -242,6 +242,20 @@ public:
 	}
 
 	/**
+	 * Finds the first ocurrence of an item and removes it
+	 * The '!=' operator of T is used for comparison.
+	 * @param item Item to search for
+	 * @return true if an element was found and erased, false otherwise
+	 */
+	inline bool FindAndErase(const T &item)
+	{
+		T *pos = this->Find(item);
+		if (pos == this->End()) return false;
+		this->Erase(pos);
+		return true;
+	}
+
+	/**
 	 * Tests whether a item is present in the vector, and appends it to the end if not.
 	 * The '!=' operator of T is used for comparison.
 	 * @param item Item to test for
