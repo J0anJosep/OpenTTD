@@ -18,6 +18,7 @@
 #include "industry_map.h"
 #include "industrytype.h"
 #include "tilearea_type.h"
+#include "station_type.h"
 
 
 typedef Pool<Industry, IndustryID, 64, 64000> IndustryPool;
@@ -43,6 +44,7 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 	BitMap *footprint;                                     ///< NOSAVE: Bool array of tiles of this->location that belong
 			//to this industry (when used combined with MASKED_TILE_AREA_LOOP(tile, this->location, this->footprint))
 	Town *town;                                            ///< Nearest town
+	StationList stations_near;                             ///< NOSAVE: Cached near stations that can get production of this industry
 	CargoID produced_cargo[INDUSTRY_NUM_OUTPUTS];          ///< 16 production cargo slots
 	uint16 produced_cargo_waiting[INDUSTRY_NUM_OUTPUTS];   ///< amount of cargo produced per cargo
 	uint16 incoming_cargo_waiting[INDUSTRY_NUM_INPUTS];    ///< incoming cargo waiting to be processed
@@ -159,6 +161,10 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 	{
 		memset(&counts, 0, sizeof(counts));
 	}
+
+	void RecomputeStationsNear();
+	static void RecomputeStationsNearArea(const TileArea ta);
+	static void RecomputeStationsNearForAll();
 
 protected:
 	static uint16 counts[NUM_INDUSTRYTYPES]; ///< Number of industries per type ingame
