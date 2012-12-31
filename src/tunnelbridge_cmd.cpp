@@ -34,7 +34,7 @@
 #include "tunnelbridge.h"
 #include "cheat_type.h"
 #include "elrail_func.h"
-#include "pbs.h"
+#include "pbs_rail.h"
 #include "company_base.h"
 #include "newgrf_railtype.h"
 #include "object_base.h"
