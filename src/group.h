@@ -37,6 +37,9 @@ struct GroupStatistics {
 	Money profit_last_year;                 ///< Sum of profits for all vehicles.
 	Money min_profit_vehicle;               ///< The min of the profits of the vehicles of this group last year; it determines the group profit icon
 
+	/* Timetable information */
+	OrderListType ol_type;                  ///< type of orders/timetables this group has
+
 	/* Order Lists of vehicles of this group */
 	OrderListList order_lists;              ///< all different OrderLists of the group
 
@@ -71,11 +74,14 @@ struct GroupStatistics {
 	static void UpdateAutoreplace(CompanyID company);
 
 	/* Update info */
+	void AddOrderListType(const OrderListType new_ol);
+	void RemoveOrderListType(const Vehicle *vehicle_to_take_out);
 	void UpdateMinProfit(const Vehicle *vehicle_to_take_out, const GroupID g_id);
 	void RemoveOrderList(const Vehicle *v);
 
 	/* Return objects */
 	DropDownList *BuildSharedOrdersDropdown() const;
+	bool HasGroupOrderListType(OrderListType ol_type) const;
 
 	SmallVector<Vehicle *, 32> GetListOfFirstSharedVehicles() const;
 	SpriteID SetGroupProfitSpriteID() const;
