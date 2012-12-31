@@ -534,7 +534,7 @@ void Station::RecomputeIndustriesNear()
 /* static */ void Station::RecomputeIndustriesNearArea(const TileArea ta, const bool *mask)
 {
 	StationList stations;
-	FindStationsAroundTiles(ta, &stations);
+	FindStationsAroundTiles(ta, mask, &stations);
 
 	for (Station **st_iter = stations.Begin(); st_iter != stations.End(); ++st_iter) {
 		(*st_iter)->RecomputeIndustriesNear();
