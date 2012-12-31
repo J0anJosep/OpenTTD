@@ -668,7 +668,7 @@ bool OrderList::IsListType(OrderListType ol_type) const
 		case OLT_UNPUNCTUAL:
 			if (!IsListType(OLT_COMPLETE)) return false;
 			for (Vehicle *v = this->first_shared; v != NULL; v = v->NextShared()) {
-				if ( 100 * abs(v->lateness_counter) * v->orders.list->GetNumVehicles() > UNPUNCTUALITY_PERCENTAGE * (uint)this->GetTimetableTotalDuration()) return true;
+				if (100 * abs(v->lateness_counter) * v->orders.list->GetNumVehicles() > UNPUNCTUALITY_PERCENTAGE * (uint)this->GetTimetableTotalDuration()) return true;
 			}
 			return false;
 		case OLT_CONDITIONAL:
@@ -714,22 +714,32 @@ void OrderList::ChangeOrderListType(OrderListType new_ol)
 	/* No change: return */
 	if (this->ol_type == new_ol) return;
 
+	bool change_on_groups = false;
 	this->ol_type = new_ol;
 	SmallVector<GroupID, 32> groups;
+	CompanyID company = this->GetFirstSharedVehicle()->owner;
+	VehicleTypeByte vt = this->GetFirstSharedVehicle()->type;
 	for (Vehicle *v = this->GetFirstSharedVehicle(); v != NULL; v = v->NextShared()) {
 		groups.Include(v->group_id);
 	}
-	for (int i = groups.Length(); i--;) {
-		GroupStatistics &stats = GroupStatistics::Get(this->GetFirstSharedVehicle()->owner, groups[i], this->GetFirstSharedVehicle()->type);
 
-		if (stats.ol_type >= this->GetOrderListType() && !( stats.ol_type == OLT_AUTOFILLING && this->GetOrderListType() == OLT_INCOMPLETE)) stats.ol_type = new_ol;
-		else {
+	for (int i = groups.Length(); i--;) {
+		GroupStatistics &stats = GroupStatistics::Get(company, groups[i], vt);
+		OrderListType old_ol = stats.ol_type;
+
+		if (stats.ol_type >= this->GetOrderListType() && !( stats.ol_type == OLT_AUTOFILLING && this->GetOrderListType() == OLT_INCOMPLETE)) {
+			stats.ol_type = new_ol;
+		} else {
 			stats.ol_type = OLT_EMPTY_GROUP;
 			for (int j = stats.order_lists.Length(); j--;) {
 				stats.ol_type = min(stats.ol_type, stats.order_lists[j]->ol_type);
 			}
 		}
+
+		if (stats.ol_type != old_ol) change_on_groups = true;
 	}
+
+	if (change_on_groups) SetWindowClassesDirty(GetWindowClassForVehicleType(vt));
 }
 
 /**
