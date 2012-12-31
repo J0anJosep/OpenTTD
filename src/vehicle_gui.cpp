@@ -39,6 +39,7 @@
 #include "station_base.h"
 #include "tilehighlight_func.h"
 #include "zoom_func.h"
+#include "group_details_gui.h"
 
 #include "safeguards.h"
 
@@ -1982,7 +1983,11 @@ public:
 
 				if (VehicleClicked(v)) return;
 
-				ShowVehicleViewWindow(v);
+				if (_ctrl_pressed) {
+					ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, this->vli.vtype, this->vli.company, show == VLS_GROUPS ? this->groups[id_v]->index : this->vehicles[id_v]->group_id).Pack());
+				} else {
+					ShowVehicleViewWindow(v);
+				}
 				break;
 			}
 
@@ -3097,7 +3102,11 @@ public:
 				}
 				break;
 			case WID_VV_SHOW_DETAILS: // show details
-				ShowVehicleDetailsWindow(v);
+				if(_ctrl_pressed) {
+					ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, v->type, v->owner, v->group_id).Pack());
+				} else {
+					ShowVehicleDetailsWindow(v);
+				}
 				break;
 			case WID_VV_CLONE: // clone vehicle
 				/* Suppress the vehicle GUI when share-cloning.
