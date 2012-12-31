@@ -287,6 +287,10 @@ static void InitializeWindowsAndCaches()
 
 	GroupStatistics::UpdateAfterLoad();
 
+	FOR_ALL_INDUSTRIES(i) {
+		i->SetFootprint();
+	}
+
 	Station *st;
 	FOR_ALL_STATIONS(st) {
 		st->UpdateCatchment();
