@@ -443,20 +443,19 @@ static inline DiagDirection GetDockDirection(TileIndex t)
  */
 static inline TileIndexDiffC GetDockOffset(TileIndex t)
 {
-	static const TileIndexDiffC buoy_offset = {0, 0};
-	static const TileIndexDiffC oilrig_offset = {2, 0};
-	static const TileIndexDiffC dock_offset[DIAGDIR_END] = {
-		{-2,  0},
-		{ 0,  2},
-		{ 2,  0},
-		{ 0, -2},
-	};
 	assert(IsTileType(t, MP_STATION));
 
-	if (IsBuoy(t)) return buoy_offset;
-	if (IsOilRig(t)) return oilrig_offset;
+	if (IsBuoy(t)) return {0, 0};
+	if (IsOilRig(t)) return {1, 0};
 
 	assert(IsDock(t));
+
+	static const TileIndexDiffC dock_offset[DIAGDIR_END] = {
+		{-1,  0},
+		{ 0,  1},
+		{ 1,  0},
+		{ 0, -1},
+	};
 
 	return dock_offset[GetDockDirection(t)];
 }
