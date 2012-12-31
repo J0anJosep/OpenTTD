@@ -2447,15 +2447,6 @@ bool HasStationInUse(StationID station, bool include_company, CompanyID company)
 	return false;
 }
 
-static const TileIndexDiffC _dock_tileoffs_chkaround[] = {
-	{-1,  0},
-	{ 0,  0},
-	{ 0,  0},
-	{ 0, -1}
-};
-static const byte _dock_w_chk[4] = { 2, 1, 2, 1 };
-static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
-
 /**
  * Build a dock/haven.
  * @param tile tile where dock will be built
@@ -2489,7 +2480,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (ret.Failed()) return ret;
 
-	TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
+	TileIndex tile_cur = TileAddByDiagDir(tile, direction);
 
 	if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
 		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
@@ -2503,13 +2494,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (ret.Failed()) return ret;
 
-	tile_cur += TileOffsByDiagDir(direction);
-	if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	}
-
-	TileArea dock_area = TileArea(tile + ToTileIndexDiff(_dock_tileoffs_chkaround[direction]),
-			_dock_w_chk[direction], _dock_h_chk[direction]);
+	TileArea dock_area = TileArea(tile, tile_cur);
 
 	/* middle */
 	Station *st = NULL;
@@ -2563,14 +2548,8 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	CommandCost ret = CheckOwnership(st->owner);
 	if (ret.Failed()) return ret;
 
-	TileIndex docking_location = TILE_ADD(st->dock_tile, ToTileIndexDiff(GetDockOffset(st->dock_tile)));
-
 	TileIndex tile1 = st->dock_tile;
-	TileIndex tile2 = tile1 + TileOffsByDiagDir(GetDockDirection(tile1));
-
-	ret = EnsureNoVehicleOnGround(tile1);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile2);
-	if (ret.Failed()) return ret;
+	TileIndex tile2 = TileAddByDiagDir(tile1, GetDockDirection(tile1));
 
 	if (flags & DC_EXEC) {
 		DoClearSquare(tile1);
@@ -2597,13 +2576,8 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		 * wander around the world. */
 		Ship *s;
 		FOR_ALL_SHIPS(s) {
-			if (s->current_order.IsType(OT_LOADING) && s->tile == docking_location) {
+			if (s->current_order.IsType(OT_LOADING) && s->tile == tile2) {
 				s->LeaveStation();
-			}
-
-			if (s->dest_tile == docking_location) {
-				s->dest_tile = 0;
-				s->current_order.Free();
 			}
 		}
 	}
