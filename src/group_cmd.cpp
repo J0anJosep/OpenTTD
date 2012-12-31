@@ -31,7 +31,7 @@ GroupID _new_group_id;
 GroupPool _group_pool("Group");
 INSTANTIATE_POOL_METHODS(Group)
 
-GroupStatistics::GroupStatistics() : min_profit_vehicle(INT64_MAX)
+GroupStatistics::GroupStatistics() : min_profit_vehicle(INT64_MAX), ol_type(OLT_EMPTY_GROUP)
 {
 	this->num_engines = CallocT<uint16>(Engine::GetPoolSize());
 }
@@ -49,6 +49,7 @@ void GroupStatistics::Clear()
 	this->num_vehicle = 0;
 	this->ClearProfits();
 	this->order_lists.Clear();
+	this->ol_type = OLT_EMPTY_GROUP;
 
 	/* This is also called when NewGRF change. So the number of engines might have changed. Reallocate. */
 	free(this->num_engines);
@@ -156,8 +157,10 @@ void GroupStatistics::Clear()
 	if (v->orders.list != NULL) {
 		if (delta == 1) {
 			stats.order_lists.Include(v->orders.list);
+			stats.AddOrderListType(v->GetOrderListType());
 		} else {
 			stats.RemoveOrderList(v);
+			stats.RemoveOrderListType(v);
 		}
 	}
 
@@ -277,6 +280,35 @@ static inline void UpdateNumEngineGroup(const Vehicle *v, GroupID old_g, GroupID
 }
 
 /**
+ * Update group orderlisttype when a vehicle is added to the group
+ * @param new_ol new type of orderlist added to the group
+ */
+void GroupStatistics::AddOrderListType(const OrderListType new_ol)
+{
+	if (this->ol_type == OLT_AUTOFILLING && (new_ol == OLT_INCOMPLETE || new_ol == OLT_UNPUNCTUAL)) {
+		this->ol_type = new_ol;
+		return;
+	}
+	if ((this->ol_type == OLT_INCOMPLETE || this->ol_type == OLT_UNPUNCTUAL) && new_ol == OLT_AUTOFILLING)
+		return;
+	this->ol_type = min(this->ol_type, new_ol);
+}
+
+/**
+ * Vehicle is taken out; update orderlist_type
+ */
+void GroupStatistics::RemoveOrderListType(const Vehicle *vehicle_to_take_out)
+{
+	if (this->ol_type < vehicle_to_take_out->GetOrderListType()) return;
+	this->ol_type = OLT_EMPTY_GROUP;
+	Vehicle *v;
+	FOR_ALL_VEHICLES(v) {
+		if (v->IsPrimaryVehicle() && v != vehicle_to_take_out && v->group_id == vehicle_to_take_out->group_id)
+			this->AddOrderListType(v->GetOrderListType());
+	}
+}
+
+/**
  * When a vehicle is taken out and the min profit of a group is the one of the vehicle
  * recalculates which is the new min profit
  */
@@ -319,7 +351,8 @@ DropDownList *GroupStatistics::BuildSharedOrdersDropdown() const
 		uint param_number = 0;
 		uint orders_to_show = 3;
 		DropDownListParamStringItem *new_item = new DropDownListParamStringItem(STR_GROUP_VEHICLE_WINDOW_STR, this->order_lists[i]->GetFirstSharedVehicle()->index, false);
-		new_item->SetParam(param_number, this->order_lists[i]->GetNumVehicles());
+		new_item->SetParam(param_number, STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + this->order_lists[i]->GetOrderListType());
+		new_item->SetParam(++param_number, this->order_lists[i]->GetNumVehicles());
 		new_item->SetParam(++param_number, this->order_lists[i]->GetNumOrders());
 		SmallVector<DestinationID, 32> destinations = GetDestinations(this->order_lists[i]);
 		for (uint j = 0; j < min(orders_to_show, destinations.Length()); j++) {
@@ -345,6 +378,23 @@ SmallVector<Vehicle *, 32> GroupStatistics::GetListOfFirstSharedVehicles() const
 		*vector.Append() = v;
 	}
 	return vector;
+}
+
+/**
+ * Check if this group has an orderlist of the given type
+ */
+bool GroupStatistics::HasGroupOrderListType(OrderListType ol_type) const
+{
+	if (ol_type == OLT_EMPTY_GROUP) {
+		for (uint i = order_lists.Length(); i--;) {
+			if (!order_lists[i]->IsListType(OLT_EMPTY)) return false;
+		}
+		return true;
+	}
+	for (uint i = order_lists.Length(); i--;) {
+		if (order_lists[i]->IsListType(ol_type)) return true;
+	}
+	return false;
 }
 
 /**
