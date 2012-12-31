@@ -3319,6 +3319,7 @@ STR_VEHICLE_LIST_SHIP_TOOLTIP                                   :{BLACK}Ships - 
 STR_VEHICLE_LIST_AIRCRAFT_TOOLTIP                               :{BLACK}Aircraft - click on aircraft for information
 
 STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR                     :{TINY_FONT}{BLACK}Profit this year: {CURRENCY_LONG} (last year: {CURRENCY_LONG})
+STR_VEHICLE_LIST_GROUP_PROFIT                                   :{TINY_FONT}{BLACK}Profit last year: {CURRENCY_LONG} (mean profit: {CURRENCY_LONG})
 
 STR_VEHICLE_LIST_AVAILABLE_TRAINS                               :Available Trains
 STR_VEHICLE_LIST_AVAILABLE_ROAD_VEHICLES                        :Available Vehicles
