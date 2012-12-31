@@ -668,11 +668,19 @@ static void DeleteStationIfEmpty(BaseStation *st)
  */
 void Station::AfterStationTileSetChange(bool adding, const TileArea ta, StationType type)
 {
+	TileArea affected_ta;
+	affected_ta.CopyAndExtend(ta, Station::GetCatchmentRadius(type));
+	if (!_settings_game.station.precise_catchment && !adding) affected_ta.RectExpansion(this->GetStationCatchmentArea());
+
 	this->UpdateVirtCoord();
 	this->UpdateCatchment();
 	this->RecomputeIndustriesNear();
 	DirtyCompanyInfrastructureWindows(this->owner);
 	InvalidateWindowData(WC_STATION_LIST, this->owner, 0);
+
+	if (!_settings_game.station.precise_catchment && adding) affected_ta.RectExpansion(this->GetStationCatchmentArea());
+
+	Industry::RecomputeStationsNearArea(affected_ta);
 
 	byte widget_index;
 	switch (type) {
@@ -1569,15 +1577,24 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 	CommandCost ret = RemoveFromRailBaseStation(ta, affected_stations, flags, _price[PR_CLEAR_STATION_RAIL], HasBit(p2, 0));
 	if (ret.Failed()) return ret;
 
+	/* ta was the area for removal; now, ta will be the tile area with industries affected. */
+	if (_settings_game.station.precise_catchment) ta.AddRadius(Station::GetCatchmentRadius(STATION_RAIL));
+
 	/* Do all station specific functions here. */
 	for (Station **stp = affected_stations.Begin(); stp != affected_stations.End(); stp++) {
 		Station *st = *stp;
 
 		if (st->train_station.tile == INVALID_TILE) SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_TRAINS);
+
+		// Expand the tile area if working with rect catchment before updating it.
+		if (!_settings_game.station.precise_catchment) ta.RectExpansion(st->GetStationCatchmentArea());
+
 		st->MarkTilesDirty(false);
 		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
 	}
+
+	Industry::RecomputeStationsNearArea(ta);
 
 	/* Now apply the rail cost to the number that we deleted */
 	return ret;
@@ -1657,11 +1674,20 @@ static CommandCost RemoveRailStation(TileIndex tile, DoCommandFlag flags)
 	}
 
 	Station *st = Station::GetByTile(tile);
+
 	CommandCost cost = RemoveRailStation(st, flags, _price[PR_CLEAR_STATION_RAIL]);
 
 	if (flags & DC_EXEC) {
+		TileArea affected_ta;
+		if (_settings_game.station.precise_catchment) {
+			affected_ta.CopyAndExtend(st->train_station, Station::GetCatchmentRadius(STATION_RAIL));
+		} else {
+			affected_ta = st->GetStationCatchmentArea();
+		}
+
 		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
+		Industry::RecomputeStationsNearArea(affected_ta);
 	}
 
 	return cost;
@@ -3845,6 +3871,8 @@ void DeleteOilRig(TileIndex tile)
 	st->UpdateVirtCoord();
 	st->UpdateCatchment();
 	st->RecomputeIndustriesNear();
+	const TileArea affected_ta(tile, 1, 1, Station::GetCatchmentRadius(STATION_OILRIG));
+	Industry::RecomputeStationsNearArea(affected_ta);
 	if (!st->IsInUse()) delete st;
 }
 
