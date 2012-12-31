@@ -180,4 +180,6 @@ void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8 num_vehicles);
 
 void CheckCargoCapacity(Vehicle *v);
 
+uint32 GetCargoType(const Vehicle *v, bool check_refit_orders = false);
+
 #endif /* VEHICLE_FUNC_H */
