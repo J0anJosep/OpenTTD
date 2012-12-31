@@ -217,17 +217,7 @@ private:
 
 		/* draw the profit icon */
 		x = rtl ? x - 2 - this->column_size[VGC_PROFIT].width : x + 2 + this->column_size[VGC_AUTOREPLACE].width;
-		SpriteID spr;
-		if (stats.num_profit_vehicle == 0) {
-			spr = SPR_PROFIT_NA;
-		} else if (stats.profit_last_year < 0) {
-			spr = SPR_PROFIT_NEGATIVE;
-		} else if (stats.profit_last_year < 10000 * stats.num_profit_vehicle) { // TODO magic number
-			spr = SPR_PROFIT_SOME;
-		} else {
-			spr = SPR_PROFIT_LOT;
-		}
-		DrawSprite(spr, PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_PROFIT].height) / 2);
+		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_PROFIT].height) / 2);
 
 		/* draw the number of vehicles of the group */
 		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_PROFIT].width;
