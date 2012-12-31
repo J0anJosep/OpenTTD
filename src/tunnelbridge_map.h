@@ -93,7 +93,7 @@ static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 static inline bool HasTunnelBridgeReservation(TileIndex t)
 {
 	assert(IsTileType(t, MP_TUNNELBRIDGE));
-	assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+	assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL || GetTunnelBridgeTransportType(t) == TRANSPORT_WATER);
 	return HasBit(_m[t].m5, 4);
 }
 
@@ -106,7 +106,7 @@ static inline bool HasTunnelBridgeReservation(TileIndex t)
 static inline void SetTunnelBridgeReservation(TileIndex t, bool b)
 {
 	assert(IsTileType(t, MP_TUNNELBRIDGE));
-	assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL);
+	assert(GetTunnelBridgeTransportType(t) == TRANSPORT_RAIL || GetTunnelBridgeTransportType(t) == TRANSPORT_WATER);
 	SB(_m[t].m5, 4, 1, b ? 1 : 0);
 }
 
