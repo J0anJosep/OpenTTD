@@ -20,6 +20,7 @@
 #include "station_type.h"
 #include "vehicle_type.h"
 #include "date_type.h"
+#include "gfx_type.h"
 
 typedef Pool<Order, OrderID, 256, 64000> OrderPool;
 typedef Pool<OrderList, OrderListID, 128, 64000> OrderListPool;
@@ -370,6 +371,10 @@ public:
 	 * @return known timetable duration
 	 */
 	inline Ticks GetTimetableDurationIncomplete() const { return this->timetable_duration; }
+
+	Ticks GetMaxUnpunctuality(bool delay) const;
+	int GetRelativeUnpunctuality() const;
+	TextColour GetOrderListTypeColour() const;
 
 	/**
 	 * Gets the known duration of the vehicles orders, timetabled or not.
