@@ -49,6 +49,7 @@ void GroupStatistics::Clear()
 	this->num_vehicle = 0;
 	this->num_profit_vehicle = 0;
 	this->profit_last_year = 0;
+	this->order_lists.Clear();
 
 	/* This is also called when NewGRF change. So the number of engines might have changed. Reallocate. */
 	free(this->num_engines);
@@ -128,6 +129,14 @@ void GroupStatistics::Clear()
 	FOR_ALL_COMPANIES(c) {
 		GroupStatistics::UpdateAutoreplace(c->index);
 	}
+
+	const OrderList *order_list;
+	FOR_ALL_ORDER_LISTS(order_list) {
+		v = order_list->GetFirstSharedVehicle();
+		//revise
+		if (v == NULL) continue;
+		GroupStatistics::GetAllGroup(v).order_lists.Include(order_list);
+	}
 }
 
 /**
@@ -144,6 +153,14 @@ void GroupStatistics::Clear()
 
 	stats_all.num_vehicle += delta;
 	stats.num_vehicle += delta;
+
+	if (v->orders.list != NULL) {
+		if (delta == 1) {
+			stats.order_lists.Include(v->orders.list);
+		} else {
+			stats.RemoveOrderList(v);
+		}
+	}
 
 	if (v->age > VEHICLE_PROFIT_MIN_AGE) {
 		stats_all.num_profit_vehicle += delta;
@@ -254,7 +271,61 @@ static inline void UpdateNumEngineGroup(const Vehicle *v, GroupID old_g, GroupID
 	}
 }
 
+/**
+ * Remove an OrderList from group if no other vehicle of the group has it
+ * v is a vehicle being removed from this group
+ */
+void GroupStatistics::RemoveOrderList(const Vehicle *v)
+{
+	assert(v != NULL);
+	if (v->orders.list == NULL) return;
+	for (Vehicle *v2 = v->FirstShared(); v2 != NULL; v2 = v2->NextShared()) {
+		if (v2->group_id == v->group_id && v2 != v)
+			return;
+	}
+	/* look for the order list and delete it */
+	this->order_lists.FindAndErase(v->orders.list);
+}
 
+/**
+ * Returns a DropDownList containing the different orderlists on the group
+ */
+DropDownList *GroupStatistics::BuildSharedOrdersDropdown() const
+{
+	if (this->order_lists.Length() < 2) return NULL;
+	DropDownList *list = new DropDownList();
+	uint length = this->order_lists.Length();
+	for (uint i = 0; i < length; i++) {
+		uint param_number = 0;
+		uint orders_to_show = 3;
+		DropDownListParamStringItem *new_item = new DropDownListParamStringItem(STR_GROUP_VEHICLE_WINDOW_STR, this->order_lists[i]->GetFirstSharedVehicle()->index, false);
+		new_item->SetParam(param_number, this->order_lists[i]->GetNumVehicles());
+		new_item->SetParam(++param_number, this->order_lists[i]->GetNumOrders());
+		SmallVector<DestinationID, 32> destinations = GetDestinations(this->order_lists[i]);
+		for (uint j = 0; j < min(orders_to_show, destinations.Length()); j++) {
+			new_item->SetParam(++param_number, j == 0 ? STR_GROUP_VEHICLE_WINDOW_STR_1ST : STR_GROUP_VEHICLE_WINDOW_STR_ADDED);
+			new_item->SetParam(++param_number, destinations[j]);
+		}
+		new_item->SetParam(++param_number, destinations.Length() > orders_to_show ? STR_GROUP_VEHICLE_WINDOW_STR_ETC : STR_EMPTY);
+		*list->Append() = new_item;
+	}
+	return list;
+}
+
+/**
+ * For all vehicles in this group, return only the first vehicle of each shared schedule
+ */
+SmallVector<Vehicle *, 32> GroupStatistics::GetListOfFirstSharedVehicles() const
+{
+	SmallVector<Vehicle *, 32> vector;
+	Vehicle *v;
+	for (uint i = this->order_lists.Length(); i--;) {
+		v = this->order_lists[i]->GetFirstSharedVehicle();
+		if (v == NULL) continue;
+		*vector.Append() = v;
+	}
+	return vector;
+}
 
 Group::Group(Owner owner)
 {
