@@ -107,6 +107,7 @@ private:
 		VGC_PROTECT,       ///< Autoreplace protect icon.
 		VGC_AUTOREPLACE,   ///< Autoreplace active icon.
 		VGC_PROFIT,        ///< Profit icon.
+		VGC_TIMETABLE,     ///< Timetable type.
 		VGC_NUMBER,        ///< Number of vehicles in the group.
 
 		VGC_END
@@ -162,7 +163,9 @@ private:
 		}
 		this->tiny_step_height = max(this->tiny_step_height, this->column_size[VGC_PROFIT].height);
 
+		this->column_size[VGC_TIMETABLE] = GetStringBoundingBox(STR_GROUP_LIST_TIMETABLE_ABBREV_COMPLETE);
 		SetDParamMaxValue(0, GroupStatistics::Get(this->vli.company, ALL_GROUP, this->vli.vtype).num_vehicle, 3, FS_SMALL);
+
 		this->column_size[VGC_NUMBER] = GetStringBoundingBox(STR_TINY_COMMA);
 		this->tiny_step_height = max(this->tiny_step_height, this->column_size[VGC_NUMBER].height);
 
@@ -173,6 +176,7 @@ private:
 			this->column_size[VGC_PROTECT].width + 2 +
 			this->column_size[VGC_AUTOREPLACE].width + 2 +
 			this->column_size[VGC_PROFIT].width + 2 +
+			this->column_size[VGC_TIMETABLE].width + 2 +
 			this->column_size[VGC_NUMBER].width + 2 +
 			WD_FRAMERECT_RIGHT;
 	}
@@ -233,8 +237,12 @@ private:
 		x = rtl ? x - 2 - this->column_size[VGC_PROFIT].width : x + 2 + this->column_size[VGC_AUTOREPLACE].width;
 		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_PROFIT].height) / 2);
 
+		/* draw a timetable state indicator */
+		x = rtl ? x - 2 - this->column_size[VGC_TIMETABLE].width : x + 2 + this->column_size[VGC_PROFIT].width;
+		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, y + (this->tiny_step_height - this->column_size[VGC_TIMETABLE].height) / 2, STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, TC_BLACK);
+
 		/* draw the number of vehicles of the group */
-		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_PROFIT].width;
+		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_TIMETABLE].width;
 		SetDParam(0, stats.num_vehicle);
 		DrawString(x, x + this->column_size[VGC_NUMBER].width - 1, y + (this->tiny_step_height - this->column_size[VGC_NUMBER].height) / 2, STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
 	}

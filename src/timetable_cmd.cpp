@@ -15,6 +15,8 @@
 #include "date_func.h"
 #include "window_func.h"
 #include "vehicle_base.h"
+#include "vehiclelist.h"
+#include "vehicle_gui.h"
 #include "cmd_helper.h"
 #include "core/sort_func.hpp"
 
