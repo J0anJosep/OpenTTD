@@ -59,10 +59,11 @@ int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageTyp
 	uint32 cargo_mask = 0;
 	if (_thd.drawstyle == HT_RECT && tile < MapSize()) {
 		CargoArray cargoes;
+		const TileArea ta(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
 		if (supplies) {
-			cargoes = GetProductionAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
+			cargoes = GetProductionAroundTiles(ta, NULL);
 		} else {
-			cargoes = GetAcceptanceAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
+			cargoes = GetAcceptanceAroundTiles(ta, NULL);
 		}
 
 		/* Convert cargo counts to a set of cargo bits, and draw the result. */
