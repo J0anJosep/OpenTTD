@@ -16,6 +16,14 @@
 #include "safeguards.h"
 
 /**
+ * Construct a tile area given a tile, width and height and then expand by the given radius
+ */
+OrthogonalTileArea::OrthogonalTileArea(TileIndex tile, uint8 w, uint8 h, uint rad) : tile(tile), w(w), h(h)
+{
+	this->AddRadius(rad);
+}
+
+/**
  * Construct this tile area based on two points.
  * @param start the start of the area
  * @param end   the end of the area
@@ -70,6 +78,40 @@ void OrthogonalTileArea::Add(TileIndex to_add)
 }
 
 /**
+ * Enlarge tile area by radius tiles
+ * @param radius the number of tiles to expand tile area
+ */
+void OrthogonalTileArea::AddRadius(uint radius)
+{
+	if (this->tile == INVALID_TILE) return;
+
+	uint sx = max((int)(TileX(this->tile) - radius), 0);
+	uint sy = max((int)(TileY(this->tile) - radius), 0);
+	uint ex = TileX(this->tile) + this->w + radius - 1;
+	uint ey = TileY(this->tile) + this->h + radius - 1;
+
+	this->tile = TileXY(sx, sy);
+	this->w    = ex - sx + 1;
+	this->h    = ey - sy + 1;
+
+	this->ClampToMap();
+}
+
+/**
+ * Copy the given tile area and extend area by radius tiles on each side
+ * @param ta TileArea to copy
+ * @param radius tiles to add on each side
+ * @note object will be campled to map
+ */
+void OrthogonalTileArea::CopyAndExtend(const OrthogonalTileArea ta, uint radius)
+{
+	this->tile = ta.tile;
+	this->w = ta.w;
+	this->h = ta.h;
+	this->AddRadius(radius);
+}
+
+/**
  * Does this tile area intersect with another?
  * @param ta the other tile area to check against.
  * @return true if they intersect.
@@ -95,6 +137,76 @@ bool OrthogonalTileArea::Intersects(const OrthogonalTileArea &ta) const
 			top2    > bottom1 ||
 			bottom2 < top1
 		);
+}
+
+/**
+ * Intersect object with given an orthogonal tile area.
+ * @param ta tile area
+ */
+void OrthogonalTileArea::IntersectionWith(const OrthogonalTileArea ta)
+{
+	if (ta.w == 0 || this->w == 0) {
+		this->tile = INVALID_TILE;
+		this->w = 0;
+		this->h = 0;
+		return;
+	}
+
+	uint left   = TileX(this->tile);
+	uint top    = TileY(this->tile);
+	uint right  = left + this->w;
+	uint bottom = top  + this->h;
+
+	uint left2   = TileX(ta.tile);
+	uint top2    = TileY(ta.tile);
+	uint right2  = left2 + ta.w;
+	uint bottom2 = top2  + ta.h;
+
+	left   = max(left, left2);
+	top    = max(top, top2);
+	right  = min(right, right2);
+	bottom = min(bottom, bottom2);
+
+	if (right <= left || bottom <= top) {
+		this->tile = INVALID_TILE;
+		this->w = 0;
+		this->h = 0;
+	} else {
+		this->tile = TileXY(left, top);
+		this->w = right - left;
+		this->h = bottom - top;
+	}
+}
+
+void OrthogonalTileArea::RectExpansion(const OrthogonalTileArea ta)
+{
+	if (ta.w == 0) return;
+	if (this->w == 0) {
+		assert(this->h == 0);
+		this->tile = ta.tile;
+		this->h = ta.h;
+		this->w = ta.w;
+		return;
+	}
+
+	uint left   = TileX(this->tile);
+	uint top    = TileY(this->tile);
+	uint right  = left + this->w;
+	uint bottom = top  + this->h;
+
+	uint left2   = TileX(ta.tile);
+	uint top2    = TileY(ta.tile);
+	uint right2  = left2 + ta.w;
+	uint bottom2 = top2  + ta.h;
+
+	left   = min(left, left2);
+	top    = min(top, top2);
+	right  = max(right, right2);
+	bottom = max(bottom, bottom2);
+
+	this->tile = TileXY(left, top);
+	this->w = right - left;
+	this->h = bottom - top;
 }
 
 /**
