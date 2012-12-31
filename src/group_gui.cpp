@@ -221,7 +221,7 @@ private:
 		this->tiny_step_height += WD_MATRIX_TOP;
 
 		return WD_FRAMERECT_LEFT + 8 +
-			this->column_size[VGC_NAME].width + 8 +
+			this->column_size[VGC_NAME].width + 2 +
 			this->column_size[VGC_PROTECT].width + 2 +
 			this->column_size[VGC_AUTOREPLACE].width + 2 +
 			this->column_size[VGC_PROFIT].width + 2 +
@@ -266,7 +266,7 @@ private:
 		DrawString(x + (rtl ? 0 : indent), x + this->column_size[VGC_NAME].width - 1 - (rtl ? indent : 0), y + (this->tiny_step_height - this->column_size[VGC_NAME].height) / 2, str, colour);
 
 		/* draw autoreplace protection */
-		x = rtl ? x - 8 - this->column_size[VGC_PROTECT].width : x + 8 + this->column_size[VGC_NAME].width;
+		x = rtl ? x - 2 - this->column_size[VGC_PROTECT].width : x + 2 + this->column_size[VGC_NAME].width;
 		if (protection) DrawSprite(SPR_GROUP_REPLACE_PROTECT, PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_PROTECT].height) / 2);
 
 		/* draw autoreplace status */
