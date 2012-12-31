@@ -590,7 +590,7 @@ void Station::RecomputeIndustriesNear()
 /* static */ void Station::RecomputeIndustriesNearArea(const TileArea ta, const CustomBitMap *mask)
 {
 	StationList stations;
-	FindStationsAroundTiles(ta, &stations);
+	FindStationsAroundTiles(ta, mask, &stations);
 
 	for (Station *st : stations) {
 		st->RecomputeIndustriesNear();
