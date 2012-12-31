@@ -1300,6 +1300,11 @@ static bool ChangeMaxHeightLevel(int32 p1)
 
 static bool StationCatchmentChanged(int32 p1)
 {
+	Industry *i;
+	FOR_ALL_INDUSTRIES(i) {
+		i->SetFootprint();
+	}
+
 	Station *st;
 	FOR_ALL_STATIONS(st) {
 		st->UpdateCatchment();
