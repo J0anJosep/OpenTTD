@@ -1909,10 +1909,19 @@ public:
 
 			case WID_VL_LIST: { // Matrix to show vehicles
 				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_VL_LIST);
-				if (id_v >= this->vehicles.Length()) return; // click out of list bound
+				const Vehicle *v;
+				if (show == VLS_GROUPS) {
+					if (id_v >= this->groups.Length()) return; // click out of list bound
+					v = this->groups[id_v].g->GetVehicleOfGroup();
+					assert(v != NULL);
+				} else {
+					if (id_v >= this->vehicles.Length()) return; // click out of list bound
+					v = this->vehicles[id_v];
+				}
 
-				const Vehicle *v = this->vehicles[id_v];
-				if (!VehicleClicked(v)) ShowVehicleViewWindow(v);
+				if (VehicleClicked(v)) return;
+
+				ShowVehicleViewWindow(v);
 				break;
 			}
 
