@@ -731,6 +731,10 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 				ret = ReplaceChain(&v, flags, wagon_removal, &nothing_to_do);
 			}
 			assert(ret.Succeeded() && ret.GetCost() == cost.GetCost());
+			if (v->age == 0) {
+				GroupStatistics::Get(v->owner, ALL_GROUP, v->type).UpdateMinProfit(v, ALL_GROUP);
+				GroupStatistics::Get(v->owner, v->group_id, v->type).UpdateMinProfit(v, v->group_id);
+			}
 		}
 
 		/* Restart the vehicle */

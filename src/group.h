@@ -32,8 +32,10 @@ struct GroupStatistics {
 	bool autoreplace_defined;               ///< Are any autoreplace rules set?
 	bool autoreplace_finished;              ///< Have all autoreplacement finished?
 
+	/* Profit information */
 	uint16 num_profit_vehicle;              ///< Number of vehicles considered for profit statistics;
 	Money profit_last_year;                 ///< Sum of profits for all vehicles.
+	Money min_profit_vehicle;               ///< The min of the profits of the vehicles of this group last year; it determines the group profit icon
 
 	/* Order Lists of vehicles of this group */
 	OrderListList order_lists;              ///< all different OrderLists of the group
@@ -47,6 +49,7 @@ struct GroupStatistics {
 	{
 		this->num_profit_vehicle = 0;
 		this->profit_last_year = 0;
+		this->min_profit_vehicle = INT64_MAX;
 	}
 
 	void ClearAutoreplace()
@@ -67,8 +70,11 @@ struct GroupStatistics {
 	static void UpdateAfterLoad();
 	static void UpdateAutoreplace(CompanyID company);
 
+	/* Update info */
+	void UpdateMinProfit(const Vehicle *vehicle_to_take_out, const GroupID g_id);
 	void RemoveOrderList(const Vehicle *v);
 
+	/* Return objects */
 	DropDownList *BuildSharedOrdersDropdown() const;
 
 	SmallVector<Vehicle *, 32> GetListOfFirstSharedVehicles() const;
