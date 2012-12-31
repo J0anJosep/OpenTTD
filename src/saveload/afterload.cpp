@@ -26,6 +26,7 @@
 #include "../date_func.h"
 #include "../roadveh.h"
 #include "../train.h"
+#include "../ship.h"
 #include "../station_base.h"
 #include "../waypoint_base.h"
 #include "../roadstop_base.h"
@@ -2970,11 +2971,28 @@ bool AfterLoadGame()
 #endif
 	}
 
-
 	/* Station acceptance is some kind of cache */
 	if (IsSavegameVersionBefore(127)) {
 		Station *st;
 		FOR_ALL_STATIONS(st) UpdateStationAcceptance(st, false);
+	}
+
+	if (IsSavegameVersionBefore(SL_DOCK_LOADING_BAY)) {
+		/* Changed ship destination tiles. */
+		Ship *v;
+		FOR_ALL_SHIPS(v) {
+			switch (v->current_order.GetType()) {
+				case OT_GOTO_STATION:
+					v->dest_tile = v->GetOrderStationLocation(v->current_order.GetDestination());
+					break;
+
+				case OT_LOADING:
+					v->LeaveStation();
+					break;
+
+				default: break;
+			}
+		}
 	}
 
 	/* Road stops is 'only' updating some caches */
