@@ -21,6 +21,7 @@
 #include "depot_base.h"
 #include "core/pool_func.hpp"
 #include "core/random_func.hpp"
+#include "core/sort_func.hpp"
 #include "aircraft.h"
 #include "roadveh.h"
 #include "station_base.h"
@@ -313,6 +314,9 @@ void OrderList::Initialize(Order *chain, Vehicle *v)
 	}
 
 	for (const Vehicle *u = v->NextShared(); u != NULL; u = u->NextShared()) ++this->num_vehicles;
+
+	GroupStatistics::Get(v).order_lists.Include(this);
+	GroupStatistics::GetAllGroup(v).order_lists.Include(this);
 }
 
 /**
@@ -334,6 +338,9 @@ void OrderList::FreeChain(bool keep_orderlist)
 		this->num_manual_orders = 0;
 		this->timetable_duration = 0;
 	} else {
+		assert(this->first_shared != NULL);
+		GroupStatistics::Get(this->first_shared).RemoveOrderList(this->first_shared);
+		assert(GroupStatistics::GetAllGroup(this->first_shared).order_lists.FindAndErase(this));
 		delete this;
 	}
 }
@@ -2281,4 +2288,42 @@ bool Order::CanLeaveWithCargo(bool has_cargo) const
 {
 	return (this->GetLoadType() & OLFB_NO_LOAD) == 0 || (has_cargo &&
 			(this->GetUnloadType() & (OUFB_UNLOAD | OUFB_TRANSFER)) == 0);
+}
+
+/** Sort station destinations by name */
+static int CDECL SortDestinations(const DestinationID *a, const DestinationID *b)
+{
+	static char buf_cache[64];
+	char buf[64];
+
+	SetDParam(0, *a);
+	GetString(buf, STR_STATION_NAME, lastof(buf));
+	SetDParam(0, *b);
+	GetString(buf_cache, STR_STATION_NAME, lastof(buf_cache));
+
+	return strcmp(buf, buf_cache);
+}
+
+/**
+ * Get the destinations of the goto_station orders of an OrderList
+ * Used for the dropdowns of a group when several orderlist on it and on automatic grouping of vehicles
+ * @param order_list we want to get stations
+ * @param Smallvector of destinations
+ * @param not_repeated_and_sorted 1 for dropdowns, 0 for getting the name of a group based on destinations
+ */
+SmallVector<DestinationID, 32> GetDestinations(const OrderList *order_list, bool not_repeated_and_sorted)
+{
+	SmallVector<DestinationID, 32> destinations;
+	if (order_list == NULL) return destinations;
+	for (Order *order = order_list->GetFirstOrder(); order != NULL; order = order->next) {
+		if (order->IsType(OT_GOTO_STATION) && (!not_repeated_and_sorted || !destinations.Contains(order->GetDestination()))) {
+			*destinations.Append() = order->GetDestination();
+		}
+	}
+
+	if (not_repeated_and_sorted) {
+		GSortT(destinations.Begin(), destinations.Length(), &SortDestinations, false);
+	}
+
+	return destinations;
 }
