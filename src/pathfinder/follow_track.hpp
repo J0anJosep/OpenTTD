@@ -13,6 +13,7 @@
 #define  FOLLOW_TRACK_HPP
 
 #include "../pbs_rail.h"
+#include "../pbs_water.h"
 #include "../roadveh.h"
 #include "../station_base.h"
 #include "../train.h"
@@ -179,7 +180,7 @@ struct CFollowTrackT
 			}
 		}
 
-		TrackBits reserved = GetReservedTrackbits(m_new_tile);
+		TrackBits reserved = IsWaterTT() ? GetReservedWaterTracks(m_new_tile) : GetReservedTrackbits(m_new_tile);
 		/* Mask already reserved trackdirs. */
 		m_new_td_bits &= ~TrackBitsToTrackdirBits(reserved);
 		/* Mask out all trackdirs that conflict with the reservation. */
