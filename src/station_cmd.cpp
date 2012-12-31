@@ -2844,6 +2844,7 @@ draw_default_foundation:
 	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
+			if (IsDock(ti->tile)) return;
 		} else {
 			assert(IsDock(ti->tile));
 			TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
