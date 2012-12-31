@@ -64,7 +64,8 @@ network/network_server.cpp
 network/network_udp.cpp
 openttd.cpp
 order_backup.cpp
-pbs.cpp
+pbs_rail.cpp
+pbs_water.cpp
 progress.cpp
 rail.cpp
 rev.cpp
@@ -296,6 +297,8 @@ order_base.h
 order_func.h
 order_type.h
 pbs.h
+pbs_rail.h
+pbs_water.h
 progress.h
 querystring_gui.h
 rail.h
