@@ -27,6 +27,7 @@
 #include "company_base.h"
 #include "gui.h"
 #include "timetable.h"
+#include "group_details_gui.h"
 
 #include "widgets/group_widget.h"
 
@@ -592,7 +593,7 @@ public:
 					this->vehicles.ForceRebuild();
 					this->SetDirty();
 				}
-				break;
+				goto group_clicked;
 
 			case WID_GL_DEFAULT_VEHICLES: // Ungrouped vehicles button
 				if (!IsDefaultGroupID(this->vli.index)) {
@@ -600,7 +601,7 @@ public:
 					this->vehicles.ForceRebuild();
 					this->SetDirty();
 				}
-				break;
+				goto group_clicked;
 
 			case WID_GL_LIST_GROUP: { // Matrix Group
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
@@ -612,8 +613,16 @@ public:
 
 				this->vehicles.ForceRebuild();
 				this->SetDirty();
-				break;
+
+				/* Continue and open details window if ctrl is pressed */
 			}
+
+				/* if a group is clicked and control is pressed */
+				group_clicked:;
+				if (_ctrl_pressed) {
+					ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, this->vli.vtype, this->vli.company, this->vli.index).Pack());
+				}
+				break;
 
 			case WID_GL_LIST_VEHICLE: { // Matrix Vehicle
 				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_VEHICLE);
@@ -766,13 +775,21 @@ public:
 
 				const Vehicle *v = this->vehicles[id_v];
 				if (!VehicleClicked(v) && vindex == v->index) {
-					ShowVehicleViewWindow(v);
+					if(_ctrl_pressed) {
+						ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, this->vli.vtype, this->vli.company, this->vehicles[id_v]->group_id).Pack());
+					} else {
+						ShowVehicleViewWindow(v);
+					}
 				}
 				break;
 			}
 
 			case WID_GL_VEHICLE_WINDOW:
 			case WID_GL_ORDERS: {
+				if (_ctrl_pressed && widget == WID_GL_VEHICLE_WINDOW) {
+					ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, this->vli.vtype, this->vli.company, this->vli.index).Pack());
+					break;
+				}
 				DropDownList *list = GroupStatistics::Get(this->vli.company, this->vli.index, this->vli.vtype).BuildSharedOrdersDropdown();
 
 				if (list != NULL) {
