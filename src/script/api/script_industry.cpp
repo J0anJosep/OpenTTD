@@ -133,7 +133,7 @@
 
 	Industry *ind = ::Industry::Get(industry_id);
 	StationList stations;
-	::FindStationsAroundTiles(ind->location, &stations);
+	::FindStationsAroundTiles(ind->location, NULL, &stations);
 	return (int32)stations.Length();
 }
 
