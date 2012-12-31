@@ -2910,5 +2910,5 @@ extern const TileTypeProcs _tile_type_industry_procs = {
 
 bool IndustryCompare::operator() (const Industry *lhs, const Industry *rhs) const
 {
-	return lhs->index < rhs->index;
+	return lhs->construction_date < rhs->construction_date;
 }

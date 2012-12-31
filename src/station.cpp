@@ -566,19 +566,26 @@ void Station::RecomputeIndustriesNear()
 		return;
 	}
 
-	RectAndIndustryVector riv = {
-		this->GetCatchmentRect(),
-		&this->industries_near
-	};
+	const TileArea ta = this->GetStationCatchmentArea();
+	const CustomBitMap *mask = this->GetStationCatchmentFootprint();
+	Industry *ind;
 
-	/* Compute maximum extent of acceptance rectangle wrt. station sign */
-	TileIndex start_tile = this->xy;
-	uint max_radius = max(
-		max(DistanceManhattan(start_tile, TileXY(riv.rect.left,  riv.rect.top)), DistanceManhattan(start_tile, TileXY(riv.rect.left,  riv.rect.bottom))),
-		max(DistanceManhattan(start_tile, TileXY(riv.rect.right, riv.rect.top)), DistanceManhattan(start_tile, TileXY(riv.rect.right, riv.rect.bottom)))
-	);
+	MASKED_TILE_AREA_LOOP(tile, ta, mask) {
+		/* Only process industry tiles */
+		if (!IsTileType(tile, MP_INDUSTRY)) continue;
+		ind = Industry::GetByTile(tile);
+		/* Don't check further if this industry is already in the list */
+		if (this->industries_near.find(ind) != this->industries_near.end()) continue;
 
-	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, &riv);
+		/* Include only industries that can accept cargo */
+		uint cargo_index;
+		for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
+			if (ind->accepts_cargo[cargo_index] != CT_INVALID) break;
+		}
+		if (cargo_index >= lengthof(ind->accepts_cargo)) continue;
+
+		this->industries_near.insert(ind);
+	}
 }
 
 /**
@@ -794,5 +801,5 @@ Money AirportMaintenanceCost(Owner owner)
 
 bool StationCompare::operator() (const Station *lhs, const Station *rhs) const
 {
-	return lhs->index < rhs->index;
+	return lhs->build_date < rhs->build_date;
 }
