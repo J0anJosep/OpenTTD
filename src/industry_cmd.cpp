@@ -2383,7 +2383,7 @@ static int WhoCanServiceIndustry(Industry *ind)
 {
 	/* Find all stations within reach of the industry */
 	StationList stations;
-	FindStationsAroundTiles(ind->location, &stations);
+	FindStationsAroundTiles(ind->location, NULL, &stations);
 
 	if (stations.Length() == 0) return 0; // No stations found at all => nobody services
 
