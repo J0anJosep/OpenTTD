@@ -61,7 +61,7 @@ struct BaseVehicleListWindow : public Window {
 	bool BuildGroupList();
 	void BuildVehicleList();
 	Dimension GetActionDropdownSize(bool show_autoreplace, bool show_group);
-	DropDownList *BuildActionDropdownList(bool show_autoreplace, bool show_group);
+	DropDownList *BuildActionDropdownList(const bool show_autoreplace, const bool groups = false) const;
 };
 
 uint GetVehicleListHeight(VehicleType type, uint divisor = 1);
