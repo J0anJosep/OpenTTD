@@ -559,15 +559,6 @@ static bool TransportIndustryGoods(TileIndex tile)
 	const IndustrySpec *indspec = GetIndustrySpec(i->type);
 	bool moved_cargo = false;
 
-	StationList stations;
-
-	if (i->neutral_station != NULL && !_settings_game.station.serve_neutral_industries) {
-		/* Industry has a neutral station. Use it and ignore any other nearby stations. */
-		*stations.insert(i->neutral_station) = i->neutral_station;
-	} else {
-		FindStationsAroundTiles(i->location, i->footprint, &stations);
-	}
-
 	for (uint j = 0; j < lengthof(i->produced_cargo_waiting); j++) {
 		uint cw = min(i->produced_cargo_waiting[j], 255);
 		if (cw > indspec->minimal_cargo && i->produced_cargo[j] != CT_INVALID) {
@@ -578,7 +569,7 @@ static bool TransportIndustryGoods(TileIndex tile)
 
 			i->this_month_production[j] += cw;
 
-			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, &stations);
+			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, &i->stations_near);
 			i->this_month_transported[j] += am;
 
 			moved_cargo |= (am != 0);
@@ -1863,6 +1854,7 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 	} while ((++it)->ti.x != -0x80);
 
 	i->SetFootprint();
+	i->RecomputeStationsNear();
 	Station::RecomputeIndustriesNearArea(i->location, i->footprint);
 
 	if (GetIndustrySpec(i->type)->behaviour & INDUSTRYBEH_PLANT_ON_BUILT) {
@@ -2285,6 +2277,55 @@ void Industry::RecomputeProductionMultipliers()
 	}
 }
 
+/**
+ * Recomputes Industries::stations_near, list of stations possibly accepting cargo
+ */
+void Industry::RecomputeStationsNear()
+{
+	this->stations_near.clear();
+	/* Only search if this industry produces some cargo */
+	for (uint i = 0; ; i++) {
+		if (i == lengthof(this->produced_cargo)) return;
+		if (this->produced_cargo[i] != CT_INVALID) break;
+	}
+
+	if (this->neutral_station != NULL && !_settings_game.station.serve_neutral_industries) {
+		/* Industry has a neutral station. Use it and ignore any other nearby stations. */
+		stations_near.insert(this->neutral_station);
+	} else {
+		FindStationsAroundTiles(this->location, this->footprint, &this->stations_near);
+	}
+}
+
+/**
+ * Find industries inside an area and updates Industry::stations_near
+ * @param ta tiles that may have industries to update
+ * @param mask mask for ta
+ * @note When a set of station tiles changes (create/delete), you must call this function to update industries cache dealing with stations (passing as parameter "the changed tile area extended by the catchment of that type of station")
+ */
+/* static */ void Industry::RecomputeStationsNearArea(const TileArea ta)
+{
+	IndustryList industries;
+
+	TILE_AREA_LOOP(tile, ta) {
+		if (IsTileType(tile, MP_INDUSTRY)) industries.insert(Industry::GetByTile(tile));
+	}
+
+	for (Industry *ind : industries) {
+		ind->RecomputeStationsNear();
+	}
+}
+
+
+/**
+ * Recomputes Industries::stations_near for all industries
+ */
+/* static */ void Industry::RecomputeStationsNearForAll()
+{
+	Industry *i;
+	FOR_ALL_INDUSTRIES(i) i->RecomputeStationsNear();
+}
+
 
 /**
  * Set the #probability and #min_number fields for the industry type \a it for a running game.
@@ -2474,11 +2515,7 @@ static void CanCargoServiceIndustry(CargoID cargo, Industry *ind, bool *c_accept
  */
 static int WhoCanServiceIndustry(Industry *ind)
 {
-	/* Find all stations within reach of the industry */
-	StationList stations;
-	FindStationsAroundTiles(ind->location, ind->footprint, &stations);
-
-	if (stations.size() == 0) return 0; // No stations found at all => nobody services
+	if (ind->stations_near.size() == 0) return 0; // No stations found at all => nobody services
 
 	const Vehicle *v;
 	int result = 0;
@@ -2514,7 +2551,7 @@ static int WhoCanServiceIndustry(Industry *ind)
 				/* Same cargo produced by industry is dropped here => not serviced by vehicle v */
 				if ((o->GetUnloadType() & OUFB_UNLOAD) && !c_accepts) break;
 
-				if (stations.find(st) != stations.end()) {
+				if (ind->stations_near.find(st) != ind->stations_near.end()) {
 					if (v->owner == _local_company) return 2; // Company services industry
 					result = 1; // Competitor services industry
 				}
