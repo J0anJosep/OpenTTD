@@ -74,7 +74,7 @@ ScriptTileList_IndustryAccepting::ScriptTileList_IndustryAccepting(IndustryID in
 
 		/* Only add the tile if it accepts the cargo (sometimes just 1 tile of an
 		 *  industry triggers the acceptance). */
-		CargoArray acceptance = ::GetAcceptanceAroundTiles(cur_tile, 1, 1, radius);
+		CargoArray acceptance = ::GetAcceptanceAroundTiles(TileArea(cur_tile, 1, 1, radius), NULL);
 		{
 			bool cargo_accepts = false;
 			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
