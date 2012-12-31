@@ -924,6 +924,9 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 			tc = TC_ORANGE;
 		} else {
 			tc = TC_NO_SHADE | (hidden ? TC_GREY : TC_BLACK);
+			if (hidden && BuyRightsBeforeBuildingVehicle(e, _local_company)) {
+				tc = TC_LIGHT_BLUE;
+			}
 		}
 
 		bool palette_crash = (show_count && num_engines == 0) || hidden;
