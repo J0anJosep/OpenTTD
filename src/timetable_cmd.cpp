@@ -60,6 +60,7 @@ static void ChangeTimetable(Vehicle *v, VehicleOrderID order_number, uint16 val,
 	}
 	v->orders.list->UpdateTotalDuration(total_delta);
 	v->orders.list->UpdateTimetableDuration(timetable_delta);
+	v->orders.list->UpdateListType();
 
 	for (v = v->FirstShared(); v != NULL; v = v->NextShared()) {
 		if (v->cur_real_order_index == order_number && v->current_order.Equals(*order)) {
@@ -367,6 +368,8 @@ CommandCost CmdAutofillTimetable(TileIndex tile, DoCommandFlag flags, uint32 p1,
 			SetWindowDirty(WC_VEHICLE_TIMETABLE, v2->index);
 		}
 	}
+
+	v->orders.list->UpdateListType();
 
 	return CommandCost();
 }
