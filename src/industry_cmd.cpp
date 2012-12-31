@@ -144,19 +144,22 @@ Industry::~Industry()
 	 * This means that we do not have to clear tiles either.
 	 * Also we must not decrement industry counts in that case. */
 	if (this->location.w == 0) return;
+	TileIndex oil_rig_tile = INVALID_TILE;
 
 	TILE_AREA_LOOP(tile_cur, this->location) {
-		if (IsTileType(tile_cur, MP_INDUSTRY)) {
-			if (GetIndustryIndex(tile_cur) == this->index) {
-				DeleteNewGRFInspectWindow(GSF_INDUSTRYTILES, tile_cur);
-
-				/* MakeWaterKeepingClass() can also handle 'land' */
-				MakeWaterKeepingClass(tile_cur, OWNER_NONE);
-			}
-		} else if (IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) {
-			DeleteOilRig(tile_cur);
+		if (this->TileBelongsToIndustry(tile_cur)) {
+			DeleteNewGRFInspectWindow(GSF_INDUSTRYTILES, tile_cur);
+			/* MakeWaterKeepingClass() can also handle 'land' */
+			MakeWaterKeepingClass(tile_cur, OWNER_NONE);
+		} else {
+			if (oil_rig_tile == INVALID_TILE && IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) oil_rig_tile = tile_cur;
 		}
 	}
+
+	/* If we are deleting an oilrig that has a station inside,
+	 * we must delete its station after deleting all industry tiles
+	 * so when recalculating close industries we won't find the industry we are erasing */
+	if (oil_rig_tile != INVALID_TILE) DeleteOilRig(oil_rig_tile);
 
 	if (GetIndustrySpec(this->type)->behaviour & INDUSTRYBEH_PLANT_FIELDS) {
 		TileArea ta(this->location.tile - TileDiffXY(min(TileX(this->location.tile), 21), min(TileY(this->location.tile), 21)), 42, 42);
