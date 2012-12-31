@@ -1328,10 +1328,21 @@ static const NWidgetPart _nested_vehicle_list[] = {
 	EndContainer(),
 };
 
-static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, VehicleOrderID start = 0)
+/**
+ * Draws a small order list of a vehicle
+ * @param vehicle
+ * @param left
+ * @param right
+ * @param y: vertical position
+ * @param number of first order to draw
+ * @param bool to show a little arrow pointing current order
+ * @return it returns the position of most left/right pixel drawn (ltr/rtl)
+ */
+static int DrawSmallOrderList(const Vehicle *v, int left, int right, int y, VehicleOrderID start = 0, const bool show_arrow = 1)
 {
 	const Order *order = v->GetOrder(start);
-	if (order == NULL) return;
+	int next_margin = InitTempMargin(left, right, false);
+	if (order == NULL) return next_margin;
 
 	bool rtl = _current_text_dir == TD_RTL;
 	int l_offset = rtl ? 0 : ScaleGUITrad(6);
@@ -1340,11 +1351,11 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Veh
 	VehicleOrderID oid = start;
 
 	do {
-		if (oid == v->cur_real_order_index) DrawString(left, right, y, STR_TINY_RIGHT_ARROW, TC_BLACK);
+		if (show_arrow && oid == v->cur_real_order_index) DrawString(left, right, y, STR_TINY_RIGHT_ARROW, TC_BLACK);
 
 		if (order->IsType(OT_GOTO_STATION)) {
 			SetDParam(0, order->GetDestination());
-			DrawString(left + l_offset, right - r_offset, y, STR_TINY_BLACK_STATION);
+			DrawString2(left + l_offset, right - r_offset, y, next_margin, STR_TINY_BLACK_STATION);
 
 			y += FONT_HEIGHT_SMALL;
 			if (++i == 4) break;
@@ -1357,6 +1368,8 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Veh
 			oid = 0;
 		}
 	} while (oid != start);
+
+	return next_margin;
 }
 
 /**
@@ -1409,13 +1422,17 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 {
 	int left = r.left + WD_MATRIX_LEFT;
 	int right = r.right - WD_MATRIX_RIGHT;
-	int width = right - left;
+	int next_margin = InitTempMargin(left, right, false);
+	AddSpace(GetSpriteSize(SPR_PROFIT_SOME).width, next_margin, false);
+
+	int y = r.top;
 	bool rtl = _current_text_dir == TD_RTL;
 	OrderList *order_list = NULL;
 	if (_ctrl_pressed && selected_vehicle != INVALID_VEHICLE) {
 		order_list = Vehicle::Get(selected_vehicle)->orders.list;
 	}
 
+	// revise : gui changes
 	int text_offset = max<int>(GetSpriteSize(SPR_PROFIT_LOT).width, GetDigitWidth() * this->unitnumber_digits) + WD_FRAMERECT_RIGHT;
 	int text_left  = left  + (rtl ?           0 : text_offset);
 	int text_right = right - (rtl ? text_offset :           0);
@@ -1426,12 +1443,13 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 
 	int image_left  = (rtl && show_orderlist) ? orderlist_right : text_left;
 	int image_right = (!rtl && show_orderlist) ? orderlist_left : text_right;
+	// end revise
 
 	int vehicle_button_x = rtl ? right - GetSpriteSize(SPR_PROFIT_LOT).width : left;
 
-	int y = r.top;
-	uint max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->vehicles.Length());
-	for (uint i = this->vscroll->GetPosition(); i < max; ++i) {
+	uint vscroll_max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->vehicles.Length());
+
+	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
 		const Vehicle *v = this->vehicles[i];
 		StringID str;
 
@@ -1440,24 +1458,6 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 			GfxFillRect(left, y + WD_FRAMERECT_TOP, right, y + line_height - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
 		}
 
-		SetDParam(0, v->GetDisplayProfitThisYear());
-		SetDParam(1, v->GetDisplayProfitLastYear());
-
-		DrawVehicleImage(v, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_LIST, 0);
-		DrawString(text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
-
-		if (v->name != NULL) {
-			/* The vehicle got a name so we will print it */
-			SetDParam(0, v->index);
-			DrawString(text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
-		} else if (v->group_id != DEFAULT_GROUP) {
-			/* The vehicle has no name, but is member of a group, so print group name */
-			SetDParam(0, v->group_id);
-			DrawString(text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
-		}
-
-		if (show_orderlist) DrawSmallOrderList(v, orderlist_left, orderlist_right, y, v->cur_real_order_index);
-
 		if (v->IsChainInDepot()) {
 			str = STR_BLUE_COMMA;
 		} else {
@@ -1465,9 +1465,46 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		}
 
 		SetDParam(0, v->unitnumber);
-		DrawString(left, right, y + 2, str);
-
+		DrawString2(left, right, y + 2, next_margin, str);
 		DrawVehicleProfitButton(v, vehicle_button_x, y + FONT_HEIGHT_NORMAL + 3);
+
+		y += line_height;
+	}
+
+	y = r.top;
+	AddSpace(10, next_margin, false);
+	UpdateMarginsEnd(next_margin, left, right, false);
+
+	if (this->vli.vtype >= VEH_SHIP) {
+		/* DrawSmallOrderLists */
+		int end = next_margin;
+		for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
+			const Vehicle *v = this->vehicles[i];
+			if (this->vli.vtype >= VEH_SHIP) end = DrawSmallOrderList(v, left, right, y, v->cur_real_order_index, 1);
+			UpdateMarginEnd(end, next_margin, false);
+			y += line_height;
+		}
+
+		y = r.top;
+		AddSpace(5, next_margin, false);
+		UpdateMarginsEnd(next_margin, left, right, false);
+	}
+
+	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
+		const Vehicle *v = this->vehicles[i];
+		SetDParam(0, v->GetDisplayProfitThisYear());
+		SetDParam(1, v->GetDisplayProfitLastYear());
+		DrawVehicleImage(v, left, right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+		DrawString(left, right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
+		if (v->name != NULL) {
+			/* The vehicle got a name so we will print it */
+			SetDParam(0, v->index);
+			DrawString(left, right, y, STR_TINY_BLACK_VEHICLE);
+		} else if (v->group_id != DEFAULT_GROUP) {
+			/* The vehicle has no name, but is member of a group, so print group name */
+			SetDParam(0, v->group_id);
+			DrawString(left, right, y, STR_TINY_GROUP, TC_BLACK);
+		}
 
 		y += line_height;
 	}
