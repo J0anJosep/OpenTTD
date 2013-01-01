@@ -58,7 +58,7 @@ Station::Station(TileIndex tile) :
 	footprint(NULL),
 	bus_station(INVALID_TILE, 0, 0),
 	truck_station(INVALID_TILE, 0, 0),
-	dock_tile(INVALID_TILE),
+	dock_station(INVALID_TILE, 0, 0),
 	indtype(IT_INVALID),
 	time_since_load(255),
 	time_since_unload(255),
@@ -322,10 +322,10 @@ uint Station::GetCatchmentRadius() const
 		if (this->bus_stops          != NULL)         ret = max<uint>(ret, CA_BUS);
 		if (this->truck_stops        != NULL)         ret = max<uint>(ret, CA_TRUCK);
 		if (this->train_station.tile != INVALID_TILE) ret = max<uint>(ret, CA_TRAIN);
-		if (this->dock_tile          != INVALID_TILE) ret = max<uint>(ret, CA_DOCK);
+		if (this->dock_station.tile  != INVALID_TILE) ret = max<uint>(ret, CA_DOCK);
 		if (this->airport.tile       != INVALID_TILE) ret = max<uint>(ret, this->airport.GetSpec()->catchment);
 	} else {
-		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->dock_tile != INVALID_TILE || this->airport.tile != INVALID_TILE) {
+		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->dock_station.tile != INVALID_TILE || this->airport.tile != INVALID_TILE) {
 			ret = CA_UNMODIFIED;
 		}
 	}
@@ -372,7 +372,7 @@ SmallVector<TileIndex, 32>  Station::GetStationTiles() const
 
 	if (this->airport.tile != INVALID_TILE) *list_of_tiles.Append() = this->airport.tile;
 
-	if (this->dock_tile != INVALID_TILE) *list_of_tiles.Append() = this->dock_tile;
+	if (this->dock_station.tile != INVALID_TILE) *list_of_tiles.Append() = this->dock_station.tile;
 
 	TILE_AREA_LOOP(tile, this->train_station) {
 		if (IsTileType(tile, MP_STATION) && GetStationType(tile) == STATION_RAIL && this->index == GetStationIndex(tile)) *list_of_tiles.Append() = tile;
@@ -415,8 +415,8 @@ void Station::UpdateCatchment()
 	rad = Station::GetCatchmentRadius(GetStationType(tile));
 
 	if (GetStationType(tile) == STATION_DOCK) {
-		TileArea tile_area(st->dock_tile, 1, 1);
-		tile_area.Add(st->dock_tile + TileOffsByDiagDir(GetDockDirection(st->dock_tile)));
+		TileArea tile_area(st->dock_station.tile, 1, 1);
+		tile_area.Add(st->dock_station.tile + TileOffsByDiagDir(GetDockDirection(st->dock_station.tile)));
 		tile_area.AddRadius(rad);
 		return tile_area;
 	}
