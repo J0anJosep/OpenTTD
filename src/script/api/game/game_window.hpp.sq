@@ -1362,6 +1362,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VD_DETAILS_CAPACITY_OF_EACH,           "WID_VD_DETAILS_CAPACITY_OF_EACH");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VD_DETAILS_TOTAL_CARGO,                "WID_VD_DETAILS_TOTAL_CARGO");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_CAPTION,                            "WID_VL_CAPTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_FILTER,                             "WID_VL_FILTER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_SORT_ORDER,                         "WID_VL_SORT_ORDER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_SORT_BY_PULLDOWN,                   "WID_VL_SORT_BY_PULLDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_LIST,                               "WID_VL_LIST");
