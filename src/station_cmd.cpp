@@ -3788,6 +3788,7 @@ static uint UpdateStationWaiting(Station *st, CargoID type, uint amount, SourceT
 	if (!ge.HasRating()) {
 		InvalidateWindowData(WC_STATION_LIST, st->index);
 		SetBit(ge.status, GoodsEntry::GES_RATING);
+		CheckSingleStationCA(st->index);
 	}
 
 	TriggerStationRandomisation(st, st->xy, SRT_NEW_CARGO, type);
