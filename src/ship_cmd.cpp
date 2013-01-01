@@ -320,8 +320,25 @@ void Ship::PlayLeaveStationSound() const
  */
 TileIndex GetBestDock(const Ship *v, const Station *st)
 {
-	assert(st!= NULL && st->docks != NULL);
-	return st->docks->flat;
+	assert(st != NULL && st->HasFacilities(FACIL_DOCK) && st->docks != NULL);
+	if (st->docks->next == NULL) return st->docks->flat;
+
+	Dock *best_dock = NULL;
+	bool free_found = false;
+	uint best_distance = UINT_MAX;
+
+	for (Dock *dock = st->docks; dock != NULL; dock = dock->next) {
+		bool is_new_free = !HasWaterTrackReservation(dock->flat);
+		uint new_distance = DistanceManhattan(v->tile, dock->flat);
+		if (((free_found == is_new_free) && new_distance < best_distance) || (!free_found && is_new_free)) {
+			best_dock = dock;
+			best_distance = new_distance;
+			free_found |= is_new_free;
+		}
+	}
+
+	assert(best_dock != NULL);
+	return best_dock->flat;
 }
 
 TileIndex Ship::GetOrderStationLocation(StationID station)
