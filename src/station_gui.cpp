@@ -33,6 +33,7 @@
 #include "town.h"
 #include "linkgraph/linkgraph.h"
 #include "zoom_func.h"
+#include "zoning.h"
 
 #include "widgets/station_widget.h"
 
@@ -2136,7 +2137,8 @@ static WindowDesc _station_view_desc(
  */
 void ShowStationViewWindow(StationID station)
 {
-	AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
+	if (_ctrl_pressed) RotateStationOnCALayer(station);
+	else AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
 }
 
 /** Struct containing TileIndex and StationID */
