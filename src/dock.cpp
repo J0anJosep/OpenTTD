@@ -26,13 +26,11 @@ INSTANTIATE_POOL_METHODS(Dock)
  */
 /* static */ Dock *Dock::GetByTile(TileIndex tile)
 {
-	/* revise
 	const Station *st = Station::GetByTile(tile);
 
 	for (Dock *d = st->GetPrimaryDock();; d = d->next) {
 		if (d->sloped == tile || d->flat == tile) return d;
 		assert(d->next != NULL);
 	}
-	*/
-	return NULL;
+	NOT_REACHED();
 }
