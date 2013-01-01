@@ -839,6 +839,10 @@
 				RelativePath=".\..\src\window.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\..\src\zoning.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1949,6 +1953,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\window_type.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\zoning.h"
 				>
 			</File>
 			<File
