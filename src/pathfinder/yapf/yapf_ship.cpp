@@ -48,6 +48,31 @@ public:
 		}
 	}
 
+	/**
+	 * Find the node containing the point where to end a reservation.
+	 * For ships, the first time we collide with another path or last node.
+	 * @param path Last node of the path.
+	 * @param v Ship reserving the path.
+	 * @return Last node to reserve.
+	 */
+	static const Node *FindSafePosition(const Node *path, const Ship *v)
+	{
+		const Node *last_free = NULL;
+		assert(v != NULL);
+
+		for (const Node *node = path; node != NULL; node = node->m_parent) {
+			/* Special cases on crossing the starting tile. */
+			if (v->tile == node->GetTile()) {
+				if (node->m_parent == NULL) return last_free;
+				last_free = NULL;
+			}
+			if (!IsWaterPositionFree(node->GetTile(), node->GetTrackdir())) last_free = NULL;
+			else if (last_free == NULL) last_free = node;
+		}
+
+		NOT_REACHED();
+	}
+
 	/** return debug report character to identify the transportation type */
 	inline char TransportTypeChar() const
 	{
@@ -100,6 +125,12 @@ public:
 			Node &best_next_node = *pPrevNode;
 			assert(best_next_node.GetTile() == tile);
 			next_trackdir = best_next_node.GetTrackdir();
+			/* Reserve path from origin till last safe waiting tile */
+			for (const Node *cur = FindSafePosition(pf.GetBestNode(), v); cur != NULL; cur = cur->m_parent) {
+				if (v->tile == cur->GetTile()) break;
+				SetWaterTrackReservation(cur->GetTile(), TrackdirToTrack(cur->GetTrackdir()), true);
+				if (IsTileType(cur->GetTile(), MP_TUNNELBRIDGE)) cur = cur->m_parent;
+			}
 		}
 		return next_trackdir;
 	}
