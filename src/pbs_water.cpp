@@ -166,27 +166,6 @@ bool TrackCollidesTrackReservation(TileIndex t, Track track)
 }
 
 /**
- * Reserve a path starting at a tile with a trackdir.
- * @param tile Starting tile.
- * @param trackdir Trackdir to take.
- * @return True if at least the first tile has been reserved.
- */
-bool DoWaterPathReservation(TileIndex t, Trackdir trackdir)
-{
-	if (trackdir == INVALID_TRACKDIR) return false;
-	assert(WaterTrackMayExist(t));
-	Track track = TrackdirToTrack(trackdir);
-
-	/* If track is reserved, water path is already done */
-	if (HasWaterTracksReserved(t, TrackToTrackBits(track))) return true;
-
-	if (!IsWaterPositionFree(t, trackdir)) return false;
-	if (!SetWaterTrackReservation(t, track, true)) NOT_REACHED();
-
-	return true;
-}
-
-/**
  * Check if a tile can be reserved and does not collide with another path on next tile.
  * @param tile The tile.
  * @param trackdir The trackdir to check.
