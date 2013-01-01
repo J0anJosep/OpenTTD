@@ -1130,6 +1130,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_SV_SHIPS,                              "WID_SV_SHIPS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_SV_PLANES,                             "WID_SV_PLANES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_CAPTION,                           "WID_STL_CAPTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_FILTER,                            "WID_STL_FILTER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_LIST,                              "WID_STL_LIST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_SCROLLBAR,                         "WID_STL_SCROLLBAR");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_TRAIN,                             "WID_STL_TRAIN");
