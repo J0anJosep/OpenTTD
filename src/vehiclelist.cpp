@@ -13,6 +13,7 @@
 #include "train.h"
 #include "vehiclelist.h"
 #include "group.h"
+#include "filters/filter_active.h"
 
 #include "safeguards.h"
 
@@ -109,9 +110,10 @@ void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engine
  * Generate a list of vehicles based on window type.
  * @param list Pointer to list to add vehicles to
  * @param vli  The identifier of this vehicle list.
+ * @param filter containing the data to filter vehicles
  * @return false if invalid list is requested
  */
-bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli)
+bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli, const FilterActive *filter)
 {
 	list->Clear();
 
@@ -126,7 +128,7 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 					FOR_VEHICLE_ORDERS(v, order) {
 						if ((order->IsType(OT_GOTO_STATION) || order->IsType(OT_GOTO_WAYPOINT) || order->IsType(OT_IMPLICIT))
 								&& order->GetDestination() == vli.index) {
-							*list->Append() = v;
+							if (filter == NULL || filter->FilterTest(v)) *list->Append() = v;
 							break;
 						}
 					}
@@ -140,7 +142,7 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 			if (v == NULL || v->type != vli.vtype || !v->IsPrimaryVehicle()) return false;
 
 			for (; v != NULL; v = v->NextShared()) {
-				*list->Append() = v;
+				if (filter == NULL || filter->FilterTest(v)) *list->Append() = v;
 			}
 			break;
 
@@ -150,7 +152,7 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 				FOR_ALL_VEHICLES(v) {
 					if (v->type == vli.vtype && v->IsPrimaryVehicle() &&
 							v->owner == vli.company && GroupIsInGroup(v->group_id, vli.index)) {
-						*list->Append() = v;
+						if (filter == NULL || filter->FilterTest(v)) *list->Append() = v;
 					}
 				}
 				break;
@@ -160,7 +162,7 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 		case VL_STANDARD:
 			FOR_ALL_VEHICLES(v) {
 				if (v->type == vli.vtype && v->owner == vli.company && v->IsPrimaryVehicle()) {
-					*list->Append() = v;
+					if (filter == NULL || filter->FilterTest(v)) *list->Append() = v;
 				}
 			}
 			break;
@@ -172,7 +174,7 @@ bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &vli
 
 					FOR_VEHICLE_ORDERS(v, order) {
 						if (order->IsType(OT_GOTO_DEPOT) && !(order->GetDepotActionType() & ODATFB_NEAREST_DEPOT) && order->GetDestination() == vli.index) {
-							*list->Append() = v;
+							if (filter == NULL || filter->FilterTest(v)) *list->Append() = v;
 							break;
 						}
 					}
