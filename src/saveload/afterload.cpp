@@ -2996,8 +2996,11 @@ bool AfterLoadGame()
 			if (IsOilRig(st->dock_station.tile)) {
 				/* Set dock station tile to dest tile instead of station. */
 				st->docks = new Dock(st->dock_station.tile, st->dock_station.tile + ToTileIndexDiff({1, 0}));
-			} else { /* A normal two-tiles dock. */
-				st->docks = new Dock(st->dock_station.tile, TileAddByDiagDir(st->dock_station.tile, GetDockDirection(st->dock_station.tile)));
+			} else if (IsSavegameVersionBefore(SL_SET_DOCK_TRACKS)) {
+				/* On normal two-tiles docks we must set which tracks can be crossed. */
+				DiagDirection dir = GetDockDirection(st->dock_station.tile);
+				st->docks = new Dock(st->dock_station.tile, TileAddByDiagDir(st->dock_station.tile, dir));
+				SetDockTracks(st->docks->flat, (dir % 2) == 0 ? TRACK_BIT_Y : TRACK_BIT_X);
 			}
 		}
 	}
