@@ -508,7 +508,7 @@ public:
 				WIDGET_LIST_END);
 
 		/* Disable all lists management button when the list is empty */
-		this->SetWidgetsDisabledState(this->vehicles.Length() == 0 || _local_company != this->vli.company,
+		this->SetWidgetsDisabledState(this->vehicles.Length() == 0 || _local_company != this->vli.company || IsWidgetLowered(WID_GL_FILTER_VEHICLES),
 				WID_GL_STOP_ALL,
 				WID_GL_START_ALL,
 				WID_GL_MANAGE_VEHICLES_DROPDOWN,
@@ -615,6 +615,7 @@ public:
 			case WID_GL_FILTER_VEHICLES:
 				LowerWidget(widget);
 				ShowFilterWindow(this, this->window_number | (widget == WID_GL_FILTER_GROUPS ? 1 << 20 : 0));
+				this->SetDirty();
 				break;
 			case WID_GL_VEHICLE_SORT_BY_ORDER: // Flip sorting method ascending/descending
 				this->vehicles.ToggleSortOrder();
