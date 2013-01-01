@@ -13,6 +13,7 @@
 #include "../station_base.h"
 #include "../waypoint_base.h"
 #include "../roadstop_base.h"
+#include "../dock_base.h"
 #include "../vehicle_base.h"
 #include "../newgrf_station.h"
 
@@ -123,6 +124,12 @@ void AfterLoadStations()
 			Station *sta = Station::From(st);
 			for (const RoadStop *rs = sta->bus_stops; rs != NULL; rs = rs->next) sta->bus_station.Add(rs->xy);
 			for (const RoadStop *rs = sta->truck_stops; rs != NULL; rs = rs->next) sta->truck_station.Add(rs->xy);
+
+			for (const Dock *d = sta->docks; d != NULL; d = d->next) {
+				sta->dock_station.Add(d->sloped);
+				sta->dock_station.Add(d->flat);
+			}
+
 		}
 
 		StationUpdateCachedTriggers(st);
@@ -162,6 +169,14 @@ static const SaveLoad _roadstop_desc[] = {
 
 	SLE_CONDNULL(4, 0, 24),
 	SLE_CONDNULL(1, 25, 25),
+
+	SLE_END()
+};
+
+static const SaveLoad _dock_desc[] = {
+	SLE_VAR(Dock, sloped,       SLE_UINT32),
+	SLE_VAR(Dock, flat,         SLE_UINT32),
+	SLE_REF(Dock, next,         REF_DOCKS),
 
 	SLE_END()
 };
@@ -422,7 +437,8 @@ static const SaveLoad _station_desc[] = {
 
 	      SLE_REF(Station, bus_stops,                  REF_ROADSTOPS),
 	      SLE_REF(Station, truck_stops,                REF_ROADSTOPS),
-	      SLE_VAR(Station, dock_station.tile,          SLE_UINT32),
+	  SLE_CONDVAR(Station, dock_station.tile,          SLE_UINT32,                  0, SL_MULTIPLE_DOCKS - 1),
+	  SLE_CONDREF(Station, docks,                      REF_DOCKS,   SL_MULTIPLE_DOCKS, SL_MAX_VERSION),
 	      SLE_VAR(Station, airport.tile,               SLE_UINT32),
 	  SLE_CONDVAR(Station, airport.w,                  SLE_FILE_U8 | SLE_VAR_U16, 140, SL_MAX_VERSION),
 	  SLE_CONDVAR(Station, airport.h,                  SLE_FILE_U8 | SLE_VAR_U16, 140, SL_MAX_VERSION),
@@ -633,8 +649,38 @@ static void Ptrs_ROADSTOP()
 	}
 }
 
+static void Save_DOCK()
+{
+	Dock *d;
+
+	FOR_ALL_DOCKS(d) {
+		SlSetArrayIndex(d->index);
+		SlObject(d, _dock_desc);
+	}
+}
+
+static void Load_DOCK()
+{
+	int index;
+
+	while ((index = SlIterateArray()) != -1) {
+		Dock *d = new (index) Dock();
+
+		SlObject(d, _dock_desc);
+	}
+}
+
+static void Ptrs_DOCK()
+{
+	Dock *d;
+	FOR_ALL_DOCKS(d) {
+		SlObject(d, _dock_desc);
+	}
+}
+
 extern const ChunkHandler _station_chunk_handlers[] = {
 	{ 'STNS', NULL,          Load_STNS,     Ptrs_STNS,     NULL, CH_ARRAY },
 	{ 'STNN', Save_STNN,     Load_STNN,     Ptrs_STNN,     NULL, CH_ARRAY },
-	{ 'ROAD', Save_ROADSTOP, Load_ROADSTOP, Ptrs_ROADSTOP, NULL, CH_ARRAY | CH_LAST},
+	{ 'ROAD', Save_ROADSTOP, Load_ROADSTOP, Ptrs_ROADSTOP, NULL, CH_ARRAY},
+	{ 'DOCK', Save_DOCK,     Load_DOCK,     Ptrs_DOCK,     NULL, CH_ARRAY | CH_LAST},
 };
