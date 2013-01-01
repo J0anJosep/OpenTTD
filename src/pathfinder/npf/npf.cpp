@@ -568,11 +568,12 @@ static int32 NPFFindStationOrTile(const AyStar *as, const OpenListNode *current)
 }
 
 /**
- * Find the node containing the first signal on the path.
- *
- * If the first signal is on the very first two tiles of the path,
- * the second signal is returned. If no suitable signal is present, the
- * last node of the path is returned.
+ * Find the node containing the point where to end a reservation.
+ * For trains, the first time we find a signal on the path or last node.
+ * @param path Last node of the path.
+ * @param v Train reserving the path.
+ * @return Last node to reserve.
+ * @note If the first signal is on the very first two tiles of the path, second signal is returned.
  */
 static const PathNode *FindSafePosition(PathNode *path, const Train *v)
 {
@@ -586,6 +587,42 @@ static const PathNode *FindSafePosition(PathNode *path, const Train *v)
 	}
 
 	return sig;
+}
+
+/**
+ * Find the node containing the point where to end a reservation.
+ * For ships, the first time we collide with another path or last node.
+ * @param path Last node of the path.
+ * @param v Ship reserving the path.
+ * @return Last node to reserve.
+ */
+static const PathNode *FindSafePosition(PathNode *path, const Ship *v)
+{
+	assert(v != NULL);
+	const PathNode *last_free = NULL;
+	SmallVector<TileIndex, 16> seen_tiles;
+
+	for (const PathNode *node = path; node != NULL; node = node->parent) {
+		TileIndex tile = node->node.tile;
+
+		if (_settings_game.pf.forbid_90_deg_ships) {
+			if (seen_tiles.Contains(tile)) {
+				seen_tiles.Clear();
+				last_free = NULL;
+			}
+			seen_tiles.Include(tile);
+		}
+
+		/* Special cases on crossing the starting tile. */
+		if (v->tile == tile) {
+			if (node->parent == NULL) return last_free;
+			last_free = NULL;
+		}
+		if (!IsWaterPositionFree(tile, node->node.direction)) last_free = NULL;
+		else if (last_free == NULL) last_free = node;
+	}
+
+	NOT_REACHED();
 }
 
 /**
@@ -620,37 +657,66 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
 	ftd->node = current->path.node;
 	ftd->res_okay = false;
 
-	if (as->user_target != NULL && ((NPFFindStationOrTileData*)as->user_target)->reserve_path && user->type == TRANSPORT_RAIL) {
-		/* Path reservation is requested. */
-		const Train *v = Train::From(((NPFFindStationOrTileData *)as->user_target)->v);
+	if (as->user_target != NULL && ((NPFFindStationOrTileData*)as->user_target)->reserve_path) {
+		switch (user->type) {
+			case TRANSPORT_RAIL:{
+				/* Path reservation is requested. */
+				const Train *v = Train::From(((NPFFindStationOrTileData *)as->user_target)->v);
 
-		const PathNode *target = FindSafePosition(&current->path, v);
-		ftd->node = target->node;
+				const PathNode *target = FindSafePosition(&current->path, v);
+				ftd->node = target->node;
 
-		/* If the target is a station skip to platform end. */
-		if (IsRailStationTile(target->node.tile)) {
-			DiagDirection dir = TrackdirToExitdir(target->node.direction);
-			uint len = Station::GetByTile(target->node.tile)->GetPlatformLength(target->node.tile, dir);
-			TileIndex end_tile = TILE_ADD(target->node.tile, (len - 1) * TileOffsByDiagDir(dir));
+				/* If the target is a station skip to platform end. */
+				if (IsRailStationTile(target->node.tile)) {
+					DiagDirection dir = TrackdirToExitdir(target->node.direction);
+					uint len = Station::GetByTile(target->node.tile)->GetPlatformLength(target->node.tile, dir);
+					TileIndex end_tile = TILE_ADD(target->node.tile, (len - 1) * TileOffsByDiagDir(dir));
 
-			/* Update only end tile, trackdir of a station stays the same. */
-			ftd->node.tile = end_tile;
-			if (!IsWaitingPositionFree(v, end_tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
-			SetRailStationPlatformReservation(target->node.tile, dir, true);
-			SetRailStationReservation(target->node.tile, false);
-		} else {
-			if (!IsWaitingPositionFree(v, target->node.tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
-		}
+					/* Update only end tile, trackdir of a station stays the same. */
+					ftd->node.tile = end_tile;
+					if (!IsWaitingPositionFree(v, end_tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
+					SetRailStationPlatformReservation(target->node.tile, dir, true);
+					SetRailStationReservation(target->node.tile, false);
+				} else {
+					if (!IsWaitingPositionFree(v, target->node.tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
+				}
 
-		for (const PathNode *cur = target; cur->parent != NULL; cur = cur->parent) {
-			if (!TryReserveRailTrack(cur->node.tile, TrackdirToTrack(cur->node.direction))) {
-				/* Reservation failed, undo. */
-				ClearPathReservation(target, cur);
-				return;
+				for (const PathNode *cur = target; cur->parent != NULL; cur = cur->parent) {
+					if (!TryReserveRailTrack(cur->node.tile, TrackdirToTrack(cur->node.direction))) {
+						/* Reservation failed, undo. */
+						ClearPathReservation(target, cur);
+						return;
+					}
+				}
+
+				ftd->res_okay = true;
+				break;
 			}
-		}
 
-		ftd->res_okay = true;
+			case TRANSPORT_WATER: {
+				if (ftd->best_trackdir == INVALID_TRACKDIR) return;
+
+				/* Path reservation is requested. */
+				if (_settings_game.pf.ship_path_reservation) {
+					const Ship *v = Ship::From(((NPFFindStationOrTileData *)as->user_target)->v);
+					const PathNode *target = FindSafePosition(&current->path, v);
+					if (target == NULL) return;
+
+					ftd->node = target->node;
+
+					for (const PathNode *cur = target; cur != NULL; cur = cur->parent) {
+						if (v->tile == cur->node.tile) break;
+						SetWaterTrackReservation(cur->node.tile, TrackdirToTrack(cur->node.direction), true);
+						if (IsTileType(cur->node.tile, MP_TUNNELBRIDGE)) cur = cur->parent;
+					}
+				}
+
+				ftd->res_okay = true;
+				break;
+			}
+
+			default: NOT_REACHED();
+		}
 	}
 }
 
@@ -1156,7 +1222,7 @@ Track NPFShipChooseTrack(const Ship *v, bool &path_found)
 	Trackdir trackdir = v->GetVehicleTrackdir();
 	assert(trackdir != INVALID_TRACKDIR); // Check that we are not in a depot
 
-	NPFFillWithOrderData(&fstd, v);
+	NPFFillWithOrderData(&fstd, v, true);
 
 	AyStarUserData user = { v->owner, TRANSPORT_WATER, INVALID_RAILTYPES, ROADTYPES_NONE };
 	NPFFoundTargetData ftd = NPFRouteToStationOrTile(v->tile, trackdir, true, &fstd, &user);
