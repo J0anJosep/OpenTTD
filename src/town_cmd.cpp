@@ -46,6 +46,7 @@
 #include "object_base.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"
+#include "filters/filter_window_gui.h"
 
 #include "table/strings.h"
 #include "table/town_land.h"
@@ -1815,6 +1816,7 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			}
 			AI::BroadcastNewEvent(new ScriptEventTownFounded(t->index));
 			Game::NewEvent(new ScriptEventTownFounded(t->index));
+			TownUpdateFilters(t->index);
 		}
 	}
 	return cost;
