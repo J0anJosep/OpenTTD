@@ -2665,6 +2665,7 @@ public:
 	/** Widgets of the #VehicleListWindow class. */
 	enum VehicleListWidgets {
 		WID_VL_CAPTION                               = ::WID_VL_CAPTION,                               ///< Caption of window.
+		WID_VL_FILTER                                = ::WID_VL_FILTER,                                ///< Open group/vehicle list filter.
 		WID_VL_SORT_ORDER                            = ::WID_VL_SORT_ORDER,                            ///< Sort order.
 		WID_VL_SORT_BY_PULLDOWN                      = ::WID_VL_SORT_BY_PULLDOWN,                      ///< Sort by dropdown list.
 		WID_VL_LIST                                  = ::WID_VL_LIST,                                  ///< List of the vehicles.
