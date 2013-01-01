@@ -490,6 +490,15 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 {
 	assert(IsValidDiagDirection(enterdir));
 
+	/* Before choosing a track, if close to the destination station (not an oil rig)... */
+	if (v->current_order.IsType(OT_GOTO_STATION) &&
+			!IsTileType(v->dest_tile, MP_INDUSTRY) &&
+			DistanceManhattan(v->dest_tile, tile) <= 5 &&
+			HasWaterTrackReservation(v->dest_tile)) {
+		/* Get the closest and free dock if possible. */
+		v->dest_tile = GetBestDock(v, Station::Get(v->current_order.GetDestination()));
+	}
+
 	bool path_found = true;
 	Track track;
 	switch (_settings_game.pf.pathfinder_for_ships) {
