@@ -45,6 +45,7 @@
 #include "waypoint_base.h"
 #include "waypoint_func.h"
 #include "pbs_rail.h"
+#include "pbs_water.h"
 #include "debug.h"
 #include "core/random_func.hpp"
 #include "company_base.h"
@@ -2610,6 +2611,7 @@ CommandCost CmdRotateDockTracks(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
+		if (HasWaterTrackReservation(tile)) LiftReservedWaterPaths(tile);
 		RotateDockTracks(tile);
 		MarkTileDirtyByTile(tile);
 	}
