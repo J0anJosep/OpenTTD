@@ -54,6 +54,7 @@
 #include "linkgraph/linkgraph_base.h"
 #include "linkgraph/refresh.h"
 #include "widgets/station_widget.h"
+#include "filters/filter_window_gui.h"
 
 #include "table/strings.h"
 
@@ -640,6 +641,8 @@ static CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reus
 			if (Company::IsValidID(_current_company)) {
 				SetBit((*st)->town->have_ratings, _current_company);
 			}
+
+			StationUpdateFilters((*st)->index);
 		}
 	}
 	return CommandCost();
@@ -3979,6 +3982,7 @@ void BuildOilRig(TileIndex tile)
 	st->UpdateCatchment();
 	UpdateStationAcceptance(st, false);
 	st->RecomputeIndustriesNear();
+	StationUpdateFilters(st->index);
 }
 
 void DeleteOilRig(TileIndex tile)
