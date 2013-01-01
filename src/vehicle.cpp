@@ -2602,6 +2602,15 @@ void Vehicle::ShowVisualEffect() const
 }
 
 /**
+ * Check if a vehicle has reached the minimum age to consider its profits for calculations
+ * @return true if vehicle is old enough
+ */
+bool Vehicle::HasReachedProfitAge() const
+{
+	return this->age > VEHICLE_PROFIT_MIN_AGE;
+}
+
+/**
  * Set the next vehicle of this vehicle.
  * @param next the next vehicle. NULL removes the next vehicle.
  */
