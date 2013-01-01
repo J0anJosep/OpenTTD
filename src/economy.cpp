@@ -50,6 +50,7 @@
 #include "goal_base.h"
 #include "story_base.h"
 #include "linkgraph/refresh.h"
+#include "filters/filter_window_gui.h"
 
 #include "table/strings.h"
 #include "table/pricebase.h"
@@ -1988,6 +1989,7 @@ static void DoAcquireCompany(Company *c)
 	InvalidateWindowClassesData(WC_AIRCRAFT_LIST, 0);
 
 	delete c;
+	CompanyUpdateFilters(ci);
 }
 
 extern int GetAmountOwnedBy(const Company *c, Owner owner);
