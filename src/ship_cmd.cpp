@@ -514,8 +514,10 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 	/* A path is being found */
 	v->HandlePathfindingResult(path_found);
 
-	/* The path is not free now */
-	if (track != INVALID_TRACK && !DoWaterPathReservation(tile, TrackEnterdirToTrackdir(track, enterdir))) {
+	if (track == INVALID_TRACK) return INVALID_TRACK;
+
+	/* Check that the track is reserved. */
+	if (!HasWaterTracksReserved(tile, TrackToTrackBits(track))) {
 		/* Track couldn't be reserved, so if there are alternatives, take them. */
 		track = FindFirstTrack(tracks);
 		Trackdir trackdir = TrackEnterdirToTrackdir(track, enterdir);
