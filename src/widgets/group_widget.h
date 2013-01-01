@@ -15,6 +15,8 @@
 /** Widgets of the #VehicleGroupWindow class. */
 enum GroupListWidgets {
 	WID_GL_CAPTION,                  ///< Caption of the window.
+	WID_GL_FILTER_GROUPS,            ///< Open filter for groups.
+	WID_GL_FILTER_VEHICLES,          ///< Open filter for vehicles.
 	WID_GL_GROUP_SORT_BY_ORDER,      ///< Order of group sorter.
 	WID_GL_GROUP_SORT_BY_DROPDOWN,   ///< Group sorter dropdown.
 	WID_GL_VEHICLE_SORT_BY_ORDER,    ///< Order of vehicle sorter.
