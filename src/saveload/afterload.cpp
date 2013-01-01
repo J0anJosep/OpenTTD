@@ -30,6 +30,7 @@
 #include "../station_base.h"
 #include "../waypoint_base.h"
 #include "../roadstop_base.h"
+#include "../dock_base.h"
 #include "../tunnelbridge_map.h"
 #include "../pathfinder/yapf/yapf_cache.h"
 #include "../elrail_func.h"
@@ -2986,6 +2987,21 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(127)) {
 		Station *st;
 		FOR_ALL_STATIONS(st) UpdateStationAcceptance(st, false);
+	}
+
+	if (IsSavegameVersionBefore(SL_MULTIPLE_DOCKS)) {
+		/* Dock type has changed. */
+		Station *st;
+		FOR_ALL_STATIONS(st) {
+			if (st->dock_station.tile == INVALID_TILE) continue;
+			assert(Dock::CanAllocateItem());
+			if (IsOilRig(st->dock_station.tile)) {
+				/* Set dock station tile to dest tile instead of station. */
+				st->docks = new Dock(st->dock_station.tile, st->dock_station.tile + ToTileIndexDiff({1, 0}));
+			} else { /* A normal two-tiles dock. */
+				st->docks = new Dock(st->dock_station.tile, TileAddByDiagDir(st->dock_station.tile, GetDockDirection(st->dock_station.tile)));
+			}
+		}
 	}
 
 	if (IsSavegameVersionBefore(SL_DOCK_LOADING_BAY)) {
