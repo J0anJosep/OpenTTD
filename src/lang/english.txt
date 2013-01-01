@@ -407,8 +407,7 @@ STR_MAP_MENU_MAP_OF_WORLD                                       :Map of world
 STR_MAP_MENU_EXTRA_VIEW_PORT                                    :Extra viewport
 STR_MAP_MENU_LINGRAPH_LEGEND                                    :Cargo Flow Legend
 STR_MAP_MENU_SIGN_LIST                                          :Sign list
-
-############ range for town menu starts
+STR_MAP_MENU_CATCHMENT_AREA_WINDOW                              :Catchment area window
 STR_TOWN_MENU_TOWN_DIRECTORY                                    :Town directory
 STR_TOWN_MENU_FOUND_TOWN                                        :Found town
 ############ range ends here
@@ -3464,6 +3463,81 @@ STR_GROUP_DETAILS_TIMETABLE_DETAILS_BRACKETS                    :({COMMA}% unpun
 
 STR_GROUP_DETAILS_TOTAL_CARGO                                   :{BLACK}Cargo (maximum capacity):
 STR_GROUP_DETAILS_UPDATE_CARGO                                  :Update group cargo
+
+#Filter strings
+STR_GROUP_GROUP_FILTER_TOOLTIP                                  :{BLACK}Open group filter
+STR_GROUP_VEHICLE_FILTER_TOOLTIP                                :{BLACK}Open vehicle filter
+STR_GROUP_DUAL_FILTER_TOOLTIP                                   :{BLACK}Open group/vehicle filter
+STR_INDUSTRY_DIRECTORY_FILTER_TOOLTIP                           :{BLACK}Open industry filter
+STR_TOWN_DIRECTORY_FILTER_TOOLTIP                               :{BLACK}Open town filter
+STR_STATIONS_DIRECTORY_FILTER_TOOLTIP                           :{BLACK}Open station filter
+
+# Catchment Area Window/Vehicle/Group filter window
+STR_FILTER_CAPTION_STANDARD                                     :{WHITE}{STRING} filter (Standard list)
+STR_FILTER_CAPTION_SHARED_ORDERS                                :{WHITE}{STRING} filter (Shared orders)
+STR_FILTER_CAPTION_STATION_LIST                                 :{WHITE}{STRING} filter ({STRING1})
+STR_FILTER_CAPTION_DEPOT_LIST                                   :{WHITE}{STRING} filter ({STRING2})
+STR_FILTER_CAPTION_GROUP_LIST                                   :{WHITE}{STRING} filter ({STRING1})
+STR_FILTER_CAPTION_GROUPS_WINDOW                                :{WHITE}{STRING} filter (for group window: {STRING})
+STR_FILTER_CAPTION_CATCHMENT_AREA                               :{WHITE}Catchment area window
+STR_FILTER_CAPTION_INDUSTRIES                                   :{WHITE}Industry filter
+STR_FILTER_CAPTION_TOWNS                                        :{WHITE}Town filter
+STR_FILTER_CAPTION_STATION                                      :{WHITE}Station filter of {COMPANY}
+
+STR_FILTER_TAB_TOWNS                                            :{BLACK}Towns
+STR_FILTER_TAB_COMPANIES                                        :{BLACK}Companies
+STR_FILTER_TAB_CARGO                                            :{BLACK}Cargo type
+STR_FILTER_TAB_CARGO_PRODUCTION                                 :{BLACK}Production
+STR_FILTER_TAB_CARGO_ACCEPTANCE                                 :{BLACK}Acceptance
+STR_FILTER_TAB_STATION_FACILITIES                               :{BLACK}Station type
+STR_FILTER_TAB_STATIONS                                         :{BLACK}Stations
+STR_FILTER_TAB_ORDERS                                           :{BLACK}Orders/TT
+STR_FILTER_TAB_VEHICLE_GROUP_PROPERTIES                         :{BLACK}Other
+STR_FILTER_TAB_CATCHMENT_AREA_PROPERTIES                        :{BLACK}Other
+STR_FILTER_TAB_TOWN_PROPERTIES                                  :{BLACK}Other
+STR_FILTER_TAB_STATE                                            :{BLACK}Filter state
+STR_FILTER_TAB_RESET                                            :{BLACK}Reset
+
+STR_FILTER_LIST_TOOLTIP                                         :{BLACK}Click to modify line status{}(+CTRL on towns/stations, go there)
+STR_FILTER_TAB_TOWNS_TOOLTIP                                    :{BLACK}Click to add or remove towns to the filter
+STR_FILTER_TAB_COMPANIES_TOOLTIP                                :{BLACK}Click to show only items related to a certain company
+STR_FILTER_TAB_CARGO_TOOLTIP                                    :{BLACK}Click to filter list by specific cargo types
+STR_FILTER_TAB_CARGO_PRODUCTION_TOOLTIP                         :{BLACK}Click to filter stations by (at least once) produced cargoes
+STR_FILTER_TAB_CARGO_ACCEPTANCE_TOOLTIP                         :{BLACK}Click to filter stations by (at least one time) accepted cargoes
+STR_FILTER_TAB_STATION_FACILITIES_TOOLTIP                       :{BLACK}Click to filter by station types
+STR_FILTER_TAB_STATIONS_TOOLTIP                                 :{BLACK}Click to add or remove stations to the filter
+STR_FILTER_TAB_ORDERS_TOOLTIP                                   :{BLACK}Click to filter list by type of orders/timetable
+STR_FILTER_TAB_VEHICLE_GROUP_PROPERTIES_TOOLTIP                 :{BLACK}Look for crashed, stopped or lost vehicles
+STR_FILTER_TAB_ZONING_PROPERTIES_TOOLTIP                        :{BLACK}Click to check other options
+STR_FILTER_TAB_CARGO_TOWN_PROPERTIES_TOOLTIP                    :{BLACK}Click to check other options
+STR_FILTER_TAB_STATE_TOOLTIP                                    :{BLACK}Click to see current selection of the filter
+STR_FILTER_TAB_RESET_TOOLTIP                                    :{BLACK}Click to clear selected filter criteria
+
+STR_FILTER_TOWN                                                 :{TOWN} {BLACK}({COMMA})
+STR_FILTER_LIST_STATION                                         :{STATION} {YELLOW}{STATION_FEATURES}
+STR_FILTER_CARGO_PRODUCTION                                     :Production: {STRING}
+STR_FILTER_CARGO_ACCEPTANCE                                     :Acceptance: {STRING}
+
+STR_FILTER_STATION_FACILITIES_TRAIN                             :{TRAIN} Railway station
+STR_FILTER_STATION_FACILITIES_LORRY                             :{LORRY} Lorry loading area
+STR_FILTER_STATION_FACILITIES_BUS                               :{BUS} Bus stop
+STR_FILTER_STATION_FACILITIES_PLANE                             :{PLANE} Airport
+STR_FILTER_STATION_FACILITIES_SHIP                              :{SHIP} Ship dock
+
+STR_FILTER_PROPERTIES_STOPPED                                   :Stopped vehicles
+STR_FILTER_PROPERTIES_STOPPED_DEPOT                             :Stopped vehicles on depot
+STR_FILTER_PROPERTIES_CRASHED                                   :Crashed vehicles
+STR_FILTER_PROPERTIES_LOST                                      :Lost vehicles
+STR_FILTER_PROPERTIES_OLD                                       :Old vehicles
+STR_FILTER_PROPERTIES_NEW                                       :Under profit age
+STR_FILTER_PROPERTIES_NEGATIVE_PROFIT                           :Negative profit last year
+STR_FILTER_PROPERTIES_GOOD_PROFIT                               :Making good profit
+
+STR_FILTER_PROPERTIES_SHOW_ALL_UNCAUGHT_TILES                   :Mark all uncaught tiles
+STR_FILTER_PROPERTIES_SHOW_UNCAUGHT_BUILDINGS                   :Mark uncaught buildings
+STR_FILTER_PROPERTIES_SHOW_UNCAUGHT_INDUSTRIES                  :Mark uncaught industries
+
+STR_FILTER_PROPERTIES_LOCAL_COMPANY_HAS_STATUE                  :Local company has statue
 
 # Build vehicle window
 STR_BUY_VEHICLE_TRAIN_RAIL_CAPTION                              :New Rail Vehicles
