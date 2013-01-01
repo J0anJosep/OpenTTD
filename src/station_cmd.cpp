@@ -398,7 +398,7 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 
 		case STATION_DOCK:
 		case STATION_OILRIG:
-			ta->tile = this->dock_tile;
+			ta->tile = this->dock_station.tile;
 			break;
 
 		default: NOT_REACHED();
@@ -2483,10 +2483,10 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
-	if (st != NULL && st->dock_tile != INVALID_TILE) return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_DOCK);
+	if (st != NULL && st->dock_station.tile != INVALID_TILE) return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_DOCK);
 
 	if (flags & DC_EXEC) {
-		st->dock_tile = tile;
+		st->dock_station.tile = tile;
 		st->AddFacility(FACIL_DOCK, tile);
 
 		st->rect.BeforeAddRect(dock_area.tile, dock_area.w, dock_area.h, StationRect::ADD_TRY);
@@ -2518,7 +2518,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	CommandCost ret = CheckOwnership(st->owner);
 	if (ret.Failed()) return ret;
 
-	TileIndex tile1 = st->dock_tile;
+	TileIndex tile1 = st->dock_station.tile;
 	TileIndex tile2 = TileAddByDiagDir(tile1, GetDockDirection(tile1));
 
 	if (flags & DC_EXEC) {
@@ -2529,7 +2529,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		st->rect.AfterRemoveTile(st, tile1);
 		st->rect.AfterRemoveTile(st, tile2);
 
-		st->dock_tile = INVALID_TILE;
+		st->dock_station.tile = INVALID_TILE;
 		st->facilities &= ~FACIL_DOCK;
 
 		Company::Get(st->owner)->infrastructure.station -= 2;
@@ -3827,7 +3827,7 @@ void BuildOilRig(TileIndex tile)
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
 	st->airport.Add(tile);
-	st->dock_tile = tile;
+	st->dock_station.tile = tile;
 	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
 	st->build_date = _date;
 
@@ -3845,7 +3845,7 @@ void DeleteOilRig(TileIndex tile)
 
 	MakeWaterKeepingClass(tile, OWNER_NONE);
 
-	st->dock_tile = INVALID_TILE;
+	st->dock_station.tile = INVALID_TILE;
 	st->airport.Clear();
 	st->facilities &= ~(FACIL_AIRPORT | FACIL_DOCK);
 	st->airport.flags = 0;
