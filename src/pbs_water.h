@@ -25,7 +25,6 @@ bool WaterTrackMayExist(TileIndex t);
 bool SetWaterTrackReservation(TileIndex t, Track track, bool value);
 bool HasWaterTrackReservation(TileIndex t);
 bool HasWaterTracksReserved(TileIndex t, TrackBits tracks);
-bool DoWaterPathReservation(TileIndex t, Trackdir trackdir);
 bool IsWaterPositionFree(TileIndex tile, Trackdir trackdir);
 
 /* Routines related to reservation of water paths. */
