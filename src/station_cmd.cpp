@@ -2523,10 +2523,38 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		MakeDock(tile, st->owner, st->index, direction, wc);
 
+		SetDockTracks(tile_cur, (direction % 2) == 0 ? TRACK_BIT_Y : TRACK_BIT_X);
+
 		st->AfterStationTileSetChange(true, dock_area, STATION_DOCK);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_STATION_DOCK]);
+}
+
+/**
+ * Rotate the tracks that can be crossed on a dock.
+ * @param tile Tile with the dock.
+ * @param flags Operation to perform.
+ * @param p1 unused
+ * @param p2 unused
+ * @param text Error message.
+ */
+CommandCost CmdRotateDockTracks(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	assert(IsValidTile(tile) && GetTileSlope(tile) == SLOPE_FLAT && IsDockTile(tile));
+
+	CommandCost ret = CheckOwnership(GetTileOwner(tile));
+	if (ret.Failed()) return ret;
+
+	ret = EnsureNoVehicleOnGround(tile);
+	if (ret.Failed()) return ret;
+
+	if (flags & DC_EXEC) {
+		RotateDockTracks(tile);
+		MarkTileDirtyByTile(tile);
+	}
+
+	return ret;
 }
 
 /**
@@ -3135,6 +3163,8 @@ static bool ClickTile_Station(TileIndex tile)
 	} else if (IsHangar(tile)) {
 		const Station *st = Station::From(bst);
 		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
+	} else if (_ctrl_pressed && bst->HasFacilities(FACIL_DOCK) && IsDockTile(tile) && GetTileSlope(tile) == SLOPE_FLAT) {
+		DoCommandP(tile, 0, 0, CMD_ROTATE_DOCK_TRACKS | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
 	} else {
 		ShowStationViewWindow(bst->index);
 	}
