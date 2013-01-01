@@ -40,6 +40,7 @@
 #include "tilehighlight_func.h"
 #include "zoom_func.h"
 #include "group_details_gui.h"
+#include "filters/filter_window_gui.h"
 
 #include "safeguards.h"
 
@@ -1399,6 +1400,7 @@ static const NWidgetPart _nested_vehicle_list[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_VL_CAPTION),
+		NWidget(WWT_IMGBTN, COLOUR_GREY, WID_VL_FILTER), SetMinimalSize(12, 12), SetFill(0, 1), SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_GROUP_DUAL_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
@@ -1789,6 +1791,7 @@ public:
 
 	~VehicleListWindow()
 	{
+		DeleteWindowById(WC_VEHICLE_GROUP_FILTER, window_number);
 		*this->sorting = this->vehicles.GetListing();
 	}
 
@@ -1959,6 +1962,10 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
+			case WID_VL_FILTER:
+				LowerWidget(WID_VL_FILTER);
+				ShowFilterWindow(this, this->window_number);
+				break;
 			case WID_VL_SORT_ORDER: // Flip sorting method ascending/descending
 				if (show == VLS_GROUPS) {
 					this->groups.ToggleSortOrder();
