@@ -51,6 +51,7 @@
 #include "story_base.h"
 #include "linkgraph/refresh.h"
 #include "filters/filter_window_gui.h"
+#include "zoning.h"
 
 #include "table/strings.h"
 #include "table/pricebase.h"
@@ -1101,9 +1102,12 @@ static Money DeliverGoods(int num_pieces, CargoID cargo_type, StationID dest, Ti
 
 	/* Update station statistics */
 	if (accepted > 0) {
-		SetBit(st->goods[cargo_type].status, GoodsEntry::GES_EVER_ACCEPTED);
 		SetBit(st->goods[cargo_type].status, GoodsEntry::GES_CURRENT_MONTH);
 		SetBit(st->goods[cargo_type].status, GoodsEntry::GES_ACCEPTED_BIGTICK);
+		if (!HasBit(st->goods[cargo_type].status, GoodsEntry::GES_EVER_ACCEPTED)) {
+			SetBit(st->goods[cargo_type].status, GoodsEntry::GES_EVER_ACCEPTED);
+			CheckSingleStationCA(st->index);
+		}
 	}
 
 	/* Update company statistics */
@@ -1633,6 +1637,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 	bool completely_emptied = true;
 	bool anything_unloaded  = false;
 	bool anything_loaded    = false;
+	bool any_new_cargo_transfered = false;
 	uint32 full_load_amount = 0;
 	uint32 cargo_not_full   = 0;
 	uint32 cargo_full       = 0;
@@ -1894,6 +1899,11 @@ static void LoadUnloadVehicle(Vehicle *front)
 		st->MarkTilesDirty(true);
 		SetWindowDirty(WC_STATION_VIEW, last_visited);
 		InvalidateWindowData(WC_STATION_LIST, last_visited);
+	}
+
+	if (any_new_cargo_transfered) {
+		InvalidateWindowData(WC_STATION_LIST, last_visited);
+		CheckSingleStationCA(st->index);
 	}
 }
 
