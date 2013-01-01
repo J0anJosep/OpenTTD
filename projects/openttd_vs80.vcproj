@@ -519,6 +519,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\dock.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\driver.cpp"
 				>
 			</File>
@@ -1036,6 +1040,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\music\dmusic.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\dock_base.h"
 				>
 			</File>
 			<File
