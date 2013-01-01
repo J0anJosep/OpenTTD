@@ -1930,7 +1930,7 @@ public:
 				break;
 		}
 
-		if (this->vehicles.Length() == 0 && this->IsWidgetLowered(WID_VL_MANAGE_VEHICLES_DROPDOWN)) {
+		if (IsWidgetLowered(WID_VL_FILTER) || (this->vehicles.Length() == 0 && this->IsWidgetLowered(WID_VL_MANAGE_VEHICLES_DROPDOWN))) {
 			HideDropDownMenu(this);
 		}
 
@@ -1944,11 +1944,12 @@ public:
 		}
 		if (this->owner == _local_company) {
 			this->SetWidgetDisabledState(WID_VL_AVAILABLE_VEHICLES, this->vli.type != VL_STANDARD);
-			this->SetWidgetsDisabledState(this->vehicles.Length() == 0,
- 				WID_VL_MANAGE_VEHICLES_DROPDOWN,
+			this->SetWidgetDisabledState(WID_VL_MANAGE_VEHICLES_DROPDOWN, IsWidgetLowered(WID_VL_FILTER) || this->vehicles.Length() == 0);
+			this->SetWidgetsDisabledState(IsWidgetLowered(WID_VL_FILTER) || this->vehicles.Length() == 0,
+				WID_VL_MANAGE_VEHICLES_DROPDOWN,
 				WID_VL_STOP_ALL,
- 				WID_VL_START_ALL,
- 				WIDGET_LIST_END);
+				WID_VL_START_ALL,
+				WIDGET_LIST_END);
 		}
 
 		/* Set text of sort by dropdown widget. */
@@ -1965,6 +1966,7 @@ public:
 			case WID_VL_FILTER:
 				LowerWidget(WID_VL_FILTER);
 				ShowFilterWindow(this, this->window_number);
+				this->SetDirty();
 				break;
 			case WID_VL_SORT_ORDER: // Flip sorting method ascending/descending
 				if (show == VLS_GROUPS) {
