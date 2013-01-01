@@ -55,6 +55,7 @@
 #include "linkgraph/refresh.h"
 #include "widgets/station_widget.h"
 #include "filters/filter_window_gui.h"
+#include "zoning.h"
 
 #include "table/strings.h"
 
@@ -708,6 +709,10 @@ void Station::AfterStationTileSetChange(bool adding, const TileArea ta, StationT
 	} else {
 		DeleteStationIfEmpty(this);
 	}
+
+	CheckSingleStationCA(this->index);
+	UpdateCALayer(ta_extended);
+	SetWindowClassesDirty(WC_CATCHMENT_AREA_WINDOW);
 
 }
 
@@ -1589,6 +1594,7 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 
 	ta.AddRadius(Station::GetCatchmentRadius(STATION_RAIL));
 	Industry::RecomputeStationsNearArea(ta);
+	UpdateCALayer(ta);
 
 	/* Now apply the rail cost to the number that we deleted */
 	return ret;
@@ -1676,6 +1682,7 @@ static CommandCost RemoveRailStation(TileIndex tile, DoCommandFlag flags)
 		st->UpdateCatchment();
 		st->RecomputeIndustriesNear();
 		Industry::RecomputeStationsNearArea(ta);
+		UpdateCALayer(ta);
 	}
 
 	return cost;
@@ -3969,6 +3976,7 @@ void DeleteOilRig(TileIndex tile)
 	st->RecomputeIndustriesNear();
 	const TileArea ta(tile, 1, 1, Station::GetCatchmentRadius(STATION_OILRIG));
 	Industry::RecomputeStationsNearArea(ta);
+	UpdateCALayer(ta);
 	if (!st->IsInUse()) delete st;
 }
 
