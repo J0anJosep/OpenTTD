@@ -252,10 +252,18 @@ static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlag 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
 	int delta = TileOffsByDiagDir(dir);
+
 	CommandCost ret = EnsureNoVehicleOnGround(tile);
 	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
 	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
 	if (ret.Failed()) return ret;
+
+	if (flags & DC_EXEC) {
+		/* Lift reservations on involved tiles. */
+		if ((WaterTrackMayExist(tile + delta) && !LiftShipPathsReservations(tile + delta))) NOT_REACHED();
+		if (WaterTrackMayExist(tile) && !LiftShipPathsReservations(tile)) NOT_REACHED();
+		if (WaterTrackMayExist(tile - delta) && !LiftShipPathsReservations(tile - delta)) NOT_REACHED();
+	}
 
 	/* middle tile */
 	WaterClass wc_middle = IsWaterTile(tile) ? GetWaterClass(tile) : WATER_CLASS_CANAL;
@@ -464,6 +472,12 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 
 static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 {
+	/* If executing the command, no ship is on the tile, as pre-exec command checks so.
+	 * We must lift reservations on the tile; if it is not possible, then we have found a bug */
+	if (flags & DC_EXEC) {
+		if (HasWaterTrackReservation(tile) && !LiftShipPathsReservations(tile)) NOT_REACHED();
+	}
+
 	switch (GetWaterTileType(tile)) {
 		case WATER_TILE_CLEAR: {
 			if (flags & DC_NO_WATER) return_cmd_error(STR_ERROR_CAN_T_BUILD_ON_WATER);
