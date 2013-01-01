@@ -153,6 +153,8 @@ bool BaseVehicleListWindow::BuildGroupList()
 	Group *g;
 	const Vehicle *v;
 
+	const FilterActive *filter = FindFilterData(WC_VEHICLE_GROUP_FILTER, this->window_number | (this->vli.type == VL_GROUPS_WINDOW ? 1 << 20 : 0));
+
 	switch (this->vli.type) {
 		case VL_STATION_LIST:
 			FOR_ALL_GROUPS(g) {
@@ -163,7 +165,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 						FOR_ORDERLIST_ORDERS(g->statistics.order_lists[i], order) {
 							if ((order->IsType(OT_GOTO_STATION) || order->IsType(OT_GOTO_WAYPOINT) || order->IsType(OT_IMPLICIT))
 									&& order->GetDestination() == this->vli.index) {
-								*this->groups.Append() = g;
+								if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
 								continue_flag = false;
 								break;
 							}
@@ -180,7 +182,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 				v = Vehicle::GetIfValid(this->vli.index);
 				if (v == NULL || v->type != this->vli.vtype || !v->IsPrimaryVehicle() || IsDefaultGroupID(v->group_id)) return false;
 				g = Group::GetIfValid(v->group_id);
-				*this->groups.Append() = g;
+				if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
 				break;
 
 			case VL_GROUP_LIST:
@@ -188,7 +190,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 				if (!IsAllGroupID(this->vli.index)) {
 					/* only the group which refers to this group will be shown */
 					g = Group::GetIfValid(this->vli.index);
-					if (g != NULL && g->vehicle_type == this->vli.vtype && g->owner == vli.company) *this->groups.Append() = g;
+					if (g != NULL && g->vehicle_type == this->vli.vtype && g->owner == vli.company) if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
 					break;
 				}
 				/* fall through in case of all_group */
@@ -199,7 +201,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 				/* on these cases, we add any group */
 				FOR_ALL_GROUPS(g) {
 					if (g->owner == vli.company && g->vehicle_type == this->vli.vtype) {
-						*this->groups.Append() = g;
+						if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
 					}
 				}
 				break;
@@ -213,7 +215,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 							const Order *order;
 							FOR_ORDERLIST_ORDERS(g->statistics.order_lists[i], order) {
 								if (order->IsType(OT_GOTO_DEPOT) && !(order->GetDepotActionType() & ODATFB_NEAREST_DEPOT) && order->GetDestination() == this->vli.index) {
-									*this->groups.Append() = g;
+									if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
 									continue_flag = false;
 									break;
 								}
@@ -238,7 +240,9 @@ void BaseVehicleListWindow::BuildVehicleList()
 
 	DEBUG(misc, 3, "Building vehicle list type %d for company %d given index %d", this->vli.type, this->vli.company, this->vli.index);
 
-	GenerateVehicleSortList(&this->vehicles, this->vli);
+	const FilterActive *filter = FindFilterData(WC_VEHICLE_GROUP_FILTER, this->window_number);
+
+	GenerateVehicleSortList(&this->vehicles, this->vli, filter);
 
 	this->unitnumber_digits = GetUnitNumberDigits(this->vehicles);
 
