@@ -558,6 +558,8 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_PRD_COMPANY_FIRST,                     "WID_PRD_COMPANY_FIRST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_PRD_COMPANY_LAST,                      "WID_PRD_COMPANY_LAST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_CAPTION,                            "WID_GL_CAPTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_FILTER_GROUPS,                      "WID_GL_FILTER_GROUPS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_FILTER_VEHICLES,                    "WID_GL_FILTER_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_GROUP_SORT_BY_ORDER,                "WID_GL_GROUP_SORT_BY_ORDER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_GROUP_SORT_BY_DROPDOWN,             "WID_GL_GROUP_SORT_BY_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_VEHICLE_SORT_BY_ORDER,              "WID_GL_VEHICLE_SORT_BY_ORDER");
