@@ -106,7 +106,7 @@ void CheckRedrawStationCoverage(const Window *w)
  * @param amount Cargo amount
  * @param rating ratings data for that particular cargo
  */
-static void StationsWndShowStationRating(int left, int right, int y, CargoID type, uint amount, byte rating)
+void StationsWndShowStationRating(int left, int right, int y, CargoID type, uint amount, byte rating)
 {
 	static const uint units_full  = 1 << 9;     ///< Number of units to show station as full.
 	static const uint rating_full = 224;        ///< Rating needed so it is shown as full.
