@@ -1843,11 +1843,6 @@ public:
 			case WID_VL_CAPTION: {
 				switch (this->vli.type) {
 					case VL_SHARED_ORDERS: // Shared Orders
-						if (this->vehicles.Length() == 0) {
-							/* We can't open this window without vehicles using this order
-							 * and we should close the window when deleting the order. */
-							NOT_REACHED();
-						}
 						SetDParam(0, this->vehicles.Length());
 						break;
 
