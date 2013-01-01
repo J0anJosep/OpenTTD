@@ -692,8 +692,13 @@ static void ShipController(Ship *v)
 				tracks &= GetReservedWaterTracks(gp.new_tile);
 				track = TrackBitsToTrack(tracks);
 			} else {
+				TrackdirBits trackdirs = TrackBitsToTrackdirBits(tracks) & DiagdirReachesTrackdirs(diagdir);
+
+				/* Lift colliding reservations if possible on first tile */
+				LiftReservations(gp.new_tile, trackdirs);
+
 				/* Of the available tracks, get only those that can be reserved */
-				tracks = GetFreeWaterTrackReservation(gp.new_tile, TrackBitsToTrackdirBits(tracks) & DiagdirReachesTrackdirs(diagdir));
+				tracks = GetFreeWaterTrackReservation(gp.new_tile, trackdirs);
 
 				/* There is a continuation to our path but it is currently occupied. */
 				if (tracks == TRACK_BIT_NONE) goto handle_stuck;
