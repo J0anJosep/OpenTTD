@@ -2644,6 +2644,23 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 	return true;
 }
 
+/**
+ * Draw the tracks of a dock that can be used.
+ */
+void DrawDockTracks(TileIndex tile)
+{
+	TrackBits trackbits = GetDockTracks(tile);
+
+	assert(trackbits != TRACK_BIT_NONE);
+
+	static const byte autorail_offset[] = {0, 8, 16, 25, 34, 42};
+
+	Track track;
+	FOR_EACH_SET_TRACK(track, trackbits) {
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track], PAL_NONE, 0, 0, TILE_HEIGHT);
+	}
+}
+
 static void DrawTile_Station(TileInfo *ti)
 {
 	const NewGRFSpriteLayout *layout = NULL;
@@ -2815,6 +2832,7 @@ draw_default_foundation:
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
 			if (IsDock(ti->tile)) {
+				DrawDockTracks(ti->tile);
 				if (_settings_client.gui.show_track_reservation) DrawWaterTrackReservation(ti->tile);
 				return;
 			}
@@ -3031,7 +3049,7 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 				if (TileY(tile) == 0) trackbits &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
 			} else if (IsDock(tile) && GetTileSlope(tile) == SLOPE_FLAT) {
 				/* On water part, ships can pass through TRACK_X if dock direction is TRACK_Y */
-				trackbits = (TrackBits)(1 << ((GetStationGfx(tile) + 1) % 2));
+				trackbits = GetDockTracks(tile);
  			}
 			break;
 
