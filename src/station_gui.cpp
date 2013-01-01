@@ -34,6 +34,7 @@
 #include "linkgraph/linkgraph.h"
 #include "zoom_func.h"
 #include "zoning.h"
+#include "filters/filter_window_gui.h"
 
 #include "widgets/station_widget.h"
 
@@ -227,9 +228,14 @@ protected:
 
 		this->stations.Clear();
 
+		const FilterActive *active = FindFilterData(WC_STATION_FILTER, owner);
+
 		const Station *st;
 		FOR_ALL_STATIONS(st) {
 			if (st->owner == owner || (st->owner == OWNER_NONE && HasStationInUse(st->index, true, owner))) {
+
+				if (active != NULL && !active->FilterTest(st)) continue;
+
 				if (this->facilities & st->facilities) { // only stations with selected facilities
 					int num_waiting_cargo = 0;
 					for (CargoID j = 0; j < NUM_CARGO; j++) {
@@ -524,6 +530,12 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
+			case WID_STL_FILTER:
+				LowerWidget(widget);
+				ShowFilterWindow(this, this->window_number);
+				this->SetDirty();
+				break;
+
 			case WID_STL_LIST: {
 				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_STL_LIST, 0, FONT_HEIGHT_NORMAL);
 				if (id_v >= this->stations.Length()) return; // click out of list bound
@@ -732,6 +744,8 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_STL_CAPTION), SetDataTip(STR_STATION_LIST_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_IMGBTN, COLOUR_GREY, WID_STL_FILTER), SetMinimalSize(12, 12), SetFill(0, 1),
+				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_STATIONS_DIRECTORY_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
