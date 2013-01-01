@@ -664,7 +664,7 @@ bool AfterLoadGame()
 		Station *st;
 		FOR_ALL_STATIONS(st) {
 			if (st->airport.tile       == 0) st->airport.tile = INVALID_TILE;
-			if (st->dock_tile          == 0) st->dock_tile    = INVALID_TILE;
+			if (st->dock_station.tile  == 0) st->dock_station.tile    = INVALID_TILE;
 			if (st->train_station.tile == 0) st->train_station.tile   = INVALID_TILE;
 		}
 
