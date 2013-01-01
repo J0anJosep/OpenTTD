@@ -317,7 +317,7 @@ TileIndex Ship::GetOrderStationLocation(StationID station)
 
 	const Station *st = Station::Get(station);
 	if (st->HasFacilities(FACIL_DOCK)) {
-		return TILE_ADD(st->dock_tile, ToTileIndexDiff(GetDockOffset(st->dock_tile)));
+		return TILE_ADD(st->dock_station.tile, ToTileIndexDiff(GetDockOffset(st->dock_station.tile)));
 	} else {
 		this->IncrementRealOrderIndex();
 		return 0;
@@ -568,7 +568,7 @@ static void ShipReachesDockDestTile(Ship *v, TileIndex t) {
 	} else {
 		/* Destination station has water facilities
 		 * but they have been moved to another tile */
-		v->dest_tile = TileAddByDiagDir(st->dock_tile, GetDockDirection(st->dock_tile));
+		v->dest_tile = TileAddByDiagDir(st->dock_station.tile, GetDockDirection(st->dock_station.tile));
 	}
 }
 
