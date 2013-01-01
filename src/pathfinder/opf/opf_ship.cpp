@@ -79,8 +79,7 @@ static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection dire
 
 	TrackBits bits = TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0)) & DiagdirReachesTracks(direction);
 	if (bits == TRACK_BIT_NONE) return;
-
-	assert(TileX(tile) != MapMaxX() && TileY(tile) != MapMaxY());
+	assert(IsValidTile(tile));
 
 	bool only_one_track = true;
 	do {
