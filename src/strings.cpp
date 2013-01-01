@@ -1821,6 +1821,11 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	InvalidateWindowClassesData(WC_AIRCRAFT_LIST);      // Aircraft group window.
 	InvalidateWindowClassesData(WC_INDUSTRY_DIRECTORY); // Industry directory window.
 	InvalidateWindowClassesData(WC_STATION_LIST);       // Station list window.
+	InvalidateWindowClassesData(WC_VEHICLE_GROUP_FILTER);  // Filter for vehicles and groups
+	InvalidateWindowClassesData(WC_CATCHMENT_AREA_WINDOW); // Catchment area window
+	InvalidateWindowClassesData(WC_INDUSTRY_FILTER);       // Filter for industries
+	InvalidateWindowClassesData(WC_TOWN_FILTER);           // Filter for towns
+	InvalidateWindowClassesData(WC_STATION_FILTER);        // Filter for stations
 
 	return true;
 }
