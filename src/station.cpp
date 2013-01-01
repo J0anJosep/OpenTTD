@@ -22,6 +22,7 @@
 #include "core/pool_func.hpp"
 #include "station_base.h"
 #include "roadstop_base.h"
+#include "dock_base.h"
 #include "industry.h"
 #include "core/random_func.hpp"
 #include "linkgraph/linkgraph.h"
@@ -322,10 +323,10 @@ uint Station::GetCatchmentRadius() const
 		if (this->bus_stops          != NULL)         ret = max<uint>(ret, CA_BUS);
 		if (this->truck_stops        != NULL)         ret = max<uint>(ret, CA_TRUCK);
 		if (this->train_station.tile != INVALID_TILE) ret = max<uint>(ret, CA_TRAIN);
-		if (this->dock_station.tile  != INVALID_TILE) ret = max<uint>(ret, CA_DOCK);
+		if (this->docks              != NULL)         ret = max<uint>(ret, CA_DOCK);
 		if (this->airport.tile       != INVALID_TILE) ret = max<uint>(ret, this->airport.GetSpec()->catchment);
 	} else {
-		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->dock_station.tile != INVALID_TILE || this->airport.tile != INVALID_TILE) {
+		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->docks != NULL || this->airport.tile != INVALID_TILE) {
 			ret = CA_UNMODIFIED;
 		}
 	}
@@ -372,7 +373,11 @@ SmallVector<TileIndex, 32>  Station::GetStationTiles() const
 
 	if (this->airport.tile != INVALID_TILE) *list_of_tiles.Append() = this->airport.tile;
 
-	if (this->dock_station.tile != INVALID_TILE) *list_of_tiles.Append() = this->dock_station.tile;
+	for (Dock *dock = this->docks; dock != NULL; dock = dock->next) {
+		*list_of_tiles.Append() = dock->sloped;
+		/* Exclude oilrig ghost dock */
+		if (IsTileType(dock->flat, MP_STATION)) *list_of_tiles.Append() = dock->flat;
+	}
 
 	TILE_AREA_LOOP(tile, this->train_station) {
 		if (IsTileType(tile, MP_STATION) && GetStationType(tile) == STATION_RAIL && this->index == GetStationIndex(tile)) *list_of_tiles.Append() = tile;
@@ -415,8 +420,8 @@ void Station::UpdateCatchment()
 	rad = Station::GetCatchmentRadius(GetStationType(tile));
 
 	if (GetStationType(tile) == STATION_DOCK) {
-		TileArea tile_area(st->dock_station.tile, 1, 1);
-		tile_area.Add(st->dock_station.tile + TileOffsByDiagDir(GetDockDirection(st->dock_station.tile)));
+		Dock *dock = Dock::GetByTile(tile);
+		TileArea tile_area(dock->sloped, dock->flat);
 		tile_area.AddRadius(rad);
 		return tile_area;
 	}
