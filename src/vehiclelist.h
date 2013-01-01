@@ -16,6 +16,7 @@
 #include "vehicle_type.h"
 #include "company_type.h"
 #include "tile_type.h"
+#include "filters/filter_active.h"
 
 /** Vehicle List type flags */
 enum VehicleListType {
@@ -55,7 +56,7 @@ struct VehicleListIdentifier {
 /** A list of vehicles. */
 typedef SmallVector<const Vehicle *, 32> VehicleList;
 
-bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &identifier);
+bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &identifier, const FilterActive *filter = NULL);
 void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engine_list, VehicleList *wagon_list, bool individual_wagons = false);
 uint GetUnitNumberDigits(VehicleList &vehicles);
 
