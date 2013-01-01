@@ -435,32 +435,6 @@ static inline DiagDirection GetDockDirection(TileIndex t)
 }
 
 /**
- * Get the tileoffset from this tile a ship should target to get to this dock.
- * @param t Tile to query
- * @pre IsTileType(t, MP_STATION)
- * @pre IsBuoy(t) || IsOilRig(t) || IsDock(t)
- * @return The offset from this tile that should be used as destination for ships.
- */
-static inline TileIndexDiffC GetDockOffset(TileIndex t)
-{
-	assert(IsTileType(t, MP_STATION));
-
-	if (IsBuoy(t)) return {0, 0};
-	if (IsOilRig(t)) return {1, 0};
-
-	assert(IsDock(t));
-
-	static const TileIndexDiffC dock_offset[DIAGDIR_END] = {
-		{-1,  0},
-		{ 0,  1},
-		{ 1,  0},
-		{ 0, -1},
-	};
-
-	return dock_offset[GetDockDirection(t)];
-}
-
-/**
  * Is there a custom rail station spec on this tile?
  * @param t Tile to query
  * @pre HasStationTileRail(t)
