@@ -36,6 +36,7 @@
 #include "game/game.hpp"
 #include "goal_base.h"
 #include "story_base.h"
+#include "filters/filter_window_gui.h"
 
 #include "table/strings.h"
 
@@ -914,6 +915,7 @@ CommandCost CmdCompanyCtrl(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	InvalidateWindowClassesData(WC_GAME_OPTIONS);
 	InvalidateWindowClassesData(WC_AI_SETTINGS);
 	InvalidateWindowClassesData(WC_AI_LIST);
+	CompanyUpdateFilters(company_id);
 
 	return CommandCost();
 }
