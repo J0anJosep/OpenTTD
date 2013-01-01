@@ -125,6 +125,7 @@ viewport_sprite_sorter_sse4.cpp
 waypoint.cpp
 widget.cpp
 window.cpp
+zoning.cpp
 
 # Header Files
 #if ALLEGRO
@@ -409,6 +410,7 @@ video/win32_v.h
 window_func.h
 window_gui.h
 window_type.h
+zoning.h
 zoom_func.h
 zoom_type.h
 #if WIN32
