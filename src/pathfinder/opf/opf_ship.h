@@ -17,15 +17,6 @@
 #include "../../track_type.h"
 #include "../../vehicle_type.h"
 
-/**
- * Finds the best path for given ship using OPF.
- * @param v        the ship that needs to find a path
- * @param tile     the tile to find the path from (should be next tile the ship is about to enter)
- * @param enterdir diagonal direction which the ship will enter this new tile from
- * @param tracks   available tracks on the new tile (to choose from)
- * @param path_found [out] Whether a path has been found (true) or has been guessed (false)
- * @return         the best trackdir for next turn or INVALID_TRACK if the path could not be found
- */
 Track OPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackBits tracks, bool &path_found);
 
 #endif /* OPF_SHIP_H */
