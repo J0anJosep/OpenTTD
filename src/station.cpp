@@ -29,6 +29,7 @@
 #include "core/random_func.hpp"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
+#include "filters/filter_window_gui.h"
 
 #include "table/strings.h"
 
@@ -175,6 +176,7 @@ Station::~Station()
  */
 void BaseStation::PostDestructor(size_t index)
 {
+	StationUpdateFilters((StationID)index);
 	InvalidateWindowData(WC_SELECT_STATION, 0, 0);
 }
 
