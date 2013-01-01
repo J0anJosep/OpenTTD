@@ -38,6 +38,7 @@
 #include "elrail_func.h"
 #include "station_base.h"
 #include "roadstop_base.h"
+#include "dock_base.h"
 #include "newgrf_railtype.h"
 #include "waypoint_base.h"
 #include "waypoint_func.h"
@@ -3827,8 +3828,16 @@ void BuildOilRig(TileIndex tile)
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
 	st->airport.Add(tile);
-	st->dock_station.tile = tile;
-	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
+	st->facilities = FACIL_AIRPORT;
+
+	if (!Dock::CanAllocateItem()) {
+		DEBUG(misc, 0, "Can't allocate dock for oilrig at 0x%X, reverting to oilrig with airport only", tile);
+	} else {
+		st->docks = new Dock(tile, tile + ToTileIndexDiff({1, 0}));
+		st->dock_station.tile = tile;
+		st->facilities |= FACIL_DOCK;
+	}
+
 	st->build_date = _date;
 
 	st->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);
@@ -3846,6 +3855,10 @@ void DeleteOilRig(TileIndex tile)
 	MakeWaterKeepingClass(tile, OWNER_NONE);
 
 	st->dock_station.tile = INVALID_TILE;
+	if (st->docks != NULL) {
+		delete st->docks;
+		st->docks = NULL;
+	}
 	st->airport.Clear();
 	st->facilities &= ~(FACIL_AIRPORT | FACIL_DOCK);
 	st->airport.flags = 0;
