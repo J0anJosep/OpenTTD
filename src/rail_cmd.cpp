@@ -613,6 +613,9 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 					v = GetTrainForReservation(tile, track);
 					if (v != NULL) FreeTrainTrackReservation(v);
 				}
+
+				if (WaterTrackMayExist(tile)) LiftReservations(tile);
+
 				owner = GetTileOwner(tile);
 				Company::Get(owner)->infrastructure.rail[GetRailType(tile)] -= LEVELCROSSING_TRACKBIT_FACTOR;
 				DirtyCompanyInfrastructureWindows(owner);
@@ -651,6 +654,8 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 					v = GetTrainForReservation(tile, track);
 					if (v != NULL) FreeTrainTrackReservation(v);
 				}
+
+				if (WaterTrackMayExist(tile)) LiftReservations(tile);
 
 				owner = GetTileOwner(tile);
 

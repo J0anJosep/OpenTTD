@@ -34,6 +34,7 @@
 #include "date_func.h"
 #include "newgrf_debug.h"
 #include "vehicle_func.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 #include "table/object_land.h"
@@ -282,6 +283,7 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			 * execute the commands and don't check for errors, since that's already done. */
 			TILE_AREA_LOOP(t, ta) {
 				if (HasTileWaterGround(t)) {
+					if (WaterTrackMayExist(t)) LiftReservations(t); /* ... but no vehicle on ground. */
 					if (!IsWaterTile(t)) {
 						DoCommand(t, 0, 0, (flags & ~DC_NO_WATER) | DC_NO_MODIFY_TOWN_RATING, CMD_LANDSCAPE_CLEAR);
 					}
