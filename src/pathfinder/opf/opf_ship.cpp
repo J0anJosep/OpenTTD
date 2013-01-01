@@ -17,21 +17,30 @@
 
 #include "../../safeguards.h"
 
+/** Data to remember for TrackPathFinder for OPF. */
 struct RememberData {
-	uint16 cur_length;
-	byte depth;
-	Track last_choosen_track;
+	uint16 cur_length;        ///< Length of the path.
+	byte depth;               ///< Number of times ship has changed its direction.
+	Track last_choosen_track; ///< Last choosen track.
 };
 
+/** Pathfinder data for OPF. */
 struct TrackPathFinder {
-	TileIndex skiptile;
-	TileIndex dest_coords;
-	uint best_bird_dist;
-	uint best_length;
-	RememberData rd;
-	TrackdirByte the_dir;
+	TileIndex skiptile;       ///< Skip this tile (when reversing).
+	TileIndex dest_coords;    ///< Destionation tile.
+	uint best_bird_dist;      ///< Best bird distance.
+	uint best_length;         ///< Best length of the path.
+	RememberData rd;          ///< Data to remember for an inspected path with taken direction \a the_dir.
+	TrackdirByte the_dir;     ///< The direction currently inspected.
 };
 
+/**
+ * When entering a tile when looking for a path, update pathfinder info.
+ * @param tile New tile entered.
+ * @param pfs Pathfinder information.
+ * @param length Length of the path before entering \a tile.
+ * @return True if we reached destination.
+ */
 static bool ShipTrackFollower(TileIndex tile, TrackPathFinder *pfs, uint length)
 {
 	/* Found dest? */
@@ -50,6 +59,12 @@ static bool ShipTrackFollower(TileIndex tile, TrackPathFinder *pfs, uint length)
 	return false;
 }
 
+/**
+ * Find the best path for a ship.
+ * @param tpf Data for pathfinder.
+ * @param tile Starting tile.
+ * @param direction Direction the ship leaves \a tile.
+ */
 static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection direction)
 {
 	if (IsTileType(tile, MP_TUNNELBRIDGE)) {
@@ -106,6 +121,12 @@ static void TPFModeShip(TrackPathFinder *tpf, TileIndex tile, DiagDirection dire
 	} while (bits != TRACK_BIT_NONE);
 }
 
+/**
+ * Init the pathfinder with a diagonal direction and look for the best path.
+ * @param tile Tile we are now.
+ * @param direction The direction to take on \a tile.
+ * @param [out] tpf Pathfinder info.
+ */
 static void OPFShipFollowTrack(TileIndex tile, DiagDirection direction, TrackPathFinder *tpf)
 {
 	assert(IsValidDiagDirection(direction));
@@ -132,6 +153,15 @@ static const DiagDirection _ship_search_directions[6][4] = {
 /** Track to "direction (& 3)" mapping. */
 static const byte _pick_shiptrack_table[6] = {DIR_NE, DIR_SE, DIR_E, DIR_E, DIR_N, DIR_N};
 
+/**
+ * Choose the best track a ship can take.
+ * @param v The ship.
+ * @param tile The tile the ship is about to enter.
+ * @param enterdir Direction taken to enter \a tile.
+ * @param trackbits Trackbits to be considered on \a tile.
+ * @param [out] track Best track found.
+ * @return Best bird distance found.
+ */
 static uint FindShipTrack(const Ship *v, TileIndex tile, DiagDirection dir, TrackBits bits, TileIndex skiptile, Track *track)
 {
 	TrackPathFinder pfs;
@@ -182,9 +212,13 @@ bad:;
 }
 
 /**
- * returns the track to choose on the next tile, or -1 when it's better to
- * reverse. The tile given is the tile we are about to enter, enterdir is the
- * direction in which we are entering the tile
+ * Find the best track for given ship using OPF.
+ * @param v The ship that needs to find a path.
+ * @param tile The starting tile of the path (should be the tile that the ship is about to enter).
+ * @param enterdir The diagonal direction the ship takes to enter \a tile.
+ * @param tracks Available tracks on the new tile.
+ * @param [out] path_found Whether a path has been found (true) or has been guessed (false).
+ * @return The best track for next turn or INVALID_TRACK if the path could not be found.
  */
 Track OPFShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackBits tracks, bool &path_found)
 {
