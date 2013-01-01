@@ -14,6 +14,7 @@
 
 #include "station_type.h"
 #include "tile_type.h"
+#include "track_type.h"
 #include "core/pool_type.hpp"
 
 typedef Pool<Dock, DockID, 32, 64000> DockPool;
@@ -36,5 +37,10 @@ struct Dock : DockPool::PoolItem<&_dock_pool> {
 
 #define FOR_ALL_DOCKS_FROM(var, start) FOR_ALL_ITEMS_FROM(Dock, dock_index, var, start)
 #define FOR_ALL_DOCKS(var) FOR_ALL_DOCKS_FROM(var, 0)
+
+
+void SetDockTracks(TileIndex t, TrackBits tracks);
+void RotateDockTracks(TileIndex t);
+TrackBits GetDockTracks(TileIndex t);
 
 #endif /* DOCK_BASE_H */
