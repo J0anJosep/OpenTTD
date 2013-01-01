@@ -64,6 +64,7 @@ enum VehicleDetailsWidgets {
 /** Widgets of the #VehicleListWindow class. */
 enum VehicleListWidgets {
 	WID_VL_CAPTION,                  ///< Caption of window.
+	WID_VL_FILTER,                   ///< Open group/vehicle list filter.
 	WID_VL_SORT_ORDER,               ///< Sort order.
 	WID_VL_SORT_BY_PULLDOWN,         ///< Sort by dropdown list.
 	WID_VL_LIST,                     ///< List of the vehicles.
