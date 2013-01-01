@@ -500,6 +500,12 @@ public:
 	virtual Money GetRunningCost() const { return 0; }
 
 	/**
+	 * Check whether the vehicle is stopped
+	 * @return true if and only if the vehicle is stopped
+	 */
+	virtual bool IsStopped() const { return (this->vehstatus & VS_STOPPED) != 0; }
+
+	/**
 	 * Check whether the vehicle is in the depot.
 	 * @return true if and only if the vehicle is in the depot.
 	 */
@@ -522,6 +528,30 @@ public:
 		if (this->IsPrimaryVehicle() && !(this->vehstatus & VS_STOPPED)) return false;
 		return this->IsChainInDepot();
 	}
+
+	/**
+	 * Check whether the vehicle has crashed
+	 * @return true if and only if the vehicle has crashed.
+	 */
+	virtual bool IsCrashedVehicle() const { return (this->vehstatus & VS_CRASHED) != 0; }
+
+	/**
+	 * Check whether the vehicle is lost
+	 * @return true if and only if the vehicle is lost
+	 */
+	virtual bool IsLostVehicle() const { return HasBit(this->vehicle_flags, VF_PATHFINDER_LOST); }
+
+	/**
+	 * Check if a vehicle has reached its max_age
+	 * @return true if and only if the vehicle is old
+	 */
+	virtual bool IsOldVehicle() const { return this->age > this->max_age - DAYS_IN_LEAP_YEAR; }
+
+	/**
+	 * Check if a vehicle has reached the minimum age to consider its profits for calculations
+	 * @return true if vehicle is old enough
+	 */
+	virtual bool HasReachedProfitAge() const;
 
 	/**
 	 * Calls the tick handler of the vehicle
