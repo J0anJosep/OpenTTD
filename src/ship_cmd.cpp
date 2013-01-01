@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "ship.h"
+#include "dock_base.h"
 #include "landscape.h"
 #include "timetable.h"
 #include "news_func.h"
@@ -303,13 +304,26 @@ void Ship::PlayLeaveStationSound() const
 	PlayShipSound(this);
 }
 
+/**
+ * Of all the docks a station has, return the best destination for a ship.
+ * @param v The ship.
+ * @param st Station the ship \a v is heading for.
+ * @return The free and closest (if none is free, just closest) dock of station \a st to ship \a v.
+ */
+TileIndex GetBestDock(const Ship *v, const Station *st)
+{
+	assert(st!= NULL && st->docks != NULL);
+	return st->docks->flat;
+}
+
 TileIndex Ship::GetOrderStationLocation(StationID station)
 {
 	if (station == this->last_station_visited) this->last_station_visited = INVALID_STATION;
 
 	const Station *st = Station::Get(station);
 	if (st->HasFacilities(FACIL_DOCK)) {
-		return TILE_ADD(st->dock_station.tile, ToTileIndexDiff(GetDockOffset(st->dock_station.tile)));
+		if (st->docks == NULL) return st->xy; // A buoy
+		else return GetBestDock(this, st);
 	} else {
 		this->IncrementRealOrderIndex();
 		return 0;
@@ -560,7 +574,7 @@ static void ShipReachesDockDestTile(Ship *v, TileIndex t) {
 	} else {
 		/* Destination station has water facilities
 		 * but they have been moved to another tile */
-		v->dest_tile = TileAddByDiagDir(st->dock_station.tile, GetDockDirection(st->dock_station.tile));
+		v->dest_tile = GetBestDock(v, st);
 	}
 }
 
