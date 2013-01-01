@@ -206,6 +206,7 @@ enum Commands {
 	CMD_BUILD_AIRPORT,                ///< build an airport
 
 	CMD_BUILD_DOCK,                   ///< build a dock
+	CMD_ROTATE_DOCK_TRACKS,           ///< rotate the tracks of a dock
 
 	CMD_BUILD_SHIP_DEPOT,             ///< build a ship depot
 	CMD_BUILD_BUOY,                   ///< build a buoy
