@@ -34,3 +34,49 @@ INSTANTIATE_POOL_METHODS(Dock)
 	}
 	NOT_REACHED();
 }
+
+/**
+ * Set the tracks of a dock that a ship can cross.
+ * @param
+ * @param tracks TrackBits that can be crossed.
+ * @pre tracks == TRACK_BIT_X, TRACK_BIT_Y or TRACK_BIT_CROSS
+ */
+void SetDockTracks(TileIndex t, TrackBits tracks)
+{
+	assert(tracks == TRACK_BIT_X || tracks == TRACK_BIT_Y || tracks == TRACK_BIT_CROSS);
+	assert(IsValidTile(t) && GetTileSlope(t) == SLOPE_FLAT && IsDockTile(t));
+
+	SB(_me[t].m7, 4, 2, tracks);
+}
+
+/**
+ * Rotate the passable tracks of a dock tile.
+ */
+void RotateDockTracks(TileIndex t)
+{
+	TrackBits tracks = GetDockTracks(t);
+	switch (tracks) {
+		case TRACK_BIT_X:
+			tracks = TRACK_BIT_Y;
+			break;
+		case TRACK_BIT_Y:
+			tracks = TRACK_BIT_CROSS;
+			break;
+		case TRACK_BIT_CROSS:
+			tracks = TRACK_BIT_X;
+			break;
+		default: NOT_REACHED();
+	}
+
+	SetDockTracks(t, tracks);
+}
+
+/**
+ * Get the tracks of a dock that can be used by water vehicles
+ */
+TrackBits GetDockTracks(TileIndex t)
+ {
+	assert(IsValidTile(t) && GetTileSlope(t) == SLOPE_FLAT && IsDockTile(t));
+
+	return (TrackBits)GB(_me[t].m7, 4, 2);
+ }
