@@ -47,6 +47,7 @@
 #include "goal_base.h"
 #include "story_base.h"
 #include "toolbar_gui.h"
+#include "filters/filter_window_gui.h"
 
 #include "widgets/toolbar_widget.h"
 
@@ -449,6 +450,7 @@ enum MapMenuEntries {
 	MME_SHOW_EXTRAVIEWPORTS,
 	MME_SHOW_LINKGRAPH,
 	MME_SHOW_SIGNLISTS,
+	MME_SHOW_ZONING_WINDOW,
 	MME_SHOW_TOWNDIRECTORY,
 	MME_SHOW_INDUSTRYDIRECTORY,
 };
@@ -460,6 +462,7 @@ static CallBackFunction ToolbarMapClick(Window *w)
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_EXTRA_VIEW_PORT,         MME_SHOW_EXTRAVIEWPORTS,    false);
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_LINGRAPH_LEGEND,         MME_SHOW_LINKGRAPH,         false);
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_SIGN_LIST,               MME_SHOW_SIGNLISTS,         false);
+	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_CATCHMENT_AREA_WINDOW,   MME_SHOW_ZONING_WINDOW,     false);
 	PopupMainToolbMenu(w, WID_TN_SMALL_MAP, list, 0);
 	return CBF_NONE;
 }
@@ -489,6 +492,7 @@ static CallBackFunction MenuClickMap(int index)
 		case MME_SHOW_EXTRAVIEWPORTS: ShowExtraViewPortWindow(); break;
 		case MME_SHOW_LINKGRAPH:      ShowLinkGraphLegend();     break;
 		case MME_SHOW_SIGNLISTS:      ShowSignList();            break;
+		case MME_SHOW_ZONING_WINDOW:  ShowFilterWindow(NULL, 0); break;
 		case MME_SHOW_TOWNDIRECTORY:  ShowTownDirectory();       break;
 		case MME_SHOW_INDUSTRYDIRECTORY: ShowIndustryDirectory(); break;
 	}
