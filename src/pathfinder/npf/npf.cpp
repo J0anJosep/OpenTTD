@@ -559,6 +559,15 @@ static int32 NPFFindStationOrTile(AyStar *as, OpenListNode *current)
 
 	if (fstd->station_index == INVALID_STATION && tile == fstd->dest_coords) return AYSTAR_FOUND_END_NODE;
 
+	/* Is it a ship heading to an oil rig...
+	 * which has reached the tile next to the destination...
+	 * and has taken a proper track to reach the last tile? */
+	if (fstd->v->type == VEH_SHIP
+			&& fstd->not_articulated
+			&& TileAddByDiagDir(tile, TrackdirToExitdir(node->direction)) == fstd->dest_coords) {
+		return AYSTAR_FOUND_END_NODE;
+	}
+
 	if (IsTileType(tile, MP_STATION) && GetStationIndex(tile) == fstd->station_index) {
 		if (fstd->v->type == VEH_TRAIN) return AYSTAR_FOUND_END_NODE;
 
@@ -1165,6 +1174,10 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 	} else {
 		fstd->dest_coords = v->dest_tile;
 		fstd->station_index = INVALID_STATION;
+		/* Hack: reusing the articulated bool for keeping whether we are heading to an oil rig.
+		 * not_articulated == true -> heading to an industry.
+		 * not_articulated == false -> heading to a crossable tile.  */
+		fstd->not_articulated = IsTileType(v->dest_tile, MP_INDUSTRY);
 	}
 	fstd->reserve_path = reserve_path;
 	fstd->v = v;
