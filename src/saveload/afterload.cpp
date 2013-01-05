@@ -1792,7 +1792,7 @@ bool AfterLoadGame()
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileFlat(t)) continue;
 
-			if (IsTileType(t, MP_WATER) && IsLock(t)) SetWaterClassDependingOnSurroundings(t, false);
+			if (IsLockTile(t)) SetWaterClassDependingOnSurroundings(t, false);
 			if (IsTileType(t, MP_STATION) && (IsDock(t) || IsBuoy(t))) SetWaterClassDependingOnSurroundings(t, false);
 		}
 	}
