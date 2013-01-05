@@ -300,6 +300,16 @@ static inline bool IsLock(TileIndex t)
 }
 
 /**
+ * Is there a lock on a given tile?
+ * @param t Tile to query.
+ * @return \c true if it is a water lock tile.
+ */
+static inline bool IsLockTile(TileIndex t)
+{
+	return IsTileType(t, MP_WATER) && GetWaterTileType(t) == WATER_TILE_LOCK;
+}
+
+/**
  * Get the direction of the water lock.
  * @param t Water tile to query.
  * @return Direction of the lock.
