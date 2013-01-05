@@ -871,7 +871,7 @@ void DrawWaterTrackReservation(TileIndex tile)
 	static const byte slope_offset[] = {2, 2, 5, 5};
 	byte slope_off = 0;
 
-	if (IsTileType(tile, MP_WATER) && IsLock(tile)) {
+	if (IsLockTile(tile)) {
 		Slope slope = GetTileSlope(tile);
 		if (slope != SLOPE_FLAT && IsInclinedSlope(slope)) {
 			slope_off = slope_offset[GetInclinedSlopeDirection(slope)];
