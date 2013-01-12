@@ -421,20 +421,6 @@ static inline TrackBits GetStationReservationTrackBits(TileIndex t)
 }
 
 /**
- * Get the direction of a dock.
- * @param t Tile to query
- * @pre IsDock(t)
- * @pre \a t is the land part of the dock
- * @return The direction of the dock on tile \a t.
- */
-static inline DiagDirection GetDockDirection(TileIndex t)
-{
-	StationGfx gfx = GetStationGfx(t);
-	assert(IsDock(t) && gfx < GFX_DOCK_BASE_WATER_PART);
-	return (DiagDirection)(gfx);
-}
-
-/**
  * Is there a custom rail station spec on this tile?
  * @param t Tile to query
  * @pre HasStationTileRail(t)
