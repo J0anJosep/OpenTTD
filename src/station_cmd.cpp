@@ -2913,7 +2913,8 @@ draw_default_foundation:
 			}
 		} else {
 			assert(IsDock(ti->tile));
-			TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
+			TileIndex water_tile = TileAddByDiagDir(ti->tile,
+					ReverseDiagDir(GetInclinedSlopeDirection(GetTileSlope(ti->tile))));
 			WaterClass wc = GetWaterClass(water_tile);
 			if (wc == WATER_CLASS_SEA) {
 				DrawShoreTile(ti->tileh);
