@@ -3073,8 +3073,14 @@ public:
 			} else { // no train
 				str = STR_VEHICLE_STATUS_STOPPED;
 			}
-		} else if ((v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) || (v->type == VEH_SHIP && Ship::From(v)->IsStuck())) {
+		} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) {
 			str = STR_VEHICLE_STATUS_TRAIN_STUCK;
+		} else if (v->type == VEH_SHIP && Ship::From(v)->IsStuck()) {
+			if (Ship::From(v)->lock != SLS_NO_LOCK && Ship::From(v)->lock != SLS_SHIP_LEAVE) {
+				str = STR_VEHICLE_STATUS_SHIP_LOCK;
+			} else {
+				str = STR_VEHICLE_STATUS_TRAIN_STUCK;
+			}
 		} else if (v->type == VEH_AIRCRAFT && HasBit(Aircraft::From(v)->flags, VAF_DEST_TOO_FAR) && !v->current_order.IsType(OT_LOADING)) {
 			str = STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR;
 		} else { // vehicle is in a "normal" state, show current order
