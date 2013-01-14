@@ -16,8 +16,28 @@
 
 #include "vehicle_base.h"
 #include "water_map.h"
+#include "core/enum_type.hpp"
+
+/* States ships may have regarding to locks. */
+enum ShipLockState {
+	SLS_BEGIN = 0,
+	SLS_NO_LOCK = SLS_BEGIN, ///< Ship is not at a lock.
+	SLS_PREPARING_LOCK,      ///< Ship has asked to enter a lock, but it needs to prepare the middle tile.
+	SLS_SHIP_ENTER,          ///< Middle tile is prepared so ship can move through first tile till reach middle tile.
+	SLS_SHIP_UPDOWN,         ///< Move ship up/down.
+	SLS_SHIP_MOVE,           ///< Move ship till it reaches the third tile of the lock.
+	SLS_RESET_OTHER_END,     ///< Reset the other end of the lock while ship is leaving.
+	SLS_SHIP_LEAVE,          ///< Move ship till it leaves the lock (and prepare first tile of lock again).
+	SLS_END,
+	SLS_INVALID = 0xFF
+};
+/** Define basic enum properties */
+template <> struct EnumPropsT<ShipLockState> : MakeEnumPropsT<ShipLockState, byte, SLS_BEGIN, SLS_END, SLS_INVALID, 3> {};
+typedef TinyEnumT<ShipLockState> ShipLockStateByte;
 
 static const uint SHIP_BLOCKED_TICKS = 8;
+static const uint SHIP_PREPARE_LOCK_TICKS = 10;
+static const uint SHIP_UPDOWN_LOCK_TICKS = 20;
 
 void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 WaterClass GetEffectiveWaterClass(TileIndex tile);
@@ -34,7 +54,8 @@ struct Ship FINAL : public SpecializedVehicle<Ship, VEH_SHIP> {
 	int16 rotation_x_pos;   ///< NOSAVE: X Position before rotation.
 	int16 rotation_y_pos;   ///< NOSAVE: Y Position before rotation.
 
-	bool stuck;          ///< Is this ship waiting to reserve a track?
+	bool stuck;              ///< Is this ship waiting to reserve a track?
+	ShipLockStateByte lock;  ///< The state of the movement on a lock.
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
 	Ship() : SpecializedVehicleBase() {}
