@@ -758,6 +758,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		     SLE_VAR(Ship, state, SLE_UINT8),
 		 SLE_CONDVAR(Ship, stuck,                     SLE_BOOL,        SL_STUCK_SHIPS, SL_MAX_VERSION),
 		 SLE_CONDVAR(Ship, wait_counter,            SLE_UINT16,        SL_STUCK_SHIPS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Ship, lock,                     SLE_UINT8,         SL_LOCK_STATE, SL_MAX_VERSION),
 
 		SLE_CONDNULL(16, 2, 143), // old reserved space
 
