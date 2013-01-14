@@ -842,6 +842,7 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 		v->z_pos = GetSlopePixelZ(x, y);
 
 		v->stuck = false;
+		v->lock = SLS_NO_LOCK;
 
 		v->UpdateDeltaXY();
 		v->vehstatus = VS_HIDDEN | VS_STOPPED | VS_DEFPAL;
