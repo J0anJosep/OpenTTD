@@ -135,6 +135,7 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 	int GetDisplayMaxSpeed() const { return this->vcache.cached_max_speed; }
 	int GetSpeedOldUnits() const   { return this->vcache.cached_max_speed * 10 / 128; }
 	int GetCurrentMaxSpeed() const { return this->GetSpeedOldUnits(); }
+	Trackdir GetVehicleTrackdir() const { return this->trackdir; }
 	Money GetRunningCost() const;
 
 	bool IsInDepot() const
