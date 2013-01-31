@@ -1284,7 +1284,7 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 		/* draw ramp */
 
 		/* Draw Trambits and PBS Reservation as SpriteCombine */
-		if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine();
+		StartSpriteCombine();
 
 		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
 		 * it doesn't disappear behind it
@@ -1346,6 +1346,16 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 			if (HasRailCatenaryDrawn(GetRailType(ti->tile))) {
 				DrawRailCatenary(ti);
 			}
+		} else {
+			assert(GetTunnelBridgeTransportType(ti->tile) == TRANSPORT_WATER);
+			if (_settings_client.gui.show_water_tracks) {
+				Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(ti->tile));
+				AddSortableSpriteToDraw(SPR_AUTORAIL_WATER + track,
+						HasTunnelBridgeReservation(ti->tile) ? PAL_NONE : PALETTE_SEL_TILE_BLUE,
+						ti->x, ti->y, 16, 16, 0, ti->z + 16);
+			}
+
+			EndSpriteCombine();
 		}
 
 		DrawBridgeMiddle(ti);
@@ -1450,7 +1460,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, x, y, 16, 16, 1, bridge_z - TILE_HEIGHT + BB_Z_SEPARATOR);
 
 	/* Draw Trambits as SpriteCombine */
-	if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine();
+	StartSpriteCombine();
 
 	/* Draw floor and far part of bridge*/
 	if (!IsInvisibilitySet(TO_BRIDGES)) {
@@ -1496,6 +1506,15 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		if (HasRailCatenaryDrawn(GetRailType(rampsouth))) {
 			DrawRailCatenaryOnBridge(ti);
 		}
+	} else {
+		assert(transport_type == TRANSPORT_WATER);
+		if (_settings_client.gui.show_water_tracks && !IsInvisibilitySet(TO_BRIDGES)) {
+			AddSortableSpriteToDraw(SPR_AUTORAIL_WATER + axis,
+					HasTunnelBridgeReservation(rampnorth) ? PAL_NONE : PALETTE_SEL_TILE_BLUE,
+					ti->x - 4, ti->y - 4, 16, 16, 2, bridge_z, IsTransparencySet(TO_BRIDGES));
+		}
+
+		EndSpriteCombine();
 	}
 
 	/* draw roof, the component of the bridge which is logically between the vehicle and the camera */
