@@ -39,6 +39,7 @@
 #include "company_base.h"
 #include "company_gui.h"
 #include "newgrf_generic.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 
@@ -841,6 +842,35 @@ void DrawWaterClassGround(const TileInfo *ti)
 	}
 }
 
+/**
+ * Draw the reserved water tracks of a tile if setting show reserved tracks is enabled.
+ * @param t The tile to draw the tracks of.
+ */
+void DrawWaterTrackReservation(TileIndex tile)
+{
+	assert(WaterTrackMayExist(tile));
+	TrackBits trackbits = GetReservedWaterTracks(tile);
+
+	/* No track reserved: return */
+	if (trackbits == TRACK_BIT_NONE) return;
+
+	static const byte autorail_offset[] = {0, 8, 16, 25, 34, 42};
+	static const byte slope_offset[] = {2, 2, 5, 5};
+	byte slope_off = 0;
+
+	if (IsTileType(tile, MP_WATER) && IsLock(tile)) {
+		Slope slope = GetTileSlope(tile);
+		if (slope != SLOPE_FLAT && IsInclinedSlope(slope)) {
+			slope_off = slope_offset[GetInclinedSlopeDirection(slope)];
+		}
+	}
+
+	Track track;
+	FOR_EACH_SET_TRACK(track, trackbits) {
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
+	}
+}
+
 static void DrawTile_Water(TileInfo *ti)
 {
 	switch (GetWaterTileType(ti->tile)) {
@@ -863,6 +893,9 @@ static void DrawTile_Water(TileInfo *ti)
 			DrawWaterDepot(ti);
 			break;
 	}
+
+	if (_settings_client.gui.show_track_reservation) DrawWaterTrackReservation(ti->tile);
+
 }
 
 void DrawShipDepotSprite(int x, int y, Axis axis, DepotPart part)
