@@ -27,6 +27,7 @@
 #include "elrail_func.h"
 #include "town.h"
 #include "pbs_rail.h"
+#include "pbs_water.h"
 #include "company_base.h"
 #include "core/backup_type.hpp"
 #include "date_func.h"
@@ -2319,6 +2320,8 @@ static void DrawTrackBits(TileInfo *ti, TrackBits track)
 	}
 
 	if (image != 0) DrawGroundSprite(image, pal, sub);
+
+	if (_game_mode != GM_MENU && _settings_client.gui.show_water_tracks && WaterTrackMayExist(ti->tile)) DrawWaterTracks(ti->tile);
 
 	/* Draw track pieces individually for junction tiles */
 	if (junction) {
