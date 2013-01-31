@@ -1282,7 +1282,7 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 		/* draw ramp */
 
 		/* Draw Trambits and PBS Reservation as SpriteCombine */
-		if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine();
+		if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL || transport_type == TRANSPORT_WATER) StartSpriteCombine();
 
 		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
 		 * it doesn't disappear behind it
@@ -1344,6 +1344,14 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 			if (HasCatenaryDrawn(GetRailType(ti->tile))) {
 				DrawCatenary(ti);
 			}
+		} else {
+			assert(GetTunnelBridgeTransportType(ti->tile) == TRANSPORT_WATER);
+			if (_settings_client.gui.show_track_reservation && HasTunnelBridgeReservation(ti->tile)) {
+				uint offset = (GetTunnelBridgeDirection(ti->tile) % 2 == 0) ? 1 : 9;
+				AddSortableSpriteToDraw(SPR_AUTORAIL_BASE + offset, PALETTE_SEL_TILE_BLUE, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+			}
+
+			EndSpriteCombine();
 		}
 
 		DrawBridgeMiddle(ti);
