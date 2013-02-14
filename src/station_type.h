@@ -83,6 +83,7 @@ enum CatchmentArea {
 	CA_TRUCK           =  3, ///< Catchment for truck stops with "modified catchment" enabled
 	CA_TRAIN           =  4, ///< Catchment for train stations with "modified catchment" enabled
 	CA_DOCK            =  5, ///< Catchment for docks with "modified catchment" enabled
+	CA_OILRIG          =  2, ///< Catchment for oil rigs with "modified catchment" enabled
 
 	CA_UNMODIFIED      =  4, ///< Catchment for all stations with "modified catchment" disabled
 
