@@ -3035,6 +3035,34 @@ bool AfterLoadGame()
 		_settings_game.vehicle.buy_engine_rights = false;
 	}
 
+	if (IsSavegameVersionBefore(SL_LOCK_STATE)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsLockTile(t) && GetLockPart(t) == LOCK_PART_UPPER) {
+				SetLockWaterLevel(t, TILE_HEIGHT);
+			}
+		}
+
+		Ship *v;
+		FOR_ALL_SHIPS(v) {
+			if (!IsLockTile(v->tile)) continue;
+			switch (GetLockPart(v->tile)) {
+				case LOCK_PART_MIDDLE:
+					/* On the middle part we just can be on the move state. */
+					v->lock = SLS_SHIP_MOVE;
+					break;
+				case LOCK_PART_LOWER:
+				case LOCK_PART_UPPER:
+					/* On lower/upper tile, we can be just entering or leaving the lock. */
+					TileIndex next = TileAddByDiagDir(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())));
+					if (CheckSameLock(v->tile, next)) {
+						v->lock = SLS_SHIP_ENTER;
+					} else {
+						v->lock = SLS_SHIP_LEAVE;
+					}
+			}
+		}
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
