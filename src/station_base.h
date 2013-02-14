@@ -452,6 +452,11 @@ typedef SmallVector<Industry *, 2> IndustryVector;
 
 /** Station data structure */
 struct Station FINAL : SpecializedStation<Station, false> {
+
+protected:
+	TileArea catchment;     ///< NOSAVE: TileArea of tiles this station could catch
+	bool *footprint;        ///< NOSAVE: mask that used with this->catchment indicates if the tile is caught by the station
+
 public:
 	RoadStop *GetPrimaryRoadStop(RoadStopType type) const
 	{
@@ -493,11 +498,24 @@ public:
 
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
 	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
-	void RecomputeIndustriesNear();
-	static void RecomputeIndustriesNearForAll();
 
+	/* Stuff related with catchment of the station */
+	static CatchmentArea GetCatchmentRadius(StationType type);
 	uint GetCatchmentRadius() const;
 	Rect GetCatchmentRect() const;
+	SmallVector<TileIndex, 32>  GetStationTiles() const;
+	void UpdateCatchment();
+	static TileArea GetStationCatchmentAreaByTile(TileIndex tile);
+	const TileArea GetStationCatchmentArea() const;
+	bool *GetStationCatchmentFootprint(const TileArea ta) const;
+	const bool *GetStationCatchmentFootprint() const;
+
+	/* Stuff related with relationship between industries and stations */
+	void RecomputeIndustriesNear();
+	static void RecomputeIndustriesNearArea(const TileArea ta, const bool *footprint);
+	static void RecomputeIndustriesNearForAll();
+
+
 
 	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
 	{

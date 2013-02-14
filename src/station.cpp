@@ -55,6 +55,7 @@ BaseStation::~BaseStation()
 
 Station::Station(TileIndex tile) :
 	SpecializedStation<Station, false>(tile),
+	footprint(NULL),
 	bus_station(INVALID_TILE, 0, 0),
 	truck_station(INVALID_TILE, 0, 0),
 	dock_tile(INVALID_TILE),
@@ -75,6 +76,8 @@ Station::Station(TileIndex tile) :
  */
 Station::~Station()
 {
+	delete [] this->footprint;
+
 	if (CleaningPool()) {
 		for (CargoID c = 0; c < NUM_CARGO; c++) {
 			this->goods[c].cargo.OnCleanPool();
@@ -265,6 +268,49 @@ void Station::MarkTilesDirty(bool cargo_change) const
 }
 
 /**
+ * Determine the catchment radius of a station of the given type
+ * @param type the type of station: bus/truck stop, train station, airport...
+ * @return The radius
+ */
+/* static */ CatchmentArea Station::GetCatchmentRadius(StationType type)
+{
+	if (_settings_game.station.modified_catchment) {
+		switch (type) {
+			case STATION_RAIL:
+				return CA_TRAIN;
+			case STATION_TRUCK:
+				return CA_TRUCK;
+			case STATION_BUS:
+				return CA_BUS;
+			case STATION_DOCK:
+				return CA_DOCK;
+			case STATION_OILRIG:
+				return CA_OILRIG;
+			case STATION_AIRPORT:
+				return MAX_CATCHMENT;
+			case STATION_BUOY:
+			case STATION_WAYPOINT:
+			default:
+				return CA_NONE;
+		}
+	} else {
+		switch (type) {
+			case STATION_RAIL:
+			case STATION_TRUCK:
+			case STATION_BUS:
+			case STATION_DOCK:
+			case STATION_AIRPORT:
+			case STATION_OILRIG:
+				return CA_UNMODIFIED;
+			case STATION_BUOY:
+			case STATION_WAYPOINT:
+			default:
+				return CA_NONE;
+		}
+	}
+}
+
+/**
  * Determines the catchment radius of the station
  * @return The radius
  */
@@ -307,6 +353,111 @@ Rect Station::GetCatchmentRect() const
 
 	return ret;
 }
+
+/**
+ * Get all the tiles of a station (get only one tile for the dock and one for the airport)
+ * @return a vector containing all the bus and truck stops, rail station tiles and the base tiles for dock and airport
+  */
+SmallVector<TileIndex, 32>  Station::GetStationTiles() const
+ {
+	SmallVector<TileIndex, 32> list_of_tiles;
+
+	for (RoadStop *road_stop = this->bus_stops; road_stop != NULL; road_stop = road_stop->next) {
+		*list_of_tiles.Append() = road_stop->xy;
+	}
+
+	for (RoadStop *road_stop = this->truck_stops; road_stop != NULL; road_stop = road_stop->next) {
+		*list_of_tiles.Append() = road_stop->xy;
+	}
+
+	if (this->airport.tile != INVALID_TILE) *list_of_tiles.Append() = this->airport.tile;
+
+	if (this->dock_tile != INVALID_TILE) *list_of_tiles.Append() = this->dock_tile;
+
+	TILE_AREA_LOOP(tile, this->train_station) {
+		if (IsTileType(tile, MP_STATION) && GetStationType(tile) == STATION_RAIL && this->index == GetStationIndex(tile)) *list_of_tiles.Append() = tile;
+	}
+
+	return list_of_tiles;
+}
+
+/**
+ * Recomputes the cached catchment variables (location and footprint)
+ */
+void Station::UpdateCatchment()
+{
+	/* Calculate the area this station could catch */
+	this->catchment.tile = TileXY(this->rect.left, this->rect.top);
+	this->catchment.w = this->rect.right - this->rect.left + 1;
+	this->catchment.h = this->rect.bottom - this->rect.top + 1;
+	this->catchment.AddRadius(this->GetCatchmentRadius());
+
+	/* Calculate the footprint (tiles inside the location area that are really caught) */
+	delete [] footprint;
+	this->footprint = this->GetStationCatchmentFootprint(this->catchment);
+}
+
+/**
+ * Calculate the area associated to a single tile
+ * @param tile station tile of st we want to find the associated TileArea
+ * @return TileArea associated to tile: single tile, or the two tiles of a dock, or the TileArea of an airport
+ */
+/* static */ TileArea Station::GetStationCatchmentAreaByTile(TileIndex tile)
+{
+	CatchmentArea rad;
+	Station *st = GetByTile(tile);
+
+	if (GetStationType(tile) == STATION_AIRPORT) {
+		rad = _settings_game.station.modified_catchment ? (CatchmentArea)st->airport.GetSpec()->catchment : CA_UNMODIFIED;
+		return TileArea(st->airport.tile, st->airport.w, st->airport.h, rad);
+	}
+
+	rad = Station::GetCatchmentRadius(GetStationType(tile));
+
+	if (GetStationType(tile) == STATION_DOCK) {
+		TileArea tile_area(st->dock_tile, 1, 1);
+		tile_area.Add(st->dock_tile + TileOffsByDiagDir(GetDockDirection(st->dock_tile)));
+		tile_area.AddRadius(rad);
+		return tile_area;
+	}
+
+	return TileArea(tile, 1, 1, rad);
+}
+
+/**
+ * Return a tile area containing all tiles this station could catch
+ */
+const TileArea Station::GetStationCatchmentArea() const { return this->catchment; }
+
+/**
+ * Returns a mask containing all tiles of given ta that this station really can catch
+ */
+bool *Station::GetStationCatchmentFootprint(const TileArea ta) const
+{
+	bool *new_footprint = new bool[ta.w*ta.h]();
+	SmallVector<TileIndex, 32> list_of_tiles = this->GetStationTiles();
+
+	for (uint i = list_of_tiles.Length(); i--;) {
+		TileArea catchment_area = this->GetStationCatchmentAreaByTile(list_of_tiles[i]);
+		catchment_area.IntersectionWith(ta);
+
+		uint f_index = 0;
+		TILE_AREA_LOOP(tile, ta) {
+			if (catchment_area.Contains(tile)) new_footprint[f_index] = true;
+			f_index++;
+		}
+	}
+
+	return new_footprint;
+}
+
+/**
+ * Return the associated mask of this->catchment
+ * @note	mask[i] is true if tile number i of this->catchment is caught by station
+ *		mask[i] is false if tile cannot reach the station
+ */
+const bool *Station::GetStationCatchmentFootprint() const { return this->footprint; };
+
 
 /** Rect and pointer to IndustryVector */
 struct RectAndIndustryVector {
@@ -352,7 +503,7 @@ static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 
 /**
  * Recomputes Station::industries_near, list of industries possibly
- * accepting cargo in station's catchment radius
+ * accepting cargo in station's catchment area
  */
 void Station::RecomputeIndustriesNear()
 {
@@ -372,6 +523,22 @@ void Station::RecomputeIndustriesNear()
 	);
 
 	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, &riv);
+}
+
+/**
+ * Find stations near an area and updates Station::industries_near
+ * @param ta area modified
+ * @param mask tiles modified
+ * @note ta will be expanded appropriately
+ */
+/* static */ void Station::RecomputeIndustriesNearArea(const TileArea ta, const bool *mask)
+{
+	StationList stations;
+	FindStationsAroundTiles(ta, &stations);
+
+	for (Station **st_iter = stations.Begin(); st_iter != stations.End(); ++st_iter) {
+		(*st_iter)->RecomputeIndustriesNear();
+	}
 }
 
 /**
