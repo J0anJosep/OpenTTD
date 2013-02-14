@@ -3088,6 +3088,22 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SL_LOCK_STATE)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsLockTile(t) && GetLockPart(t) == LOCK_PART_UPPER) {
+				SetLockWaterLevel(t, TILE_HEIGHT);
+			}
+		}
+
+		/* New lock controller will only be used if ship_path_reservation
+		 * is enabled by the user. To do so, all ships must be in a depot.
+		 * No ship will use v->lock when starting a previous savegame. */
+		Ship *v;
+		FOR_ALL_SHIPS(v) {
+			v->lock = SLS_NO_LOCK;
+		}
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
