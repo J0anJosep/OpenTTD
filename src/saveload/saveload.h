@@ -87,9 +87,6 @@ enum SLRefType {
 	REF_LINK_GRAPH_JOB = 11, ///< Load/save a reference to a link graph job.
 };
 
-/** Highest possible savegame version. */
-#define SL_MAX_VERSION UINT16_MAX
-
 /** Flags of a chunk. */
 enum ChunkType {
 	CH_RIFF         =  0,
@@ -548,5 +545,45 @@ bool SaveloadCrashWithMissingNewGRFs();
 
 extern char _savegame_format[8];
 extern bool _do_autosave;
+
+/**
+ * Save/load versions used for the various branches.
+ * SL_TRUNK is always the current trunk version.
+ */
+enum SaveLoadVersions {
+	SL_ENGINE_PREVIEW_OFFERS = 179, // 24810 -> Fix:        Make engine preview offers more robust wrt. changes in the company ranking.
+	SL_VEH_SERVICE_INTERVAL_FLAG,   // 24998 -> Feature:    Set vehicle flag for service interval in percentage/days...
+	SL_PERSISTENTLY_KEEP_RESERVED,  // 25012 -> Codechange: Persistently keep 'reserved' cargo.
+	SL_TRACK_CAPACITIES,            // 25259 -> Codechange: Track capacities of links.
+					// 25296 -> Feature:    Goals with progress text.
+	SL_CARGODIST,                   // 25363 -> Feature:    Cargodist.
+	SL_SPLIT_UNITS_SETTING,         // 25508 -> Feature:    Split unit localisation.
+	SL_SAVELOAD_STORY_BOOK,         // 25620 -> Fix:        save/load of story book.
+	SL_OBJECT_TYPE_POOL,            // 25833 -> Codechange: Move ObjectType from map array into pool item.
+	SL_RESTRICT_FLOWS,              // 25899 -> Codechange: Restrict flows in CargoDist.
+	SL_UNIFY_RV_CURVES,             // 26169 -> Fix-ish:    Unify the time a RV needs to travel through a curve.
+	SL_GROUP_HIERARCHY,             // 26450 -> Feature:    Add group hierarchy.
+	SL_COLLECT_ORDER,               // 26547 -> Codechange: Collect order travel and wait times independent of timetables.
+	SL_SAVE_DISTANCE,               // 26646 -> Fix:        Save locations instead of distances in link graphs to reduce size.
+	SL_INCORRECT_SAVE_BACKUPS,      // 26700 -> Fix:        Incorrect saving of order backups.
+	SL_HIDE_ENGINES,                // 26802 -> Feature:    Allow each company to hide engines from their lists.
+	SL_MORE_HEIGHT_LEVELS,          // 26881 -> Feature:    Allow more height levels.
+	SL_MOD_GROUP_HIERARCHY = 7000,  //       -> Feature:    Add group hierarchy settings.
+	SL_CATCHMENT_AREAS,             //       -> Feature:    Rectangular/Precise catchment and delivery areas.
+	SL_DOCK_LOADING_BAY,            //       -> Change:     Allow ships to cross the flat tile of docks.
+	SL_STUCK_SHIPS,                 //       -> Feature:    Allow ships to get stuck.
+	SL_MULTIPLE_DOCKS,              //       -> Feature:    Allow building multiple docks on the same station.
+	SL_SET_DOCK_TRACKS,             //       -> Feature:    Allow changing the track of a flat dock tile that can be crossed.
+	SL_COMPANY_RIGHTS,              //       -> Feature:    Load and save whether a company has rights for an engine.
+	SL_LOCK_STATE,                  //       -> Feature:    Add lock states.
+	SL_STORE_WATER_TRACKS,          //       -> Feature:    Banks and shore parts are stored in the map array.
+	SL_USE_DEPOT_IDS,               //       -> Codechange: Airports have a built-in depot index.
+	SL_RESET_AIRCRAFT,              //       -> Feature:    Change airport and aircraft handlers.
+
+	SL_TRUNK = SL_RESET_AIRCRAFT,
+
+	/** Highest possible savegame version. */
+	SL_MAX_VERSION = UINT16_MAX,
+};
 
 #endif /* SAVELOAD_H */
