@@ -297,6 +297,23 @@ enum SaveLoadVersion : uint16 {
 	SLV_SERVE_NEUTRAL_INDUSTRIES,           ///< 210  PR#7234 Company stations can serve industries with attached neutral stations.
 	SLV_ROADVEH_PATH_CACHE,                 ///< 211  PR#7261 Add path cache for road vehicles.
 
+	SLV_FORBID_90_DEG_SHIPS = 7000,         ///< 7000 Change:     Separate Forbid 90-deg settings for trains and ships.
+	SLV_MOD_GROUP_HIERARCHY,                ///<      Feature:    Add group hierarchy settings.
+	SLV_AUTOMATICALLY_BUILD_GROUPS,         ///<      Feature:    Allow company owners to automatically build groups by some characteristics.
+	SLV_CATCHMENT_AREAS,                    ///<      Feature:    Rectangular/Precise catchment and delivery areas.
+	SLV_DOCK_LOADING_BAY,                   ///<      Change:     Allow ships to cross the flat tile of docks.
+	SLV_STUCK_SHIPS,                        ///<      Feature:    Allow ships to get stuck.
+	SLV_MULTIPLE_DOCKS,                     ///<      Feature:    Allow building multiple docks on the same station.
+	SLV_SET_DOCK_TRACKS,                    ///<      Feature:    Allow changing the track of a flat dock tile that can be crossed.
+	SLV_COMPANY_RIGHTS,                     ///<      Feature:    Load and save whether a company has rights for an engine.
+	SLV_LOCK_STATE,                         ///<      Feature:    Add lock states.
+	SLV_STORE_WATER_TRACKS,                 ///<      Feature:    Banks and shore parts are stored in the map array.
+	SLV_ADD_WATER_TRACKDIRS,                ///<      Feature:    Players may define special water trackdirs on tiles.
+	SLV_STORE_OTHER_TUNNELBRIDGE,           ///<      Codechange: Store in the map array the other tile of a tunnel or bridge.
+	SLV_MULTILENGTH_LOCKS,                  ///<      Feature:    Add locks with 5 and 7 tile-length.
+	SLV_USE_DEPOT_IDS,                      ///<      Codechange: Airports have a built-in depot index.
+	SLV_RESET_AIRCRAFT,                     ///<      Feature:    Change airport and aircraft handlers.
+
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 
