@@ -1215,7 +1215,7 @@ bool AfterLoadGame()
 	}
 
 	/* Railtype moved from m3 to m8 in version 200. */
-	if (IsSavegameVersionBefore(200)) {
+	if (IsSavegameVersionBefore(SL_EXTEND_MAP_ARRAY)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			switch (GetTileType(t)) {
 				case MP_RAILWAY:
@@ -3001,7 +3001,7 @@ bool AfterLoadGame()
 #endif
 	}
 
-	if (IsSavegameVersionBefore(198)) {
+	if (IsSavegameVersionBefore(SL_SWITCH_TOWN_COUNTER)) {
 		/* Convert towns growth_rate and grow_counter to ticks */
 		Town *t;
 		FOR_ALL_TOWNS(t) {
