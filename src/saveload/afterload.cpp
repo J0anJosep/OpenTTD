@@ -2969,7 +2969,7 @@ bool AfterLoadGame()
 #endif
 	}
 
-	if (IsSavegameVersionBefore(198)) {
+	if (IsSavegameVersionBefore(SL_SWITCH_TOWN_COUNTER)) {
 		/* Convert towns growth_rate and grow_counter to ticks */
 		Town *t;
 		FOR_ALL_TOWNS(t) {
