@@ -566,7 +566,7 @@ bool IsWateredTile(TileIndex tile, Direction from)
 			switch (GetWaterTileType(tile)) {
 				default: NOT_REACHED();
 				case WATER_TILE_DEPOT: case WATER_TILE_CLEAR: return true;
-				case WATER_TILE_LOCK: return DiagDirToAxis(GetLockDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
+				case WATER_TILE_LOCK: return IsDiagonalDirection(from) && DiagDirToAxis(GetLockDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
 
 				case WATER_TILE_COAST:
 					switch (GetTileSlope(tile)) {
@@ -659,42 +659,48 @@ static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 		if (base == 0) return; // Don't draw if no sprites provided.
 	}
 
-	uint wa;
+	/* Bits  0,  1,  2,  3   -> Edges.
+	 * Bits  4,  5,  6,  7   -> Corners where two adjacent edges are set.
+	 * Bits  8,  9, 10, 11   -> Corners with no adjacent edge.
+	 * Bits 12, 13, 14, 15   -> Border on edge is a lock (NO SAVE). */
+	uint wa = 0;
 
-	/* determine the edges around with water. */
-	wa  = IsWateredTile(TILE_ADDXY(tile, -1,  0), DIR_SW) << 0;
-	wa += IsWateredTile(TILE_ADDXY(tile,  0,  1), DIR_NW) << 1;
-	wa += IsWateredTile(TILE_ADDXY(tile,  1,  0), DIR_NE) << 2;
-	wa += IsWateredTile(TILE_ADDXY(tile,  0, -1), DIR_SE) << 3;
-
-	if (!(wa & 1)) DrawWaterSprite(base, offset,     feature, tile);
-	if (!(wa & 2)) DrawWaterSprite(base, offset + 1, feature, tile);
-	if (!(wa & 4)) DrawWaterSprite(base, offset + 2, feature, tile);
-	if (!(wa & 8)) DrawWaterSprite(base, offset + 3, feature, tile);
-
-	/* right corner */
-	switch (wa & 0x03) {
-		case 0: DrawWaterSprite(base, offset + 4, feature, tile); break;
-		case 3: if (!IsWateredTile(TILE_ADDXY(tile, -1, 1), DIR_W)) DrawWaterSprite(base, offset + 8, feature, tile); break;
+	/* Determine the edges around with water. */
+	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir != DIAGDIR_END; diagdir++) {
+		TileIndex t = TileAddByDiagDir(tile, diagdir);
+		/* Check edges. */
+		if (!IsWateredTile(t, ReverseDir(DiagDirToDir(diagdir)))) {
+			/* Mark the edge. */
+			SetBit(wa, diagdir);
+		}
+		/* Mark neighbour is a lock. */
+		if (IsLockTile(t)) SetBit(wa, 12 + diagdir);
 	}
 
-	/* bottom corner */
-	switch (wa & 0x06) {
-		case 0: DrawWaterSprite(base, offset + 5, feature, tile); break;
-		case 6: if (!IsWateredTile(TILE_ADDXY(tile, 1, 1), DIR_N)) DrawWaterSprite(base, offset + 9, feature, tile); break;
+	/* Determine adjacent edges. */
+	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir < DIAGDIR_END; diagdir++) {
+		if (HasBit(wa, diagdir) && HasBit(wa, (diagdir + 1) % 4)) {
+			/* Two adjacent edges: set corner. */
+			SetBit(wa, diagdir + 4);
+			continue;
+		}
+
+		/* If one of these edges exist, then don't bother about drawing a corner here. */
+		if (HasBit(wa, diagdir) || HasBit(wa, (diagdir + 1) % 4)) continue;
+
+		/* Rotate diagdir 45 degrees to get the direction of the corner. */
+		Direction direction = ChangeDir(DiagDirToDir(diagdir), DIRDIFF_45RIGHT);
+
+		/* If corner in front of a lock or non-watered tile in the direction of the corner. */
+		if (HasBit(wa, diagdir + 12) || HasBit(wa, diagdir == 3 ? 12 : (diagdir + 13)) ||
+				!IsWateredTile(tile + TileOffsByDir(direction), ReverseDir(direction)))
+			SetBit(wa, diagdir + 8);
 	}
 
-	/* left corner */
-	switch (wa & 0x0C) {
-		case  0: DrawWaterSprite(base, offset + 6, feature, tile); break;
-		case 12: if (!IsWateredTile(TILE_ADDXY(tile, 1, -1), DIR_E)) DrawWaterSprite(base, offset + 10, feature, tile); break;
+	for (uint bit = 0; bit < 12; bit++) {
+		if (HasBit(wa, bit)) DrawWaterSprite(base, offset + bit, feature, tile);
 	}
 
-	/* upper corner */
-	switch (wa & 0x09) {
-		case 0: DrawWaterSprite(base, offset + 7, feature, tile); break;
-		case 9: if (!IsWateredTile(TILE_ADDXY(tile, -1, -1), DIR_S)) DrawWaterSprite(base, offset + 11, feature, tile); break;
-	}
 }
 
 /** Draw a plain sea water tile with no edges */
