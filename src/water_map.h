@@ -69,6 +69,13 @@ enum LockPart {
 	LOCK_PART_UPPER  = 2, ///< Upper part of a lock.
 };
 
+static const TileIndexDiffC _lock_tomiddle_offs[][DIAGDIR_END] = {
+	/*   NE       SE        SW      NW       */
+	{ { 0,  0}, {0,  0}, { 0, 0}, {0,  0} }, // LOCK_PART_MIDDLE
+	{ {-1,  0}, {0,  1}, { 1, 0}, {0, -1} }, // LOCK_PART_LOWER
+	{ { 1,  0}, {0, -1}, {-1, 0}, {0,  1} }, // LOCK_PART_UPPER
+};
+
 /**
  * Get the water tile type at a tile.
  * @param t Water tile to query.
@@ -334,6 +341,53 @@ static inline byte GetLockPart(TileIndex t)
 }
 
 /**
+ * Get middle tile of a lock.
+ * @param t Water tile to query.
+ * @return The middle part tile.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static inline TileIndex GetLockMiddleTile(TileIndex t)
+{
+	assert(IsLock(t));
+	return t + ToTileIndexDiff(_lock_tomiddle_offs[GetLockPart(t)][GetLockDirection(t)]);
+}
+
+/**
+ * Check if two tiles belong to the same lock.
+ * @param t1 First tile.
+ * @param t2 Second tile.
+ * @return true if the two tiles belong to the same dock.
+ */
+static inline bool CheckSameLock(TileIndex t1, TileIndex t2)
+{
+	if (!IsLockTile(t1) || !IsLockTile(t2)) return false;
+	return GetLockMiddleTile(t1) == GetLockMiddleTile(t2);
+}
+
+/**
+ * Get water level of a lock tile.
+ * @param t Water tile to query.
+ * @return The middle part tile.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static inline uint8 GetLockWaterLevel(TileIndex t)
+{
+	assert(IsLock(t));
+	return GB(_m[t].m4, 0, 4);
+}
+
+/**
+ * Set water level of a lock tile.
+ * @param t Water tile to query.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static void SetLockWaterLevel(TileIndex t, uint8 level)
+{
+	assert(IsLock(t));
+	SB(_m[t].m4, 0, 4, level);
+}
+
+/**
  * Get the random bits of the water tile.
  * @param t Water tile to query.
  * @return Random bits of the tile.
@@ -467,6 +521,7 @@ static inline void MakeLockTile(TileIndex t, Owner o, LockPart part, DiagDirecti
 	_m[t].m5 = WBL_TYPE_LOCK << WBL_TYPE_BEGIN | part << WBL_LOCK_PART_BEGIN | dir << WBL_LOCK_ORIENT_BEGIN;
 	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = 0;
+	if (part == LOCK_PART_UPPER) SetLockWaterLevel(t, TILE_HEIGHT);
 }
 
 /**

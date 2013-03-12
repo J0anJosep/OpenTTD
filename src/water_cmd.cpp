@@ -529,13 +529,6 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 		}
 
 		case WATER_TILE_LOCK: {
-			static const TileIndexDiffC _lock_tomiddle_offs[][DIAGDIR_END] = {
-				/*   NE       SE        SW      NW       */
-				{ { 0,  0}, {0,  0}, { 0, 0}, {0,  0} }, // LOCK_PART_MIDDLE
-				{ {-1,  0}, {0,  1}, { 1, 0}, {0, -1} }, // LOCK_PART_LOWER
-				{ { 1,  0}, {0, -1}, {-1, 0}, {0,  1} }, // LOCK_PART_UPPER
-			};
-
 			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			if (_current_company == OWNER_WATER) return CMD_ERROR;
 			/* move to the middle tile.. */
