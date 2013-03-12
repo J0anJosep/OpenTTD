@@ -529,13 +529,6 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 		}
 
 		case WATER_TILE_LOCK: {
-			static const TileIndexDiffC _lock_tomiddle_offs[][DIAGDIR_END] = {
-				/*   NE       SE        SW      NW       */
-				{ { 0,  0}, {0,  0}, { 0, 0}, {0,  0} }, // LOCK_PART_MIDDLE
-				{ {-1,  0}, {0,  1}, { 1, 0}, {0, -1} }, // LOCK_PART_LOWER
-				{ { 1,  0}, {0, -1}, {-1, 0}, {0,  1} }, // LOCK_PART_UPPER
-			};
-
 			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			if (_current_company == OWNER_WATER) return CMD_ERROR;
 			/* move to the middle tile.. */
@@ -754,6 +747,25 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 			dtss->size_x, dtss->size_y,
 			dtss->size_z, ti->z + dtss->delta_z,
 			IsTransparencySet(TO_BUILDINGS));
+	}
+}
+
+/**
+ * Return whether a lock part needs a gate in its lowering direction.
+ * @param tile tile to check
+ * @return true if the water level of this tile and the tile in the lowering
+ *         direction is diferent.
+ */
+bool DoesLockPartNeedGate(TileIndex tile)
+{
+	switch (GetLockPart(tile)) {
+		case LOCK_PART_MIDDLE:
+			return GetLockWaterLevel(tile) != GetLockWaterLevel(GetLockLowerTile(tile));
+		case LOCK_PART_LOWER:
+			return GetLockWaterLevel(tile) != 0;
+		case LOCK_PART_UPPER:
+			return GetLockWaterLevel(GetLockMiddleTile(tile)) != GetLockWaterLevel(tile);
+		default: NOT_REACHED();
 	}
 }
 
