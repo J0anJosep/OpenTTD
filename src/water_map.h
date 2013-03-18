@@ -396,7 +396,7 @@ static void SetLockWaterLevel(TileIndex t, uint8 level)
 static inline byte GetWaterTileRandomBits(TileIndex t)
 {
 	assert(IsTileType(t, MP_WATER));
-	return _m[t].m4;
+	return GB(_m[t].m4, 0, 4);
 }
 
 /**
@@ -433,7 +433,7 @@ static inline void MakeShore(TileIndex t)
  * @param t The tile to change into water
  * @param o The owner of the water
  * @param wc The class of water the tile has to be
- * @param random_bits Eventual random bits to be set for this tile
+ * @param random_bits Eventual random bits to be set for this tile (only 4 bits will be used)
  */
 static inline void MakeWater(TileIndex t, Owner o, WaterClass wc, uint8 random_bits)
 {
@@ -442,7 +442,7 @@ static inline void MakeWater(TileIndex t, Owner o, WaterClass wc, uint8 random_b
 	SetWaterClass(t, wc);
 	_m[t].m2 = 0;
 	_m[t].m3 = 0;
-	_m[t].m4 = random_bits;
+	SB(_m[t].m4, 0, 4, random_bits);
 	_m[t].m5 = WBL_TYPE_NORMAL << WBL_TYPE_BEGIN;
 	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = 0;
