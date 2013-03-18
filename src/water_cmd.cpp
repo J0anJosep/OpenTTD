@@ -565,8 +565,14 @@ bool IsWateredTile(TileIndex tile, Direction from)
 		case MP_WATER:
 			switch (GetWaterTileType(tile)) {
 				default: NOT_REACHED();
-				case WATER_TILE_DEPOT: case WATER_TILE_CLEAR: return true;
-				case WATER_TILE_LOCK: return IsDiagonalDirection(from) && DiagDirToAxis(GetLockDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
+
+				case WATER_TILE_CLEAR: return true;
+
+				case WATER_TILE_DEPOT:
+					return IsDiagonalDirection(from) && DiagDirToAxis(GetShipDepotDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
+
+				case WATER_TILE_LOCK:
+					return IsDiagonalDirection(from) && DiagDirToAxis(GetLockDirection(tile)) == DiagDirToAxis(DirToDiagDir(from));
 
 				case WATER_TILE_COAST:
 					switch (GetTileSlope(tile)) {
@@ -662,19 +668,20 @@ static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 	/* Bits  0,  1,  2,  3   -> Edges.
 	 * Bits  4,  5,  6,  7   -> Corners where two adjacent edges are set.
 	 * Bits  8,  9, 10, 11   -> Corners with no adjacent edge.
-	 * Bits 12, 13, 14, 15   -> Border on edge is a lock (NO SAVE). */
+	 * Bits 12, 13, 14, 15   -> Border on edge is a lock/depot (NO SAVE). */
 	uint wa = 0;
 
 	/* Determine the edges around with water. */
 	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir != DIAGDIR_END; diagdir++) {
 		TileIndex t = TileAddByDiagDir(tile, diagdir);
 		/* Check edges. */
-		if (!IsWateredTile(t, ReverseDir(DiagDirToDir(diagdir)))) {
+		if (!IsWateredTile(t, ReverseDir(DiagDirToDir(diagdir))) ||
+				(IsShipDepotTile(tile) && GetShipDepotAxis(tile) != DiagDirToAxis(diagdir))) {
 			/* Mark the edge. */
 			SetBit(wa, diagdir);
 		}
 		/* Mark neighbour is a lock. */
-		if (IsLockTile(t)) SetBit(wa, 12 + diagdir);
+		if (IsLockTile(t) || IsShipDepotTile(t)) SetBit(wa, 12 + diagdir);
 	}
 
 	/* Determine adjacent edges. */
