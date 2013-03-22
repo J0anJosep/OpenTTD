@@ -3068,6 +3068,18 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SL_STORE_WATER_TRACKS)) {
 		/* Store the edges and tracks of water tiles. */
 		UpdateWaterTiles();
+
+		/* Sink ships on invalid tracks. Also sink ships that are in locks.
+		 * This will prevent some critical situations, but it doesn't "solve"
+		 * all potential "introduced bugs" by old savegames. */
+		Ship *v;
+		FOR_ALL_SHIPS(v) {
+			if (v->IsInDepot()) continue;
+			if (IsLockTile(v->tile)) v->Crash();
+			if ((v->state & TrackStatusToTrackBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0))) == 0) {
+				v->Crash();
+			}
+		}
 	}
 
 	/* Road stops is 'only' updating some caches */
