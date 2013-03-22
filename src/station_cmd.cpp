@@ -3105,11 +3105,7 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 		case TRANSPORT_WATER:
 			/* buoy is coded as a station, it is always on open water */
 			if (IsBuoy(tile)) {
-				trackbits = TRACK_BIT_ALL;
-				/* remove tracks that connect NE map edge */
-				if (TileX(tile) == 0) trackbits &= ~(TRACK_BIT_X | TRACK_BIT_UPPER | TRACK_BIT_RIGHT);
-				/* remove tracks that connect NW map edge */
-				if (TileY(tile) == 0) trackbits &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
+				trackbits = GetWaterTracksForBuoy(tile);
 			} else if (IsDock(tile) && GetTileSlope(tile) == SLOPE_FLAT) {
 				/* On water part, ships can pass through TRACK_X if dock direction is TRACK_Y */
 				trackbits = GetDockTracks(tile);
