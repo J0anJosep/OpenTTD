@@ -3068,6 +3068,14 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SL_STORE_WATER_TRACKS)) {
 		/* Store the edges and tracks of water tiles. */
 		UpdateWaterTiles();
+
+		/* Sink ships on invalid tracks. */
+		Ship *v;
+		FOR_ALL_SHIPS(v) {
+			if ((v->state & TrackStatusToTrackBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0))) == 0) {
+				v->Crash();
+			}
+		}
 	}
 
 	/* Road stops is 'only' updating some caches */
