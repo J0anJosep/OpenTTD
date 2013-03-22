@@ -1445,27 +1445,28 @@ void ConvertGroundTilesIntoWaterTiles()
 
 static TrackStatus GetTileTrackStatus_Water(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
-	static const byte coast_tracks[] = {0, 32, 4, 0, 16, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0};
+	if (mode != TRANSPORT_WATER) return 0;
 
 	TrackBits ts;
 
-	if (mode != TRANSPORT_WATER) return 0;
-
 	switch (GetWaterTileType(tile)) {
-		case WATER_TILE_CLEAR: ts = IsTileFlat(tile) ? TRACK_BIT_ALL : TRACK_BIT_NONE; break;
-		case WATER_TILE_COAST: ts = (TrackBits)coast_tracks[GetTileSlope(tile) & 0xF]; break;
+		case WATER_TILE_CLEAR: case WATER_TILE_COAST:
+			ts = GetWaterTracks(tile);
+			return CombineTrackStatus(TrackBitsToTrackdirBits(ts), TRACKDIR_BIT_NONE);
 		case WATER_TILE_LOCK:  ts = DiagDirToDiagTrackBits(GetLockDirection(tile)); break;
 		case WATER_TILE_DEPOT: ts = AxisToTrackBits(GetShipDepotAxis(tile)); break;
 		default: return 0;
 	}
+
 	if (TileX(tile) == 0) {
 		/* NE border: remove tracks that connects NE tile edge */
-		ts &= ~(TRACK_BIT_X | TRACK_BIT_UPPER | TRACK_BIT_RIGHT);
+		ts &= ~TRACK_BIT_3WAY_NE;
 	}
 	if (TileY(tile) == 0) {
 		/* NW border: remove tracks that connects NW tile edge */
-		ts &= ~(TRACK_BIT_Y | TRACK_BIT_LEFT | TRACK_BIT_UPPER);
+		ts &= ~TRACK_BIT_3WAY_NW;
 	}
+
 	return CombineTrackStatus(TrackBitsToTrackdirBits(ts), TRACKDIR_BIT_NONE);
 }
 
