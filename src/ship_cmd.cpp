@@ -752,7 +752,14 @@ static void ShipController(Ship *v)
 			if (HasBit(r, VETS_CANNOT_ENTER)) goto reverse_direction;
 
 			if (!HasBit(r, VETS_ENTERED_WORMHOLE)) {
-				SetWaterTrackReservation(gp.old_tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
+				if (!IsLockTile(gp.old_tile)) {
+					SetWaterTrackReservation(gp.old_tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
+				} else if (!CheckSameLock(gp.old_tile, gp.new_tile)) {
+					/* We were on a lock and now we are leaving that lock.
+					 * We must lift reservation of all the lock tiles. */
+					LiftPathReservation(gp.old_tile, ReverseTrackdir(v->GetVehicleTrackdir()));
+				}
+
 				v->tile = gp.new_tile;
 				v->state = TrackToTrackBits(track);
 

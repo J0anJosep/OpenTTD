@@ -613,13 +613,21 @@ static const PathNode *FindSafePosition(PathNode *path, const Ship *v)
 	assert(v != NULL);
 
 	for (const PathNode *node = path; node != NULL; node = node->parent) {
+		TileIndex tile = node->node.tile;
+
 		/* Special cases on crossing the starting tile. */
-		if (v->tile == node->node.tile) {
+		if (v->tile == tile) {
 			if (node->parent == NULL) return last_free;
 			last_free = NULL;
 		}
-		if (!IsWaterPositionFree(node->node.tile, node->node.direction)) last_free = NULL;
-		else if (last_free == NULL) last_free = node;
+
+		if (!IsWaterPositionFree(tile, node->node.direction)) {
+			last_free = NULL;
+			/* Skip tiles of the same lock. */
+			while (CheckSameLock(tile, node->parent->node.tile)) node = node->parent;
+		} else if (last_free == NULL) {
+			last_free = node;
+		}
 	}
 
 	NOT_REACHED();
