@@ -737,6 +737,19 @@ static void ShipReachesDockDestTile(Ship *v, TileIndex t) {
 	}
 }
 
+/**
+ * Check if after loading/unloading in a dock a ship neeeds reversing.
+ * @param v Ship.
+ */
+bool ShipNeedsReversingInDock(Ship *v)
+{
+	DiagDirection dir = TrackdirToExitdir(v->GetVehicleTrackdir());
+	TileIndex t = TileAddByDiagDir(v->tile, dir);
+	if (!IsValidTile(t)) return true;
+	TrackBits tracks = TrackStatusToTrackBits(GetTileTrackStatus(t, TRANSPORT_WATER, 0)) & DiagdirReachesTracks(dir);
+	return tracks == TRACK_BIT_NONE;
+}
+
 static void ShipController(Ship *v)
 {
 	uint32 r;
@@ -795,10 +808,7 @@ static void ShipController(Ship *v)
 						 * so we can always skip ahead. */
 						v->current_order.Free();
 						SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-						/* Test if continuing forward would lead to a dead-end, moving into the dock. */
-						DiagDirection exitdir = VehicleExitDir(v->direction, v->state);
-						TileIndex tile = TileAddByDiagDir(v->tile, exitdir);
-						if (TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0, exitdir)) == TRACK_BIT_NONE) goto reverse_direction;
+						if (ShipNeedsReversingInDock(v)) goto reverse_direction;
 						break;
 
 					case OT_GOTO_DEPOT:
