@@ -37,6 +37,7 @@
 #include "zoom_func.h"
 #include "pbs_water.h"
 #include "pathfinder/follow_track.hpp"
+#include "viewport_func.h"
 
 #include "table/strings.h"
 
@@ -625,6 +626,18 @@ bool ShipNeedsReversingInDock(Ship *v)
 	return tracks == TRACK_BIT_NONE;
 }
 
+/**
+ * Get the z-height based on the water level of the tile.
+ * @param tile Tile we want the z-height of.
+ * @return z-height of the tile.
+ */
+int GetLockZ(TileIndex tile)
+{
+	int z;
+	GetTilePixelSlope(tile, &z);
+	return z + GetLockWaterLevel(tile);
+}
+
 static void ShipController(Ship *v)
 {
 	uint32 r;
@@ -654,6 +667,100 @@ static void ShipController(Ship *v)
 	if (!ShipAccelerate(v)) return;
 
 	GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+
+	/* Lock controller. This controller is only used when
+	 * ship_path_reservation is enabled. */
+	if (v->lock != SLS_NO_LOCK) {
+		if (v->IsStuck()) v->Unstuck();
+		assert(IsLockTile(v->tile));
+
+		switch (v->lock) {
+			case SLS_PREPARING_LOCK: {
+				assert(GetLockPart(v->tile) != LOCK_PART_MIDDLE);
+				TileIndex middle = GetLockMiddleTile(v->tile);
+				uint level = GetLockWaterLevel(v->tile);
+				uint level_middle = GetLockWaterLevel(middle);
+				if (level == level_middle) {
+					v->lock = SLS_SHIP_ENTER;
+					v->cur_speed = 0;
+				} else {
+					SetLockWaterLevel(middle, level_middle + (level_middle > level ? -1 : +1));
+					MarkTileDirtyByTile(middle);
+					v->MarkShipAsStuck(false, SHIP_PREPARE_LOCK_TICKS);
+				}
+				break;
+			}
+			case SLS_SHIP_ENTER:
+				if (gp.new_tile != v->tile) {
+					/* Do not let it enter next tile yet. */
+					v->lock = SLS_SHIP_UPDOWN;
+				} else {
+					v->x_pos = gp.x;
+					v->y_pos = gp.y;
+					v->z_pos = GetSlopePixelZ(gp.x, gp.y);
+				}
+				break;
+			case SLS_SHIP_UPDOWN: {
+				assert(v->tile != gp.new_tile);
+				assert(GetLockPart(v->tile) != LOCK_PART_MIDDLE);
+				uint8 final_level = (GetLockPart(v->tile) == LOCK_PART_LOWER ? TILE_HEIGHT : 0);
+				uint8 level = GetLockWaterLevel(v->tile);
+				if (final_level != level) {
+					level += level > final_level ? -1 : +1;
+					SetLockWaterLevel(v->tile, level);
+					SetLockWaterLevel(gp.new_tile, level);
+					MarkTileDirtyByTile(v->tile);
+					MarkTileDirtyByTile(gp.new_tile);
+					v->z_pos = GetLockZ(gp.new_tile);
+					v->MarkShipAsStuck(false, SHIP_UPDOWN_LOCK_TICKS);
+				} else {
+					v->tile = gp.new_tile;
+					v->lock = SLS_SHIP_MOVE;
+					v->cur_speed = 0;
+				}
+				break;
+			}
+			case SLS_SHIP_MOVE: {
+				v->x_pos = gp.x;
+				v->y_pos = gp.y;
+				v->z_pos = GetLockZ(v->tile);
+				if (v->tile != gp.new_tile) v->lock = SLS_RESET_OTHER_END;
+				break;
+			}
+			case SLS_RESET_OTHER_END: {
+				TileIndex other = TileAddByDiagDir(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())));
+				uint8 final_level = GetLockPart(other) == LOCK_PART_UPPER ? TILE_HEIGHT : 0;
+				uint8 level = GetLockWaterLevel(other);
+				if (level == final_level) {
+					assert(CheckSameLock(v->tile, gp.new_tile));
+					v->tile = gp.new_tile;
+					v->lock = SLS_SHIP_LEAVE;
+				} else {
+					SetLockWaterLevel(other, level + (level > final_level ? -1 : 1));
+					MarkTileDirtyByTile(other);
+				}
+				v->x_pos = gp.x;
+				v->y_pos = gp.y;
+				break;
+			}
+			case SLS_SHIP_LEAVE: {
+				v->x_pos = gp.x;
+				v->y_pos = gp.y;
+				v->z_pos = GetSlopePixelZ(gp.x, gp.y);
+
+				if (v->tile != gp.new_tile) {
+					v->lock = SLS_NO_LOCK;
+					/* Will fall and execute the ship controller and decide whether to reverse. */
+				}
+				break;
+			}
+
+			default: NOT_REACHED();
+		}
+
+		if (v->lock != SLS_NO_LOCK) goto getout;
+	}
+
 	if (v->state != TRACK_BIT_WORMHOLE) {
 		/* Not on a bridge */
 		if (gp.old_tile == gp.new_tile) {
@@ -755,10 +862,17 @@ static void ShipController(Ship *v)
 				if (_settings_game.pf.ship_path_reservation) {
 					if (!IsLockTile(gp.old_tile)) {
 						SetWaterTrackReservation(gp.old_tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
+						v->lock = SLS_NO_LOCK;
 					} else if (!CheckSameLock(gp.old_tile, gp.new_tile)) {
 						/* We were on a lock and now we are leaving that lock.
 						* We must lift reservation of all the lock tiles. */
 						LiftPathReservation(gp.old_tile, ReverseTrackdir(v->GetVehicleTrackdir()));
+					}
+
+					if (IsLockTile(gp.new_tile)) {
+						uint level = GetLockWaterLevel(gp.new_tile);
+						uint level_middle = GetLockWaterLevel(GetLockMiddleTile(gp.new_tile));
+						v->lock = level == level_middle ? SLS_SHIP_ENTER : SLS_PREPARING_LOCK;
 					}
 				}
 
@@ -795,6 +909,8 @@ getout:
 	return;
 
 reverse_direction:
+	if (_settings_game.pf.ship_path_reservation &&
+			v->lock == SLS_NO_LOCK && IsLockTile(v->tile)) v->lock = SLS_SHIP_ENTER;
 	dir = ReverseDir(v->direction);
 	v->direction = dir;
 	goto getout;
