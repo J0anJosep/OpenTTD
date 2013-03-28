@@ -251,6 +251,9 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 
 	TransportType transport_type = Extract<TransportType, 15, 2>(p2);
 
+	TileIndex tile_start = p1;
+	TileIndex tile_end = end_tile;
+
 	/* type of bridge */
 	switch (transport_type) {
 		case TRANSPORT_ROAD:
@@ -263,15 +266,18 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 			if (!ValParamRailtype(railtype)) return CMD_ERROR;
 			break;
 
-		case TRANSPORT_WATER:
+		case TRANSPORT_WATER: {
+			CommandCost ret = EnsureNoVehicleOnGround(tile_start);
+			if (ret.Failed()) return ret;
+			ret = EnsureNoVehicleOnGround(tile_end);
+			if (ret.Failed()) return ret;
 			break;
+		}
 
 		default:
 			/* Airports don't have bridges. */
 			return CMD_ERROR;
 	}
-	TileIndex tile_start = p1;
-	TileIndex tile_end = end_tile;
 
 	if (company == OWNER_DEITY) {
 		if (transport_type != TRANSPORT_ROAD) return CMD_ERROR;
@@ -524,6 +530,8 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				if (is_new_owner && c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 				MakeAqueductBridgeRamp(tile_start, owner, dir);
 				MakeAqueductBridgeRamp(tile_end,   owner, ReverseDiagDir(dir));
+				UpdateWaterTiles(tile_start, 1);
+				UpdateWaterTiles(tile_end, 1);
 				break;
 
 			default:
@@ -887,6 +895,15 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 	ret = TunnelBridgeIsFree(tile, endtile);
 	if (ret.Failed()) return ret;
 
+	TransportType transport_type = GetTunnelBridgeTransportType(tile);
+
+	if (transport_type == TRANSPORT_WATER) {
+		ret = EnsureNoVehicleOnGround(tile);
+		if (ret.Failed()) return ret;
+		ret = EnsureNoVehicleOnGround(endtile);
+		if (ret.Failed()) return ret;
+	}
+
 	DiagDirection direction = GetTunnelBridgeDirection(tile);
 	TileIndexDiff delta = TileOffsByDiagDir(direction);
 
@@ -906,25 +923,23 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 		ChangeTownRating(t, RATING_TUNNEL_BRIDGE_DOWN_STEP, RATING_TUNNEL_BRIDGE_MINIMUM, flags);
 	}
 
-	Money base_cost = (GetTunnelBridgeTransportType(tile) != TRANSPORT_WATER) ? _price[PR_CLEAR_BRIDGE] : _price[PR_CLEAR_AQUEDUCT];
+	Money base_cost = (transport_type != TRANSPORT_WATER) ? _price[PR_CLEAR_BRIDGE] : _price[PR_CLEAR_AQUEDUCT];
 	uint len = GetTunnelBridgeLength(tile, endtile) + 2; // Don't forget the end tiles.
 
 	if (flags & DC_EXEC) {
-		/* read this value before actual removal of bridge */
-		bool rail = GetTunnelBridgeTransportType(tile) == TRANSPORT_RAIL;
 		Owner owner = GetTileOwner(tile);
 		int height = GetBridgeHeight(tile);
 		Train *v = NULL;
 
-		if (rail && HasTunnelBridgeReservation(tile)) {
+		if (transport_type == TRANSPORT_RAIL && HasTunnelBridgeReservation(tile)) {
 			v = GetTrainForReservation(tile, DiagDirToDiagTrack(direction));
 			if (v != NULL) FreeTrainTrackReservation(v);
 		}
 
 		/* Update company infrastructure counts. */
-		if (rail) {
+		if (transport_type == TRANSPORT_RAIL) {
 			if (Company::IsValidID(owner)) Company::Get(owner)->infrastructure.rail[GetRailType(tile)] -= len * TUNNELBRIDGE_TRACKBIT_FACTOR;
-		} else if (GetTunnelBridgeTransportType(tile) == TRANSPORT_ROAD) {
+		} else if (transport_type == TRANSPORT_ROAD) {
 			RoadType rt;
 			FOR_EACH_SET_ROADTYPE(rt, GetRoadTypes(tile)) {
 				Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
@@ -951,7 +966,7 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 			MarkTileDirtyByTile(c, height - TileHeight(c));
 		}
 
-		if (rail) {
+		if (transport_type == TRANSPORT_RAIL) {
 			/* cannot use INVALID_DIAGDIR for signal update because the bridge doesn't exist anymore */
 			AddSideToSignalBuffer(tile,    ReverseDiagDir(direction), owner);
 			AddSideToSignalBuffer(endtile, direction,                 owner);
@@ -961,6 +976,10 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlag flags)
 			YapfNotifyTrackLayoutChange(endtile, track);
 
 			if (v != NULL) TryPathReserve(v, true);
+
+		} else if (transport_type == TRANSPORT_WATER) {
+			UpdateWaterTiles(tile, 1);
+			UpdateWaterTiles(endtile, 1);
 		}
 	}
 
