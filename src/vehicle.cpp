@@ -499,7 +499,8 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile)
 
 	if ((IsTileType(tile, MP_WATER) && (IsWater(tile) || IsCoast(tile))) ||
 			IsBuoyTile(tile) || IsDockTile(tile) ||
-			(IsTileType(tile, MP_RAILWAY) && GetRailGroundType(tile) == RAIL_GROUND_WATER)) {
+			(IsTileType(tile, MP_RAILWAY) && GetRailGroundType(tile) == RAIL_GROUND_WATER) ||
+			(IsBridgeTile(tile) && GetTileTrackStatus(tile, TRANSPORT_WATER, 0) != 0)) {
 		return EnsureNoShipAround(tile);
 	}
 
