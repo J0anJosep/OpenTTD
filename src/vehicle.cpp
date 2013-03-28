@@ -466,6 +466,21 @@ static Vehicle *EnsureNoVehicleProcZ(Vehicle *v, void *data)
 	return v;
 }
 
+static CommandCost EnsureNoShipAround(TileIndex tile)
+{
+	Ship *v;
+	FOR_ALL_SHIPS(v) {
+		/* Don't care about ships on aqueducts. Those kind of tiles don't cause problems. */
+		/* The same can be applied to locks. */
+		if (IsBridgeTile(v->tile) || IsLockTile(v->tile)) continue;
+
+		if (DistanceManhattan(tile, v->tile) != 1) continue;
+		if (v->state & DiagdirReachesTracks(DiagdirBetweenTiles(tile, v->tile))) return_cmd_error(STR_ERROR_SHIP_IN_THE_WAY);
+	}
+
+	return CommandCost();
+}
+
 /**
  * Ensure there is no vehicle at the ground at the given position.
  * @param tile Position to examine.
@@ -481,6 +496,13 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile)
 	 */
 	Vehicle *v = VehicleFromPos(tile, &z, &EnsureNoVehicleProcZ, true);
 	if (v != NULL) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
+
+	if ((IsTileType(tile, MP_WATER) && (IsWater(tile) || IsCoast(tile))) ||
+			IsBuoyTile(tile) || IsDockTile(tile) ||
+			(IsTileType(tile, MP_RAILWAY) && GetRailGroundType(tile) == RAIL_GROUND_WATER)) {
+		return EnsureNoShipAround(tile);
+	}
+
 	return CommandCost();
 }
 

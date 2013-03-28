@@ -2582,6 +2582,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	CommandCost ret = CheckOwnership(st->owner);
 	if (ret.Failed()) return ret;
 
+	ret = EnsureNoVehicleOnGround(tile);
+	if (ret.Failed()) return ret;
+
 	Dock *removing_dock = Dock::GetByTile(tile);
 	assert(removing_dock != NULL);
 
