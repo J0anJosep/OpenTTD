@@ -546,6 +546,7 @@
     <ClInclude Include="..\src\newgrf.h" />
     <ClInclude Include="..\src\newgrf_airport.h" />
     <ClInclude Include="..\src\newgrf_airporttiles.h" />
+    <ClInclude Include="..\src\newgrf_airtype.h" />
     <ClInclude Include="..\src\newgrf_animation_base.h" />
     <ClInclude Include="..\src\newgrf_animation_type.h" />
     <ClInclude Include="..\src\newgrf_callbacks.h" />
@@ -1197,6 +1198,7 @@
     <ClCompile Include="..\src\newgrf.cpp" />
     <ClCompile Include="..\src\newgrf_airport.cpp" />
     <ClCompile Include="..\src\newgrf_airporttiles.cpp" />
+    <ClCompile Include="..\src\newgrf_airtype.cpp" />
     <ClCompile Include="..\src\newgrf_canal.cpp" />
     <ClCompile Include="..\src\newgrf_cargo.cpp" />
     <ClCompile Include="..\src\newgrf_commons.cpp" />
