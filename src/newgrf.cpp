@@ -19,6 +19,7 @@
 #include "engine_base.h"
 #include "bridge.h"
 #include "town.h"
+#include "air.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
 #include "fontcache.h"
@@ -8032,6 +8033,9 @@ void ResetNewGRFData()
 	/* Reset rail type information */
 	ResetRailTypes();
 
+	/* Reset air type information */
+	ResetAirTypes();
+
 	/* Allocate temporary refit/cargo class data */
 	_gted = CallocT<GRFTempEngineData>(Engine::GetPoolSize());
 
@@ -9145,6 +9149,9 @@ static void AfterLoadGRFs()
 
 	/* Set up custom rail types */
 	InitRailTypes();
+
+	/* Set up custom air types */
+	//InitAirTypes();
 
 	Engine *e;
 	FOR_ALL_ENGINES_OF_TYPE(e, VEH_ROAD) {

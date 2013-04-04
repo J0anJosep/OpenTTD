@@ -273,6 +273,7 @@ network/network_udp.h
 newgrf.h
 newgrf_airport.h
 newgrf_airporttiles.h
+newgrf_airtype.h
 newgrf_animation_base.h
 newgrf_animation_type.h
 newgrf_callbacks.h
@@ -986,6 +987,7 @@ spriteloader/spriteloader.hpp
 newgrf.cpp
 newgrf_airport.cpp
 newgrf_airporttiles.cpp
+newgrf_airtype.cpp
 newgrf_canal.cpp
 newgrf_cargo.cpp
 newgrf_commons.cpp
