@@ -1420,6 +1420,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\newgrf_airtype.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\newgrf_animation_base.h"
 				>
 			</File>
@@ -4149,6 +4153,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\newgrf_airporttiles.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\newgrf_airtype.cpp"
 				>
 			</File>
 			<File
