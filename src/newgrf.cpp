@@ -308,6 +308,7 @@ struct GRFTempEngineData {
 	uint16 cargo_allowed;
 	uint16 cargo_disallowed;
 	RailTypeLabel railtypelabel;
+	AirTypeLabel airtypelabel;
 	const GRFFile *defaultcargo_grf; ///< GRF defining the cargo translation table to use if the default cargo is the 'first refittable'.
 	Refittability refittability;     ///< Did the newgrf set any refittability property? If not, default refittability will be applied.
 	bool prop27_set;         ///< Did the NewGRF set property 27 (misc flags)?
@@ -8038,6 +8039,12 @@ void ResetNewGRFData()
 	Engine *e;
 	FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {
 		_gted[e->index].railtypelabel = GetRailTypeInfo(e->u.rail.railtype)->label;
+	}
+
+	/* Fill air type label temporary data for default trains */
+	FOR_ALL_ENGINES_OF_TYPE(e, VEH_AIRCRAFT) {
+		assert(e->u.air.airtype < AIRTYPE_END);
+		_gted[e->index].airtypelabel = GetAirTypeInfo(e->u.air.airtype)->label;
 	}
 
 	/* Reset GRM reservations */

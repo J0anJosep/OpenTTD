@@ -31,6 +31,7 @@
 #include "vehicle_func.h"
 #include "articulated_vehicles.h"
 #include "error.h"
+#include "air.h"
 
 #include "table/strings.h"
 #include "table/engines.h"
@@ -724,6 +725,9 @@ static void AcceptEnginePreview(EngineID eid, CompanyID company)
 		c->avail_railtypes = AddDateIntroducedRailTypes(c->avail_railtypes | GetRailTypeInfo(e->u.rail.railtype)->introduces_railtypes, _date);
 	} else if (e->type == VEH_ROAD) {
 		SetBit(c->avail_roadtypes, HasBit(e->info.misc_flags, EF_ROAD_TRAM) ? ROADTYPE_TRAM : ROADTYPE_ROAD);
+	} else if (e->type == VEH_AIRCRAFT) {
+		assert(e->u.air.airtype < AIRTYPE_END);
+		c->avail_airtypes = AddDateIntroducedAirTypes(c->avail_airtypes | GetAirTypeInfo(e->u.air.airtype)->introduces_airtypes, _date);
 	}
 
 	e->preview_company = INVALID_COMPANY;
@@ -1023,6 +1027,11 @@ static void NewVehicleAvailable(Engine *e)
 	} else if (e->type == VEH_ROAD) {
 		/* maybe make another road type available */
 		FOR_ALL_COMPANIES(c) SetBit(c->avail_roadtypes, HasBit(e->info.misc_flags, EF_ROAD_TRAM) ? ROADTYPE_TRAM : ROADTYPE_ROAD);
+	} else if (e->type == VEH_AIRCRAFT) {
+		/* maybe make another air type available */
+		AirType airtype = e->u.air.airtype;
+		assert(airtype < AIRTYPE_END);
+		FOR_ALL_COMPANIES(c) c->avail_airtypes = AddDateIntroducedAirTypes(c->avail_airtypes | GetAirTypeInfo(e->u.air.airtype)->introduces_airtypes, _date);
 	}
 
 	/* Only broadcast event if AIs are able to build this vehicle type. */
