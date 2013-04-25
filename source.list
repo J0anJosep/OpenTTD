@@ -208,6 +208,7 @@ gfxinit.h
 goal_base.h
 goal_type.h
 graph_gui.h
+group_details_gui.h
 ground_vehicle.hpp
 group.h
 group_gui.h
@@ -467,6 +468,7 @@ fios_gui.cpp
 genworld_gui.cpp
 goal_gui.cpp
 graph_gui.cpp
+group_details_gui.cpp
 group_gui.cpp
 highscore_gui.cpp
 industry_gui.cpp
