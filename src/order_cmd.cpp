@@ -786,7 +786,10 @@ void OrderList::ChangeOrderListType(OrderListType new_ol)
 		if (stats.ol_type != old_ol) change_on_groups = true;
 	}
 
-	if (change_on_groups) SetWindowClassesDirty(GetWindowClassForVehicleType(vt));
+	if (change_on_groups) {
+		SetWindowClassesDirty(GetWindowClassForVehicleType(vt));
+		SetWindowClassesDirty(WC_GROUP_DETAILS);
+	}
 }
 
 /**
