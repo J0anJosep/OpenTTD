@@ -25,6 +25,8 @@
 #include "vehicle_gui_base.h"
 #include "core/geometry_func.hpp"
 #include "company_base.h"
+#include "gui.h"
+#include "timetable.h"
 
 #include "widgets/group_widget.h"
 
@@ -65,6 +67,10 @@ static const NWidgetPart _nested_group_widgets[] = {
 				NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), EndContainer(),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_GL_REPLACE_PROTECTION), SetFill(0, 1),
 						SetDataTip(SPR_GROUP_REPLACE_OFF_TRAIN, STR_GROUP_REPLACE_PROTECTION_TOOLTIP),
+				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_GL_VEHICLE_WINDOW), SetFill(0, 1),
+						SetDataTip(SPR_CENTRE_VIEW_VEHICLE, STR_GROUP_VEHICLE_WINDOW_TOOLTIP),
+				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_GL_ORDERS), SetFill(0, 1),
+						SetDataTip(SPR_SHOW_ORDERS, STR_GROUP_ORDERS_TOOLTIP),
 			EndContainer(),
 		EndContainer(),
 		/* right part */
@@ -502,6 +508,12 @@ public:
 			HideDropDownMenu(this);
 		}
 
+		/* Disable open vehicle/orders/timetable icon if there are no orders lists */
+		this->SetWidgetsDisabledState(GroupStatistics::Get(this->vli.company, this->vli.index, this->vli.vtype).order_lists.Length() == 0,
+				WID_GL_VEHICLE_WINDOW,
+				WID_GL_ORDERS,
+				WIDGET_LIST_END);
+
 		/* Disable all lists management button when the list is empty */
 		this->SetWidgetsDisabledState(this->vehicles.Length() == 0 || _local_company != this->vli.company,
 				WID_GL_STOP_ALL,
@@ -710,6 +722,28 @@ public:
 				}
 				break;
 			}
+
+			case WID_GL_VEHICLE_WINDOW:
+			case WID_GL_ORDERS: {
+				DropDownList *list = GroupStatistics::Get(this->vli.company, this->vli.index, this->vli.vtype).BuildSharedOrdersDropdown();
+
+				if (list != NULL) {
+					ShowDropDownList(this, list, 0, widget, 0, true);
+					return;
+				} else {
+					if (this->vehicles.Length() == 0) return;
+					if (widget == WID_GL_VEHICLE_WINDOW) {
+						ShowVehicleViewWindow(this->vehicles[0]);
+					} else {
+						if (_ctrl_pressed) {
+							ShowTimetableWindow(this->vehicles[0]);
+						} else {
+							ShowOrdersWindow(this->vehicles[0]);
+						}
+					}
+				}
+				return;
+			}
 		}
 	}
 
@@ -785,6 +819,28 @@ public:
 				}
 				break;
 			}
+
+			case WID_GL_VEHICLE_WINDOW:
+			case WID_GL_ORDERS: {
+				DropDownList *list = GroupStatistics::Get(this->vli.company, this->vli.index, this->vli.vtype).BuildSharedOrdersDropdown();
+
+				if (list != NULL) {
+  					ShowDropDownList(this, list, 0, widget, 0, true);
+					return;
+				} else {
+					if (this->vehicles.Length() == 0) return;
+					if (widget == WID_GL_VEHICLE_WINDOW) {
+						ShowVehicleViewWindow(this->vehicles[0]);
+					} else {
+						if (_ctrl_pressed) {
+							ShowTimetableWindow(this->vehicles[0]);
+						} else {
+							ShowOrdersWindow(this->vehicles[0]);
+						}
+					}
+				}
+				return;
+			}
 		}
 	}
 
@@ -839,6 +895,18 @@ public:
 						DoCommandP(0, this->vli.index, 0, CMD_REMOVE_ALL_VEHICLES_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES));
 						break;
 					default: NOT_REACHED();
+				}
+				break;
+
+			case WID_GL_VEHICLE_WINDOW:
+				ShowVehicleViewWindow(Vehicle::GetIfValid(index));
+				break;
+
+			case WID_GL_ORDERS:
+				if (_ctrl_pressed) {
+					ShowTimetableWindow(Vehicle::GetIfValid(index));
+				} else {
+					ShowOrdersWindow(Vehicle::GetIfValid(index));
 				}
 				break;
 
