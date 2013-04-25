@@ -128,6 +128,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_PERFORMANCE_DETAIL,                     "WC_PERFORMANCE_DETAIL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_COMPANY_INFRASTRUCTURE,                 "WC_COMPANY_INFRASTRUCTURE");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_BUY_COMPANY,                            "WC_BUY_COMPANY");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_ENGINE_RIGHTS,                          "WC_ENGINE_RIGHTS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_ENGINE_PREVIEW,                         "WC_ENGINE_PREVIEW");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_MUSIC_WINDOW,                           "WC_MUSIC_WINDOW");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_MUSIC_TRACK_SELECTION,                  "WC_MUSIC_TRACK_SELECTION");
@@ -433,6 +434,10 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DM_ITEMS,                              "WID_DM_ITEMS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DM_SHOW_SCROLL,                        "WID_DM_SHOW_SCROLL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DM_SCROLL,                             "WID_DM_SCROLL");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ER_CAPTION,                            "WID_ER_CAPTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ER_QUESTION,                           "WID_ER_QUESTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ER_NO,                                 "WID_ER_NO");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ER_YES,                                "WID_ER_YES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_EP_QUESTION,                           "WID_EP_QUESTION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_EP_NO,                                 "WID_EP_NO");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_EP_YES,                                "WID_EP_YES");

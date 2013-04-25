@@ -614,11 +614,16 @@ enum WindowClass {
 	WC_BUY_COMPANY,
 
 	/**
+	 * Engine rights window; %Window numbers:
+	 *   - 0 = #EngineRightsWindow
+	 */
+	WC_ENGINE_RIGHTS,
+
+	/**
 	 * Engine preview window; %Window numbers:
 	 *   - #EngineID = #EnginePreviewWidgets
 	 */
 	WC_ENGINE_PREVIEW,
-
 
 	/**
 	 * Music window; %Window numbers:
