@@ -51,6 +51,12 @@ static const NWidgetPart _nested_group_widgets[] = {
 			NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalTextLines(1, WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM), SetFill(1, 0), EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_GL_ALL_VEHICLES), SetFill(1, 0), EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_GL_DEFAULT_VEHICLES), SetFill(1, 0), EndContainer(),
+			NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalTextLines(1, WD_DROPDOWNTEXT_TOP + 2 * WD_DROPDOWNTEXT_BOTTOM), SetFill(1, 0), EndContainer(),
+			NWidget(NWID_HORIZONTAL),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GL_GROUP_SORT_BY_ORDER), SetMinimalSize(80, 0), SetFill(0, 1), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
+				NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GL_GROUP_SORT_BY_DROPDOWN), SetMinimalSize(130, 0), SetFill(1, 1), SetDataTip(0x0, STR_TOOLTIP_SORT_CRITERIA),
+				NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalTextLines(1, WD_DROPDOWNTEXT_TOP + 2 * WD_DROPDOWNTEXT_BOTTOM), SetFill(0, 0), EndContainer(),
+			EndContainer(),
 			NWidget(NWID_HORIZONTAL),
 				NWidget(WWT_MATRIX, COLOUR_GREY, WID_GL_LIST_GROUP), SetMatrixDataTip(1, 0, STR_NULL),
 						SetFill(1, 0), SetResize(0, 1), SetScrollbar(WID_GL_LIST_GROUP_SCROLLBAR),
@@ -75,8 +81,8 @@ static const NWidgetPart _nested_group_widgets[] = {
 		/* right part */
 		NWidget(NWID_VERTICAL),
 			NWidget(NWID_HORIZONTAL),
-				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GL_SORT_BY_ORDER), SetMinimalSize(81, 12), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
-				NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GL_SORT_BY_DROPDOWN), SetMinimalSize(167, 12), SetDataTip(0x0, STR_TOOLTIP_SORT_CRITERIA),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GL_VEHICLE_SORT_BY_ORDER), SetMinimalSize(81, 12), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
+				NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GL_VEHICLE_SORT_BY_DROPDOWN), SetMinimalSize(167, 12), SetDataTip(0x0, STR_TOOLTIP_SORT_CRITERIA),
 				NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalSize(12, 12), SetResize(1, 0), EndContainer(),
 			EndContainer(),
 			NWidget(NWID_HORIZONTAL),
@@ -341,7 +347,7 @@ public:
 				resize->height = this->tiny_step_height;
 
 				/* Minimum height is the height of the list widget minus all and default vehicles... */
-				size->height =  4 * GetVehicleListHeight(this->vli.vtype, this->tiny_step_height) - 2 * this->tiny_step_height;
+				size->height =  4 * GetVehicleListHeight(this->vli.vtype, this->tiny_step_height) - 4 * this->tiny_step_height;
 
 				/* ... minus the buttons at the bottom ... */
 				uint max_icon_height = GetSpriteSize(this->GetWidget<NWidgetCore>(WID_GL_CREATE_GROUP)->widget_data).height;
@@ -360,7 +366,7 @@ public:
 				size->height = this->tiny_step_height;
 				break;
 
-			case WID_GL_SORT_BY_ORDER: {
+			case WID_GL_VEHICLE_SORT_BY_ORDER: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
 				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
 				d.height += padding.height;
@@ -496,7 +502,8 @@ public:
 		this->GetWidget<NWidgetCore>(WID_GL_REPLACE_PROTECTION)->widget_data = protect_sprite + this->vli.vtype;
 
 		/* Set text of sort by dropdown */
-		this->GetWidget<NWidgetCore>(WID_GL_SORT_BY_DROPDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
+		this->GetWidget<NWidgetCore>(WID_GL_VEHICLE_SORT_BY_DROPDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
+		this->GetWidget<NWidgetCore>(WID_GL_GROUP_SORT_BY_DROPDOWN)->widget_data = this->group_sorter_names[this->groups.SortType()];
 
 		this->DrawWidgets();
 	}
@@ -530,8 +537,12 @@ public:
 				break;
 			}
 
-			case WID_GL_SORT_BY_ORDER:
-				this->DrawSortButtonState(WID_GL_SORT_BY_ORDER, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+			case WID_GL_VEHICLE_SORT_BY_ORDER:
+				this->DrawSortButtonState(WID_GL_VEHICLE_SORT_BY_ORDER, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				break;
+
+			case WID_GL_GROUP_SORT_BY_ORDER:
+				this->DrawSortButtonState(WID_GL_GROUP_SORT_BY_ORDER, this->groups.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_GL_LIST_VEHICLE:
@@ -543,13 +554,22 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_GL_SORT_BY_ORDER: // Flip sorting method ascending/descending
+			case WID_GL_VEHICLE_SORT_BY_ORDER: // Flip sorting method ascending/descending
 				this->vehicles.ToggleSortOrder();
 				this->SetDirty();
 				break;
 
-			case WID_GL_SORT_BY_DROPDOWN: // Select sorting criteria dropdown menu
-				ShowDropDownMenu(this, this->vehicle_sorter_names, this->vehicles.SortType(),  WID_GL_SORT_BY_DROPDOWN, 0, (this->vli.vtype == VEH_TRAIN || this->vli.vtype == VEH_ROAD) ? 0 : (1 << 10));
+			case WID_GL_VEHICLE_SORT_BY_DROPDOWN: // Select sorting criteria dropdown menu
+				ShowDropDownMenu(this, this->vehicle_sorter_names, this->vehicles.SortType(),  WID_GL_VEHICLE_SORT_BY_DROPDOWN, 0, (this->vli.vtype == VEH_TRAIN || this->vli.vtype == VEH_ROAD) ? 0 : (1 << 10));
+				return;
+
+			case WID_GL_GROUP_SORT_BY_ORDER: // Flip sorting method ascending/descending
+				this->groups.ToggleSortOrder();
+				this->SetDirty();
+ 				return;
+
+			case WID_GL_GROUP_SORT_BY_DROPDOWN: // Select sorting criteria dropdown menu
+				ShowDropDownMenu(this, this->group_sorter_names, this->groups.SortType(),  WID_GL_GROUP_SORT_BY_DROPDOWN, 0, this->vli.vtype == VEH_TRAIN ? 0 : 1 << 4);
 				return;
 
 			case WID_GL_ALL_VEHICLES: // All vehicles button
@@ -769,8 +789,12 @@ public:
 	virtual void OnDropdownSelect(int widget, int index)
 	{
 		switch (widget) {
-			case WID_GL_SORT_BY_DROPDOWN:
+			case WID_GL_VEHICLE_SORT_BY_DROPDOWN:
 				this->vehicles.SetSortType(index);
+				break;
+
+			case WID_GL_GROUP_SORT_BY_DROPDOWN:
+				this->groups.SetSortType(index);
 				break;
 
 			case WID_GL_MANAGE_VEHICLES_DROPDOWN:
