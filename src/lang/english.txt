@@ -3683,6 +3683,10 @@ STR_DEPOT_MASS_START_HANGAR_TOOLTIP                             :{BLACK}Click to
 
 STR_DEPOT_SELL_CONFIRMATION_TEXT                                :{YELLOW}You are about to sell all the vehicles in the depot. Are you sure?
 
+# Buy rights to use an engine for a company
+STR_ENGINE_RIGHTS_CAPTION                                       :{WHITE}Buy rights for using a new {STRING} for {YELLOW}{COMPANY}
+STR_ENGINE_RIGHTS_MESSAGE                                       :{GOLD}Your company needs to buy rights for using this {STRING} and that will cost {CURRENCY_LONG} - do you want to pay for it?
+
 # Engine preview window
 STR_ENGINE_PREVIEW_CAPTION                                      :{WHITE}Message from vehicle manufacturer
 STR_ENGINE_PREVIEW_MESSAGE                                      :{GOLD}We have just designed a new {STRING} - would you be interested in a year's exclusive use of this vehicle, so we can see how it performs before making it universally available?
