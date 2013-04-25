@@ -195,6 +195,12 @@ enum WindowClass {
 	WC_VEHICLE_DETAILS,
 
 	/**
+	 * Group details; %Window numbers:
+	 *   - Packed value vli(vl_groups_list, vehicle type, owner, groupID):
+	 */
+	WC_GROUP_DETAILS,
+
+	/**
 	 * Vehicle refit; %Window numbers:
 	 *   - #VehicleID = #VehicleRefitWidgets
 	 */
