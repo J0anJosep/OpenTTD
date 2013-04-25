@@ -32,6 +32,7 @@
 #include "core/geometry_func.hpp"
 #include "genworld.h"
 #include "widgets/dropdown_func.h"
+#include "filters/filter_window_gui.h"
 
 #include "widgets/town_widget.h"
 
@@ -606,6 +607,9 @@ static const NWidgetPart _nested_town_directory_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_BROWN),
 		NWidget(WWT_CAPTION, COLOUR_BROWN), SetDataTip(STR_TOWN_DIRECTORY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_IMGBTN, COLOUR_BROWN, WID_TD_FILTER), SetMinimalSize(12, 12), SetFill(0, 1),
+				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_TOWN_DIRECTORY_FILTER_TOOLTIP),
+
 		NWidget(WWT_SHADEBOX, COLOUR_BROWN),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_BROWN),
 		NWidget(WWT_STICKYBOX, COLOUR_BROWN),
@@ -650,9 +654,10 @@ private:
 		if (this->towns.NeedRebuild()) {
 			this->towns.Clear();
 
+			const FilterActive *filter = FindFilterData(WC_TOWN_FILTER, 0);
 			const Town *t;
 			FOR_ALL_TOWNS(t) {
-				*this->towns.Append() = t;
+				if (filter == NULL || filter->FilterTest(t)) *this->towns.Append() = t;
 			}
 
 			this->towns.Compact();
@@ -863,6 +868,12 @@ public:
 
 			case WID_TD_SORT_CRITERIA: // Click on sort criteria dropdown
 				ShowDropDownMenu(this, TownDirectoryWindow::sorter_names, this->towns.SortType(), WID_TD_SORT_CRITERIA, 0, 0);
+				break;
+
+			case WID_TD_FILTER:
+				LowerWidget(widget);
+				ShowFilterWindow(this, this->window_number);
+				this->SetDirty();
 				break;
 
 			case WID_TD_LIST: { // Click on Town Matrix
