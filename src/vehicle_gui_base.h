@@ -43,6 +43,13 @@ struct BaseVehicleListWindow : public Window {
 		ADI_REMOVE_ALL,
 	};
 
+	enum ActionDropdownItemGroups {
+		ADIG_BEGIN = 0,
+		ADIG_UPDATE_CARGO = ADIG_BEGIN,
+
+		ADIG_END
+	};
+
 	static const StringID vehicle_depot_name[];
 
 	static const StringID vehicle_sorter_names[];
