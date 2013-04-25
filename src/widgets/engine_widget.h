@@ -12,6 +12,14 @@
 #ifndef WIDGETS_ENGINE_WIDGET_H
 #define WIDGETS_ENGINE_WIDGET_H
 
+/** Widgets of the #EngineRightsWindow class. */
+enum EngineRightsWidgets {
+	WID_ER_CAPTION,  ///< Caption of the window
+	WID_ER_QUESTION, ///< The container for the question.
+	WID_ER_NO,       ///< No button.
+	WID_ER_YES,      ///< Yes button.
+};
+
 /** Widgets of the #EnginePreviewWindow class. */
 enum EnginePreviewWidgets {
 	WID_EP_QUESTION, ///< The container for the question.
