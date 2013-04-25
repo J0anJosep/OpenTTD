@@ -332,6 +332,8 @@ static inline void UpdateNumEngineGroup(const Vehicle *v, GroupID old_g, GroupID
 			GroupStatistics::UpdateCargo(company, g->index, vtype);
 		}
 	}
+
+	SetWindowClassesDirty(WC_GROUP_DETAILS);
 }
 
 /**
@@ -504,9 +506,13 @@ Group::Group(Owner owner)
 
 Group::~Group()
 {
+	if (!CleaningPool()) {
+		VehicleListIdentifier vli(VL_GROUP_LIST, this->vehicle_type, this->owner, this->index);
+		DeleteWindowById(GetWindowClassForVehicleType(this->vehicle_type), vli.Pack());
+		DeleteWindowById(WC_GROUP_DETAILS, vli.Pack());
+	}
 	free(this->name);
 }
-
 
 /**
  * Create a new vehicle group.
@@ -634,6 +640,7 @@ CommandCost CmdDefaultName(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		}
 
 		SetWindowDirty(WC_REPLACE_VEHICLE, vli.vtype);
+		SetWindowClassesDirty(WC_GROUP_DETAILS);
 		InvalidateWindowClassesData(GetWindowClassForVehicleType(vli.vtype));
 	}
 
@@ -677,6 +684,8 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			free(g->name);
 			/* Assign the new one */
 			g->name = reset ? NULL : stredup(text);
+
+			SetWindowDirty(WC_GROUP_DETAILS, VehicleListIdentifier(VL_GROUP_LIST, g->vehicle_type, g->owner, p1).Pack());
 		}
 	} else {
 		assert(p2 == 2);
@@ -782,6 +791,7 @@ CommandCost CmdAddVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 		/* Update the Replace Vehicle Windows */
 		SetWindowDirty(WC_REPLACE_VEHICLE, v->type);
+		SetWindowClassesDirty(WC_GROUP_DETAILS);
 		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type));
 	}
 
