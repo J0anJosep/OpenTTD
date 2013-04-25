@@ -1278,6 +1278,7 @@ STR_CONFIG_SETTING_NEVER_EXPIRE_VEHICLES                        :Vehicles never 
 STR_CONFIG_SETTING_NEVER_EXPIRE_VEHICLES_HELPTEXT               :When enabled, all vehicle models remain available forever after their introduction
 STR_CONFIG_SETTING_BUY_ENGINE_RIGHTS                            :Companies must buy rights for using engines: {STRING2}
 STR_CONFIG_SETTING_BUY_ENGINE_RIGHTS_HELPTEXT                   :When enabled, each company must pay a given amount of money for buying an engine for the first time.
+STR_CONFIG_SETTING_BUY_ENGINES_AUTOREPLACE                      :{WHITE}Buy engines rights cannot be enabled while a company has an autoreplace defined.
 STR_CONFIG_SETTING_AUTORENEW_VEHICLE                            :Autorenew vehicle when it gets old: {STRING2}
 STR_CONFIG_SETTING_AUTORENEW_VEHICLE_HELPTEXT                   :When enabled, a vehicle nearing its end of life gets automatically replaced when the renew conditions are fulfilled
 STR_CONFIG_SETTING_AUTORENEW_MONTHS                             :Autorenew when vehicle is {STRING2} maximum age
@@ -3686,6 +3687,7 @@ STR_DEPOT_MASS_START_HANGAR_TOOLTIP                             :{BLACK}Click to
 STR_DEPOT_SELL_CONFIRMATION_TEXT                                :{YELLOW}You are about to sell all the vehicles in the depot. Are you sure?
 
 # Buy rights to use an engine for a company
+STR_ENGINE_RIGHTS_ERROR                                         :Your company must pay a fee to use this engine for the first time.
 STR_ENGINE_RIGHTS_CAPTION                                       :{WHITE}Buy rights for using a new {STRING} for {YELLOW}{COMPANY}
 STR_ENGINE_RIGHTS_MESSAGE                                       :{GOLD}Your company needs to buy rights for using this {STRING} and that will cost {CURRENCY_LONG} - do you want to pay for it?
 
