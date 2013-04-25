@@ -1052,6 +1052,23 @@ static bool RoadVehSlopeSteepnessChanged(int32 p1)
 	return true;
 }
 
+/**
+ * This function updates the road vehicle acceleration cache after a steepness change.
+ * @param p1 Callback parameter.
+ * @return Always true.
+ */
+static bool BuyEngineRightsChanged(int32 p1)
+{
+	if (!_settings_game.vehicle.buy_engine_rights) return RedrawScreen(p1);
+
+	if (EngineRenew::GetNumItems() != 0) {
+		ShowErrorMessage(STR_CONFIG_SETTING_BUY_ENGINES_AUTOREPLACE, INVALID_STRING_ID, WL_ERROR);
+		return false;
+	}
+
+	return RedrawScreen(p1);
+}
+
 static bool DragSignalsDensityChanged(int32)
 {
 	InvalidateWindowData(WC_BUILD_SIGNAL, 0);
