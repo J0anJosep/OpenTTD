@@ -536,8 +536,10 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_PRD_COMPANY_FIRST,                     "WID_PRD_COMPANY_FIRST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_PRD_COMPANY_LAST,                      "WID_PRD_COMPANY_LAST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_CAPTION,                            "WID_GL_CAPTION");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_SORT_BY_ORDER,                      "WID_GL_SORT_BY_ORDER");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_SORT_BY_DROPDOWN,                   "WID_GL_SORT_BY_DROPDOWN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_GROUP_SORT_BY_ORDER,                "WID_GL_GROUP_SORT_BY_ORDER");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_GROUP_SORT_BY_DROPDOWN,             "WID_GL_GROUP_SORT_BY_DROPDOWN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_VEHICLE_SORT_BY_ORDER,              "WID_GL_VEHICLE_SORT_BY_ORDER");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_VEHICLE_SORT_BY_DROPDOWN,           "WID_GL_VEHICLE_SORT_BY_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_LIST_VEHICLE,                       "WID_GL_LIST_VEHICLE");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_LIST_VEHICLE_SCROLLBAR,             "WID_GL_LIST_VEHICLE_SCROLLBAR");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_AVAILABLE_VEHICLES,                 "WID_GL_AVAILABLE_VEHICLES");
