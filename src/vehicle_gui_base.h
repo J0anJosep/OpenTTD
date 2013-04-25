@@ -18,11 +18,17 @@
 #include "window_gui.h"
 #include "widgets/dropdown_type.h"
 
+enum ShowingList {
+	VLS_VEHICLES,
+	VLS_GROUPS,
+};
+
 typedef GUIList<const Vehicle*> GUIVehicleList;
 typedef GUIList<const Group*> GUIGroupList;
 
 struct BaseVehicleListWindow : public Window {
 	GUIVehicleList vehicles;  ///< The list of vehicles
+	ShowingList show;         ///< Which list to show (except for groups window)
 	Listing *sorting;         ///< Pointer to the vehicle type related sorting.
 	byte unitnumber_digits;   ///< The number of digits of the highest unit number
 	Scrollbar *vscroll;
