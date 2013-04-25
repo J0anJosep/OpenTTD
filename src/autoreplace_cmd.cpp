@@ -775,6 +775,11 @@ CommandCost CmdSetAutoReplace(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		if (!Engine::IsValidID(new_engine_type)) return CMD_ERROR;
 		if (!CheckAutoreplaceValidity(old_engine_type, new_engine_type, _current_company)) return CMD_ERROR;
 
+		if (_settings_game.vehicle.buy_engine_rights && BuyRightsBeforeBuildingVehicle(Engine::Get(new_engine_type), _current_company)) {
+			ShowEngineRightsWindow(new_engine_type, _current_company);
+			return CMD_ERROR;
+		}
+
 		cost = AddEngineReplacementForCompany(c, old_engine_type, new_engine_type, id_g, HasBit(p1, 0), flags);
 	} else {
 		cost = RemoveEngineReplacementForCompany(c, old_engine_type, id_g, flags);
