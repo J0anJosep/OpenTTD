@@ -72,6 +72,7 @@ enum VehicleListWidgets {
 	WID_VL_AVAILABLE_VEHICLES,       ///< Available vehicles.
 	WID_VL_DUAL,                     ///< Commute between list of vehicles or list of groups.
 	WID_VL_MANAGE_VEHICLES_DROPDOWN, ///< Manage vehicles dropdown list.
+	WID_VL_MANAGE_GROUPS_DROPDOWN,   ///< Manage groups in this list.
 	WID_VL_STOP_ALL,                 ///< Stop all button.
 	WID_VL_START_ALL,                ///< Start all button.
 };
