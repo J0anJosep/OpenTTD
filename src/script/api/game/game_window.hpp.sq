@@ -83,6 +83,11 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_ROADVEH_LIST,                           "WC_ROADVEH_LIST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_SHIPS_LIST,                             "WC_SHIPS_LIST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_AIRCRAFT_LIST,                          "WC_AIRCRAFT_LIST");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_VEHICLE_GROUP_FILTER,                   "WC_VEHICLE_GROUP_FILTER");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_CATCHMENT_AREA_WINDOW,                  "WC_CATCHMENT_AREA_WINDOW");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_INDUSTRY_FILTER,                        "WC_INDUSTRY_FILTER");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_TOWN_FILTER,                            "WC_TOWN_FILTER");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_STATION_FILTER,                         "WC_STATION_FILTER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_TOWN_VIEW,                              "WC_TOWN_VIEW");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_VEHICLE_VIEW,                           "WC_VEHICLE_VIEW");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_STATION_VIEW,                           "WC_STATION_VIEW");
