@@ -317,6 +317,7 @@ STR_SORT_BY_NUMBER_OF_ORDERS                                    :Number of order
 STR_SORT_BY_TIMETABLE_DURATION                                  :Total timetable duration
 STR_SORT_BY_TIMETABLE_UNPUNCTUALITY                             :Timetable unpunctuality
 STR_SORT_BY_RELATIVE_UNPUNCTUALITY                              :Relative unpunctuality
+STR_SORT_BY_MEAN_PROFIT                                         :Mean profit (last year)
 
 # Tooltips for the main toolbar
 STR_TOOLBAR_TOOLTIP_PAUSE_GAME                                  :{BLACK}Pause game
