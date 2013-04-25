@@ -636,6 +636,9 @@
     <ClInclude Include="..\src\graph_gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\group_details_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\ground_vehicle.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1354,6 +1357,9 @@
       <Filter>GUI Source Code</Filter>
     </ClCompile>
     <ClCompile Include="..\src\graph_gui.cpp">
+      <Filter>GUI Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\group_details_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
     <ClCompile Include="..\src\group_gui.cpp">
