@@ -27,6 +27,7 @@ enum VehicleViewWidgets {
 	WID_VV_SELECT_REFIT_TURN,  ///< Selection widget between 'refit' and 'turn around' buttons.
 	WID_VV_TURN_AROUND,        ///< Turn this vehicle around.
 	WID_VV_FORCE_PROCEED,      ///< Force this vehicle to pass a signal at danger.
+	WID_VV_NEXT_SHARED,        ///< Show next/previous vehicle that shares this vehicles orders.
 };
 
 /** Widgets of the #RefitWindow class. */
