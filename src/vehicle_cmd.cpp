@@ -116,6 +116,12 @@ CommandCost CmdBuildVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	UnitID unit_num = (flags & DC_AUTOREPLACE || (type == VEH_TRAIN && e->u.rail.railveh_type == RAILVEH_WAGON)) ? 0 : GetFreeUnitNumber(type);
 	if (unit_num == UINT16_MAX) return_cmd_error(STR_ERROR_TOO_MANY_VEHICLES_IN_GAME);
 
+	/* Deal with paying rights.*/
+	if (BuyRightsBeforeBuildingVehicle(e, _current_company)) {
+		ShowEngineRightsWindow(eid, _current_company);
+		return_cmd_error(STR_ENGINE_RIGHTS_ERROR);
+	}
+
 	Vehicle *v;
 	switch (type) {
 		case VEH_TRAIN:    value.AddCost(CmdBuildRailVehicle(tile, flags, e, GB(p1, 16, 16), &v)); break;
@@ -802,6 +808,19 @@ CommandCost CmdCloneVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		if (!Vehicle::CanAllocateItem(veh_counter)) {
 			return_cmd_error(STR_ERROR_TOO_MANY_VEHICLES_IN_GAME);
 		}
+	}
+
+	v = v_front;
+
+	/* Check we have paid the rights to use the engines of the vehicle.
+	 * If not, open a window to buy those rights for at least one of the related engines. */
+	if (_settings_game.vehicle.buy_engine_rights) {
+		do {
+			if (BuyRightsBeforeBuildingVehicle(Engine::Get(v->engine_type), _current_company)) {
+				ShowEngineRightsWindow(v->engine_type, _current_company);
+				return CMD_ERROR;
+			}
+		} while ((v = v->Next()) != NULL);
 	}
 
 	v = v_front;
