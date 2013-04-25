@@ -399,7 +399,7 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 
 		case STATION_DOCK:
 		case STATION_OILRIG:
-			ta->tile = this->dock_station.tile;
+			*ta = this->dock_station;
 			break;
 
 		default: NOT_REACHED();
@@ -2481,13 +2481,19 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	/* Distant join */
 	if (st == NULL && distant_join) st = Station::GetIfValid(station_to_join);
 
+	if (!Dock::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_DOCKS);
+
 	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
-	if (st != NULL && st->dock_station.tile != INVALID_TILE) return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_DOCK);
-
 	if (flags & DC_EXEC) {
-		st->dock_station.tile = tile;
+		/* Create the dock and insert it into the list of docks. */
+		Dock *dock = new Dock(tile, tile_cur);
+		dock->next = st->docks;
+		st->docks = dock;
+
+		st->dock_station.Add(tile);
+		st->dock_station.Add(tile_cur);
 		st->AddFacility(FACIL_DOCK, tile);
 
 		st->rect.BeforeAddRect(dock_area.tile, dock_area.w, dock_area.h, StationRect::ADD_TRY);
@@ -2519,10 +2525,29 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	CommandCost ret = CheckOwnership(st->owner);
 	if (ret.Failed()) return ret;
 
-	TileIndex tile1 = st->dock_station.tile;
-	TileIndex tile2 = TileAddByDiagDir(tile1, GetDockDirection(tile1));
+	Dock *removing_dock = Dock::GetByTile(tile);
+	assert(removing_dock != NULL);
+
+	TileIndex tile1 = removing_dock->sloped;
+	TileIndex tile2 = removing_dock->flat;
 
 	if (flags & DC_EXEC) {
+		if (st->docks == removing_dock) {
+			/* The first dock in the list is removed. */
+			st->docks = removing_dock->next;
+			/* Last dock is removed. */
+			if (st->docks == NULL) {
+				st->facilities &= ~FACIL_DOCK;
+			}
+		} else {
+			/* Tell the predecessor in the list to skip this dock. */
+			Dock *pred = st->docks;
+			while (pred->next != removing_dock) pred = pred->next;
+			pred->next = removing_dock->next;
+		}
+
+		delete removing_dock;
+
 		DoClearSquare(tile1);
 		MarkTileDirtyByTile(tile1);
 		MakeWaterKeepingClass(tile2, st->owner);
@@ -2530,8 +2555,11 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		st->rect.AfterRemoveTile(st, tile1);
 		st->rect.AfterRemoveTile(st, tile2);
 
-		st->dock_station.tile = INVALID_TILE;
-		st->facilities &= ~FACIL_DOCK;
+		st->dock_station.Clear();
+		for (Dock *dock = st->docks; dock != NULL; dock = dock->next) {
+			st->dock_station.Add(dock->flat);
+			st->dock_station.Add(dock->sloped);
+		}
 
 		Company::Get(st->owner)->infrastructure.station -= 2;
 
