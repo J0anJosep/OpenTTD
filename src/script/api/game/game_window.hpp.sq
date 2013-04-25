@@ -553,6 +553,8 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_DELETE_GROUP,                       "WID_GL_DELETE_GROUP");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_RENAME_GROUP,                       "WID_GL_RENAME_GROUP");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_REPLACE_PROTECTION,                 "WID_GL_REPLACE_PROTECTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_VEHICLE_WINDOW,                     "WID_GL_VEHICLE_WINDOW");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_ORDERS,                             "WID_GL_ORDERS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_H_BACKGROUND,                          "WID_H_BACKGROUND");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DPI_MATRIX_WIDGET,                     "WID_DPI_MATRIX_WIDGET");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DPI_SCROLLBAR,                         "WID_DPI_SCROLLBAR");
