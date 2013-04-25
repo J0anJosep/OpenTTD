@@ -1323,6 +1323,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_SCROLLBAR,                          "WID_VL_SCROLLBAR");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_HIDE_BUTTONS,                       "WID_VL_HIDE_BUTTONS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_AVAILABLE_VEHICLES,                 "WID_VL_AVAILABLE_VEHICLES");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_DUAL,                               "WID_VL_DUAL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_MANAGE_VEHICLES_DROPDOWN,           "WID_VL_MANAGE_VEHICLES_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_STOP_ALL,                           "WID_VL_STOP_ALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_START_ALL,                          "WID_VL_START_ALL");

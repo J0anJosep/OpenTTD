@@ -2576,6 +2576,7 @@ public:
 		WID_VL_SCROLLBAR                             = ::WID_VL_SCROLLBAR,                             ///< Scrollbar for the list.
 		WID_VL_HIDE_BUTTONS                          = ::WID_VL_HIDE_BUTTONS,                          ///< Selection to hide the buttons.
 		WID_VL_AVAILABLE_VEHICLES                    = ::WID_VL_AVAILABLE_VEHICLES,                    ///< Available vehicles.
+		WID_VL_DUAL                                  = ::WID_VL_DUAL,                                  ///< Commute between list of vehicles or list of groups.
 		WID_VL_MANAGE_VEHICLES_DROPDOWN              = ::WID_VL_MANAGE_VEHICLES_DROPDOWN,              ///< Manage vehicles dropdown list.
 		WID_VL_STOP_ALL                              = ::WID_VL_STOP_ALL,                              ///< Stop all button.
 		WID_VL_START_ALL                             = ::WID_VL_START_ALL,                             ///< Start all button.
