@@ -1428,8 +1428,10 @@ public:
 	/** Widgets of the #VehicleGroupWindow class. */
 	enum GroupListWidgets {
 		WID_GL_CAPTION                               = ::WID_GL_CAPTION,                               ///< Caption of the window.
-		WID_GL_SORT_BY_ORDER                         = ::WID_GL_SORT_BY_ORDER,                         ///< Sort order.
-		WID_GL_SORT_BY_DROPDOWN                      = ::WID_GL_SORT_BY_DROPDOWN,                      ///< Sort by dropdown list.
+		WID_GL_GROUP_SORT_BY_ORDER                   = ::WID_GL_GROUP_SORT_BY_ORDER,                   ///< Order of group sorter.
+		WID_GL_GROUP_SORT_BY_DROPDOWN                = ::WID_GL_GROUP_SORT_BY_DROPDOWN,                ///< Group sorter dropdown.
+		WID_GL_VEHICLE_SORT_BY_ORDER                 = ::WID_GL_VEHICLE_SORT_BY_ORDER,                 ///< Order of vehicle sorter.
+		WID_GL_VEHICLE_SORT_BY_DROPDOWN              = ::WID_GL_VEHICLE_SORT_BY_DROPDOWN,              ///< Vehicle sorter dropdown.
 		WID_GL_LIST_VEHICLE                          = ::WID_GL_LIST_VEHICLE,                          ///< List of the vehicles.
 		WID_GL_LIST_VEHICLE_SCROLLBAR                = ::WID_GL_LIST_VEHICLE_SCROLLBAR,                ///< Scrollbar for the list.
 		WID_GL_AVAILABLE_VEHICLES                    = ::WID_GL_AVAILABLE_VEHICLES,                    ///< Available vehicles.
