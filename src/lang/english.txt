@@ -3603,6 +3603,11 @@ STR_VEHICLE_VIEW_CLONE_ROAD_VEHICLE_INFO                        :{BLACK}This wil
 STR_VEHICLE_VIEW_CLONE_SHIP_INFO                                :{BLACK}This will buy a copy of the ship. Ctrl+Click will share the orders. Shift+Click shows estimated cost without purchase
 STR_VEHICLE_VIEW_CLONE_AIRCRAFT_INFO                            :{BLACK}This will buy a copy of the aircraft. Ctrl+Click will share the orders. Shift+Click shows estimated cost without purchase
 
+STR_VEHICLE_VIEW_NEXT_TRAIN_SHARED                              :{BLACK}Find next (+CTRL for previous) train that shares orders with this one
+STR_VEHICLE_VIEW_NEXT_ROAD_VEHICLE_SHARED                       :{BLACK}Find next (+CTRL for previous) road vehicle that shares orders with this one
+STR_VEHICLE_VIEW_NEXT_SHIP_SHARED                               :{BLACK}Find next (+CTRL for previous) ship that shares orders with this one
+STR_VEHICLE_VIEW_NEXT_AIRCRAFT_SHARED                           :{BLACK}Find next (+CTRL for previous) aircraft that shares orders with this one
+
 STR_VEHICLE_VIEW_TRAIN_IGNORE_SIGNAL_TOOLTIP                    :{BLACK}Force train to proceed without waiting for signal to clear it
 
 STR_VEHICLE_VIEW_TRAIN_REFIT_TOOLTIP                            :{BLACK}Refit train to carry a different cargo type
