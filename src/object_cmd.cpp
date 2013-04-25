@@ -524,6 +524,7 @@ static CommandCost ClearTile_Object(TileIndex tile, DoCommandFlag flags)
 				Town *town = o->town;
 				ClrBit(town->statues, GetTileOwner(tile));
 				SetWindowDirty(WC_TOWN_AUTHORITY, town->index);
+				InvalidateWindowData(WC_TOWN_FILTER, 0, 4);
 			}
 			break;
 
