@@ -3356,6 +3356,8 @@ STR_GROUP_CREATE_TOOLTIP                                        :{BLACK}Click to
 STR_GROUP_DELETE_TOOLTIP                                        :{BLACK}Delete the selected group
 STR_GROUP_RENAME_TOOLTIP                                        :{BLACK}Rename the selected group
 STR_GROUP_REPLACE_PROTECTION_TOOLTIP                            :{BLACK}Click to protect this group from global autoreplace
+STR_GROUP_VEHICLE_WINDOW_TOOLTIP                                :{BLACK}Open a vehicle window for this group
+STR_GROUP_ORDERS_TOOLTIP                                        :{BLACK}Orders of first vehicle of the list (+CTRL, timetable instead)
 
 STR_GROUP_VEHICLE_WINDOW_STR                                    :{STRING} {COMMA} Vehicle{P "" s}, {COMMA} Order{P "" s}{STRING}
 STR_GROUP_VEHICLE_WINDOW_STR_1ST                                :: {STATION}{STRING}
