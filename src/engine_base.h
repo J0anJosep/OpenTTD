@@ -200,5 +200,6 @@ static inline const AircraftVehicleInfo *AircraftVehInfo(EngineID e)
 
 Money CalculateCostForBuyingAnEngine(CompanyID company);
 bool BuyRightsBeforeBuildingVehicle(const Engine *e, CompanyID company);
+void ShowEngineRightsWindow(EngineID engine, CompanyID company);
 
 #endif /* ENGINE_BASE_H */
