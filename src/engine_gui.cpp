@@ -24,6 +24,7 @@
 #include "roadveh.h"
 #include "ship.h"
 #include "aircraft.h"
+#include "window_func.h"
 
 #include "widgets/engine_widget.h"
 
@@ -47,6 +48,115 @@ StringID GetEngineCategoryName(EngineID engine)
 		case VEH_TRAIN:
 			return GetRailTypeInfo(e->u.rail.railtype)->strings.new_loco;
 	}
+}
+
+static const NWidgetPart _nested_engine_rights_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_LIGHT_BLUE),
+		NWidget(WWT_CAPTION, COLOUR_LIGHT_BLUE, WID_ER_CAPTION), SetDataTip(STR_ENGINE_PREVIEW_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_LIGHT_BLUE),
+		NWidget(WWT_EMPTY, INVALID_COLOUR, WID_ER_QUESTION), SetMinimalSize(300, 0), SetPadding(8, 8, 8, 8), SetFill(1, 0),
+		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetPIP(85, 10, 85),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_ER_NO), SetDataTip(STR_QUIT_NO, STR_NULL), SetFill(1, 0),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_ER_YES), SetDataTip(STR_QUIT_YES, STR_NULL), SetFill(1, 0),
+		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 8),
+	EndContainer(),
+};
+
+struct EngineRightsWindow : Window {
+	static const int VEHICLE_SPACE = 40; // The space to show the vehicle image
+	EngineID engine;
+	Money cost;
+
+	EngineRightsWindow(WindowDesc *desc, CompanyID company, EngineID engine) : Window(desc)
+	{;
+		Engine *e = Engine::GetIfValid(this->engine);
+		if (e == NULL || !(company < MAX_COMPANIES)) delete this;
+		this->window_number = company;
+		this->engine = engine;
+		this->InitNested(0);
+		this->OnInvalidateData();
+	}
+
+	virtual void SetStringParameters(int widget) const
+	{
+		switch (widget) {
+			case WID_ER_CAPTION:
+				SetDParam(0, GetEngineCategoryName(this->engine));
+				break;
+			default: break;
+		}
+	}
+
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	{
+		switch (widget) {
+			case WID_ER_QUESTION:
+				SetDParam(0, GetEngineCategoryName(this->engine));
+				SetDParam(1, this->cost);
+				size->height = GetStringHeight(STR_ENGINE_RIGHTS_MESSAGE, size->width) + WD_PAR_VSEP_WIDE + FONT_HEIGHT_NORMAL + VEHICLE_SPACE;
+				SetDParam(0, engine);
+				size->height += GetStringHeight(GetEngineInfoString(engine), size->width);
+				break;
+		}
+	}
+
+	virtual void DrawWidget(const Rect &r, int widget) const
+	{
+		if (widget != WID_ER_QUESTION) return;
+
+		SetDParam(0, GetEngineCategoryName(this->engine));
+		SetDParam(1, this->cost);
+		int y = r.top + GetStringHeight(STR_ENGINE_RIGHTS_MESSAGE, r.right - r.top + 1);
+		y = DrawStringMultiLine(r.left, r.right, r.top, y, STR_ENGINE_RIGHTS_MESSAGE, TC_FROMSTRING, SA_CENTER) + WD_PAR_VSEP_WIDE;
+
+		SetDParam(0, this->engine);
+		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_ENGINE_NAME, TC_BLACK, SA_HOR_CENTER);
+		y += FONT_HEIGHT_NORMAL;
+
+		DrawVehicleEngine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, this->width >> 1, y + VEHICLE_SPACE / 2, this->engine, GetEnginePalette(engine, _local_company), EIT_PREVIEW);
+
+		y += VEHICLE_SPACE;
+		DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, GetEngineInfoString(this->engine), TC_FROMSTRING, SA_CENTER);
+	}
+
+	virtual void OnClick(Point pt, int widget, int click_count)
+	{
+		switch (widget) {
+			case WID_ER_YES:
+				DoCommandP(0, this->window_number, this->engine, CMD_BUY_ENGINE_RIGHTS);
+				break;
+			case WID_ER_NO:
+				delete this;
+				break;
+			default: break;
+		}
+	}
+
+	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
+	{
+		/* Close it if the rights are already bought or not needed. */
+		if (!BuyRightsBeforeBuildingVehicle(Engine::Get(this->engine), (CompanyID)this->window_number)) delete this;
+
+		this->cost = CalculateCostForBuyingAnEngine((CompanyID)this->window_number);
+		this->SetDirty();
+	}
+
+};
+
+static WindowDesc _engine_rights_desc(
+	WDP_CENTER, "buy_engine_rights", 0, 0,
+	WC_ENGINE_RIGHTS, WC_NONE,
+	WDF_CONSTRUCTION,
+	_nested_engine_rights_widgets, lengthof(_nested_engine_rights_widgets)
+);
+
+void ShowEngineRightsWindow(EngineID engine, CompanyID company)
+{
+	DeleteWindowByClass(WC_ENGINE_RIGHTS);
+	new EngineRightsWindow(&_engine_rights_desc, company, engine);
 }
 
 static const NWidgetPart _nested_engine_preview_widgets[] = {
