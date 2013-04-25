@@ -96,15 +96,18 @@ const StringID BaseVehicleListWindow::vehicle_sorter_names[] = {
 const StringID BaseVehicleListWindow::group_sorter_names[] =  {
 	STR_SORT_BY_NAME,
 	STR_SORT_BY_NUMBER_OF_VEHICLES,
+	STR_SORT_BY_MEAN_PROFIT,
 	INVALID_STRING_ID
 };
 
 static GUIGroupList::SortFunction GroupNameSorter;
 static GUIGroupList::SortFunction GroupNumberVehicleSorter;
+static GUIGroupList::SortFunction GroupMeanProfitSorter;
 
 GUIGroupList::SortFunction * const BaseVehicleListWindow::group_sorter_funcs[] = {
 	&GroupNameSorter,
 	&GroupNumberVehicleSorter,
+	&GroupMeanProfitSorter,
 };
 
 const StringID BaseVehicleListWindow::vehicle_depot_name[] = {
@@ -1339,6 +1342,16 @@ static int CDECL GroupNumberVehicleSorter(const Group * const *a, const Group * 
 	return (*a)->statistics.num_vehicle - (*b)->statistics.num_vehicle;
 }
 
+/** Sort groups by mean profit */
+static int CDECL GroupMeanProfitSorter(const Group * const *a, const Group * const *b)
+{
+	if ((*b)->statistics.num_profit_vehicle == 0) return 1;
+	if ((*a)->statistics.num_profit_vehicle == 0) return -1;
+	Money a_money = (*a)->statistics.profit_last_year / (*a)->statistics.num_profit_vehicle;
+	Money b_money = (*b)->statistics.profit_last_year / (*b)->statistics.num_profit_vehicle;
+	return (a_money - b_money);
+}
+
 void InitializeGUI()
 {
 	MemSetT(&_sorting, 0);
@@ -1962,7 +1975,7 @@ public:
 
 			case WID_VL_SORT_BY_PULLDOWN:// Select sorting criteria dropdown menu
 				if (show == VLS_GROUPS) {
-					ShowDropDownMenu(this, this->group_sorter_names, this->groups.SortType(), WID_VL_SORT_BY_PULLDOWN, 0, 0);
+					ShowDropDownMenu(this, this->group_sorter_names, this->groups.SortType(), WID_VL_SORT_BY_PULLDOWN, 0, this->vli.vtype == VEH_TRAIN ? 0 : 1 << 4);
 				} else {
 					ShowDropDownMenu(this, this->vehicle_sorter_names, this->vehicles.SortType(), WID_VL_SORT_BY_PULLDOWN, 0,
 							(this->vli.vtype == VEH_TRAIN || this->vli.vtype == VEH_ROAD) ? 0 : (1 << 10));
