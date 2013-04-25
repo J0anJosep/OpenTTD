@@ -2889,6 +2889,7 @@ static CommandCost TownActionBuildStatue(Town *t, DoCommandFlag flags)
 		cur_company.Restore();
 		BuildObject(OBJECT_STATUE, statue_data.best_position, _current_company, t);
 		SetBit(t->statues, _current_company); // Once found and built, "inform" the Town.
+		InvalidateWindowData(WC_TOWN_FILTER, 0, 4);
 		MarkTileDirtyByTile(statue_data.best_position);
 	}
 	return CommandCost();
