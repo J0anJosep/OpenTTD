@@ -1558,6 +1558,7 @@ public:
 
 	/** Widgets of the #IndustryDirectoryWindow class. */
 	enum IndustryDirectoryWidgets {
+		WID_ID_FILTER                                = ::WID_ID_FILTER,                                ///< Icon to open industry filter.
 		WID_ID_DROPDOWN_ORDER                        = ::WID_ID_DROPDOWN_ORDER,                        ///< Dropdown for the order of the sort.
 		WID_ID_DROPDOWN_CRITERIA                     = ::WID_ID_DROPDOWN_CRITERIA,                     ///< Dropdown for the criteria of the sort.
 		WID_ID_INDUSTRY_LIST                         = ::WID_ID_INDUSTRY_LIST,                         ///< Industry list.
