@@ -1310,7 +1310,7 @@ static const NWidgetPart _nested_vehicle_list[] = {
 	EndContainer(),
 
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_MATRIX, COLOUR_GREY, WID_VL_LIST), SetMinimalSize(248, 0), SetFill(1, 0), SetResize(1, 1), SetMatrixDataTip(1, 0, STR_NULL), SetScrollbar(WID_VL_SCROLLBAR),
+		NWidget(WWT_MATRIX, COLOUR_GREY, WID_VL_LIST), SetMinimalSize(248, 0), SetFill(1, 0), SetResize(1, 1), SetMatrixDataTip(1, 0, STR_BLACK_STRING), SetScrollbar(WID_VL_SCROLLBAR),
 		NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_VL_SCROLLBAR),
 	EndContainer(),
 
@@ -1319,7 +1319,8 @@ static const NWidgetPart _nested_vehicle_list[] = {
 			NWidget(NWID_HORIZONTAL),
 				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VL_AVAILABLE_VEHICLES), SetMinimalSize(106, 12), SetFill(0, 1),
 								SetDataTip(STR_BLACK_STRING, STR_VEHICLE_LIST_AVAILABLE_ENGINES_TOOLTIP),
-				NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalSize(0, 12), SetResize(1, 0), SetFill(1, 1), EndContainer(),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VL_DUAL), SetMinimalSize(60, 12), SetFill(1, 1), SetResize(1, 0),
+								SetDataTip(STR_BLACK_STRING, STR_DUAL_VEHICLES_GROUPS),
 				NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_VL_MANAGE_VEHICLES_DROPDOWN), SetMinimalSize(118, 12), SetFill(0, 1),
 								SetDataTip(STR_VEHICLE_LIST_MANAGE_LIST, STR_VEHICLE_LIST_MANAGE_LIST_TOOLTIP),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VL_STOP_ALL), SetMinimalSize(12, 12), SetFill(0, 1),
@@ -1515,6 +1516,9 @@ public:
 			default: NOT_REACHED();
 		}
 
+		/* By default, windows show vehicles lists. */
+		this->show = VLS_VEHICLES;
+
 		this->CreateNestedTree();
 
 		this->vscroll = this->GetScrollbar(WID_VL_SCROLLBAR);
@@ -1525,6 +1529,7 @@ public:
 
 		/* Set up the window widgets */
 		this->GetWidget<NWidgetCore>(WID_VL_LIST)->tool_tip = STR_VEHICLE_LIST_TRAIN_LIST_TOOLTIP + this->vli.vtype;
+
 
 		if (this->vli.type == VL_SHARED_ORDERS) {
 			this->GetWidget<NWidgetCore>(WID_VL_CAPTION)->widget_data = STR_VEHICLE_LIST_SHARED_ORDERS_LIST_CAPTION;
@@ -1583,6 +1588,10 @@ public:
 		switch (widget) {
 			case WID_VL_AVAILABLE_VEHICLES:
 				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
+				break;
+
+			case WID_VL_DUAL:
+				SetDParam(0, this->show == VLS_GROUPS ? STR_DUAL_GROUPS : STR_DUAL_VEHICLES);
 				break;
 
 			case WID_VL_CAPTION: {
@@ -1655,14 +1664,15 @@ public:
 		if (this->owner == _local_company) {
 			this->SetWidgetDisabledState(WID_VL_AVAILABLE_VEHICLES, this->vli.type != VL_STANDARD);
 			this->SetWidgetsDisabledState(this->vehicles.Length() == 0,
-				WID_VL_MANAGE_VEHICLES_DROPDOWN,
+ 				WID_VL_MANAGE_VEHICLES_DROPDOWN,
 				WID_VL_STOP_ALL,
-				WID_VL_START_ALL,
-				WIDGET_LIST_END);
+ 				WID_VL_START_ALL,
+ 				WIDGET_LIST_END);
 		}
 
 		/* Set text of sort by dropdown widget. */
-		this->GetWidget<NWidgetCore>(WID_VL_SORT_BY_PULLDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
+		this->GetWidget<NWidgetCore>(WID_VL_SORT_BY_PULLDOWN)->widget_data =
+				this->vehicle_sorter_names[this->vehicles.SortType()];
 
 		this->DrawWidgets();
 	}
@@ -1710,21 +1720,30 @@ public:
 	{
 		switch (widget) {
 			case WID_VL_SORT_BY_PULLDOWN:
-				this->vehicles.SetSortType(index);
+				if (show == VLS_GROUPS) {
+					this->groups.SetSortType(index);
+				} else {
+					this->vehicles.SetSortType(index);
+				}
 				break;
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN:
-				assert(this->vehicles.Length() != 0);
+				if (show == VLS_GROUPS) {
+					switch (index) {
 
-				switch (index) {
-					case ADI_REPLACE: // Replace window
-						ShowReplaceGroupVehicleWindow(ALL_GROUP, this->vli.vtype);
-						break;
-					case ADI_SERVICE: // Send for servicing
-					case ADI_DEPOT: // Send to Depots
-						DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : (DepotCommand)0), this->window_number, GetCmdSendToDepot(this->vli.vtype));
-						break;
+					}
+					break;
+				} else {
+					switch (index) {
+						case ADI_REPLACE: // Replace window
+							ShowReplaceGroupVehicleWindow(DEFAULT_GROUP, this->vli.vtype);
+							break;
+						case ADI_SERVICE: // Send for servicing
+						case ADI_DEPOT: // Send to Depots
+							DoCommandP(0, DEPOT_MASS_SEND | (index == ADI_SERVICE ? DEPOT_SERVICE : (DepotCommand)0), this->window_number, GetCmdSendToDepot(this->vli.vtype));
+							break;
 
-					default: NOT_REACHED();
+						default: NOT_REACHED();
+					}
 				}
 				break;
 			default: NOT_REACHED();
