@@ -1288,6 +1288,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VV_SELECT_REFIT_TURN,                  "WID_VV_SELECT_REFIT_TURN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VV_TURN_AROUND,                        "WID_VV_TURN_AROUND");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VV_FORCE_PROCEED,                      "WID_VV_FORCE_PROCEED");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VV_NEXT_SHARED,                        "WID_VV_NEXT_SHARED");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VR_CAPTION,                            "WID_VR_CAPTION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VR_VEHICLE_PANEL_DISPLAY,              "WID_VR_VEHICLE_PANEL_DISPLAY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VR_SHOW_HSCROLLBAR,                    "WID_VR_SHOW_HSCROLLBAR");
