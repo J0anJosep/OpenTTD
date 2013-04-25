@@ -39,6 +39,8 @@
 #include "smallmap_gui.h"
 #include "widgets/dropdown_type.h"
 #include "widgets/industry_widget.h"
+#include "filters/filter_window_gui.h"
+
 
 #include "table/strings.h"
 
@@ -1108,6 +1110,8 @@ static const NWidgetPart _nested_industry_directory_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_BROWN),
 		NWidget(WWT_CAPTION, COLOUR_BROWN), SetDataTip(STR_INDUSTRY_DIRECTORY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_IMGBTN, COLOUR_BROWN, WID_ID_FILTER), SetMinimalSize(12, 12), SetFill(0, 1),
+				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_INDUSTRY_DIRECTORY_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_BROWN),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_BROWN),
 		NWidget(WWT_STICKYBOX, COLOUR_BROWN),
@@ -1153,9 +1157,11 @@ protected:
 		if (this->industries.NeedRebuild()) {
 			this->industries.Clear();
 
+			const FilterActive *filter = FindFilterData(WC_INDUSTRY_FILTER, this->window_number);
+
 			const Industry *i;
 			FOR_ALL_INDUSTRIES(i) {
-				*this->industries.Append() = i;
+				if (filter == NULL || filter->FilterTest(i)) *this->industries.Append() = i;
 			}
 
 			this->industries.Compact();
@@ -1377,6 +1383,11 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
+			case WID_ID_FILTER:
+				LowerWidget(widget);
+				ShowFilterWindow(this, this->window_number);
+				this->SetDirty();
+				break;
 			case WID_ID_DROPDOWN_ORDER:
 				this->industries.ToggleSortOrder();
 				this->SetDirty();
