@@ -544,12 +544,14 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_LIST_VEHICLE_SCROLLBAR,             "WID_GL_LIST_VEHICLE_SCROLLBAR");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_AVAILABLE_VEHICLES,                 "WID_GL_AVAILABLE_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_MANAGE_VEHICLES_DROPDOWN,           "WID_GL_MANAGE_VEHICLES_DROPDOWN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_MANAGE_GROUPS_DROPDOWN,             "WID_GL_MANAGE_GROUPS_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_STOP_ALL,                           "WID_GL_STOP_ALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_START_ALL,                          "WID_GL_START_ALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_ALL_VEHICLES,                       "WID_GL_ALL_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_DEFAULT_VEHICLES,                   "WID_GL_DEFAULT_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_LIST_GROUP,                         "WID_GL_LIST_GROUP");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_LIST_GROUP_SCROLLBAR,               "WID_GL_LIST_GROUP_SCROLLBAR");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_HELP,                               "WID_GL_HELP");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_CREATE_GROUP,                       "WID_GL_CREATE_GROUP");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_DELETE_GROUP,                       "WID_GL_DELETE_GROUP");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_RENAME_GROUP,                       "WID_GL_RENAME_GROUP");
@@ -1341,6 +1343,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_AVAILABLE_VEHICLES,                 "WID_VL_AVAILABLE_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_DUAL,                               "WID_VL_DUAL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_MANAGE_VEHICLES_DROPDOWN,           "WID_VL_MANAGE_VEHICLES_DROPDOWN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_MANAGE_GROUPS_DROPDOWN,             "WID_VL_MANAGE_GROUPS_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_STOP_ALL,                           "WID_VL_STOP_ALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_VL_START_ALL,                          "WID_VL_START_ALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_EV_CAPTION,                            "WID_EV_CAPTION");
