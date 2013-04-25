@@ -698,11 +698,16 @@ public:
 		WC_BUY_COMPANY                               = ::WC_BUY_COMPANY,
 
 		/**
+		 * Engine rights window; %Window numbers:
+		 *   - 0 = #EngineRightsWindow
+		 */
+		WC_ENGINE_RIGHTS                             = ::WC_ENGINE_RIGHTS,
+
+		/**
 		 * Engine preview window; %Window numbers:
 		 *   - #EngineID = #EnginePreviewWidgets
 		 */
 		WC_ENGINE_PREVIEW                            = ::WC_ENGINE_PREVIEW,
-
 
 		/**
 		 * Music window; %Window numbers:
@@ -1274,6 +1279,14 @@ public:
 	};
 
 	/* automatically generated from ../../widgets/engine_widget.h */
+	/** Widgets of the #EngineRightsWindow class. */
+	enum EngineRightsWidgets {
+		WID_ER_CAPTION                               = ::WID_ER_CAPTION,                               ///< Caption of the window
+		WID_ER_QUESTION                              = ::WID_ER_QUESTION,                              ///< The container for the question.
+		WID_ER_NO                                    = ::WID_ER_NO,                                    ///< No button.
+		WID_ER_YES                                   = ::WID_ER_YES,                                   ///< Yes button.
+	};
+
 	/** Widgets of the #EnginePreviewWindow class. */
 	enum EnginePreviewWidgets {
 		WID_EP_QUESTION                              = ::WID_EP_QUESTION,                              ///< The container for the question.
