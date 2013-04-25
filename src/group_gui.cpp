@@ -332,6 +332,7 @@ public:
 		this->group_rename = INVALID_GROUP;
 		this->group_over = INVALID_GROUP;
 		this->group_highlight = INVALID_GROUP;
+		this->show = VLS_BOTH;
 
 		this->vehicles.SetListing(*this->sorting);
 		this->vehicles.ForceRebuild();
