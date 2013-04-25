@@ -1163,6 +1163,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\group_details_gui.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\ground_vehicle.hpp"
 				>
 			</File>
@@ -2148,6 +2152,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\graph_gui.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\group_details_gui.cpp"
 				>
 			</File>
 			<File
