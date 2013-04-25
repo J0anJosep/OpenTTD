@@ -1237,7 +1237,7 @@ static inline void ChangeVehicleWindow(WindowClass window_class, VehicleID from_
 }
 
 /**
- * Report a change in vehicle IDs (due to autoreplace) to affected vehicle windows.
+ * Report a change in vehicle IDs (due to autoreplace or next/previous on shared orders chain) to affected vehicle windows.
  * @param from_index the old vehicle ID
  * @param to_index the new vehicle ID
  */
@@ -2285,6 +2285,7 @@ static const NWidgetPart _nested_vehicle_view_widgets[] = {
 		EndContainer(),
 		NWidget(NWID_VERTICAL),
 			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_CENTER_MAIN_VIEW), SetMinimalSize(18, 18), SetDataTip(SPR_CENTRE_VIEW_VEHICLE, 0x0 /* filled later */),
+			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_NEXT_SHARED), SetMinimalSize(18, 18), SetDataTip(SPR_IMG_PLAY_MUSIC, 0x0 /* filled later */),
 			NWidget(NWID_SELECTION, INVALID_COLOUR, WID_VV_SELECT_DEPOT_CLONE),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_GOTO_DEPOT), SetMinimalSize(18, 18), SetDataTip(0x0 /* filled later */, 0x0 /* filled later */),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_VV_CLONE), SetMinimalSize(18, 18), SetDataTip(0x0 /* filled later */, 0x0 /* filled later */),
@@ -2506,6 +2507,8 @@ public:
 		this->GetWidget<NWidgetCore>(WID_VV_SHOW_ORDERS)->tool_tip      = STR_VEHICLE_VIEW_TRAIN_ORDERS_TOOLTIP + v->type;
 		this->GetWidget<NWidgetCore>(WID_VV_SHOW_DETAILS)->tool_tip     = STR_VEHICLE_VIEW_TRAIN_SHOW_DETAILS_TOOLTIP + v->type;
 		this->GetWidget<NWidgetCore>(WID_VV_CLONE)->tool_tip            = STR_VEHICLE_VIEW_CLONE_TRAIN_INFO + v->type;
+		this->GetWidget<NWidgetCore>(WID_VV_NEXT_SHARED)->tool_tip      = STR_VEHICLE_VIEW_NEXT_TRAIN_SHARED + v->type;
+
 	}
 
 	~VehicleViewWindow()
@@ -2547,6 +2550,7 @@ public:
 		this->SetWidgetDisabledState(WID_VV_GOTO_DEPOT, !is_localcompany);
 		this->SetWidgetDisabledState(WID_VV_REFIT, !refitable_and_stopped_in_depot || !is_localcompany);
 		this->SetWidgetDisabledState(WID_VV_CLONE, !is_localcompany);
+		this->SetWidgetDisabledState(WID_VV_NEXT_SHARED,  v->orders.list == NULL || !v->orders.list->IsShared());
 
 		if (v->type == VEH_TRAIN) {
 			this->SetWidgetLoweredState(WID_VV_FORCE_PROCEED, Train::From(v)->force_proceed == TFP_SIGNAL);
@@ -2687,6 +2691,24 @@ public:
 					mainwindow->viewport->follow_vehicle = v->index;
 				} else {
 					ScrollMainWindowTo(v->x_pos, v->y_pos, v->z_pos);
+				}
+				break;
+			}
+			case WID_VV_NEXT_SHARED: {
+				const Vehicle *v2 = _ctrl_pressed ? v->NextShared() : v->PreviousShared();
+				if (v2 == NULL) {
+					if (_ctrl_pressed) {
+						v2 = v->FirstShared();
+					} else {
+						/* Find last shared */
+						for (v2 = v; v2->NextShared() != NULL;) v2 = v2->NextShared();
+					}
+				}
+				/* Find the window of next vehicle
+				 * If it exists, bring it to front
+				 * Else, this window shows next vehicle */
+				if (BringWindowToFrontById(WC_VEHICLE_VIEW, v2->index) == NULL) {
+					ChangeVehicleViewWindow(v->index, v2->index);
 				}
 				break;
 			}
