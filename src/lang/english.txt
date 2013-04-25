@@ -3341,6 +3341,10 @@ STR_VEHICLE_LIST_MASS_START_LIST_TOOLTIP                        :{BLACK}Click to
 
 STR_VEHICLE_LIST_SHARED_ORDERS_LIST_CAPTION                     :{WHITE}Shared orders of {COMMA} Vehicle{P "" s}
 
+STR_DUAL_VEHICLES_GROUPS                                        :{BLACK}Click to alternate between showing vehicles or groups
+STR_DUAL_VEHICLES                                               :Vehicles
+STR_DUAL_GROUPS                                                 :Groups
+
 # Group window
 STR_GROUP_ALL_TRAINS                                            :All trains
 STR_GROUP_ALL_ROAD_VEHICLES                                     :All road vehicles
