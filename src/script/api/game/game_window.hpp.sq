@@ -1139,17 +1139,8 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_FILTER,                            "WID_STL_FILTER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_LIST,                              "WID_STL_LIST");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_SCROLLBAR,                         "WID_STL_SCROLLBAR");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_TRAIN,                             "WID_STL_TRAIN");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_TRUCK,                             "WID_STL_TRUCK");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_BUS,                               "WID_STL_BUS");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_AIRPLANE,                          "WID_STL_AIRPLANE");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_SHIP,                              "WID_STL_SHIP");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_FACILALL,                          "WID_STL_FACILALL");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_NOCARGOWAITING,                    "WID_STL_NOCARGOWAITING");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_CARGOALL,                          "WID_STL_CARGOALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_SORTBY,                            "WID_STL_SORTBY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_SORTDROPBTN,                       "WID_STL_SORTDROPBTN");
-	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_STL_CARGOSTART,                        "WID_STL_CARGOSTART");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_JS_CAPTION,                            "WID_JS_CAPTION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_JS_PANEL,                              "WID_JS_PANEL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_JS_SCROLLBAR,                          "WID_JS_SCROLLBAR");
