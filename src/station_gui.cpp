@@ -202,16 +202,13 @@ class CompanyStationsWindow : public Window
 protected:
 	/* Runtime saved values */
 	static Listing last_sorting;
-	static byte facilities;               // types of stations of interest
-	static bool include_empty;            // whether we should include stations without waiting cargo
-	static const uint32 cargo_filter_max;
-	static uint32 cargo_filter;           // bitmap of cargo types to include
 	static const Station *last_station;
 
 	/* Constants for sorting stations */
 	static const StringID sorter_names[];
 	static GUIStationList::SortFunction * const sorter_funcs[];
 
+	static uint32 cargo_filter;       // bitmap of cargo types to include
 	GUIStationList stations;
 	Scrollbar *vscroll;
 
@@ -233,25 +230,7 @@ protected:
 		const Station *st;
 		FOR_ALL_STATIONS(st) {
 			if (st->owner == owner || (st->owner == OWNER_NONE && HasStationInUse(st->index, true, owner))) {
-
-				if (active != NULL && !active->FilterTest(st)) continue;
-
-				if (this->facilities & st->facilities) { // only stations with selected facilities
-					int num_waiting_cargo = 0;
-					for (CargoID j = 0; j < NUM_CARGO; j++) {
-						if (st->goods[j].HasRating()) {
-							num_waiting_cargo++; // count number of waiting cargo
-							if (HasBit(this->cargo_filter, j)) {
-								*this->stations.Append() = st;
-								break;
-							}
-						}
-					}
-					/* stations without waiting cargo */
-					if (num_waiting_cargo == 0 && this->include_empty) {
-						*this->stations.Append() = st;
-					}
-				}
+				if (active == NULL || active->FilterTest(st)) *this->stations.Append() = st;
 			}
 		}
 
@@ -259,6 +238,21 @@ protected:
 		this->stations.RebuildDone();
 
 		this->vscroll->SetCount(this->stations.Length()); // Update the scrollbar
+	}
+
+	/**
+	 * Set cargo_filter so we can find out which cargoes the user is interested in
+	 * @note this is needed only for sorters
+	 */
+	void SetCargoFilter()
+	{
+		this->cargo_filter = 0;
+		const FilterActive *active = FindFilterData(WC_STATION_FILTER, this->window_number);
+
+		CargoSpec *cs;
+		FOR_ALL_CARGOSPECS(cs) {
+			if (active == NULL || active->FilterTest(cs)) this->cargo_filter |= 1 << cs->Index();
+		}
 	}
 
 	/** Sort stations by their name */
@@ -358,6 +352,7 @@ protected:
 public:
 	CompanyStationsWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
+		this->SetCargoFilter();
 		this->stations.SetListing(this->last_sorting);
 		this->stations.SetSortFuncs(this->sorter_funcs);
 		this->stations.ForceRebuild();
@@ -368,19 +363,6 @@ public:
 		this->vscroll = this->GetScrollbar(WID_STL_SCROLLBAR);
 		this->FinishInitNested(window_number);
 		this->owner = (Owner)this->window_number;
-
-		const CargoSpec *cs;
-		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
-			if (!HasBit(this->cargo_filter, cs->Index())) continue;
-			this->LowerWidget(WID_STL_CARGOSTART + index);
-		}
-
-		if (this->cargo_filter == this->cargo_filter_max) this->cargo_filter = _cargo_mask;
-
-		for (uint i = 0; i < 5; i++) {
-			if (HasBit(this->facilities, i)) this->LowerWidget(i + WID_STL_TRAIN);
-		}
-		this->SetWidgetLoweredState(WID_STL_NOCARGOWAITING, this->include_empty);
 
 		this->GetWidget<NWidgetCore>(WID_STL_SORTDROPBTN)->widget_data = this->sorter_names[this->stations.SortType()];
 	}
@@ -415,33 +397,6 @@ public:
 			case WID_STL_LIST:
 				resize->height = FONT_HEIGHT_NORMAL;
 				size->height = WD_FRAMERECT_TOP + 5 * resize->height + WD_FRAMERECT_BOTTOM;
-				break;
-
-			case WID_STL_TRAIN:
-			case WID_STL_TRUCK:
-			case WID_STL_BUS:
-			case WID_STL_AIRPLANE:
-			case WID_STL_SHIP:
-				size->height = max<uint>(FONT_HEIGHT_SMALL, 10) + padding.height;
-				break;
-
-			case WID_STL_CARGOALL:
-			case WID_STL_FACILALL:
-			case WID_STL_NOCARGOWAITING: {
-				Dimension d = GetStringBoundingBox(widget == WID_STL_NOCARGOWAITING ? STR_ABBREV_NONE : STR_ABBREV_ALL);
-				d.width  += padding.width + 2;
-				d.height += padding.height;
-				*size = maxdim(*size, d);
-				break;
-			}
-
-			default:
-				if (widget >= WID_STL_CARGOSTART) {
-					Dimension d = GetStringBoundingBox(_sorted_cargo_specs[widget - WID_STL_CARGOSTART]->abbrev);
-					d.width  += padding.width + 2;
-					d.height += padding.height;
-					*size = maxdim(*size, d);
-				}
 				break;
 		}
 	}
@@ -488,34 +443,6 @@ public:
 				}
 				break;
 			}
-
-			case WID_STL_NOCARGOWAITING: {
-				int cg_ofst = this->IsWidgetLowered(widget) ? 2 : 1;
-				DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
-				break;
-			}
-
-			case WID_STL_CARGOALL: {
-				int cg_ofst = this->IsWidgetLowered(widget) ? 2 : 1;
-				DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
-				break;
-			}
-
-			case WID_STL_FACILALL: {
-				int cg_ofst = this->IsWidgetLowered(widget) ? 2 : 1;
-				DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
-				break;
-			}
-
-			default:
-				if (widget >= WID_STL_CARGOSTART) {
-					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
-					int cg_ofst = HasBit(this->cargo_filter, cs->Index()) ? 2 : 1;
-					GfxFillRect(r.left + cg_ofst, r.top + cg_ofst, r.right - 2 + cg_ofst, r.bottom - 2 + cg_ofst, cs->rating_colour);
-					TextColour tc = GetContrastColour(cs->rating_colour);
-					DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, cs->abbrev, tc, SA_HOR_CENTER);
-				}
-				break;
 		}
 	}
 
@@ -552,49 +479,6 @@ public:
 				break;
 			}
 
-			case WID_STL_TRAIN:
-			case WID_STL_TRUCK:
-			case WID_STL_BUS:
-			case WID_STL_AIRPLANE:
-			case WID_STL_SHIP:
-				if (_ctrl_pressed) {
-					ToggleBit(this->facilities, widget - WID_STL_TRAIN);
-					this->ToggleWidgetLoweredState(widget);
-				} else {
-					uint i;
-					FOR_EACH_SET_BIT(i, this->facilities) {
-						this->RaiseWidget(i + WID_STL_TRAIN);
-					}
-					this->facilities = 1 << (widget - WID_STL_TRAIN);
-					this->LowerWidget(widget);
-				}
-				this->stations.ForceRebuild();
-				this->SetDirty();
-				break;
-
-			case WID_STL_FACILALL:
-				for (uint i = WID_STL_TRAIN; i <= WID_STL_SHIP; i++) {
-					this->LowerWidget(i);
-				}
-
-				this->facilities = FACIL_TRAIN | FACIL_TRUCK_STOP | FACIL_BUS_STOP | FACIL_AIRPORT | FACIL_DOCK;
-				this->stations.ForceRebuild();
-				this->SetDirty();
-				break;
-
-			case WID_STL_CARGOALL: {
-				for (uint i = 0; i < _sorted_standard_cargo_specs_size; i++) {
-					this->LowerWidget(WID_STL_CARGOSTART + i);
-				}
-				this->LowerWidget(WID_STL_NOCARGOWAITING);
-
-				this->cargo_filter = _cargo_mask;
-				this->include_empty = true;
-				this->stations.ForceRebuild();
-				this->SetDirty();
-				break;
-			}
-
 			case WID_STL_SORTBY: // flip sorting method asc/desc
 				this->stations.ToggleSortOrder();
 				this->SetDirty();
@@ -602,49 +486,6 @@ public:
 
 			case WID_STL_SORTDROPBTN: // select sorting criteria dropdown menu
 				ShowDropDownMenu(this, this->sorter_names, this->stations.SortType(), WID_STL_SORTDROPBTN, 0, 0);
-				break;
-
-			case WID_STL_NOCARGOWAITING:
-				if (_ctrl_pressed) {
-					this->include_empty = !this->include_empty;
-					this->ToggleWidgetLoweredState(WID_STL_NOCARGOWAITING);
-				} else {
-					for (uint i = 0; i < _sorted_standard_cargo_specs_size; i++) {
-						this->RaiseWidget(WID_STL_CARGOSTART + i);
-					}
-
-					this->cargo_filter = 0;
-					this->include_empty = true;
-
-					this->LowerWidget(WID_STL_NOCARGOWAITING);
-				}
-				this->stations.ForceRebuild();
-				this->SetDirty();
-				break;
-
-			default:
-				if (widget >= WID_STL_CARGOSTART) { // change cargo_filter
-					/* Determine the selected cargo type */
-					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
-
-					if (_ctrl_pressed) {
-						ToggleBit(this->cargo_filter, cs->Index());
-						this->ToggleWidgetLoweredState(widget);
-					} else {
-						for (uint i = 0; i < _sorted_standard_cargo_specs_size; i++) {
-							this->RaiseWidget(WID_STL_CARGOSTART + i);
-						}
-						this->RaiseWidget(WID_STL_NOCARGOWAITING);
-
-						this->cargo_filter = 0;
-						this->include_empty = false;
-
-						SetBit(this->cargo_filter, cs->Index());
-						this->LowerWidget(widget);
-					}
-					this->stations.ForceRebuild();
-					this->SetDirty();
-				}
 				break;
 		}
 	}
@@ -679,22 +520,27 @@ public:
 	 * Some data on this window has become invalid.
 	 * @param data Information about the changed data.
 	 * @param gui_scope Whether the call is done from GUI scope. You may not do everything when not in GUI scope. See #InvalidateWindowData() for details.
+	 * @note data =		-1 -> Recalculate cargo_filter
+	 * 			0 -> Rebuild list
+	 * 			else -> Resort
 	 */
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
-		if (data == 0) {
-			/* This needs to be done in command-scope to enforce rebuilding before resorting invalid data */
-			this->stations.ForceRebuild();
-		} else {
-			this->stations.ForceResort();
+		switch (data) {
+			case -1:
+				this->SetCargoFilter();
+				break;
+			case 0:
+				this->stations.ForceRebuild();
+				break;
+			default:
+				this->stations.ForceResort();
+				break;
 		}
 	}
 };
 
 Listing CompanyStationsWindow::last_sorting = {false, 0};
-byte CompanyStationsWindow::facilities = FACIL_TRAIN | FACIL_TRUCK_STOP | FACIL_BUS_STOP | FACIL_AIRPORT | FACIL_DOCK;
-bool CompanyStationsWindow::include_empty = true;
-const uint32 CompanyStationsWindow::cargo_filter_max = UINT32_MAX;
 uint32 CompanyStationsWindow::cargo_filter = UINT32_MAX;
 const Station *CompanyStationsWindow::last_station = NULL;
 
@@ -719,27 +565,6 @@ const StringID CompanyStationsWindow::sorter_names[] = {
 	INVALID_STRING_ID
 };
 
-/**
- * Make a horizontal row of cargo buttons, starting at widget #WID_STL_CARGOSTART.
- * @param biggest_index Pointer to store biggest used widget number of the buttons.
- * @return Horizontal row.
- */
-static NWidgetBase *CargoWidgets(int *biggest_index)
-{
-	NWidgetHorizontal *container = new NWidgetHorizontal();
-
-	for (uint i = 0; i < _sorted_standard_cargo_specs_size; i++) {
-		NWidgetBackground *panel = new NWidgetBackground(WWT_PANEL, COLOUR_GREY, WID_STL_CARGOSTART + i);
-		panel->SetMinimalSize(14, 11);
-		panel->SetResize(0, 0);
-		panel->SetFill(0, 1);
-		panel->SetDataTip(0, STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE);
-		container->Add(panel);
-	}
-	*biggest_index = WID_STL_CARGOSTART + _sorted_standard_cargo_specs_size;
-	return container;
-}
-
 static const NWidgetPart _nested_company_stations_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
@@ -749,19 +574,6 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
-	EndContainer(),
-	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_STL_TRAIN), SetMinimalSize(14, 11), SetDataTip(STR_TRAIN, STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE), SetFill(0, 1),
-		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_STL_TRUCK), SetMinimalSize(14, 11), SetDataTip(STR_LORRY, STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE), SetFill(0, 1),
-		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_STL_BUS), SetMinimalSize(14, 11), SetDataTip(STR_BUS, STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE), SetFill(0, 1),
-		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_STL_SHIP), SetMinimalSize(14, 11), SetDataTip(STR_SHIP, STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE), SetFill(0, 1),
-		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_STL_AIRPLANE), SetMinimalSize(14, 11), SetDataTip(STR_PLANE, STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE), SetFill(0, 1),
-		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_STL_FACILALL), SetMinimalSize(14, 11), SetDataTip(0x0, STR_STATION_LIST_SELECT_ALL_FACILITIES), SetFill(0, 1),
-		NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalSize(5, 11), SetFill(0, 1), EndContainer(),
-		NWidgetFunction(CargoWidgets),
-		NWidget(WWT_PANEL, COLOUR_GREY, WID_STL_NOCARGOWAITING), SetMinimalSize(14, 11), SetDataTip(0x0, STR_STATION_LIST_NO_WAITING_CARGO), SetFill(0, 1), EndContainer(),
-		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_STL_CARGOALL), SetMinimalSize(14, 11), SetDataTip(0x0, STR_STATION_LIST_SELECT_ALL_TYPES), SetFill(0, 1),
-		NWidget(WWT_PANEL, COLOUR_GREY), SetDataTip(0x0, STR_NULL), SetResize(1, 0), SetFill(1, 1), EndContainer(),
 	EndContainer(),
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_STL_SORTBY), SetMinimalSize(81, 12), SetDataTip(STR_BUTTON_SORT_BY, STR_TOOLTIP_SORT_ORDER),
