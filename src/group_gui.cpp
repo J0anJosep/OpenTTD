@@ -63,6 +63,10 @@ static const NWidgetPart _nested_group_widgets[] = {
 				NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_GL_LIST_GROUP_SCROLLBAR),
 			EndContainer(),
 			NWidget(NWID_HORIZONTAL),
+				NWidget(WWT_IMGBTN, COLOUR_GREY, WID_GL_HELP), SetFill(0, 1),
+						SetDataTip(SPR_IMG_QUERY, STR_GROUPS_CLICK_ON_GROUP_FOR_TOOLTIP),
+				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_GL_MANAGE_GROUPS_DROPDOWN), SetFill(0, 1),
+						SetDataTip(SPR_SHOW_VEHICLE_DETAILS, STR_GROUP_MANAGE_GROUPS_TOOLTIP),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_GL_CREATE_GROUP), SetFill(0, 1),
 						SetDataTip(SPR_GROUP_CREATE_TRAIN, STR_GROUP_CREATE_TOOLTIP),
 				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_GL_DELETE_GROUP), SetFill(0, 1),
@@ -284,20 +288,26 @@ private:
 	/**
 	 * Display the dropdowns for group window
 	 */
-	DropDownList *BuildActionDropdownGroups() const
+	DropDownList *BuildActionDropdownGroups(bool groups) const
 	{
 		DropDownList *list = new DropDownList();
 
-		*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_REPLACE_VEHICLES, ADI_REPLACE, false);
-		*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_SEND_FOR_SERVICING, ADI_SERVICE, false);
-		*list->Append() = new DropDownListStringItem(this->vehicle_depot_name[this->vli.vtype], ADI_DEPOT, false);
+		if (groups) {
+			for (uint iter = ADIG_BEGIN; iter < ADIG_END; iter++) *list->Append() = new DropDownListStringItem(STR_GROUP_MANAGE_UPDATE_CARGO + iter, ADIG_BEGIN + iter, false);
+		} else {
+			if (_local_company == this->vli.company && this->vehicles.Length() != 0) {
+				*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_REPLACE_VEHICLES, ADI_REPLACE, false);
+				*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_SEND_FOR_SERVICING, ADI_SERVICE, false);
+				*list->Append() = new DropDownListStringItem(this->vehicle_depot_name[this->vli.vtype], ADI_DEPOT, false);
+				if (Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index)) {
+					*list->Append() = new DropDownListStringItem(STR_GROUP_ADD_SHARED_VEHICLE, ADI_ADD_SHARED, false);
+				}
+				if (Group::IsValidID(this->vli.index)) {
+					*list->Append() = new DropDownListStringItem(STR_GROUP_REMOVE_ALL_VEHICLES, ADI_REMOVE_ALL, false);
+				}
+			}
+		}
 
-		if (Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index)) {
-			*list->Append() = new DropDownListStringItem(STR_GROUP_ADD_SHARED_VEHICLE, ADI_ADD_SHARED, false);
-		}
-		if (Group::IsValidID(this->vli.index)) {
-			*list->Append() = new DropDownListStringItem(STR_GROUP_REMOVE_ALL_VEHICLES, ADI_REMOVE_ALL, false);
-		}
 		return list;
 	}
 
@@ -662,6 +672,12 @@ public:
 				break;
 			}
 
+			case WID_GL_MANAGE_GROUPS_DROPDOWN: {
+				DropDownList *list = this->BuildActionDropdownGroups(true);
+				ShowDropDownList(this, list, 0, WID_GL_MANAGE_GROUPS_DROPDOWN, 0, true);
+				break;
+			}
+
 			case WID_GL_CREATE_GROUP: { // Create a new group
 				/* If a new group is created, select it */
 				if (DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_CREATE), CcCreateGroup))
@@ -684,7 +700,7 @@ public:
 				break;
 
 			case WID_GL_MANAGE_VEHICLES_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownGroups();
+				DropDownList *list = this->BuildActionDropdownGroups(false);
 				ShowDropDownList(this, list, 0, WID_GL_MANAGE_VEHICLES_DROPDOWN);
 				break;
 			}
@@ -886,6 +902,16 @@ public:
 
 						DoCommandP(0, this->vli.index, 0, CMD_REMOVE_ALL_VEHICLES_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES));
 						break;
+					default: NOT_REACHED();
+				}
+				break;
+
+			case WID_GL_MANAGE_GROUPS_DROPDOWN:
+				switch (index) {
+					case ADIG_UPDATE_CARGO:
+						GroupStatistics::UpdateCargoForVehicleType(this->owner, this->vli.vtype);
+						break;
+
 					default: NOT_REACHED();
 				}
 				break;

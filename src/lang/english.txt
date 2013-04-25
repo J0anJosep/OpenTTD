@@ -3364,6 +3364,7 @@ STR_GROUP_DEFAULT_AIRCRAFTS                                     :Ungrouped aircr
 
 STR_GROUPS_CLICK_ON_GROUP_FOR_TOOLTIP                           :{BLACK}Groups - click on a group to list all vehicles of this group (+CTRL, also open group details window). Drag and drop groups to arrange hierarchy. Drop a vehicle into a group to move it (+Ctrl adds all shared orders vehicles).{}{} Dropping it into an empty slot, add it to a new group.
 STR_GROUPS_GROUP_LIST_TOOLTIP                                   :{BLACK}Total profit: {CURRENCY_LONG}{}Mean profit: {CURRENCY_LONG}{}Minimum profit: {CURRENCY_LONG}
+STR_GROUP_MANAGE_GROUPS_TOOLTIP                                :{BLACK}Send instructions to all groups in this list
 STR_GROUP_CREATE_TOOLTIP                                        :{BLACK}Click to create a group
 STR_GROUP_DELETE_TOOLTIP                                        :{BLACK}Delete the selected group
 STR_GROUP_RENAME_TOOLTIP                                        :{BLACK}Rename the selected group
@@ -3404,6 +3405,8 @@ STR_GROUP_ADD_SHARED_VEHICLE                                    :Add shared vehi
 STR_GROUP_REMOVE_ALL_VEHICLES                                   :Remove all vehicles
 
 STR_GROUP_RENAME_CAPTION                                        :{BLACK}Rename a group
+
+STR_GROUP_MANAGE_UPDATE_CARGO                                   :Update cargo for groups of this class
 
 # Group info window
 STR_GROUP_DETAILS_CAPTION                                       :{WHITE}Group details ({STRING}): {STRING}
