@@ -1436,6 +1436,7 @@ public:
 		WID_GL_LIST_VEHICLE_SCROLLBAR                = ::WID_GL_LIST_VEHICLE_SCROLLBAR,                ///< Scrollbar for the list.
 		WID_GL_AVAILABLE_VEHICLES                    = ::WID_GL_AVAILABLE_VEHICLES,                    ///< Available vehicles.
 		WID_GL_MANAGE_VEHICLES_DROPDOWN              = ::WID_GL_MANAGE_VEHICLES_DROPDOWN,              ///< Manage vehicles dropdown list.
+		WID_GL_MANAGE_GROUPS_DROPDOWN                = ::WID_GL_MANAGE_GROUPS_DROPDOWN,                ///< Manage groups dropdown list.
 		WID_GL_STOP_ALL                              = ::WID_GL_STOP_ALL,                              ///< Stop all button.
 		WID_GL_START_ALL                             = ::WID_GL_START_ALL,                             ///< Start all button.
 
@@ -1443,6 +1444,7 @@ public:
 		WID_GL_DEFAULT_VEHICLES                      = ::WID_GL_DEFAULT_VEHICLES,                      ///< Default vehicles entry.
 		WID_GL_LIST_GROUP                            = ::WID_GL_LIST_GROUP,                            ///< List of the groups.
 		WID_GL_LIST_GROUP_SCROLLBAR                  = ::WID_GL_LIST_GROUP_SCROLLBAR,                  ///< Scrollbar for the list.
+		WID_GL_HELP                                  = ::WID_GL_HELP,                                  ///< Small help icon.
 		WID_GL_CREATE_GROUP                          = ::WID_GL_CREATE_GROUP,                          ///< Create group button.
 		WID_GL_DELETE_GROUP                          = ::WID_GL_DELETE_GROUP,                          ///< Delete group button.
 		WID_GL_RENAME_GROUP                          = ::WID_GL_RENAME_GROUP,                          ///< Rename group button.
@@ -2606,6 +2608,7 @@ public:
 		WID_VL_AVAILABLE_VEHICLES                    = ::WID_VL_AVAILABLE_VEHICLES,                    ///< Available vehicles.
 		WID_VL_DUAL                                  = ::WID_VL_DUAL,                                  ///< Commute between list of vehicles or list of groups.
 		WID_VL_MANAGE_VEHICLES_DROPDOWN              = ::WID_VL_MANAGE_VEHICLES_DROPDOWN,              ///< Manage vehicles dropdown list.
+		WID_VL_MANAGE_GROUPS_DROPDOWN                = ::WID_VL_MANAGE_GROUPS_DROPDOWN,                ///< Manage groups in this list.
 		WID_VL_STOP_ALL                              = ::WID_VL_STOP_ALL,                              ///< Stop all button.
 		WID_VL_START_ALL                             = ::WID_VL_START_ALL,                             ///< Start all button.
 	};
