@@ -61,6 +61,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_TEXTFILE,                               "WC_TEXTFILE");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_TOWN_AUTHORITY,                         "WC_TOWN_AUTHORITY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_VEHICLE_DETAILS,                        "WC_VEHICLE_DETAILS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_GROUP_DETAILS,                          "WC_GROUP_DETAILS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_VEHICLE_REFIT,                          "WC_VEHICLE_REFIT");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_VEHICLE_ORDERS,                         "WC_VEHICLE_ORDERS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_REPLACE_VEHICLE,                        "WC_REPLACE_VEHICLE");
@@ -553,6 +554,20 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_REPLACE_PROTECTION,                 "WID_GL_REPLACE_PROTECTION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_VEHICLE_WINDOW,                     "WID_GL_VEHICLE_WINDOW");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_ORDERS,                             "WID_GL_ORDERS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_CAPTION,                        "GIW_WIDGET_CAPTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_LAT_BEGIN,              "GIW_WIDGET_DETAILS_LAT_BEGIN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_GENERAL,                "GIW_WIDGET_DETAILS_GENERAL");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_TIMETABLE,              "GIW_WIDGET_DETAILS_TIMETABLE");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_CARGO,                  "GIW_WIDGET_DETAILS_CARGO");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_LIST,                   "GIW_WIDGET_DETAILS_LIST");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_VEHICLE,                "GIW_WIDGET_DETAILS_VEHICLE");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_ORDERS_TT,              "GIW_WIDGET_DETAILS_ORDERS_TT");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_LAT_END,                "GIW_WIDGET_DETAILS_LAT_END");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS,                        "GIW_WIDGET_DETAILS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_LIST,                           "GIW_WIDGET_LIST");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_LIST_SCROLLBAR,                 "GIW_WIDGET_LIST_SCROLLBAR");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_ORDERLISTS_SORTER_DROPDOWN,     "GIW_WIDGET_ORDERLISTS_SORTER_DROPDOWN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::GIW_WIDGET_DETAILS_DROPDOWN,               "GIW_WIDGET_DETAILS_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_H_BACKGROUND,                          "WID_H_BACKGROUND");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DPI_MATRIX_WIDGET,                     "WID_DPI_MATRIX_WIDGET");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DPI_SCROLLBAR,                         "WID_DPI_SCROLLBAR");

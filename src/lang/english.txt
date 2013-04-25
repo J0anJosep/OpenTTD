@@ -312,6 +312,11 @@ STR_SORT_BY_RANGE                                               :Range
 STR_SORT_BY_POPULATION                                          :Population
 STR_SORT_BY_RATING                                              :Rating
 STR_SORT_BY_NUMBER_OF_VEHICLES                                  :Number of vehicles
+STR_SORT_BY_ORDERS_TYPE                                         :Orders/Timetable type
+STR_SORT_BY_NUMBER_OF_ORDERS                                    :Number of orders
+STR_SORT_BY_TIMETABLE_DURATION                                  :Total timetable duration
+STR_SORT_BY_TIMETABLE_UNPUNCTUALITY                             :Timetable unpunctuality
+STR_SORT_BY_RELATIVE_UNPUNCTUALITY                              :Relative unpunctuality
 
 # Tooltips for the main toolbar
 STR_TOOLBAR_TOOLTIP_PAUSE_GAME                                  :{BLACK}Pause game
@@ -3356,7 +3361,7 @@ STR_GROUP_DEFAULT_ROAD_VEHICLES                                 :Ungrouped road 
 STR_GROUP_DEFAULT_SHIPS                                         :Ungrouped ships
 STR_GROUP_DEFAULT_AIRCRAFTS                                     :Ungrouped aircraft
 
-STR_GROUPS_CLICK_ON_GROUP_FOR_TOOLTIP                           :{BLACK}Groups - click on a group to list all vehicles of this group. Drag and drop groups to arrange hierarchy.
+STR_GROUPS_CLICK_ON_GROUP_FOR_TOOLTIP                           :{BLACK}Groups - click on a group to list all vehicles of this group (+CTRL, also open group details window). Drag and drop groups to arrange hierarchy. Drop a vehicle into a group to move it (+Ctrl adds all shared orders vehicles).{}{} Dropping it into an empty slot, add it to a new group.
 STR_GROUPS_GROUP_LIST_TOOLTIP                                   :{BLACK}Total profit: {CURRENCY_LONG}{}Mean profit: {CURRENCY_LONG}{}Minimum profit: {CURRENCY_LONG}
 STR_GROUP_CREATE_TOOLTIP                                        :{BLACK}Click to create a group
 STR_GROUP_DELETE_TOOLTIP                                        :{BLACK}Delete the selected group
@@ -3398,6 +3403,42 @@ STR_GROUP_ADD_SHARED_VEHICLE                                    :Add shared vehi
 STR_GROUP_REMOVE_ALL_VEHICLES                                   :Remove all vehicles
 
 STR_GROUP_RENAME_CAPTION                                        :{BLACK}Rename a group
+
+# Group info window
+STR_GROUP_DETAILS_CAPTION                                       :{WHITE}Group details ({STRING}): {STRING}
+
+STR_GROUP_DETAILS_GENERAL                                       :{BLACK}General Stats
+STR_GROUP_DETAILS_TIMETABLE                                     :{BLACK}Timetable Stats
+STR_GROUP_DETAILS_CARGO                                         :{BLACK}Cargo
+STR_GROUP_DETAILS_LIST                                          :{BLACK}List of vehicles
+STR_GROUP_DETAILS_VEHICLE                                       :{BLACK}Vehicle window
+STR_GROUP_DETAILS_ORDERS_TT                                     :{BLACK}Orders/TT
+STR_GROUP_DETAILS_ORDERLISTS_SORTER_DROPDOWN                    :{BLACK}Sort schedules
+STR_GROUP_DETAILS_MANAGE_GROUP                                  :{BLACK}Manage group
+
+STR_GROUP_DETAILS_GENERAL_TOOLTIP                               :{BLACK}Click to see profit, number, speed and length of vehicles
+STR_GROUP_DETAILS_TIMETABLE_TOOLTIP                             :{BLACK}Click to see timetables related information
+STR_GROUP_DETAILS_CARGO_TOOLTIP                                 :{BLACK}Click to see cargo related information
+STR_GROUP_DETAILS_LIST_TOOLTIP                                  :{BLACK}Click to show a list of vehicles of this group
+STR_GROUP_DETAILS_VEHICLE_TOOLTIP                               :{BLACK}Click to open a vehicle window for this group
+STR_GROUP_DETAILS_ORDERS_TT_TOOLTIP                             :{BLACK}Click to open orders window (+CTRL, timetable instead)
+STR_GROUP_DETAILS_ORDERLISTS_SORTER_DROPDOWN_TOOLTIP            :{BLACK}Sort schedules on this group
+STR_GROUP_DETAILS_MANAGE_GROUP_TOOLTIP                          :{BLACK}Click to manage group
+
+STR_GROUP_DETAILS_GENERAL_NUMBER                                :{BLACK}Number of vehicles: {LTBLUE}{COMMA}{BLACK} ({LTBLUE}{COMMA}{BLACK} reached profit age)
+STR_GROUP_DETAILS_GENERAL_PROFIT                                :{BLACK}Total profit last year: {LTBLUE}{CURRENCY_LONG} {BLACK}(mean profit: {LTBLUE}{CURRENCY_LONG}{BLACK})
+STR_GROUP_DETAILS_GENERAL_MINIMUM_PROFIT                        :{BLACK}Minimum profit of a vehicle last year: {LTBLUE}{CURRENCY_LONG}
+STR_GROUP_DETAILS_GENERAL_DETAILS                               :{STRING2}   {STRING2}   {STRING3}
+STR_GROUP_DETAILS_GENERAL_LENGTH                                :Length: {LTBLUE}{DECIMAL} tiles
+STR_GROUP_DETAILS_GENERAL_SPEED                                 :Max. speed: {LTBLUE}{VELOCITY}
+STR_GROUP_DETAILS_GENERAL_POWER                                 :Power: {LTBLUE}{POWER}
+
+STR_GROUP_DETAILS_TIMETABLE_CAPTION                             :{BLACK}Orders/Timetables:
+STR_GROUP_DETAILS_TIMETABLE_DETAILS                             :{STRING}: {BLACK}{COMMA} vehicles, {COMMA} orders, {STRING1} {STRING1}
+STR_GROUP_DETAILS_TIMETABLE_DETAILS_BRACKETS                    :({COMMA}% unpunctual)
+
+STR_GROUP_DETAILS_TOTAL_CARGO                                   :{BLACK}Cargo (maximum capacity):
+STR_GROUP_DETAILS_UPDATE_CARGO                                  :Update group cargo
 
 # Build vehicle window
 STR_BUY_VEHICLE_TRAIN_RAIL_CAPTION                              :New Rail Vehicles
@@ -3646,10 +3687,10 @@ STR_VEHICLE_VIEW_ROAD_VEHICLE_ORDERS_TOOLTIP                    :{BLACK}Show veh
 STR_VEHICLE_VIEW_SHIP_ORDERS_TOOLTIP                            :{BLACK}Show ship's orders. Ctrl+Click to show ship's timetable
 STR_VEHICLE_VIEW_AIRCRAFT_ORDERS_TOOLTIP                        :{BLACK}Show aircraft's orders. Ctrl+Click to show aircraft's timetable
 
-STR_VEHICLE_VIEW_TRAIN_SHOW_DETAILS_TOOLTIP                     :{BLACK}Show train details
-STR_VEHICLE_VIEW_ROAD_VEHICLE_SHOW_DETAILS_TOOLTIP              :{BLACK}Show road vehicle details
-STR_VEHICLE_VIEW_SHIP_SHOW_DETAILS_TOOLTIP                      :{BLACK}Show ship details
-STR_VEHICLE_VIEW_AIRCRAFT_SHOW_DETAILS_TOOLTIP                  :{BLACK}Show aircraft details
+STR_VEHICLE_VIEW_TRAIN_SHOW_DETAILS_TOOLTIP                     :{BLACK}Show train details{}(+Ctrl for group details)
+STR_VEHICLE_VIEW_ROAD_VEHICLE_SHOW_DETAILS_TOOLTIP              :{BLACK}Show road vehicle details{}(+Ctrl for group details)
+STR_VEHICLE_VIEW_SHIP_SHOW_DETAILS_TOOLTIP                      :{BLACK}Show ship details{}(+Ctrl for group details)
+STR_VEHICLE_VIEW_AIRCRAFT_SHOW_DETAILS_TOOLTIP                  :{BLACK}Show aircraft details{}(+Ctrl for group details)
 
 STR_VEHICLE_VIEW_TRAIN_STATE_START_STOP_TOOLTIP                 :{BLACK}Current train action - click to stop/start train. Ctrl+Click to scroll to destination
 STR_VEHICLE_VIEW_ROAD_VEHICLE_STATE_START_STOP_TOOLTIP          :{BLACK}Current vehicle action - click to stop/start vehicle. Ctrl+Click to scroll to destination

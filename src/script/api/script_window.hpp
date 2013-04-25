@@ -278,6 +278,12 @@ public:
 		WC_VEHICLE_DETAILS                           = ::WC_VEHICLE_DETAILS,
 
 		/**
+		 * Group details; %Window numbers:
+		 *   - Packed value vli(vl_groups_list, vehicle type, owner, groupID):
+		 */
+		WC_GROUP_DETAILS                             = ::WC_GROUP_DETAILS,
+
+		/**
 		 * Vehicle refit; %Window numbers:
 		 *   - #VehicleID = #VehicleRefitWidgets
 		 */
@@ -1441,6 +1447,26 @@ public:
 		WID_GL_REPLACE_PROTECTION                    = ::WID_GL_REPLACE_PROTECTION,                    ///< Replace protection button.
 		WID_GL_VEHICLE_WINDOW                        = ::WID_GL_VEHICLE_WINDOW,                        ///< Open a window for one vehicle of the group.
 		WID_GL_ORDERS                                = ::WID_GL_ORDERS,                                ///< Open orders or timetable of the group.
+	};
+
+	 /** Widgets of the #GroupDetailsWindow class. */
+	enum GroupDetailsWindowWidgets {
+		GIW_WIDGET_CAPTION                           = ::GIW_WIDGET_CAPTION,
+
+		GIW_WIDGET_DETAILS_LAT_BEGIN                 = ::GIW_WIDGET_DETAILS_LAT_BEGIN,
+		GIW_WIDGET_DETAILS_GENERAL                   = ::GIW_WIDGET_DETAILS_GENERAL,
+		GIW_WIDGET_DETAILS_TIMETABLE                 = ::GIW_WIDGET_DETAILS_TIMETABLE,
+		GIW_WIDGET_DETAILS_CARGO                     = ::GIW_WIDGET_DETAILS_CARGO,
+		GIW_WIDGET_DETAILS_LIST                      = ::GIW_WIDGET_DETAILS_LIST,
+		GIW_WIDGET_DETAILS_VEHICLE                   = ::GIW_WIDGET_DETAILS_VEHICLE,
+		GIW_WIDGET_DETAILS_ORDERS_TT                 = ::GIW_WIDGET_DETAILS_ORDERS_TT,
+		GIW_WIDGET_DETAILS_LAT_END                   = ::GIW_WIDGET_DETAILS_LAT_END,
+
+		GIW_WIDGET_DETAILS                           = ::GIW_WIDGET_DETAILS,
+		GIW_WIDGET_LIST                              = ::GIW_WIDGET_LIST,
+		GIW_WIDGET_LIST_SCROLLBAR                    = ::GIW_WIDGET_LIST_SCROLLBAR,
+		GIW_WIDGET_ORDERLISTS_SORTER_DROPDOWN        = ::GIW_WIDGET_ORDERLISTS_SORTER_DROPDOWN,
+		GIW_WIDGET_DETAILS_DROPDOWN                  = ::GIW_WIDGET_DETAILS_DROPDOWN,
 	};
 
 	/* automatically generated from ../../widgets/highscore_widget.h */
