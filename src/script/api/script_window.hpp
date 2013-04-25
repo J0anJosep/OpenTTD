@@ -409,6 +409,35 @@ public:
 		 */
 		WC_AIRCRAFT_LIST                             = ::WC_AIRCRAFT_LIST,
 
+		/**
+		 * Group/vehicle filter; %Window numbers:
+		 *   - Window number same as parent ( | 1 << 20 if filtering groups of group window) = #FilterWindowWidgets
+		 */
+		WC_VEHICLE_GROUP_FILTER                      = ::WC_VEHICLE_GROUP_FILTER,
+
+		/**
+		 * Catchment area window; %Window numbers:
+		 *   - 0 = #FilterWindowWidgets
+		 */
+		WC_CATCHMENT_AREA_WINDOW                     = ::WC_CATCHMENT_AREA_WINDOW,
+
+		/**
+		 * Industry filter; % Window numbers:
+		 *   - 0 = #FilterWindowWidgets
+		 */
+		WC_INDUSTRY_FILTER                           = ::WC_INDUSTRY_FILTER,
+
+		/**
+		 * Town filter; % Window numbers:
+		 *   - 0 = #FilterWindowWidgets
+		 */
+		WC_TOWN_FILTER                               = ::WC_TOWN_FILTER,
+
+		/**
+		 * Stations filter; % Window numbers:
+		 *   - #CompanyID = #FilterWindowWidgets
+		 */
+		WC_STATION_FILTER                            = ::WC_STATION_FILTER,
 
 		/**
 		 * Town view; %Window numbers:
