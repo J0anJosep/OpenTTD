@@ -1441,6 +1441,8 @@ public:
 		WID_GL_DELETE_GROUP                          = ::WID_GL_DELETE_GROUP,                          ///< Delete group button.
 		WID_GL_RENAME_GROUP                          = ::WID_GL_RENAME_GROUP,                          ///< Rename group button.
 		WID_GL_REPLACE_PROTECTION                    = ::WID_GL_REPLACE_PROTECTION,                    ///< Replace protection button.
+		WID_GL_VEHICLE_WINDOW                        = ::WID_GL_VEHICLE_WINDOW,                        ///< Open a window for one vehicle of the group.
+		WID_GL_ORDERS                                = ::WID_GL_ORDERS,                                ///< Open orders or timetable of the group.
 	};
 
 	/* automatically generated from ../../widgets/highscore_widget.h */
