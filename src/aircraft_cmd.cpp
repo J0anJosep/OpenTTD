@@ -43,6 +43,31 @@
 
 #include "safeguards.h"
 
+static const int PLANE_HOLDING_ALTITUDE = 150;  ///< Altitude of planes in holding pattern (= lowest flight altitude).
+static const int HELI_FLIGHT_ALTITUDE   = 184;  ///< Normal flight altitude of helicopters.
+
+/** Mark the vehicle as stuck. */
+void Aircraft::MarkAsStuck()
+{
+	assert(!this->IsStuck());
+
+	/* Set the aircraft as stucked. */
+	SetBit(this->flags, VAF_STUCK);
+	this->wait_counter = 0;
+
+	/* Stop aircraft. */
+	this->cur_speed = 0;
+	this->subspeed = 0;
+
+	SetWindowWidgetDirty(WC_VEHICLE_VIEW, this->index, WID_VV_START_STOP);
+}
+
+/** Unstuck the aircraft. */
+void Aircraft::Unstuck() {
+	ClrBit(this->flags, VAF_STUCK);
+	SetWindowWidgetDirty(WC_VEHICLE_VIEW, this->index, WID_VV_START_STOP);
+}
+
 void Aircraft::UpdateDeltaXY(Direction direction)
 {
 	this->x_offs = -1;
@@ -1088,6 +1113,8 @@ bool Aircraft::Tick()
 	if (this->subtype == AIR_HELICOPTER) HelicopterTickHandler(this);
 
 	this->current_order_time++;
+
+	if (this->IsStuck() && !this->TryUnblock()) return true;
 
 	for (uint i = 0; i != 2; i++) {
 		/* stop if the aircraft was deleted */

@@ -45,6 +45,7 @@ enum AirVehicleFlags {
 	 * landscape at a fixed altitude. This only has effect when there are more than 15 height levels. */
 	VAF_IN_MAX_HEIGHT_CORRECTION = 1, ///< The vehicle is currently lowering its altitude because it hit the upper bound.
 	VAF_IN_MIN_HEIGHT_CORRECTION = 2, ///< The vehicle is currently raising its altitude because it hit the lower bound.
+	VAF_STUCK                    = 3, ///< The vehicle is mark as stuck.
 };
 
 static const int ROTOR_Z_OFFSET         = 5;    ///< Z Offset between helicopter- and rotorsprite.
@@ -143,6 +144,23 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 		assert(this->IsPrimaryVehicle());
 		return this->cur_state == AM_HANGAR;
 	}
+
+	bool IsStuck() const { return HasBit(this->flags, VAF_STUCK); }
+
+	/** Increase the wait counter and return if aircraft can try to move again. */
+	bool TryUnblock()
+	{
+		this->wait_counter++;
+
+		if (this->wait_counter == 8) { // revise magic number
+			this->wait_counter = 0;
+			return true;
+		}
+		return false;
+	}
+
+	void MarkAsStuck();
+	void Unstuck();
 
 	bool Tick();
 	void OnNewDay();
