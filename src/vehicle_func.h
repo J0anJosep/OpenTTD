@@ -166,6 +166,7 @@ static inline uint32 GetCmdSendToDepot(const BaseVehicle *v)
 
 CommandCost FixReplacementOnBigDepot(const Vehicle *old_head, Vehicle *new_head);
 CommandCost EnsureNoVehicleOnGround(TileIndex tile);
+CommandCost EnsureFreeHangar(TileIndex tile);
 CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits);
 
 extern VehicleID _new_vehicle_id;
