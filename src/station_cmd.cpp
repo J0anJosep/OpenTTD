@@ -2079,6 +2079,13 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	return had_success ? cost : last_error;
 }
 
+CommandCost EnsureFreeAirportTile(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	if (MayHaveAirTracks(tile) && HasAirportTrackReservation(tile)) return_cmd_error(STR_ERROR_AIRCRAFT_IN_THE_WAY);
+	return CommandCost();
+}
+
 /**
  * Computes the minimal distance from town's xy to any airport's tile.
  * @param it An iterator over all airport tiles.
