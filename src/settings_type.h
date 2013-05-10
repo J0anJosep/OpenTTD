@@ -527,6 +527,7 @@ struct StationSettings {
 	bool   adjacent_stations;                ///< allow stations to be built directly adjacent to other stations
 	bool   distant_join_stations;            ///< allow to join non-adjacent stations
 	bool   never_expire_airports;            ///< never expire airports
+	bool   allow_modify_airports;            ///< allow change the layout of airports
 	byte   station_spread;                   ///< amount a station may spread
 };
 

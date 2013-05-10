@@ -1113,6 +1113,14 @@ static bool TouchscreenModeChanged(int32 p1)
 	return true;
 }
 
+static bool ModifyAirportLayout(int32 p1)
+{
+	DeleteWindowByClass(WC_BUILD_TOOLBAR);
+	extern AirType _last_built_airtype;
+	_last_built_airtype = AIRTYPE_BEGIN;
+	return true;
+}
+
 /**
  * Update any possible saveload window and delete any newgrf dialogue as
  * its widget parts might change. Reinit all windows as it allows access to the
