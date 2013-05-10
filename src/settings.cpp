@@ -1121,6 +1121,14 @@ static bool DeleteConstructionWindows(int32 p1)
 	return true;
 }
 
+static bool ModifyAirportLayout(int32 p1)
+{
+	DeleteWindowByClass(WC_BUILD_TOOLBAR);
+	extern AirType _last_built_airtype;
+	_last_built_airtype = AIRTYPE_BEGIN;
+	return true;
+}
+
 static bool ChangeCoastalTracks(int32 p1)
 {
 	/* In menu, settings can be changed and
