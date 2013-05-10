@@ -779,6 +779,9 @@ bool AfterLoadGame()
 		_settings_game.depot.cross_replace_rail_veh = false;
 		_settings_game.depot.cross_replace_road_veh = false;
 	}
+	if (IsSavegameVersionBefore(SL_RESET_AIRCRAFT)) {
+		_settings_game.station.allow_modify_airports = false;
+	}
 
 	/* Load the sprites */
 	GfxLoadSprites();
