@@ -2455,31 +2455,42 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	bool reuse = (station_to_join != NEW_STATION);
 	if (!reuse) station_to_join = INVALID_STATION;
 	bool distant_join = (station_to_join != INVALID_STATION);
+	bool two_tile = true; // Building a two-tile dock;
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
 	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
-	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	direction = ReverseDiagDir(direction);
+	if (direction == INVALID_DIAGDIR) {
+		two_tile = false;
+	} else {
+		direction = ReverseDiagDir(direction);
 
-	/* Docks cannot be placed on rapids */
-	if (HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		/* Docks cannot be placed on rapids. */
+		if (HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+	}
 
 	CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 	if (ret.Failed()) return ret;
 
 	if (IsBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
-	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
+	TileArea dock_area(tile, 1, 1);
+	TileIndex tile_cur;
 
-	TileIndex tile_cur = TileAddByDiagDir(tile, direction);
+	if (two_tile) {
+		ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+
+		tile_cur = TileAddByDiagDir(tile, direction);
+
+		if (IsBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+	} else {
+		tile_cur = tile;
+	}
 
 	if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
 		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 	}
-
-	if (IsBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
 	/* Get the water class of the water tile before it is cleared.*/
 	WaterClass wc = GetWaterClass(tile_cur);
@@ -2487,7 +2498,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (ret.Failed()) return ret;
 
-	TileArea dock_area = TileArea(tile, tile_cur);
+	dock_area.Add(tile_cur);
 
 	/* middle */
 	Station *st = NULL;
@@ -2521,9 +2532,13 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		}
 		Company::Get(st->owner)->infrastructure.station += 2;
 
-		MakeDock(tile, st->owner, st->index, direction, wc);
-
-		SetDockTracks(tile_cur, (direction % 2) == 0 ? TRACK_BIT_Y : TRACK_BIT_X);
+		if (two_tile) {
+			MakeDock(tile, st->owner, st->index, direction, wc);
+			SetDockTracks(tile_cur, (direction % 2) == 0 ? TRACK_BIT_Y : TRACK_BIT_X);
+		} else {
+			MakeStation(tile_cur, st->owner, st->index, STATION_DOCK, 0, wc);
+			SetDockTracks(tile_cur, TRACK_BIT_CROSS);
+		}
 
 		st->AfterStationTileSetChange(true, dock_area, STATION_DOCK);
 	}
@@ -2591,12 +2606,16 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		}
 
 		delete removing_dock;
+		TileArea ta(tile2, 1, 1);
 
-		DoClearSquare(tile1);
-		MarkTileDirtyByTile(tile1);
+		if (tile1 != tile2) { // Two-tiles dock.
+			DoClearSquare(tile1);
+			MarkTileDirtyByTile(tile1);
+			st->rect.AfterRemoveTile(st, tile1);
+			ta.Add(tile1);
+		}
+
 		MakeWaterKeepingClass(tile2, st->owner);
-
-		st->rect.AfterRemoveTile(st, tile1);
 		st->rect.AfterRemoveTile(st, tile2);
 
 		st->dock_station.Clear();
@@ -2607,7 +2626,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 		Company::Get(st->owner)->infrastructure.station -= 2;
 
-		st->AfterStationTileSetChange(false, TileArea(tile1,tile2), STATION_DOCK);
+		st->AfterStationTileSetChange(false, ta, STATION_DOCK);
 
 		/* All ships that were going to our station, can't go to it anymore.
 		 * Just clear the order, then automatically the next appropriate order
