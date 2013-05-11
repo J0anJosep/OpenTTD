@@ -18,6 +18,7 @@
 #include "strings_func.h"
 #include "viewport_func.h"
 #include "company_func.h"
+#include "command_func.h"
 #include "tilehighlight_func.h"
 #include "company_base.h"
 #include "station_type.h"
@@ -29,18 +30,29 @@
 #include "vehicle_func.h"
 #include "gui.h"
 #include "command_func.h"
+#include "air.h"
+#include "station_map.h"
+#include "pbs_air.h"
+#include "engine_base.h"
+#include "debug.h"
+#include "platform_func.h"
 
 #include "widgets/airport_widget.h"
+#include "widgets/road_widget.h"
 
 #include "safeguards.h"
 
 
+static AirType _cur_airtype;                   ///< Rail type of the current build-rail toolbar.
+static DiagDirection _hangar_dir;              ///< Exit direction for new hangars.
+static bool _remove_button_clicked;            ///< Flag whether 'remove' toggle-button is currently enabled
 static AirportClassID _selected_airport_class; ///< the currently visible airport class
 static int _selected_airport_index;            ///< the index of the selected airport in the current class or -1
 static byte _selected_airport_layout;          ///< selected airport layout number.
 bool _show_airport_tracks = 0;
 
 static void ShowBuildAirportPicker(Window *parent);
+static void ShowHangarPicker(Window *parent);
 
 SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout);
 
@@ -70,13 +82,18 @@ static void PlaceAirport(TileIndex tile)
 
 /** Airport build toolbar window handler. */
 struct BuildAirToolbarWindow : Window {
+	const bool allow_by_tile;
 	int last_user_action; // Last started user action.
 
-	BuildAirToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildAirToolbarWindow(bool allow_by_tile, WindowDesc *desc, AirType airtype) : Window(desc), allow_by_tile(allow_by_tile)
 	{
-		this->InitNested(window_number);
-		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
+		this->CreateNestedTree();
+		this->SetupAirToolbar(airtype);
+		this->FinishInitNested(TRANSPORT_AIR);
+
+		this->DisableWidget(WID_AT_REMOVE);
 		this->last_user_action = WIDGET_LIST_END;
+		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 
 		_show_airport_tracks = true;
 		MarkWholeScreenDirty();
@@ -103,36 +120,301 @@ struct BuildAirToolbarWindow : Window {
 		if (!CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) delete this;
 	}
 
+	virtual void SetStringParameters(int widget) const
+	{
+		if (widget == WID_AT_CAPTION) {
+			if (_settings_game.station.allow_modify_airports) {
+				SetDParam(0, GetAirTypeInfo(_cur_airtype)->strings.toolbar_caption);
+			} else {
+				SetDParam(0, STR_TOOLBAR_AIRCRAFT_CAPTION);
+			}
+		}
+	}
+
+	/**
+	 * Configures the air toolbar for airtype given
+	 * @param airtype the airtype to display
+	 */
+	void SetupAirToolbar(AirType airtype)
+	{
+		if (!this->allow_by_tile) return;
+		assert(airtype < AIRTYPE_END);
+
+		_cur_airtype = airtype;
+		SetWidgetDisabledState(WID_AT_CONVERT, airtype == AIRTYPE_WATER);
+		const AirTypeInfo *ati = GetAirTypeInfo(airtype);
+
+		this->GetWidget<NWidgetCore>(WID_AT_BUILD_TILE)->widget_data     = ati->gui_sprites.add_airport_tiles;
+		this->GetWidget<NWidgetCore>(WID_AT_TRACKS)->widget_data     = ati->gui_sprites.build_track_tile;
+		this->GetWidget<NWidgetCore>(WID_AT_CONVERT)->widget_data      = ati->gui_sprites.change_airtype;
+		this->GetWidget<NWidgetCore>(WID_AT_INFRASTRUCTURE_CATCH)->widget_data      = ati->gui_sprites.build_catchment_infra;
+		this->GetWidget<NWidgetCore>(WID_AT_INFRASTRUCTURE_NO_CATCH)->widget_data      = ati->gui_sprites.build_noncatchment_infra;
+		this->GetWidget<NWidgetCore>(WID_AT_RUNWAY_LANDING)->widget_data     = ati->gui_sprites.define_landing_runway;
+		this->GetWidget<NWidgetCore>(WID_AT_RUNWAY_NO_LANDING)->widget_data     = ati->gui_sprites.define_nonlanding_runway;
+		this->GetWidget<NWidgetCore>(WID_AT_TERMINAL)->widget_data      = ati->gui_sprites.build_terminal;
+		this->GetWidget<NWidgetCore>(WID_AT_HELIPAD)->widget_data     = ati->gui_sprites.build_helipad;
+		this->GetWidget<NWidgetCore>(WID_AT_HELIPORT)->widget_data  = ati->gui_sprites.build_heliport;
+		if (this->HasWidget(WID_AT_HANGAR_SMALL)) this->GetWidget<NWidgetCore>(WID_AT_HANGAR_SMALL)->widget_data  = ati->gui_sprites.build_hangar;
+		if (this->HasWidget(WID_AT_HANGAR_BIG)) this->GetWidget<NWidgetCore>(WID_AT_HANGAR_BIG)->widget_data  = ati->gui_sprites.build_hangar;
+
+		if (!AreHeliportsAvailable(airtype))DisableWidget(WID_AT_HELIPORT);
+	}
+
+	/**
+	 * Switch to another air type.
+	 * @param railtype New air type.
+	 */
+	void ModifyAirType(AirType airtype)
+	{
+		this->SetupAirToolbar(airtype);
+		this->ReInit();
+	}
+
+	/**
+	* The "remove"-button click proc of the build-air toolbar.
+	* @see BuildAirToolbarWindow::OnClick()
+	*/
+	void BuildAirClick_Remove()
+	{
+		if (this->IsWidgetDisabled(WID_AT_REMOVE)) return;
+		DeleteWindowById(WC_SELECT_STATION, 0);
+		this->ToggleWidgetLoweredState(WID_AT_REMOVE);
+		this->SetWidgetDirty(WID_AT_REMOVE);
+		_remove_button_clicked = this->IsWidgetLowered(WID_AT_REMOVE);
+
+		if (this->last_user_action == WID_AT_RUNWAY_LANDING ||
+				this->last_user_action == WID_AT_RUNWAY_NO_LANDING) {
+			SetObjectToPlace(SPR_CURSOR_ROAD_DEPOT, PAL_NONE, _remove_button_clicked ? HT_SPECIAL : HT_RECT, this->window_class, this->window_number);
+			this->LowerWidget(this->last_user_action);
+			this->SetWidgetLoweredState(WID_AT_REMOVE, _remove_button_clicked);
+		}
+
+		SetSelectionRed(_remove_button_clicked);
+		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+	}
+
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	{
+		if (!IsInsideMM(widget, WID_AT_BUILD_TILE, WID_AT_REMOVE)) return;
+
+		NWidgetCore *wid = this->GetWidget<NWidgetCore>(widget);
+
+		Dimension d = GetSpriteSize(wid->widget_data);
+		d.width += padding.width;
+		d.height += padding.height;
+		d.width = GetMinSizing(NWST_BUTTON, d.width);
+		d.height = GetMinSizing(NWST_BUTTON, d.height);
+		*size = d;
+	}
+
+	void UpdateRemoveWidgetStatus(int clicked_widget)
+	{
+		if (!this->allow_by_tile) return;
+
+		assert(clicked_widget != WID_AT_REMOVE);
+
+		if (clicked_widget >= WID_AT_REMOVE_FIRST && clicked_widget <= WID_AT_REMOVE_LAST) {
+			bool is_button_lowered = this->IsWidgetLowered(clicked_widget);
+			_remove_button_clicked &= is_button_lowered;
+			this->SetWidgetDisabledState(WID_AT_REMOVE, !is_button_lowered);
+			this->SetWidgetLoweredState(WID_AT_REMOVE, _remove_button_clicked);
+			SetSelectionRed(_remove_button_clicked);
+		} else {
+			/* When any other buttons that do not accept "removal",
+			 * raise and disable the removal button. */
+			this->DisableWidget(WID_AT_REMOVE);
+			this->RaiseWidget(WID_AT_REMOVE);
+			_remove_button_clicked = false;
+		}
+	}
+
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_AT_AIRPORT:
-				if (HandlePlacePushButton(this, WID_AT_AIRPORT, SPR_CURSOR_AIRPORT, HT_RECT)) {
+			case WID_AT_BUILD_TILE:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.add_airport_tiles, HT_RECT);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_TRACKS:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_track_tile, HT_RAIL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_REMOVE:
+				this->BuildAirClick_Remove();
+				return;
+
+			case WID_AT_PRE_AIRPORT:
+				if (HandlePlacePushButton(this, widget, SPR_CURSOR_AIRPORT, HT_RECT)) {
 					ShowBuildAirportPicker(this);
 					this->last_user_action = widget;
 				}
 				break;
 
 			case WID_AT_DEMOLISH:
-				HandlePlacePushButton(this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, widget, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_CONVERT:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.change_airtype, HT_RECT);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_INFRASTRUCTURE_CATCH:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_catchment_infra, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_INFRASTRUCTURE_NO_CATCH:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_noncatchment_infra, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_TERMINAL:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_terminal, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_HELIPAD:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_helipad, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_HELIPORT:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_heliport, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_HANGAR_SMALL:
+			case WID_AT_HANGAR_BIG:
+				if (HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.build_hangar, HT_RECT)) {
+					ShowHangarPicker(this);
+				}
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_RUNWAY_LANDING:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.define_landing_runway, _remove_button_clicked ? HT_SPECIAL : HT_RECT);
+				this->last_user_action = widget;
+				break;
+
+			case WID_AT_RUNWAY_NO_LANDING:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.define_nonlanding_runway, _remove_button_clicked ? HT_SPECIAL : HT_RECT);
 				this->last_user_action = widget;
 				break;
 
 			default: break;
 		}
+
+		UpdateRemoveWidgetStatus(widget);
+	}
+
+	uint32 FillInParamP2()
+	{
+		uint32 p2 = 0;
+		AirportTileType airport_tile_type;
+		bool allow_ctrl_key = true; // Whether diagonal area is allowed.
+		bool second_bit = false; // Used to indicate big hangars,
+				// infrastructure with catchment,
+				// runway allowing landing.
+
+		switch (this->last_user_action) {
+			default:
+			case WID_AT_BUILD_TILE:
+				airport_tile_type = ATT_SIMPLE_TRACK;
+				break;
+			case WID_AT_INFRASTRUCTURE_CATCH:
+				second_bit = true;
+				FALLTHROUGH;
+			case WID_AT_INFRASTRUCTURE_NO_CATCH:
+				airport_tile_type = ATT_INFRASTRUCTURE;
+				break;
+			case WID_AT_TRACKS:
+				airport_tile_type = ATT_SIMPLE_TRACK;
+				break;
+			case WID_AT_RUNWAY_LANDING:
+				second_bit = true;
+				FALLTHROUGH;
+			case WID_AT_RUNWAY_NO_LANDING:
+				allow_ctrl_key = false;
+				airport_tile_type = ATT_RUNWAY_START;
+				break;
+			case WID_AT_TERMINAL:
+			case WID_AT_HELIPAD:
+			case WID_AT_HELIPORT:
+				airport_tile_type = ATT_TERMINAL;
+				break;
+			case WID_AT_HANGAR_BIG:
+				second_bit = true;
+				FALLTHROUGH;
+			case WID_AT_HANGAR_SMALL:
+				allow_ctrl_key = false;
+				airport_tile_type = ATT_HANGAR;
+				break;
+		}
+
+		SB(p2,  0,  1, !_remove_button_clicked);
+		SB(p2,  1,  1, _ctrl_pressed && allow_ctrl_key);
+		SB(p2,  2,  1, second_bit);
+
+		if (airport_tile_type == ATT_TERMINAL) {
+			SB(p2,  4,  3, this->last_user_action - WID_AT_TERMINAL);
+		} else {
+			SB(p2,  4,  3, _thd.drawstyle & HT_DIR_MASK);
+		}
+
+		SB(p2,  7,  2, _hangar_dir);
+		SB(p2,  9,  4, _cur_airtype);
+
+		SB(p2, 13,  3, airport_tile_type);
+		SB(p2, 16, 16, INVALID_STATION); // no station to join
+		return p2;
 	}
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
 		EraseQueuedTouchCommand();
+
 		switch (this->last_user_action) {
-			case WID_AT_AIRPORT: {
+			case WID_AT_BUILD_TILE:
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_BUILD_STATION);
+				break;
+
+			case WID_AT_TRACKS:
+				VpStartPlaceSizing(tile, VPM_RAILDIRS, DDSP_PLACE_RAIL);
+				break;
+
+			case WID_AT_PRE_AIRPORT: {
 				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_BUILD_STATION);
 				break;
 			}
-
+ 
 			case WID_AT_DEMOLISH:
 				PlaceProc_DemolishArea(tile);
+				break;
+
+			case WID_AT_CONVERT:
+				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_BUILD_STATION);
+				break;
+
+			case WID_AT_HANGAR_SMALL:
+			case WID_AT_HANGAR_BIG:
+				VpStartPlaceSizing(tile, HasBit(_hangar_dir, 0) ? VPM_FIX_Y : VPM_FIX_X, DDSP_BUILD_STATION);
+				break;
+
+			case WID_AT_INFRASTRUCTURE_CATCH:
+			case WID_AT_INFRASTRUCTURE_NO_CATCH:
+			case WID_AT_TERMINAL:
+			case WID_AT_HELIPAD:
+			case WID_AT_HELIPORT:
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_BUILD_STATION);
+				break;
+
+			case WID_AT_RUNWAY_LANDING:
+			case WID_AT_RUNWAY_NO_LANDING:
+				VpStartPlaceSizing(tile, _remove_button_clicked ? VPM_SINGLE_TILE : VPM_X_OR_Y, DDSP_BUILD_STATION);
 				break;
 
 			default: NOT_REACHED();
@@ -141,28 +423,80 @@ struct BuildAirToolbarWindow : Window {
 
 	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
 	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+		if ((this->last_user_action == WID_AT_RUNWAY_LANDING ||
+				this->last_user_action == WID_AT_RUNWAY_NO_LANDING) &&
+				_remove_button_clicked) {
+			this->OnPlacePresize(pt, TileVirtXY(pt.x, pt.y));
+		} else {
+			VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+		}
 	}
 
 	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
 	{
 		if (pt.x == -1) return;
-		switch (select_proc) {
-			case DDSP_BUILD_STATION:
+
+		uint32 p2 = this->FillInParamP2();
+
+		switch (this->last_user_action) {
+			case WID_AT_BUILD_TILE: {
+				CommandContainer cmdcont = { start_tile, end_tile, p2, CMD_ADD_REM_AIRPORT | CMD_MSG(STR_ERROR_CAN_T_DO_THIS), NULL, ""};
+
+				ShowSelectStationIfNeeded(cmdcont, TileArea(start_tile, end_tile));
+				break;
+			}
+			case WID_AT_TRACKS:
+				TouchCommandP(start_tile, end_tile, p2, CMD_ADD_REM_TRACKS | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
+				break;
+			case WID_AT_PRE_AIRPORT:
 				assert(start_tile == end_tile);
 				PlaceAirport(end_tile);
 				break;
-			case DDSP_DEMOLISH_AREA:
+			case WID_AT_DEMOLISH:
 				GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+				break;
+			case WID_AT_CONVERT:
+				assert(start_tile == end_tile);
+				TouchCommandP(start_tile, 0, p2, CMD_CONVERT_AIRPORT | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
+				break;
+			case WID_AT_INFRASTRUCTURE_CATCH:
+			case WID_AT_INFRASTRUCTURE_NO_CATCH:
+			case WID_AT_TERMINAL:
+			case WID_AT_HELIPAD:
+			case WID_AT_HELIPORT:
+			case WID_AT_HANGAR_SMALL:
+			case WID_AT_HANGAR_BIG:
+			case WID_AT_RUNWAY_LANDING:
+			case WID_AT_RUNWAY_NO_LANDING:
+				TouchCommandP(start_tile, end_tile, p2, CMD_CHANGE_AIRPORT | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
+				if (_remove_button_clicked &&
+					(this->last_user_action == WID_AT_RUNWAY_LANDING || this->last_user_action == WID_AT_RUNWAY_NO_LANDING)) {
+					VpStartPreSizing();
+				}
 				break;
 			default: NOT_REACHED();
 		}
+	}
+	
+	virtual void OnPlacePresize(Point pt, TileIndex tile_from)
+	{
+		assert(this->last_user_action == WID_AT_RUNWAY_LANDING ||
+				this->last_user_action == WID_AT_RUNWAY_NO_LANDING);
+		assert(_remove_button_clicked);
+		if (!IsValidTile(tile_from) || !IsAirportTile(tile_from) ||
+				!IsRunwayExtreme(tile_from) || (this->last_user_action == WID_AT_RUNWAY_LANDING) != IsLandingTypeTile(tile_from)) {
+			VpSetPresizeRange(tile_from, tile_from);
+			return;
+		}
+
+		VpSetPresizeRange(GetStartPlatformTile(tile_from), GetOtherStartPlatformTile(tile_from));
 	}
 
 	virtual void OnPlaceObjectAbort()
 	{
 		this->RaiseButtons();
 
+		DeleteWindowById(WC_BUILD_DEPOT, TRANSPORT_AIR);
 		DeleteWindowById(WC_BUILD_STATION, TRANSPORT_AIR);
 		DeleteWindowById(WC_SELECT_STATION, 0);
 		EraseQueuedTouchCommand();
@@ -172,6 +506,8 @@ struct BuildAirToolbarWindow : Window {
 	static HotkeyList hotkeys;
 };
 
+Window *ShowBuildAirToolbar(AirType airtype);
+
 /**
  * Handler for global hotkeys of the BuildAirToolbarWindow.
  * @param hotkey Hotkey
@@ -180,52 +516,150 @@ struct BuildAirToolbarWindow : Window {
 static EventState AirportToolbarGlobalHotkeys(int hotkey)
 {
 	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) return ES_NOT_HANDLED;
-	Window *w = ShowBuildAirToolbar();
+	extern AirType _last_built_airtype;
+	Window *w = ShowBuildAirToolbar(_settings_game.station.allow_modify_airports ? _last_built_airtype : INVALID_AIRTYPE);
 	if (w == NULL) return ES_NOT_HANDLED;
 	return w->OnHotkey(hotkey);
 }
 
 static Hotkey airtoolbar_hotkeys[] = {
-	Hotkey('1', "airport", WID_AT_AIRPORT),
+	Hotkey('1', "airport", WID_AT_PRE_AIRPORT),
 	Hotkey('2', "demolish", WID_AT_DEMOLISH),
 	HOTKEY_LIST_END
 };
+
 HotkeyList BuildAirToolbarWindow::hotkeys("airtoolbar", airtoolbar_hotkeys, AirportToolbarGlobalHotkeys);
 
-static const NWidgetPart _nested_air_toolbar_widgets[] = {
+/**
+ * Add the depot icons depending on availability of construction.
+ * @param biggest_index Storage for collecting the biggest index used in the returned tree.
+ * @return Panel with company buttons.
+ * @post \c *biggest_index contains the largest used index in the tree.
+ */
+static NWidgetBase *MakeNWidgetHangars(int *biggest_index)
+{
+	NWidgetHorizontal *hor = new NWidgetHorizontal();
+
+	if (HasBit(_settings_game.depot.hangar_types, 0)) {
+		// small depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HANGAR_SMALL, 0, STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_SMALL));
+	}
+
+	if (HasBit(_settings_game.depot.hangar_types, 1)) {
+		// big depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HANGAR_BIG, 0, STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_BIG));
+	}
+
+	*biggest_index = WID_AT_HANGAR_BIG;
+	return hor;
+}
+
+static const NWidgetPart _nested_air_tile_toolbar_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
-		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetDataTip(STR_TOOLBAR_AIRCRAFT_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN, WID_AT_CAPTION), SetDataTip(STR_WHITE_STRING, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_STICKYBOX, COLOUR_DARK_GREEN),
+	EndContainer(),
+	NWidget(NWID_VERTICAL),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_BUILD_TILE), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(0, STR_TOOLBAR_AIRCRAFT_ADD_TILES),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_TRACKS), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(0, STR_TOOLBAR_AIRCRAFT_SET_TRACKS),
+
+			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
+
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_INFRASTRUCTURE_CATCH), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_CATCHMENT),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_INFRASTRUCTURE_NO_CATCH), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_NO_CATCHMENT),
+
+			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
+
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_REMOVE), SetFill(0, 1),
+					SetDataTip(SPR_IMG_REMOVE, STR_AIRPORT_TOOLBAR_TOOLTIP_TOGGLE_BUILD_REMOVE_FOR),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_DEMOLISH), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
+
+			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
+
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_PRE_AIRPORT), SetFill(0, 1), SetMinimalSize(22, 22),
+					SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP),
+		EndContainer(),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_RUNWAY_LANDING), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_LANDING),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_RUNWAY_NO_LANDING), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_NO_LANDING),
+			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
+
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_TERMINAL), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_BUILD_TERMINAL),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HELIPAD), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_BUILD_HELIPAD),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HELIPORT), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_BUILD_HELIPORT),
+			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
+			NWidgetFunction(MakeNWidgetHangars),
+			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_CONVERT), SetFill(0, 1),
+					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_CHANGE_AIRTYPE),
+		EndContainer(),
+	EndContainer(),
+};
+
+static const NWidgetPart _nested_air_nontile_toolbar_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN, WID_AT_CAPTION), SetDataTip(STR_BLACK_STRING, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 		NWidget(WWT_STICKYBOX, COLOUR_DARK_GREEN),
 	EndContainer(),
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_AIRPORT), SetFill(0, 1), SetMinimalSize(42, 22), SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRCRAFT_BUILD_AIRPORT_TOOLTIP),
+		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_PRE_AIRPORT), SetFill(0, 1), SetMinimalSize(42, 22),
+				SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP),
 		NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_DEMOLISH), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
 	EndContainer(),
 };
 
-static WindowDesc _air_toolbar_desc(
+static WindowDesc _air_tile_toolbar_desc(
 	WDP_ALIGN_TOOLBAR, "toolbar_air", 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_air_toolbar_widgets, lengthof(_nested_air_toolbar_widgets),
+	_nested_air_tile_toolbar_widgets, lengthof(_nested_air_tile_toolbar_widgets),
 	&BuildAirToolbarWindow::hotkeys
+);
+
+static WindowDesc _air_nontile_toolbar_desc(
+	WDP_ALIGN_TOOLBAR, "toolbar_air_nontile", 0, 0,
+	WC_BUILD_TOOLBAR, WC_NONE,
+	WDF_CONSTRUCTION,
+	_nested_air_nontile_toolbar_widgets, lengthof(_nested_air_nontile_toolbar_widgets)
 );
 
 /**
  * Open the build airport toolbar window
- *
  * If the terraform toolbar is linked to the toolbar, that window is also opened.
- *
+ * @param airtype air type for constructing (a valid air type or
+ * 			INVALID_AIRTYPE if the build-airports-by-tile is dissabled).
  * @return newly opened airport toolbar, or NULL if the toolbar could not be opened.
  */
-Window *ShowBuildAirToolbar()
+Window *ShowBuildAirToolbar(AirType airtype)
 {
 	if (!Company::IsValidID(_local_company)) return NULL;
 
 	DeleteToolbarLinkedWindows();
-	return AllocateWindowDescFront<BuildAirToolbarWindow>(&_air_toolbar_desc, TRANSPORT_AIR);
+
+	if (airtype != INVALID_AIRTYPE) {
+		// check setting
+		assert(_settings_game.station.allow_modify_airports);
+	}
+
+	_cur_airtype = airtype;
+	_remove_button_clicked = false;
+
+	if (airtype == INVALID_AIRTYPE) {
+		return new BuildAirToolbarWindow(false, &_air_nontile_toolbar_desc, airtype);
+	} else {
+		return new BuildAirToolbarWindow(true, &_air_tile_toolbar_desc, airtype);
+	}
 }
 
 class BuildAirportWindow : public PickerWindowBase {
@@ -602,9 +1036,9 @@ static const NWidgetPart _nested_build_airport_widgets[] = {
 			NWidget(NWID_SPACER), SetMinimalSize(14, 0), SetFill(1, 0),
 			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
 				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_AP_BTN_DONTHILIGHT), SetMinimalSize(60, 12), SetFill(1, 0),
-											SetDataTip(STR_STATION_BUILD_COVERAGE_OFF, STR_STATION_BUILD_COVERAGE_AREA_OFF_TOOLTIP),
+				SetDataTip(STR_STATION_BUILD_COVERAGE_OFF, STR_STATION_BUILD_COVERAGE_AREA_OFF_TOOLTIP),
 				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_AP_BTN_DOHILIGHT), SetMinimalSize(60, 12), SetFill(1, 0),
-											SetDataTip(STR_STATION_BUILD_COVERAGE_ON, STR_STATION_BUILD_COVERAGE_AREA_ON_TOOLTIP),
+				SetDataTip(STR_STATION_BUILD_COVERAGE_ON, STR_STATION_BUILD_COVERAGE_AREA_ON_TOOLTIP),
 			EndContainer(),
 			NWidget(NWID_SPACER), SetMinimalSize(14, 0), SetFill(1, 0),
 		EndContainer(),
@@ -624,8 +1058,200 @@ static void ShowBuildAirportPicker(Window *parent)
 	new BuildAirportWindow(&_build_airport_desc, parent);
 }
 
+struct BuildHangarWindow : public PickerWindowBase {
+	BuildHangarWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	{
+		this->CreateNestedTree();
+		this->LowerWidget(_hangar_dir + WID_BROD_DEPOT_NE);
+		this->FinishInitNested(TRANSPORT_AIR);
+	}
+
+	uint GetHangarSpriteHeight() const { return 35; }
+
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	{
+		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
+
+		size->height = max(size->height, (uint)ScaleGUIPixels(2 * TILE_SIZE + this->GetHangarSpriteHeight() + WD_FRAMERECT_TOP + WD_MATRIX_BOTTOM));
+		size->width = max(size->width, (uint)ScaleGUIPixels(4 * TILE_SIZE + WD_FRAMERECT_LEFT + WD_MATRIX_RIGHT));
+	}
+
+	virtual void DrawWidget(const Rect &r, int widget) const
+	{
+		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
+
+		int x = Center(r.left + ScaleGUIPixels(TILE_PIXELS), r.right - r.left, ScaleGUIPixels(2 * TILE_PIXELS));
+		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetHangarSpriteHeight(). */
+		int y = Center(r.top + ScaleGUIPixels(WD_FRAMERECT_TOP - WD_MATRIX_BOTTOM + this->GetHangarSpriteHeight()),
+				r.bottom - r.top, ScaleGUIPixels(TILE_PIXELS + this->GetHangarSpriteHeight())) + IsWidgetLowered(widget) * WD_GUI_UNIT;
+
+		DiagDirection dir = (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE);
+		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
+		extern const DrawTileSprites _airport_hangars[][4];
+		const DrawTileSprites *dts = &_airport_hangars[_cur_airtype][dir];
+		DrawSprite(dts->ground.sprite, PAL_NONE, x, y);
+		DrawOrigTileSeqInGUI(x, y, dts, palette);
+	}
+
+	virtual void OnClick(Point pt, int widget, int click_count)
+	{
+		switch (widget) {
+			case WID_BROD_DEPOT_NW:
+			case WID_BROD_DEPOT_NE:
+			case WID_BROD_DEPOT_SW:
+			case WID_BROD_DEPOT_SE:
+				this->RaiseWidget(_hangar_dir + WID_BROD_DEPOT_NE);
+				_hangar_dir = (DiagDirection)(widget - WID_BROD_DEPOT_NE);
+				this->LowerWidget(_hangar_dir + WID_BROD_DEPOT_NE);
+				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+				EraseQueuedTouchCommand();
+				this->SetDirty();
+				break;
+
+			default:
+				break;
+		}
+	}
+};
+
+static const NWidgetPart _nested_build_hangar_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN, WID_BROD_CAPTION), SetDataTip(STR_BUILD_HANGAR_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_DARK_GREEN),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
+		NWidget(NWID_HORIZONTAL_LTR),
+			NWidget(NWID_SPACER), SetMinimalSize(3, 0), SetFill(1, 0),
+			NWidget(NWID_VERTICAL),
+				NWidget(WWT_IMGBTN, COLOUR_GREY, WID_BROD_DEPOT_NW), SetSizingType(NWST_BUTTON), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_BUILD_HANGAR_ORIENTATION_TOOLTIP),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 2),
+				NWidget(WWT_IMGBTN, COLOUR_GREY, WID_BROD_DEPOT_SW), SetSizingType(NWST_BUTTON),  SetDataTip(SPR_IMG_ROAD_DEPOT, STR_BUILD_HANGAR_ORIENTATION_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_SPACER), SetMinimalSize(2, 0),
+			NWidget(NWID_VERTICAL),
+				NWidget(WWT_IMGBTN, COLOUR_GREY, WID_BROD_DEPOT_NE), SetSizingType(NWST_BUTTON), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_BUILD_HANGAR_ORIENTATION_TOOLTIP),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 2),
+				NWidget(WWT_IMGBTN, COLOUR_GREY, WID_BROD_DEPOT_SE), SetSizingType(NWST_BUTTON), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_BUILD_HANGAR_ORIENTATION_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_SPACER), SetMinimalSize(3, 0), SetFill(1, 0),
+		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
+	EndContainer(),
+};
+
+static WindowDesc _build_hangar_desc(
+	WDP_AUTO, NULL, 0, 0,
+	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
+	WDF_CONSTRUCTION,
+	_nested_build_hangar_widgets, lengthof(_nested_build_hangar_widgets)
+);
+
+static void ShowHangarPicker(Window *parent)
+{
+	new BuildHangarWindow(&_build_hangar_desc, parent);
+}
+
+/** Set the initial (default) airtype to use */
+static void SetDefaultAirGui()
+{
+	if (_local_company == COMPANY_SPECTATOR || !Company::IsValidID(_local_company)) return;
+
+	extern AirType _last_built_airtype;
+	AirType at = (AirType)(_settings_client.gui.default_air_type + AIRTYPE_END);
+	if (at == DEF_AIRTYPE_MOST_USED) {
+		/* Find the most used air type */
+		AirType count[AIRTYPE_END];
+		memset(count, 0, sizeof(count));
+		for (TileIndex t = 0; t < MapSize(); t++) {
+			if (IsAirportTile(t)) {
+				count[GetAirportType(t)]++;
+				}
+		}
+
+		at = AIRTYPE_GRAVEL;
+		for (AirType a = AIRTYPE_ASPHALT; a < AIRTYPE_END; a++) {
+			if (count[a] >= count[at]) at = a;
+		}
+
+		/* No rail, just get the first available one */
+		if (count[at] == 0) at = DEF_AIRTYPE_FIRST;
+	}
+	switch (at) {
+		case DEF_AIRTYPE_FIRST:
+			at = AIRTYPE_GRAVEL;
+			while (at < AIRTYPE_END && !HasAirTypeAvail(_local_company, at)) at++;
+			break;
+
+		case DEF_AIRTYPE_LAST:
+			at = GetBestAirType(_local_company);
+			break;
+
+		default:
+			break;
+	}
+
+	_last_built_airtype = _cur_airtype = at;
+	BuildAirToolbarWindow *w = dynamic_cast<BuildAirToolbarWindow *>(FindWindowById(WC_BUILD_TOOLBAR, TRANSPORT_AIR));
+	if (w != NULL) w->ModifyAirType(_cur_airtype);
+}
+
+/**
+ * Compare railtypes based on their sorting order.
+ * @param first  The railtype to compare to.
+ * @param second The railtype to compare.
+ * @return True iff the first should be sorted before the second.
+ */
+static int CDECL CompareAirTypes(const DropDownListItem * const *first, const DropDownListItem * const *second)
+{
+	return GetAirTypeInfo((AirType)(*first)->result)->sorting_order < GetAirTypeInfo((AirType)(*second)->result)->sorting_order;
+}
+
+/**
+ * Create a drop down list for all the air types of the local company.
+ * @param for_replacement Whether this list is for the replacement window.
+ * @return The populated and sorted #DropDownList.
+ */
+DropDownList *GetAirTypeDropDownList(bool for_replacement)
+{
+	AirTypes used_airtypes = AIRTYPES_NONE;
+
+	/* Find the used railtypes. */
+	Engine *e;
+	FOR_ALL_ENGINES_OF_TYPE(e, VEH_AIRCRAFT) {
+		if (!HasBit(e->info.climates, _settings_game.game_creation.landscape)) continue;
+
+		used_airtypes |= GetAirTypeInfo(e->u.air.airtype)->introduces_airtypes;
+	}
+
+	/* Get the date introduced railtypes as well. */
+	used_airtypes = AddDateIntroducedAirTypes(used_airtypes, MAX_DAY);
+
+	const Company *c = Company::Get(_local_company);
+	DropDownList *list = new DropDownList();
+	for (AirType at = AIRTYPE_BEGIN; at != AIRTYPE_END; at++) {
+		/* If it's not used ever, don't show it to the user. */
+		if (!HasBit(used_airtypes, at)) continue;
+
+		const AirTypeInfo *ati = GetAirTypeInfo(at);
+		/* Skip rail type if it has no label */
+		if (ati->label == 0) continue;
+
+		StringID str = for_replacement ? ati->strings.replace_text : (ati->max_speed > 0 ? STR_TOOLBAR_RAILTYPE_VELOCITY : STR_JUST_STRING);
+		DropDownListParamStringItem *item = new DropDownListParamStringItem(str, at, !HasBit(c->avail_airtypes, at));
+		item->SetParam(0, ati->strings.menu_text);
+		item->SetParam(1, ati->max_speed);
+		*list->Append() = item;
+	}
+	QSortT(list->Begin(), list->Length(), CompareAirTypes);
+	return list;
+}
+
 void InitializeAirportGui()
 {
+	SetDefaultAirGui();
+
 	_selected_airport_class = APC_BEGIN;
 	_selected_airport_index = -1;
 }
+
