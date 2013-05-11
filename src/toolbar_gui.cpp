@@ -61,6 +61,7 @@
 /** Width of the toolbar, shared by statusbar. */
 uint _toolbar_width = 0;
 
+AirType _last_built_airtype;
 RailType _last_built_railtype;
 RoadType _last_built_roadtype;
 
