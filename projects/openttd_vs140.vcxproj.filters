@@ -438,6 +438,9 @@
     <ClInclude Include="..\src\airport_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\airport_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\animated_tile_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>

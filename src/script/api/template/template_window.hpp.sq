@@ -35,6 +35,8 @@ namespace SQConvert {
 	template <> inline int Return<ScriptWindow::AirportToolbarWidgets>(HSQUIRRELVM vm, ScriptWindow::AirportToolbarWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
 	template <> inline ScriptWindow::AirportPickerWidgets GetParam(ForceType<ScriptWindow::AirportPickerWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::AirportPickerWidgets)tmp; }
 	template <> inline int Return<ScriptWindow::AirportPickerWidgets>(HSQUIRRELVM vm, ScriptWindow::AirportPickerWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline ScriptWindow::RunwayPickerWidgets GetParam(ForceType<ScriptWindow::RunwayPickerWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::RunwayPickerWidgets)tmp; }
+	template <> inline int Return<ScriptWindow::RunwayPickerWidgets>(HSQUIRRELVM vm, ScriptWindow::RunwayPickerWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
 	template <> inline ScriptWindow::ReplaceVehicleWidgets GetParam(ForceType<ScriptWindow::ReplaceVehicleWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::ReplaceVehicleWidgets)tmp; }
 	template <> inline int Return<ScriptWindow::ReplaceVehicleWidgets>(HSQUIRRELVM vm, ScriptWindow::ReplaceVehicleWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
 	template <> inline ScriptWindow::BootstrapBackgroundWidgets GetParam(ForceType<ScriptWindow::BootstrapBackgroundWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::BootstrapBackgroundWidgets)tmp; }
