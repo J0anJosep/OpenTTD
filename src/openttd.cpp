@@ -27,6 +27,7 @@
 #include "news_func.h"
 #include "fios.h"
 #include "aircraft.h"
+#include "airport_gui.h"
 #include "roadveh.h"
 #include "train.h"
 #include "ship.h"
@@ -951,6 +952,7 @@ static void MakeNewGameDone()
 	SetLocalCompany(COMPANY_FIRST);
 
 	InitializeRailGUI();
+	InitializeAirportGui();
 
 #ifdef ENABLE_NETWORK
 	/* We are the server, we start a new company (not dedicated),
