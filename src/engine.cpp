@@ -807,6 +807,7 @@ void EnginesDailyLoop()
 	Company *c;
 	FOR_ALL_COMPANIES(c) {
 		c->avail_railtypes = AddDateIntroducedRailTypes(c->avail_railtypes, _date);
+		c->avail_airtypes = AddDateIntroducedAirTypes(c->avail_airtypes, _date);
 	}
 
 	if (_cur_year >= _year_engine_aging_stops) return;
@@ -1173,10 +1174,15 @@ bool IsEngineBuildable(EngineID engine, VehicleType type, CompanyID company)
 
 	if (!e->IsEnabled()) return false;
 
-	if (type == VEH_TRAIN && company != OWNER_DEITY) {
+	if (company == OWNER_DEITY) return true;
+
+	if (type == VEH_TRAIN) {
 		/* Check if the rail type is available to this company */
 		const Company *c = Company::Get(company);
 		if (((GetRailTypeInfo(e->u.rail.railtype))->compatible_railtypes & c->avail_railtypes) == 0) return false;
+	} else if (type == VEH_AIRCRAFT) {
+		const Company *c = Company::Get(company);
+		if (((GetAirTypeInfo(e->u.air.airtype))->compatible_airtypes & c->avail_airtypes) == 0) return false;
 	}
 
 	return true;

@@ -50,6 +50,8 @@
 #include "../subsidy_func.h"
 #include "../newgrf.h"
 #include "../engine_func.h"
+#include "../airport_gui.h"
+#include "../air.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
 #include "../smallmap_gui.h"
@@ -1358,6 +1360,7 @@ bool AfterLoadGame()
 	FOR_ALL_COMPANIES(c) {
 		c->avail_railtypes = GetCompanyRailtypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadtypes(c->index);
+		c->avail_airtypes = GetCompanyAirTypes(c->index);
 	}
 
 	if (!IsSavegameVersionBefore(27)) AfterLoadStations();
@@ -3146,6 +3149,7 @@ bool AfterLoadGame()
 				v->Next()->cargo.Truncate();
 			}
 		}
+		InitializeAirportGui();
 	}
 
 	/* Road stops is 'only' updating some caches */
