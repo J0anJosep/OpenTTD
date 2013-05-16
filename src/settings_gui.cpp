@@ -1763,6 +1763,7 @@ static SettingsContainer &GetSettingsTree()
 				viewports->Add(new SettingEntry("gui.loading_indicators"));
 				viewports->Add(new SettingEntry("gui.show_track_reservation"));
 				viewports->Add(new SettingEntry("gui.show_water_tracks"));
+				viewports->Add(new SettingEntry("gui.show_airport_tracks"));
 			}
 
 			SettingsPage *construction = interface->Add(new SettingsPage(STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION));

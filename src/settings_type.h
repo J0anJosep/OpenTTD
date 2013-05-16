@@ -132,6 +132,7 @@ struct GUISettings {
 	byte   news_message_timeout;             ///< how much longer than the news message "age" should we keep the message in the history
 	bool   show_track_reservation;           ///< highlight reserved tracks on rail.
 	bool   show_water_tracks;                ///< highlight tracks on water.
+	bool   show_airport_tracks;              ///< highlight tracks on airports.
 	uint8  default_signal_type;              ///< the signal type to build by default.
 	uint8  cycle_signal_types;               ///< what signal types to cycle with the build signal tool.
 	byte   station_numtracks;                ///< the number of platforms to default on for rail stations
