@@ -2959,6 +2959,21 @@ static bool ClickTile_Station(TileIndex tile)
 		DoCommandP(tile, 0, 0, CMD_ROTATE_DOCK_TRACKS | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
 	} else {
 		ShowStationViewWindow(bst->index);
+		if (IsAirportTile(tile)) {
+			// print debug info of the airport
+			Station *st = Station::GetByTile(tile);
+			DEBUG(misc, 0, "Debug info of airport: #Air type: %i", st->airport.air_type);
+			DEBUG(misc, 0, "Debug info of airport: #Depot ID: %i (INVALID %i)", st->airport.depot_id, INVALID_DEPOT);
+			if (st->airport.depot_id != INVALID_DEPOT) {
+				Depot *dep = Depot::Get(st->airport.depot_id);
+				DEBUG(misc, 0, "Debug info of airport: #Hangars: %i", dep->depot_tiles.Length());
+			}
+			DEBUG(misc, 0, "Debug info of airport: #Terminals: %i", st->airport.terminals.Length());
+			DEBUG(misc, 0, "Debug info of airport: #Helipads: %i", st->airport.helipads.Length());
+			DEBUG(misc, 0, "Debug info of airport: #Runways: %i", st->airport.runways.Length());
+			DEBUG(misc, 0, "Debug info of airport: #Noise level: %i", CalculateNoiseLevel(st));
+			DEBUG(misc, 0, "End");
+		}
 	}
 	return true;
 }
