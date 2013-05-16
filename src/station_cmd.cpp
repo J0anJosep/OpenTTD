@@ -2776,6 +2776,23 @@ void DrawAirportTracks(const TileInfo *ti)
 	}
 }
 
+static void DrawAirportFences(TileInfo *ti)
+{
+	assert(IsAirportTile(ti->tile));
+	StationID st_id = GetStationIndex(ti->tile);
+	static const uint8 x_off_air_fence[4] = {0, 0, TILE_SIZE, 0};
+	static const uint8 y_off_air_fence[4] = {0, TILE_SIZE, 0, 0};
+
+	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
+	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
+		TileIndex neighbour = TileAddByDiagDir(ti->tile, dir);
+		if (IsValidTile(neighbour) && IsAirportTileOfStation(neighbour, st_id)) continue;
+		AddSortableSpriteToDraw(SPR_TRACK_FENCE_FLAT_Y - (dir % 2), palette,
+		ti->x + x_off_air_fence[dir], ti->y + y_off_air_fence[dir], (dir % 2) ? 16 : 1, (dir % 2) ? 1 : 16, 4, ti->z);
+	}
+}
+
+
 static void DrawTile_Station(TileInfo *ti)
 {
 	const NewGRFSpriteLayout *layout = NULL;
@@ -3003,6 +3020,7 @@ draw_default_foundation:
 
 			if (IsAirportTile(ti->tile)) {
 				if (_show_airport_tracks && MayHaveAirTracks(ti->tile)) DrawAirportTracks(ti);
+				DrawAirportFences(ti);
 			} else if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation) {
 				/* PBS debugging, draw reserved tracks darker. */
 				if (HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
