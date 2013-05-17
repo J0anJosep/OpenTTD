@@ -25,17 +25,16 @@
  * @param flags Information about the class of FTA.
  * @param delta_z Height of the airport above the land.
  */
-#define AIRPORT_GENERIC(name, terminals, flags, delta_z) \
+#define AIRPORT_GENERIC(name, terminals, delta_z) \
 	static AirportFTAClass _airportfta_ ## name(_airport_moving_data_ ## name, terminals, \
-			_airport_entries_ ## name, flags, _airport_fta_ ## name, delta_z);
+			_airport_entries_ ## name, _airport_fta_ ## name, delta_z);
 
 /**
  * Define an airport.
  * @param name Suffix of the names of the airport data.
- * @param short_strip Airport has a short land/take-off strip.
  */
-#define AIRPORT(name, short_strip) \
-	AIRPORT_GENERIC(name, _airport_terminal_ ## name, AirportFTAClass::ALL | (short_strip ? AirportFTAClass::SHORT_STRIP : (AirportFTAClass::Flags)0), 0)
+#define AIRPORT(name) \
+	AIRPORT_GENERIC(name, _airport_terminal_ ## name, 0)
 
 /**
  * Define a heliport.
@@ -44,19 +43,19 @@
  * @param delta_z Height of the airport above the land.
  */
 #define HELIPORT(name, delta_z) \
-	AIRPORT_GENERIC(name, NULL, AirportFTAClass::HELICOPTERS, delta_z)
+	AIRPORT_GENERIC(name, NULL, delta_z)
 
-AIRPORT(country, true)
-AIRPORT(city, false)
+AIRPORT(country)
+AIRPORT(city)
 HELIPORT(heliport, 60)
-AIRPORT(metropolitan, false)
-AIRPORT(international, false)
-AIRPORT(commuter, true)
+AIRPORT(metropolitan)
+AIRPORT(international)
+AIRPORT(commuter)
 HELIPORT(helidepot, 0)
-AIRPORT(intercontinental, false)
+AIRPORT(intercontinental)
 HELIPORT(helistation, 0)
 HELIPORT(oilrig, 54)
-AIRPORT_GENERIC(dummy, NULL, AirportFTAClass::ALL, 0)
+AIRPORT_GENERIC(dummy, NULL, 0)
 
 #undef HELIPORT
 #undef AIRPORT
@@ -112,13 +111,11 @@ AirportFTAClass::AirportFTAClass(
 	const AirportMovingData *moving_data_,
 	const byte *terminals_,
 	const byte *entry_points_,
-	Flags flags_,
 	const AirportFTAbuildup *apFA,
 	byte delta_z_
 ) :
 	moving_data(moving_data_),
 	terminals(terminals_),
-	flags(flags_),
 	nofelements(AirportGetNofElements(apFA)),
 	entry_points(entry_points_),
 	delta_z(delta_z_)

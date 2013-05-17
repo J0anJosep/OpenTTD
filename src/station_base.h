@@ -28,6 +28,7 @@ typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
 extern StationPool _station_pool;
 
 static const byte INITIAL_STATION_RATING = 175;
+static const uint8 SHORT_STRIP_LENGTH = 4;
 
 /**
  * Flow statistics telling how much flow should be sent along a link. This is
@@ -371,6 +372,8 @@ struct Airport : public TileArea {
 	inline bool HasHelipad() const { return this->GetNumHelipads() > 0; }
 
 	inline uint GetNumTerminals() const { return this->terminals.Length(); }
+
+	inline bool HasLongStrip() const { return this->longest_landing > SHORT_STRIP_LENGTH; }
 };
 
 typedef SmallVector<Industry *, 2> IndustryVector;

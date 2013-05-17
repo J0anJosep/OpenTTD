@@ -143,19 +143,10 @@ struct AirportFTAbuildup;
 /** Finite sTate mAchine (FTA) of an airport. */
 struct AirportFTAClass {
 public:
-	/** Bitmask of airport flags. */
-	enum Flags {
-		AIRPLANES   = 0x1,                     ///< Can planes land on this airport type?
-		HELICOPTERS = 0x2,                     ///< Can helicopters land on this airport type?
-		ALL         = AIRPLANES | HELICOPTERS, ///< Mask to check for both planes and helicopters.
-		SHORT_STRIP = 0x4,                     ///< This airport has a short landing strip, dangerous for fast aircraft.
-	};
-
 	AirportFTAClass(
 		const AirportMovingData *moving_data,
 		const byte *terminals,
 		const byte *entry_points,
-		Flags flags,
 		const AirportFTAbuildup *apFA,
 		byte delta_z
 	);
@@ -176,14 +167,10 @@ public:
 	const AirportMovingData *moving_data; ///< Movement data.
 	struct AirportFTA *layout;            ///< state machine for airport
 	const byte *terminals;                ///< %Array with the number of terminal groups, followed by the number of terminals in each group.
-	Flags flags;                          ///< Flags for this airport type.
 	byte nofelements;                     ///< number of positions the airport consists of
 	const byte *entry_points;             ///< when an airplane arrives at this airport, enter it at position entry_point, index depends on direction
 	byte delta_z;                         ///< Z adjustment for helicopter pads
 };
-
-DECLARE_ENUM_AS_BIT_SET(AirportFTAClass::Flags)
-
 
 /** Internal structure used in openttd - Finite sTate mAchine --> FTA */
 struct AirportFTA {

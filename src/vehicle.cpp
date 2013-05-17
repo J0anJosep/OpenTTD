@@ -2931,8 +2931,9 @@ bool CanVehicleUseStation(EngineID engine_type, const Station *st)
 			return (st->facilities & FACIL_DOCK) != 0;
 
 		case VEH_AIRCRAFT:
-			return (st->facilities & FACIL_AIRPORT) != 0 &&
-					(st->airport.GetFTA()->flags & (e->u.air.subtype & AIR_CTOL ? AirportFTAClass::AIRPLANES : AirportFTAClass::HELICOPTERS)) != 0;
+			if ((st->facilities & FACIL_AIRPORT) == 0) return false;
+			if (e->u.air.subtype != AIR_HELI) return st->airport.HasLanding();
+			else return st->airport.HasHelipad();
 
 		default:
 			return false;
