@@ -227,6 +227,7 @@ enum {
 	GHK_TOGGLE_INVISIBILITY = GHK_TOGGLE_TRANSPARENCY + 9,
 	GHK_TRANSPARENCY_TOOLBAR = GHK_TOGGLE_INVISIBILITY + 8,
 	GHK_TRANSPARANCY,
+	GHK_TOUCHSCREEN,
 	GHK_CHAT,
 	GHK_CHAT_ALL,
 	GHK_CHAT_COMPANY,
@@ -323,6 +324,11 @@ struct MainWindow : Window
 
 			case GHK_DIRTY_BLOCKS:
 				ToggleDirtyBlocks();
+				return ES_HANDLED;
+
+			case GHK_TOUCHSCREEN:
+				_settings_client.gui.touchscreen_mode = CycleUp(_settings_client.gui.touchscreen_mode); // cycle through
+				ResetTabletWindow();
 				return ES_HANDLED;
 		}
 
@@ -511,6 +517,8 @@ static Hotkey global_hotkeys[] = {
 	Hotkey('8' | WKC_CTRL | WKC_SHIFT, "invisibility_catenary", GHK_TOGGLE_INVISIBILITY + 7),
 	Hotkey('X' | WKC_CTRL, "transparency_toolbar", GHK_TRANSPARENCY_TOOLBAR),
 	Hotkey('X', "toggle_transparency", GHK_TRANSPARANCY),
+	Hotkey('N', "toggle_touchscreen_control", GHK_TOUCHSCREEN),
+
 #ifdef ENABLE_NETWORK
 	Hotkey(_ghk_chat_keys, "chat", GHK_CHAT),
 	Hotkey(_ghk_chat_all_keys, "chat_all", GHK_CHAT_ALL),
