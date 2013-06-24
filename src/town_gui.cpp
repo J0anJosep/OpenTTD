@@ -1074,6 +1074,10 @@ public:
 		this->UpdateButtons(true);
 	}
 
+	~FoundTownWindow() {
+		if (_thd.GetCallbackWnd() == this) this->OnPlaceObjectAbort();
+	}
+
 	void RandomTownName()
 	{
 		this->townnamevalid = GenerateTownName(&this->townnameparts);
