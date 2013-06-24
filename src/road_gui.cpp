@@ -70,21 +70,6 @@ void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 }
 
 /**
- * Callback to start placing a bridge.
- * @param tile Start tile of the bridge.
- */
-static void PlaceRoad_Bridge(TileIndex tile, Window *w)
-{
-	if (IsBridgeTile(tile)) {
-		TileIndex other_tile = GetOtherTunnelBridgeEnd(tile);
-		Point pt = {0, 0};
-		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);
-	} else {
-		VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
-	}
-}
-
-/**
  * Callback executed after a build road tunnel command has been called.
  *
  * @param result Whether the build succeeded.
@@ -518,8 +503,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEPOT:
-				DoCommandP(tile, _cur_roadtype << 2 | _road_depot_orientation, 0,
-						CMD_BUILD_ROAD_DEPOT | CMD_MSG(_road_type_infos[_cur_roadtype].err_depot), CcRoadDepot);
+				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_SINGLE_TILE);
 				break;
 
 			case WID_ROT_BUS_STATION:
@@ -531,12 +515,11 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_BUILD_BRIDGE:
-				PlaceRoad_Bridge(tile, this);
+				VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
 				break;
 
 			case WID_ROT_BUILD_TUNNEL:
-				DoCommandP(tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0,
-						CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildRoadTunnel);
+				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_BUILD_BRIDGE);
 				break;
 
 			default: NOT_REACHED();
@@ -593,7 +576,6 @@ struct BuildRoadToolbarWindow : Window {
 					/* Set dir = Y */
 					_place_road_flag |= RF_DIR_Y;
 				}
-
 				break;
 
 			default:
@@ -609,8 +591,19 @@ struct BuildRoadToolbarWindow : Window {
 			switch (select_proc) {
 				default: NOT_REACHED();
 				case DDSP_BUILD_BRIDGE:
-					if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-					ShowBuildBridgeWindow(start_tile, end_tile, TRANSPORT_ROAD, RoadTypeToRoadTypes(_cur_roadtype));
+					switch (last_started_action) {
+						case WID_ROT_BUILD_TUNNEL:
+							if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+							else VpStartPreSizing();
+							DoCommandP(end_tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0,
+									CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildRoadTunnel);
+							break;
+						case WID_ROT_BUILD_BRIDGE:
+							if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+							ShowBuildBridgeWindow(start_tile, end_tile, TRANSPORT_ROAD, RoadTypeToRoadTypes(_cur_roadtype));
+							break;
+						default: NOT_REACHED();
+					}
 					break;
 
 				case DDSP_DEMOLISH_AREA:
@@ -651,6 +644,14 @@ struct BuildRoadToolbarWindow : Window {
 					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_TRUCK, CMD_REMOVE_ROAD_STOP | CMD_MSG(_road_type_infos[_cur_roadtype].err_remove_station[ROADSTOP_TRUCK]), CcPlaySound1D);
 					break;
 				}
+
+				case DDSP_SINGLE_TILE:
+					/* Build depot. */
+					assert(start_tile == end_tile);
+					assert(last_started_action == WID_ROT_DEPOT);
+					DoCommandP(start_tile, _cur_roadtype << 2 | _road_depot_orientation, 0,
+						CMD_BUILD_ROAD_DEPOT | CMD_MSG(_road_type_infos[_cur_roadtype].err_depot), CcRoadDepot);
+				break;
 			}
 		}
 	}
