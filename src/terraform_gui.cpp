@@ -163,6 +163,7 @@ struct TerraformToolbarWindow : Window {
 
 	~TerraformToolbarWindow()
 	{
+		if (_thd.GetCallbackWnd() == this) this->OnPlaceObjectAbort();
 	}
 
 	virtual void OnInit()
@@ -286,6 +287,7 @@ struct TerraformToolbarWindow : Window {
 	virtual void OnPlaceObjectAbort()
 	{
 		this->RaiseButtons();
+		ResetObjectToPlace();
 	}
 
 	static HotkeyList hotkeys;
