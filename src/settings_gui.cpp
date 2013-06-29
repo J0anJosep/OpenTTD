@@ -1539,6 +1539,7 @@ static SettingsContainer &GetSettingsTree()
 			}
 
 			interface->Add(new SettingEntry("gui.autosave"));
+			interface->Add(new SettingEntry("gui.touchscreen_mode"));
 			interface->Add(new SettingEntry("gui.toolbar_pos"));
 			interface->Add(new SettingEntry("gui.statusbar_pos"));
 			interface->Add(new SettingEntry("gui.prefer_teamchat"));
