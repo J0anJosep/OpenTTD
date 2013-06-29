@@ -67,6 +67,7 @@
 #include "industry.h"
 #include "autoreplace_base.h"
 #include "zoning.h"
+#include "toolbar_gui.h"
 
 #include "void_map.h"
 #include "station_base.h"
@@ -1103,6 +1104,12 @@ static bool ZoomMinMaxChanged(int32 p1)
 		UpdateCursorSize();
 		LoadStringWidthTable();
 	}
+	return true;
+}
+
+static bool TouchscreenModeChanged(int32 p1)
+{
+	//ResetTabletWindow();
 	return true;
 }
 
