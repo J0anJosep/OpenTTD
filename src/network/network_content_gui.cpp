@@ -595,7 +595,7 @@ public:
 	{
 		switch (widget) {
 			case WID_NCL_FILTER_CAPT:
-				DrawString(r.left, r.right, r.top, STR_CONTENT_FILTER_TITLE, TC_FROMSTRING, SA_RIGHT);
+				DrawString(r.left, r.right, Center(r.top, r.bottom - r.top), STR_CONTENT_FILTER_TITLE, TC_FROMSTRING, SA_RIGHT);
 				break;
 
 			case WID_NCL_DETAILS:
@@ -635,17 +635,14 @@ public:
 		const NWidgetBase *nwi_name = this->GetWidget<NWidgetBase>(WID_NCL_NAME);
 		const NWidgetBase *nwi_type = this->GetWidget<NWidgetBase>(WID_NCL_TYPE);
 
-		int line_height = max(this->checkbox_size.height, (uint)FONT_HEIGHT_NORMAL);
-
 		/* Fill the matrix with the information */
-		int sprite_y_offset = WD_MATRIX_TOP + (line_height - this->checkbox_size.height) / 2 - 1;
-		int text_y_offset = WD_MATRIX_TOP + (line_height - FONT_HEIGHT_NORMAL) / 2;
+		Dimension sprite_dim = GetSpriteSize(SPR_BOX_EMPTY);
 		uint y = r.top;
 		int cnt = 0;
 		for (ConstContentIterator iter = this->content.Get(this->vscroll->GetPosition()); iter != this->content.End() && cnt < this->vscroll->GetCapacity(); iter++, cnt++) {
 			const ContentInfo *ci = *iter;
 
-			if (ci == this->selected) GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 1, PC_GREY);
+			if (ci == this->selected) GfxFillRect(r.left + 1, y + WD_FRAMERECT_TOP, r.right - 1, y + this->resize.step_height - WD_FRAMERECT_BOTTOM, PC_GREY);
 
 			SpriteID sprite;
 			SpriteID pal = PAL_NONE;
@@ -657,12 +654,13 @@ public:
 				case ContentInfo::DOES_NOT_EXIST: sprite = SPR_BLOT; pal = PALETTE_TO_RED;   break;
 				default: NOT_REACHED();
 			}
-			DrawSprite(sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
+
+			DrawSprite(sprite, pal, Center(nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), nwi_checkbox->current_x, sprite_dim.width), Center(y, this->resize.step_height, sprite_dim.height + (pal == PAL_NONE ? 0 : -2)));
 
 			StringID str = STR_CONTENT_TYPE_BASE_GRAPHICS + ci->type - CONTENT_TYPE_BASE_GRAPHICS;
-			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, str, TC_BLACK, SA_HOR_CENTER);
+			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, Center(y, this->resize.step_height), str, TC_BLACK, SA_HOR_CENTER);
 
-			DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
+			DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, Center(y,this->resize.step_height), ci->name, TC_BLACK);
 			y += this->resize.step_height;
 		}
 	}
