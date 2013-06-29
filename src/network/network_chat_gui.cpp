@@ -486,7 +486,7 @@ struct NetworkChatWindow : public Window {
 		if (this->dtype == DESTTYPE_CLIENT) {
 			SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
 		}
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, this->dest_string, TC_BLACK, SA_RIGHT);
+		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), this->dest_string, TC_BLACK, SA_RIGHT);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
