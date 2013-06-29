@@ -71,7 +71,7 @@ static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left
 
 	DrawPixelInfo *old_dpi = _cur_dpi;
 	_cur_dpi = &tmp_dpi;
-	DrawString(pos, INT16_MAX, 0, buffer, TC_LIGHT_BLUE, SA_LEFT | SA_FORCE);
+	DrawString(pos, INT16_MAX, Center(0, bottom - top), buffer, TC_LIGHT_BLUE, SA_LEFT | SA_FORCE);
 	_cur_dpi = old_dpi;
 
 	return (_current_text_dir == TD_RTL) ? (pos < right - left) : (pos + width > 0);
@@ -196,17 +196,15 @@ struct StatusBarWindow : Window {
 
 				if (!this->reminder_timeout.HasElapsed()) {
 					Dimension icon_size = GetSpriteSize(SPR_UNREAD_NEWS);
-					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, r.top + WD_FRAMERECT_TOP + (int)(FONT_HEIGHT_NORMAL - icon_size.height) / 2);
+					int center_icon = CenterBounds(r.top, r.bottom, icon_size.height);
+					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, center_icon);
 				}
 				break;
 		}
 
-		if (str != INVALID_STRING_ID) DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_FROMSTRING, SA_HOR_CENTER);
-
-		if (widget == WID_S_MIDDLE && this->reminder_timeout > 0) {
-			Dimension icon_size = GetSpriteSize(SPR_UNREAD_NEWS);
-			DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, r.top + WD_FRAMERECT_TOP + (int)(FONT_HEIGHT_NORMAL - icon_size.height) / 2);
-		}
+		// revise: Center(r.top + WD_FRAMERECT_TOP, r.bottom - r.top);
+		int center_top = CenterBounds(r.top, r.bottom);
+		if (str != INVALID_STRING_ID) DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, center_top, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 
 	/**
