@@ -182,7 +182,7 @@ struct GroupDetailsWindow : Window {
 
 	inline void DrawDetails1stLine(const Rect &r) const
 	{
-		int y = r.top + WD_FRAMERECT_TOP;
+		int y = Center(r.top, this->tiny_step_height);
 		int left = r.left + WD_FRAMERECT_LEFT;
 		int right = r.right - WD_FRAMERECT_RIGHT;
 
@@ -205,8 +205,7 @@ struct GroupDetailsWindow : Window {
 
 	inline void DrawDetailsList(const Rect &r) const
 	{
-		int y = r.top + WD_FRAMERECT_TOP;
-		int vert_step = WD_FRAMERECT_TOP + FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
+		int y = Center(r.top, this->tiny_step_height);
 		int left = r.left + WD_FRAMERECT_LEFT;
 		int right = r.right - WD_FRAMERECT_RIGHT;
 		switch (tab) {
@@ -215,7 +214,7 @@ struct GroupDetailsWindow : Window {
 					SetDParam(0, stat->profit_last_year);
 					SetDParam(1, stat->profit_last_year / stat->num_profit_vehicle);
 					DrawString(left, right, y, STR_GROUP_DETAILS_GENERAL_PROFIT);
-					y += vert_step;
+					y += this->tiny_step_height;
 					SetDParam(0, stat->min_profit_vehicle >> 8);
 					DrawString(left, right, y, STR_GROUP_DETAILS_GENERAL_MINIMUM_PROFIT);
 				}
@@ -237,7 +236,7 @@ struct GroupDetailsWindow : Window {
 						SetDParam(5, STR_EMPTY);
 					}
 					DrawString(left, right, y, STR_GROUP_DETAILS_TIMETABLE_DETAILS, list->GetOrderListTypeColour());
-					y += vert_step;
+					y += this->tiny_step_height;
 				}
 				break;
 			}
@@ -261,7 +260,7 @@ struct GroupDetailsWindow : Window {
 						SetDParam(2, i);
 						SetDParam(3, stat->max_cargo[i]);
 						DrawString(left, right, y, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
-						y += vert_step;
+						y += this->tiny_step_height;
 					}
 				}
 				break;
