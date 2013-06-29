@@ -209,7 +209,7 @@ struct FilterWindowBase : Window, FilterLists {
 
 		uint lines_to_skip = 0;
 		uint n = 0;                        // number of items shown
-		int y = r.top + WD_FRAMERECT_TOP;  // vertical position for next item to be drawn
+		int y = Center(r.top, this->tiny_step);
 
 		switch (this->tab) {
 			case FWT_TOWNS:
