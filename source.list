@@ -27,6 +27,7 @@ effectvehicle.cpp
 elrail.cpp
 engine.cpp
 fileio.cpp
+filters/filter_active.cpp
 fios.cpp
 fontcache.cpp
 fontdetection.cpp
@@ -196,6 +197,11 @@ engine_type.h
 error.h
 fileio_func.h
 fileio_type.h
+filters/filter_active.h
+filters/filter_element.h
+filters/filter_enums.h
+filters/filter_lists.h
+filters/filter_window_gui.h
 fios.h
 fontcache.h
 fontdetection.h
@@ -466,6 +472,7 @@ depot_gui.cpp
 dock_gui.cpp
 engine_gui.cpp
 error_gui.cpp
+filters/filter_window_gui.cpp
 fios_gui.cpp
 genworld_gui.cpp
 goal_gui.cpp
@@ -531,6 +538,7 @@ widgets/dropdown_widget.h
 widgets/engine_widget.h
 widgets/error_widget.h
 widgets/fios_widget.h
+widgets/filter_widget.h
 widgets/genworld_widget.h
 widgets/goal_widget.h
 widgets/graph_widget.h
