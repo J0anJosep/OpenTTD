@@ -31,6 +31,7 @@
 #include "../../widgets/dropdown_widget.h"
 #include "../../widgets/engine_widget.h"
 #include "../../widgets/error_widget.h"
+#include "../../widgets/filter_widget.h"
 #include "../../widgets/fios_widget.h"
 #include "../../widgets/genworld_widget.h"
 #include "../../widgets/goal_widget.h"
@@ -1286,6 +1287,33 @@ public:
 		WID_EM_CAPTION                               = ::WID_EM_CAPTION,                               ///< Caption of the window.
 		WID_EM_FACE                                  = ::WID_EM_FACE,                                  ///< Error title.
 		WID_EM_MESSAGE                               = ::WID_EM_MESSAGE,                               ///< Error message.
+	};
+
+	/* automatically generated from ../../widgets/filter_widget.h */
+	/** Widgets for the #VehicleGroupFilterWindow,
+	 * 			#CatchmentAreaWindow,
+	 * 			#IndustryFilterWindow
+	 * 			#TownWindowFilter,
+	 * 			#StationFilterWindow classes. */
+	enum FilterWindowWidgets {
+		FW_WIDGET_CAPTION                            = ::FW_WIDGET_CAPTION,
+
+		FW_WIDGET_TOWNS                              = ::FW_WIDGET_TOWNS,                              ///< Town tab
+		FW_WIDGET_COMPANIES                          = ::FW_WIDGET_COMPANIES,                          ///< Owners tab
+		FW_WIDGET_CARGO                              = ::FW_WIDGET_CARGO,                              ///< Cargotypes tab (for catchment area window, production)
+		FW_WIDGET_CARGO_ACCEPTANCE                   = ::FW_WIDGET_CARGO_ACCEPTANCE,                   ///< Cargotypes acceptance tab
+		FW_WIDGET_STATION_FACILITIES                 = ::FW_WIDGET_STATION_FACILITIES,                 ///< Airport, dock, bus station, truck station or rail station
+		FW_WIDGET_STATIONS                           = ::FW_WIDGET_STATIONS,                           ///< Stations tab
+		FW_WIDGET_ORDERS                             = ::FW_WIDGET_ORDERS,                             ///< Orders/timetable tab
+		FW_WIDGET_VEHICLE_GROUP_PROPERTIES           = ::FW_WIDGET_VEHICLE_GROUP_PROPERTIES,           ///< Vehicle properties
+		FW_WIDGET_CATCHMENT_AREA_PROPERTIES          = ::FW_WIDGET_CATCHMENT_AREA_PROPERTIES,          ///< Catchment area properties
+		FW_WIDGET_TOWN_PROPERTIES                    = ::FW_WIDGET_TOWN_PROPERTIES,                    ///< Town properties
+		FW_WIDGET_STATE                              = ::FW_WIDGET_STATE,                              ///< Selected items for filtering tab
+		FW_WIDGET_RESET                              = ::FW_WIDGET_RESET,                              ///< Reset tab
+
+		FW_LIST                                      = ::FW_LIST,                                      ///< The list of elements
+		FW_SCROLLBAR                                 = ::FW_SCROLLBAR,                                 ///< Scrollbar for the list
+
 	};
 
 	/* automatically generated from ../../widgets/fios_widget.h */
