@@ -319,6 +319,7 @@
     <ClCompile Include="..\src\elrail.cpp" />
     <ClCompile Include="..\src\engine.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
+    <ClCompile Include="..\src\filters\filter_active.cpp" />
     <ClCompile Include="..\src\fios.cpp" />
     <ClCompile Include="..\src\fontcache.cpp" />
     <ClCompile Include="..\src\fontdetection.cpp" />
@@ -457,6 +458,11 @@
     <ClInclude Include="..\src\error.h" />
     <ClInclude Include="..\src\fileio_func.h" />
     <ClInclude Include="..\src\fileio_type.h" />
+    <ClInclude Include="..\src\filters\filter_active.h" />
+    <ClInclude Include="..\src\filters\filter_element.h" />
+    <ClInclude Include="..\src\filters\filter_enums.h" />
+    <ClInclude Include="..\src\filters\filter_lists.h" />
+    <ClInclude Include="..\src\filters\filter_window_gui.h" />
     <ClInclude Include="..\src\fios.h" />
     <ClInclude Include="..\src\fontcache.h" />
     <ClInclude Include="..\src\fontdetection.h" />
@@ -708,6 +714,7 @@
     <ClCompile Include="..\src\dock_gui.cpp" />
     <ClCompile Include="..\src\engine_gui.cpp" />
     <ClCompile Include="..\src\error_gui.cpp" />
+    <ClCompile Include="..\src\filters\filter_window_gui.cpp" />
     <ClCompile Include="..\src\fios_gui.cpp" />
     <ClCompile Include="..\src\genworld_gui.cpp" />
     <ClCompile Include="..\src\goal_gui.cpp" />
@@ -771,6 +778,7 @@
     <ClInclude Include="..\src\widgets\engine_widget.h" />
     <ClInclude Include="..\src\widgets\error_widget.h" />
     <ClInclude Include="..\src\widgets\fios_widget.h" />
+    <ClInclude Include="..\src\widgets\filter_widget.h" />
     <ClInclude Include="..\src\widgets\genworld_widget.h" />
     <ClInclude Include="..\src\widgets\goal_widget.h" />
     <ClInclude Include="..\src\widgets\graph_widget.h" />
