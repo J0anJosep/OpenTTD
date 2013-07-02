@@ -2721,6 +2721,7 @@ static void ChangeIndustryProduction(Industry *i, bool monthly)
 	if (closeit && !CheckIndustryCloseDownProtection(i->type)) {
 		i->prod_level = PRODLEVEL_CLOSURE;
 		SetWindowDirty(WC_INDUSTRY_VIEW, i->index);
+		InvalidateWindowData(WC_INDUSTRY_DIRECTORY, 0, 0);
 		str = indspec->closure_text;
 	}
 

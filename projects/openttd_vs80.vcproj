@@ -555,6 +555,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\filters\filter_active.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\fios.cpp"
 				>
 			</File>
@@ -1108,6 +1112,26 @@
 			</File>
 			<File
 				RelativePath=".\..\src\fileio_type.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\filters\filter_active.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\filters\filter_element.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\filters\filter_enums.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\filters\filter_lists.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\filters\filter_window_gui.h"
 				>
 			</File>
 			<File
@@ -2143,6 +2167,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\filters\filter_window_gui.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\fios_gui.cpp"
 				>
 			</File>
@@ -2400,6 +2428,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\widgets\fios_widget.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\widgets\filter_widget.h"
 				>
 			</File>
 			<File
