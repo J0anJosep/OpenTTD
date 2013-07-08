@@ -196,7 +196,7 @@ private:
 	{
 		/* Highlight the group if a vehicle is dragged over it */
 		if (g_id == this->group_over) {
-			GfxFillRect(left + WD_FRAMERECT_LEFT, y + WD_FRAMERECT_TOP, right - WD_FRAMERECT_RIGHT, y + this->tiny_step_height - WD_FRAMERECT_BOTTOM - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][7]);
+			GfxFillRect(left + WD_FRAMERECT_LEFT, y + WD_FRAMERECT_TOP + WD_MATRIX_TOP, right - WD_FRAMERECT_RIGHT, y + this->tiny_step_height - WD_FRAMERECT_BOTTOM - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][7]);
 		}
 
 		if (g_id == NEW_GROUP) return;
@@ -225,28 +225,28 @@ private:
 			}
 		}
 		int x = rtl ? right - WD_FRAMERECT_RIGHT - 8 - this->column_size[VGC_NAME].width - longer_name + 1 : left + WD_FRAMERECT_LEFT + 8;
-		DrawString(x, x + this->column_size[VGC_NAME].width + longer_name - 1, y + (this->tiny_step_height - this->column_size[VGC_NAME].height) / 2, str, colour);
+		DrawString(x, x + this->column_size[VGC_NAME].width + longer_name - 1, Center(y, this->tiny_step_height, this->column_size[VGC_NAME].height), str, colour);
 
 		/* draw autoreplace protection */
 		x = rtl ? x - 2 - this->column_size[VGC_PROTECT].width : x + 2 + this->column_size[VGC_NAME].width;
-		if (protection) DrawSprite(SPR_GROUP_REPLACE_PROTECT, PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_PROTECT].height) / 2);
+		if (protection) DrawSprite(SPR_GROUP_REPLACE_PROTECT, PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_PROTECT].height));
 
 		/* draw autoreplace status */
 		x = rtl ? x - 2 - this->column_size[VGC_AUTOREPLACE].width : x + 2 + this->column_size[VGC_PROTECT].width;
-		if (stats.autoreplace_defined) DrawSprite(SPR_GROUP_REPLACE_ACTIVE, stats.autoreplace_finished ? PALETTE_CRASH : PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_AUTOREPLACE].height) / 2);
+		if (stats.autoreplace_defined) DrawSprite(SPR_GROUP_REPLACE_ACTIVE, stats.autoreplace_finished ? PALETTE_CRASH : PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_AUTOREPLACE].height));
 
 		/* draw the profit icon */
 		x = rtl ? x - 2 - this->column_size[VGC_PROFIT].width : x + 2 + this->column_size[VGC_AUTOREPLACE].width;
-		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, x, y + (this->tiny_step_height - this->column_size[VGC_PROFIT].height) / 2);
+		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_PROFIT].height));
 
 		/* draw a timetable state indicator */
 		x = rtl ? x - 2 - this->column_size[VGC_TIMETABLE].width : x + 2 + this->column_size[VGC_PROFIT].width;
-		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, y + (this->tiny_step_height - this->column_size[VGC_TIMETABLE].height) / 2, STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, TC_BLACK);
+		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, Center(y, this->tiny_step_height, this->column_size[VGC_TIMETABLE].height), STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, TC_BLACK);
 
 		/* draw the number of vehicles of the group */
 		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_TIMETABLE].width;
 		SetDParam(0, stats.num_vehicle);
-		DrawString(x, x + this->column_size[VGC_NUMBER].width - 1, y + (this->tiny_step_height - this->column_size[VGC_NUMBER].height) / 2, STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
+		DrawString(x, x + this->column_size[VGC_NUMBER].width - 1, Center(y, this->tiny_step_height, this->column_size[VGC_NUMBER].height), STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
 	}
 
 	/**
@@ -534,15 +534,15 @@ public:
 	{
 		switch (widget) {
 			case WID_GL_ALL_VEHICLES:
-				DrawGroupInfo(r.top + WD_FRAMERECT_TOP, r.left, r.right, ALL_GROUP);
+				DrawGroupInfo(r.top, r.left, r.right, ALL_GROUP);
 				break;
 
 			case WID_GL_DEFAULT_VEHICLES:
-				DrawGroupInfo(r.top + WD_FRAMERECT_TOP, r.left, r.right, DEFAULT_GROUP);
+				DrawGroupInfo(r.top, r.left, r.right, DEFAULT_GROUP);
 				break;
 
 			case WID_GL_LIST_GROUP: {
-				int y1 = r.top + WD_FRAMERECT_TOP;
+				int y1 = r.top;
 				int max = min(this->group_sb->GetPosition() + this->group_sb->GetCapacity(), this->groups.Length());
 				for (int i = this->group_sb->GetPosition(); i < max; ++i) {
 					const Group *g = this->groups[i];
