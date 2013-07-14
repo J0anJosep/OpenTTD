@@ -361,35 +361,16 @@ struct Airport : public TileArea {
 		return this->GetSpec()->fsm;
 	}
 
-	/** Get the number of hangars on this airport. */
-	inline uint GetNumHangars() const { return this->hangars.Length(); }
-
 	/** Check if this airport has at least one hangar. */
-	inline bool HasHangar() const { return this->GetNumHangars() > 0; }
+	inline bool HasHangar() const { return this->depot_id != INVALID_DEPOT; }
 
-	/**
-	 * Get the first tile of the given hangar.
-	 * @param hangar_num The hangar to get the location of.
-	 * @pre hangar_num < GetNumHangars().
-	 * @return A tile with the given hangar.
-	 */
-	inline TileIndex GetHangarTile(uint hangar_num) const
-	{
-		assert(hangar_num < this->GetNumHangars());
-		return this->hangars[hangar_num];
-	}
+	/** Check if this airport has at least one helipad. */
+	inline uint GetNumHelipads() const { return this->helipads.Length(); }
 
-	/**
-	 * Get the hangar number of the hangar at a specific tile.
-	 * @param tile The tile to query.
-	 * @pre IsHangarTile(tile).
-	 * @return The hangar number of the hangar at the given tile.
-	 */
-	inline uint GetHangarNum(TileIndex tile) const {
-		int hangar_num = this->hangars.FindIndex(tile);
-		assert(hangar_num != -1);
-		return hangar_num;
-	}
+	/** Check if this airport has at least one helipad. */
+	inline bool HasHelipad() const { return this->GetNumHelipads() > 0; }
+
+	inline uint GetNumTerminals() const { return this->terminals.Length(); }
 };
 
 typedef SmallVector<Industry *, 2> IndustryVector;

@@ -22,22 +22,20 @@
  * Define a generic airport.
  * @param name Suffix of the names of the airport data.
  * @param terminals The terminals.
- * @param num_helipads Number of heli pads.
  * @param flags Information about the class of FTA.
  * @param delta_z Height of the airport above the land.
  */
-#define AIRPORT_GENERIC(name, terminals, num_helipads, flags, delta_z) \
+#define AIRPORT_GENERIC(name, terminals, flags, delta_z) \
 	static AirportFTAClass _airportfta_ ## name(_airport_moving_data_ ## name, terminals, \
-			num_helipads, _airport_entries_ ## name, flags, _airport_fta_ ## name, delta_z);
+			_airport_entries_ ## name, flags, _airport_fta_ ## name, delta_z);
 
 /**
  * Define an airport.
  * @param name Suffix of the names of the airport data.
- * @param num_helipads Number of heli pads.
  * @param short_strip Airport has a short land/take-off strip.
  */
-#define AIRPORT(name, num_helipads, short_strip) \
-	AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, AirportFTAClass::ALL | (short_strip ? AirportFTAClass::SHORT_STRIP : (AirportFTAClass::Flags)0), 0)
+#define AIRPORT(name, short_strip) \
+	AIRPORT_GENERIC(name, _airport_terminal_ ## name, AirportFTAClass::ALL | (short_strip ? AirportFTAClass::SHORT_STRIP : (AirportFTAClass::Flags)0), 0)
 
 /**
  * Define a heliport.
@@ -45,20 +43,20 @@
  * @param num_helipads Number of heli pads.
  * @param delta_z Height of the airport above the land.
  */
-#define HELIPORT(name, num_helipads, delta_z) \
-	AIRPORT_GENERIC(name, NULL, num_helipads, AirportFTAClass::HELICOPTERS, delta_z)
+#define HELIPORT(name, delta_z) \
+	AIRPORT_GENERIC(name, NULL, AirportFTAClass::HELICOPTERS, delta_z)
 
-AIRPORT(country, 0, true)
-AIRPORT(city, 0, false)
-HELIPORT(heliport, 1, 60)
-AIRPORT(metropolitan, 0, false)
-AIRPORT(international, 2, false)
-AIRPORT(commuter, 2, true)
-HELIPORT(helidepot, 1, 0)
-AIRPORT(intercontinental, 2, false)
-HELIPORT(helistation, 3, 0)
-HELIPORT(oilrig, 1, 54)
-AIRPORT_GENERIC(dummy, NULL, 0, AirportFTAClass::ALL, 0)
+AIRPORT(country, true)
+AIRPORT(city, false)
+HELIPORT(heliport, 60)
+AIRPORT(metropolitan, false)
+AIRPORT(international, false)
+AIRPORT(commuter, true)
+HELIPORT(helidepot, 0)
+AIRPORT(intercontinental, false)
+HELIPORT(helistation, 0)
+HELIPORT(oilrig, 54)
+AIRPORT_GENERIC(dummy, NULL, AirportFTAClass::ALL, 0)
 
 #undef HELIPORT
 #undef AIRPORT
@@ -113,7 +111,6 @@ AirportMovingData RotateAirportMovingData(const AirportMovingData *orig, Directi
 AirportFTAClass::AirportFTAClass(
 	const AirportMovingData *moving_data_,
 	const byte *terminals_,
-	const byte num_helipads_,
 	const byte *entry_points_,
 	Flags flags_,
 	const AirportFTAbuildup *apFA,
@@ -121,7 +118,6 @@ AirportFTAClass::AirportFTAClass(
 ) :
 	moving_data(moving_data_),
 	terminals(terminals_),
-	num_helipads(num_helipads_),
 	flags(flags_),
 	nofelements(AirportGetNofElements(apFA)),
 	entry_points(entry_points_),
