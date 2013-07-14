@@ -103,6 +103,9 @@ typedef TinyEnumT<AircraftMovement> AircraftMovementByte;
  * Aircraft, helicopters, rotors and their shadows belong to this class.
  */
 struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
+	AirTypeByte airtype;
+	AirTypes compatible_airtypes;
+
 	TrackdirByte trackdir;             ///< The track direction the aircraft is following.
 	TrackdirByte desired_trackdir;     ///< The track direction the aircraft should rotate to.
 	AircraftMovementByte cur_state;    ///< The type of movement the aircraft is doing. @see AircraftMovement revise replace state

@@ -52,6 +52,7 @@
 #include "gamelog.h"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/refresh.h"
+#include "air.h"
 
 #include "table/strings.h"
 
@@ -2957,10 +2958,19 @@ bool CanVehicleUseStation(EngineID engine_type, const Station *st)
 		case VEH_SHIP:
 			return (st->facilities & FACIL_DOCK) != 0;
 
-		case VEH_AIRCRAFT:
+		case VEH_AIRCRAFT: {
 			if ((st->facilities & FACIL_AIRPORT) == 0) return false;
-			if (e->u.air.subtype != AIR_HELI) return st->airport.HasLanding();
-			else return st->airport.HasHelipad();
+
+			const AircraftVehicleInfo *avi = &(e->u.air);
+			if (e->u.air.subtype == AIR_HELI && IsBuiltInHeliportTile(st->airport.tile) && st->index == GetStationIndex(st->airport.tile)) return true;
+			if (!IsCompatibleAirType(avi->airtype, st->airport.air_type)) return false;
+
+			if (e->u.air.subtype != AIR_HELI) {
+				return st->airport.HasLanding();
+			} else {
+				return st->airport.HasHelipad() || st->airport.HasLanding();
+			}
+		}
 
 		default:
 			return false;
