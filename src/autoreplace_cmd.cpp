@@ -12,6 +12,7 @@
 #include "stdafx.h"
 #include "company_func.h"
 #include "train.h"
+#include "air.h"
 #include "command_func.h"
 #include "engine_func.h"
 #include "vehicle_func.h"
@@ -86,6 +87,10 @@ bool CheckAutoreplaceValidity(EngineID from, EngineID to, CompanyID company)
 		case VEH_AIRCRAFT:
 			/* make sure that we do not replace a plane with a helicopter or vice versa */
 			if ((e_from->u.air.subtype & AIR_CTOL) != (e_to->u.air.subtype & AIR_CTOL)) return false;
+
+			/* make sure the airtypes are compatible */
+			if ((GetAirTypeInfo(e_from->u.air.airtype)->compatible_airtypes & GetAirTypeInfo(e_to->u.air.airtype)->compatible_airtypes) == 0) return false;
+
 			break;
 
 		default: break;

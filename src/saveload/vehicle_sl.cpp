@@ -723,6 +723,8 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 	static const SaveLoad _aircraft_desc[] = {
 		SLE_WRITEBYTE(Vehicle, type, VEH_AIRCRAFT),
 		SLE_VEH_INCLUDE(),
+		 SLE_CONDVAR(Aircraft, airtype,               SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, compatible_airtypes,   SLE_UINT32,     SL_RESET_AIRCRAFT, SL_MAX_VERSION), // revise should be NOSAVE?
 		 SLE_CONDVAR(Aircraft, trackdir,              SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, cur_state,             SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, next_tile,             SLE_UINT32,     SL_RESET_AIRCRAFT, SL_MAX_VERSION),

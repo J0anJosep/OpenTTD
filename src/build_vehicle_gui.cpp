@@ -33,6 +33,7 @@
 #include "core/geometry_func.hpp"
 #include "autoreplace_func.h"
 #include "depot_base.h"
+#include "air.h"
 
 #include "widgets/build_vehicle_widget.h"
 
@@ -990,6 +991,7 @@ struct BuildVehicleWindow : Window {
 	union {
 		RailTypes railtypes;                ///< Rail type to show, or #INVALID_RAILTYPES
 		RoadTypes roadtypes;                ///< Road type to show, or #ROADTYPES_ALL.
+		AirTypeByte airtype;                ///< Air type to show, or #AIRTYPE_END;
 	} filter;                                   ///< Filter to apply.
 	bool descending_sort_order;                 ///< Sort direction, @see _engine_sort_direction
 	byte sort_criteria;                         ///< Current sort criterium.
@@ -1188,7 +1190,10 @@ struct BuildVehicleWindow : Window {
 
 			if (!FilterSingleEngine(eid)) continue;
 
-			if (this->vehicle_type == VEH_AIRCRAFT && st !=NULL && !CanVehicleUseStation(eid, st)) continue;
+			if (this->vehicle_type == VEH_AIRCRAFT && st != NULL) {
+				const AircraftVehicleInfo *avi = &(e->u.air);
+				if (!IsCompatibleAirType(avi->airtype, st->airport.air_type)) continue;
+			}
 
 			if (this->vehicle_type == VEH_ROAD && !HasBit(this->filter.roadtypes, HasBit(EngInfo(eid)->misc_flags, EF_ROAD_TRAM) ? ROADTYPE_TRAM : ROADTYPE_ROAD)) continue;
 
@@ -1326,8 +1331,10 @@ struct BuildVehicleWindow : Window {
 			case VEH_ROAD:
 				this->filter.roadtypes = (depot == NULL) ? ROADTYPES_ALL : this->depot->r_types.road_types;
 				break;
-			case VEH_SHIP:
 			case VEH_AIRCRAFT:
+				this->filter.airtype   = (depot == NULL) ? AIRTYPE_END   : GetAirportType(depot->xy);
+				break;
+			case VEH_SHIP:
 				break;
 		}
 

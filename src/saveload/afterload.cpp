@@ -3121,6 +3121,10 @@ bool AfterLoadGame()
 				v->crashed_counter = 0; // Make aircraft disappear on next tick.
 				v->cargo.Truncate();
 				v->Next()->cargo.Truncate();
+				v->airtype = Engine::Get(v->engine_type)->u.air.airtype;
+				v->compatible_airtypes = GetAirTypeInfo(v->airtype)->compatible_airtypes;
+				//todo: add compatibility with current airtype when at an airport
+				if (IsAirportTile(v->tile))v->compatible_airtypes = GetAirTypeInfo(GetAirportType(v->tile))->compatible_airtypes;
 			}
 		}
 		InitializeAirportGui();
