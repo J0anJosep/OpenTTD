@@ -921,7 +921,7 @@ struct RefitWindow : public Window {
 			case WID_VR_VEHICLE_PANEL_DISPLAY: {
 				Vehicle *v = Vehicle::Get(this->window_number);
 				DrawVehicleImage(v, this->sprite_left + WD_FRAMERECT_LEFT, this->sprite_right - WD_FRAMERECT_RIGHT,
-					r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
+					r.top, r.bottom - r.top, INVALID_VEHICLE, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
 
 				/* Highlight selected vehicles. */
 				if (this->order != INVALID_VEH_ORDER_ID) break;
@@ -1611,8 +1611,10 @@ static int DrawSmallOrderList(const Group *g, int left, int right, int y)
  * @param selection Selected vehicle to draw a frame around
  * @param skip      Number of pixels to skip at the front (for scrolling)
  */
-void DrawVehicleImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip)
+void DrawVehicleImage(const Vehicle *v, int left, int right, int y, int height, VehicleID selection, EngineImageType image_type, int skip)
 {
+	y = Center(y, height, UnScaleByZoom(4 * GetVehicleHeight(v->type), ZOOM_LVL_GUI));
+
 	switch (v->type) {
 		case VEH_TRAIN:    DrawTrainImage(Train::From(v), left, right, y, selection, image_type, skip); break;
 		case VEH_ROAD:     DrawRoadVehImage(v, left, right, y, selection, image_type, skip);  break;
@@ -1719,7 +1721,7 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 		if (vector.Length() == 0) break;
 		Vehicle *v = vector[0];
 
-		DrawVehicleImage(v, left, right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+		DrawVehicleImage(v, left, right, y, line_height, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 		if (stat.num_profit_vehicle > 0) {
 			SetDParam(0, stat.profit_last_year);
 			SetDParam(1, stat.profit_last_year / stat.num_profit_vehicle);
@@ -1805,7 +1807,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		const Vehicle *v = this->vehicles[i];
 		SetDParam(0, v->GetDisplayProfitThisYear());
 		SetDParam(1, v->GetDisplayProfitLastYear());
-		DrawVehicleImage(v, left, right, y + FONT_HEIGHT_SMALL - 1, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+		DrawVehicleImage(v, left, right, y, line_height, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 		DrawString(left, right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 		if (v->name != NULL) {
 			/* The vehicle got a name so we will print it */
@@ -2594,12 +2596,12 @@ struct VehicleDetailsWindow : Window {
 
 				/* Articulated road vehicles use a complete line. */
 				if (v->type == VEH_ROAD && v->HasArticulatedPart()) {
-					DrawVehicleImage(v, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage(v, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top, r.bottom - r.top, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 				} else {
 					uint sprite_left  = rtl ? text_right : r.left;
 					uint sprite_right = rtl ? r.right : text_left;
 
-					DrawVehicleImage(v, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage(v, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top, r.bottom - r.top, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 				}
 				DrawVehicleDetails(v, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
 				break;
