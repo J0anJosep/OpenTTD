@@ -228,6 +228,7 @@ struct DepotWindow : Window {
 	VehicleID sel;
 	VehicleID vehicle_over; ///< Rail vehicle over which another one is dragged, \c INVALID_VEHICLE if none.
 	VehicleType type;
+	Depot *depot;
 	bool generate_list;
 	int hovered_widget; ///< Index of the widget being hovered during drag/drop. -1 if no drag is in progress.
 	VehicleList vehicle_list;
@@ -241,6 +242,9 @@ struct DepotWindow : Window {
 	{
 		assert(IsCompanyBuildableVehicleType(type)); // ensure that we make the call with a valid type
 
+		this->depot = Depot::Get(depot_id);
+		assert(type == this->depot->veh_type);
+		this->type = type;
 		this->sel = INVALID_VEHICLE;
 		this->vehicle_over = INVALID_VEHICLE;
 		this->generate_list = true;
@@ -261,7 +265,7 @@ struct DepotWindow : Window {
 		this->SetupWidgetData(type);
 		this->FinishInitNested(depot_id);
 
-		this->owner = GetTileOwner(Depot::Get(depot_id)->xy);
+		this->owner = this->depot->company;
 
 		OrderBackup::Reset();
 	}
@@ -376,7 +380,7 @@ struct DepotWindow : Window {
 			case WID_D_CAPTION: {
 				/* locate the depot struct */
 				SetDParam(0, this->type);
-				SetDParam(1, (this->type == VEH_AIRCRAFT) ? GetStationIndex(Depot::Get(this->window_number)->xy) : this->window_number);
+				SetDParam(1, (this->type == VEH_AIRCRAFT) ? GetStationIndex(this->depot->xy) : this->window_number);
 				break;
 			}
 			case WID_D_VEHICLE_LIST:
@@ -714,7 +718,7 @@ struct DepotWindow : Window {
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
-		TileIndex tile = Depot::Get(this->window_number)->xy;
+		TileIndex tile = this->depot->xy;
 		switch (widget) {
 			case WID_D_MATRIX: { // List
 				NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_D_MATRIX);
@@ -862,7 +866,7 @@ struct DepotWindow : Window {
 	 */
 	virtual bool OnVehicleSelect(const Vehicle *v)
 	{
-		if (DoCommandP(Depot::Get(this->window_number)->xy, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_TRAIN + v->type), CcCloneVehicle)) {
+		if (DoCommandP(this->depot->xy, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE | CMD_MSG(STR_ERROR_CAN_T_BUY_TRAIN + v->type), CcCloneVehicle)) {
 			ResetObjectToPlace();
 		}
 		return true;
@@ -1032,7 +1036,7 @@ static void DepotSellAllConfirmationCallback(Window *win, bool confirmed)
 {
 	if (confirmed) {
 		DepotWindow *w = (DepotWindow*)win;
-		DoCommandP(Depot::Get(w->window_number)->xy, w->type, 0, CMD_DEPOT_SELL_ALL_VEHICLES);
+		DoCommandP(w->depot->xy, w->type, 0, CMD_DEPOT_SELL_ALL_VEHICLES);
 	}
 }
 
