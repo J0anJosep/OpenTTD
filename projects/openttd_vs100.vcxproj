@@ -637,6 +637,7 @@
     <ClInclude Include="..\src\tgp.h" />
     <ClInclude Include="..\src\tile_cmd.h" />
     <ClInclude Include="..\src\tile_type.h" />
+    <ClInclude Include="..\src\tile_list.h" />
     <ClInclude Include="..\src\tilearea_type.h" />
     <ClInclude Include="..\src\tilehighlight_func.h" />
     <ClInclude Include="..\src\tilehighlight_type.h" />
