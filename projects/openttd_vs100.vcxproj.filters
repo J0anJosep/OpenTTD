@@ -1140,6 +1140,9 @@
     <ClInclude Include="..\src\tile_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\tile_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\tilearea_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
