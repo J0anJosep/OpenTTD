@@ -1823,6 +1823,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\tile_list.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\tilearea_type.h"
 				>
 			</File>
