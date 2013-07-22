@@ -83,4 +83,19 @@ static inline VehicleType GetDepotVehicleType(TileIndex t)
 	}
 }
 
+/** Return true if a tile belongs to a big depot. */
+static inline bool IsBigDepot(TileIndex tile) {
+	assert(IsValidTile(tile));
+	assert(IsDepotTile(tile));
+	if (IsAirportTile(tile)) return false; // revise: de moment
+	return HasBit(_m[tile].m5, 6);
+}
+
+/** Return true if a tile belongs to a big depot. */
+static inline bool IsBigDepotTile(TileIndex tile) {
+	if (!IsValidTile(tile)) return false;
+	if (!IsDepotTile(tile)) return false;
+	return IsBigDepot(tile);
+}
+
 #endif /* DEPOT_MAP_H */
