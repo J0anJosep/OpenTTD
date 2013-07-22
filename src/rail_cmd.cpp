@@ -1708,8 +1708,9 @@ CommandCost CmdConvertRail(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 							YapfNotifyTrackLayoutChange(tile, GetRailDepotTrack(tile));
 
 							/* Update build vehicle window related to this depot */
-							InvalidateWindowData(WC_VEHICLE_DEPOT, tile);
-							InvalidateWindowData(WC_BUILD_VEHICLE, tile);
+							DepotID depot_id = GetDepotIndex(tile);
+							InvalidateWindowData(WC_VEHICLE_DEPOT, depot_id);
+							InvalidateWindowData(WC_BUILD_VEHICLE, depot_id);
 						}
 						found_convertible_track = true;
 						cost.AddCost(RailConvertCost(type, totype));
@@ -3030,7 +3031,7 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 		if (v->Next() == nullptr) VehicleEnterDepot(v->First());
 		v->tile = tile;
 
-		InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
 		return VETSB_ENTERED_WORMHOLE;
 	}
 
