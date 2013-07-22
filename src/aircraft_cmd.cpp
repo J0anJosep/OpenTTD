@@ -1452,9 +1452,6 @@ void AircraftNextAirportPos_and_Order(Aircraft *v)
  * Aircraft is about to leave the hangar.
  * @param v Aircraft leaving.
  * @param exit_dir The direction the vehicle leaves the hangar.
- * @note This function is called in AfterLoadGame for old savegames, so don't rely
- *       on any data to be valid, especially don't rely on the fact that the vehicle
- *       is actually on the ground inside a depot.
  */
 void AircraftLeaveHangar(Aircraft *v, Direction exit_dir)
 {
@@ -1477,7 +1474,7 @@ void AircraftLeaveHangar(Aircraft *v, Direction exit_dir)
 
 	VehicleServiceInDepot(v);
 	SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
-	InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+	InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
 	SetWindowClassesDirty(WC_AIRCRAFT_LIST);
 }
 

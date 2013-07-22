@@ -2357,11 +2357,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (flags & DC_EXEC) {
-		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-			TileIndex tile_cur = st->airport.GetHangarTile(i);
-			OrderBackup::Reset(tile_cur, false);
-			CloseWindowById(WC_VEHICLE_DEPOT, tile_cur);
-		}
+		CloseWindowById(WC_VEHICLE_DEPOT, st->airport.depot_id);
 		st->airport.SetHangar(false);
 
 		const AirportSpec *as = st->airport.GetSpec();
@@ -3280,8 +3276,8 @@ static bool ClickTile_Station(TileIndex tile)
 	if (bst->facilities & FACIL_WAYPOINT) {
 		ShowWaypointWindow(Waypoint::From(bst));
 	} else if (IsHangar(tile)) {
-		const Station *st = Station::From(bst);
-		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
+		assert(Station::From(bst)->airport.HasHangar());
+		ShowDepotWindow(GetDepotIndex(tile));
 	} else {
 		ShowStationViewWindow(bst->index);
 	}

@@ -40,6 +40,7 @@
 #include "ship_cmd.h"
 #include <sstream>
 #include <iomanip>
+#include "depot_base.h"
 
 #include "table/strings.h"
 
@@ -164,7 +165,7 @@ std::tuple<CommandCost, VehicleID, uint, uint16> CmdBuildVehicle(DoCommandFlag f
 		}
 
 		if (flags & DC_EXEC) {
-			InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+			InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(tile));
 			InvalidateWindowClassesData(GetWindowClassForVehicleType(type), 0);
 			SetWindowDirty(WC_COMPANY, _current_company);
 			if (IsLocalCompany()) {
@@ -527,7 +528,7 @@ std::tuple<CommandCost, uint, uint16> CmdRefitVehicle(DoCommandFlag flags, Vehic
 			InvalidateWindowData(WC_VEHICLE_DETAILS, front->index);
 			InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 0);
 		}
-		SetWindowDirty(WC_VEHICLE_DEPOT, front->tile);
+		if (IsDepotTile(front->tile)) SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(front->tile));
 	} else {
 		/* Always invalidate the cache; querycost might have filled it. */
 		v->InvalidateNewGRFCacheOfChain();
@@ -609,7 +610,7 @@ CommandCost CmdStartStopVehicle(DoCommandFlag flags, VehicleID veh_id, bool eval
 		if (v->type != VEH_TRAIN) v->cur_speed = 0; // trains can stop 'slowly'
 		v->MarkDirty();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-		SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);
+		if (IsDepotTile(v->tile)) SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
 		SetWindowClassesDirty(GetWindowClassForVehicleType(v->type));
 		InvalidateWindowData(WC_VEHICLE_VIEW, v->index);
 	}
@@ -636,7 +637,7 @@ CommandCost CmdMassStartStopVehicle(DoCommandFlag flags, TileIndex tile, bool do
 		if (!GenerateVehicleSortList(&list, vli)) return CMD_ERROR;
 	} else {
 		/* Get the list of vehicles in the depot */
-		BuildDepotVehicleList(vli.vtype, tile, &list, nullptr);
+		BuildDepotVehicleList(vli.vtype, GetDepotIndex(tile), &list, nullptr);
 	}
 
 	for (uint i = 0; i < list.size(); i++) {
@@ -662,14 +663,15 @@ CommandCost CmdMassStartStopVehicle(DoCommandFlag flags, TileIndex tile, bool do
  */
 CommandCost CmdDepotSellAllVehicles(DoCommandFlag flags, TileIndex tile, VehicleType vehicle_type)
 {
-	VehicleList list;
+	assert(IsDepotTile(tile));
 
+	VehicleList list;
 	CommandCost cost(EXPENSES_NEW_VEHICLES);
 
 	if (!IsCompanyBuildableVehicleType(vehicle_type)) return CMD_ERROR;
 
 	/* Get the list of vehicles in the depot */
-	BuildDepotVehicleList(vehicle_type, tile, &list, &list);
+	BuildDepotVehicleList(vehicle_type, GetDepotIndex(tile), &list, &list);
 
 	CommandCost last_error = CMD_ERROR;
 	bool had_success = false;
@@ -702,7 +704,7 @@ CommandCost CmdDepotMassAutoReplace(DoCommandFlag flags, TileIndex tile, Vehicle
 	if (!IsDepotTile(tile) || !IsTileOwner(tile, _current_company)) return CMD_ERROR;
 
 	/* Get the list of vehicles in the depot */
-	BuildDepotVehicleList(vehicle_type, tile, &list, &list, true);
+	BuildDepotVehicleList(vehicle_type, GetDepotIndex(tile), &list, &list, true);
 
 	for (uint i = 0; i < list.size(); i++) {
 		const Vehicle *v = list[i];
