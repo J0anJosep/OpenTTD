@@ -2398,11 +2398,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (flags & DC_EXEC) {
-		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-			DeleteWindowById(
-				WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
-			);
-		}
+		DeleteWindowById(WC_VEHICLE_DEPOT, st->airport.depot_id);
 		st->airport.SetHangar(false);
 
 		const AirportSpec *as = st->airport.GetSpec();
