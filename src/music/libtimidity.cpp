@@ -13,6 +13,7 @@
 #include "../openttd.h"
 #include "../sound_type.h"
 #include "../debug.h"
+#include "../core/math_func.hpp"
 #include "libtimidity.h"
 #include "midifile.hpp"
 #include "../base_media_base.h"
@@ -24,6 +25,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <timidity.h>
+#include <SDL.h>
 
 #include "../safeguards.h"
 
@@ -42,6 +44,25 @@ static struct {
 	uint32 song_length;
 	uint32 song_position;
 } _midi; ///< Metadata about the midi we're playing.
+
+#ifdef __ANDROID__
+/* Android does not have Midi chip, we have to route the libtimidity output through SDL audio output */
+void Android_MidiMixMusic(Sint16 *stream, int len)
+{
+	if (_midi.status == MIDI_PLAYING) {
+		Sint16 buf[16384];
+		while( len > 0 )
+		{
+			int minlen = min(sizeof(buf), len);
+			mid_song_read_wave(_midi.song, stream, min(sizeof(buf), len*2));
+			for( Uint16 i = 0; i < minlen; i++ )
+				stream[i] += buf[i];
+			stream += minlen;
+			len -= minlen;
+		}
+	}
+}
+#endif /* __ANDROID__ */
 
 /** Factory for the libtimidity driver. */
 static FMusicDriver_LibTimidity iFMusicDriver_LibTimidity;
