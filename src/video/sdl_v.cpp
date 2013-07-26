@@ -26,6 +26,9 @@
 #include "../settings_type.h"
 #include "sdl_v.h"
 #include <SDL.h>
+#ifdef __ANDROID__
+#include <SDL_screenkeyboard.h>
+#endif
 
 #include "../safeguards.h"
 
@@ -352,6 +355,15 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	 * surface, for example). */
 	_requested_hwpalette = want_hwpalette;
 
+#ifdef __ANDROID__
+	SDL_Rect r;
+	r.h = SDL_ListModes(NULL, 0)[0]->h / 10;
+	r.w = r.h;
+	r.x = SDL_ListModes(NULL, 0)[0]->w - r.w;
+	r.y = SDL_ListModes(NULL, 0)[0]->h - r.h;
+	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT, &r);
+#endif
+
 	/* DO NOT CHANGE TO HWSURFACE, IT DOES NOT WORK */
 	newscreen = SDL_CALL SDL_SetVideoMode(w, h, bpp, SDL_SWSURFACE | (want_hwpalette ? SDL_HWPALETTE : 0) | (_fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE));
 	if (newscreen == NULL) {
@@ -511,6 +523,8 @@ static uint ConvertSdlKeyIntoMy(SDL_keysym *sym, WChar *character)
 	if (sym->scancode == 49) key = WKC_BACKSPACE;
 #elif defined(__sgi__)
 	if (sym->scancode == 22) key = WKC_BACKQUOTE;
+#elif defined(__ANDROID__)
+	if (sym->scancode == SDLK_BACKQUOTE) key = WKC_BACKQUOTE;
 #else
 	if (sym->scancode == 49) key = WKC_BACKQUOTE;
 #endif
@@ -575,7 +589,7 @@ int VideoDriver_SDL::PollEvent()
 			}
 			HandleMouseEvents();
 			break;
-
+#ifndef __ANDROID__
 		case SDL_ACTIVEEVENT:
 			if (!(ev.active.state & SDL_APPMOUSEFOCUS)) break;
 
@@ -586,7 +600,7 @@ int VideoDriver_SDL::PollEvent()
 				_cursor.in_window = false;
 			}
 			break;
-
+#endif /* not __ANDROID__ */
 		case SDL_QUIT:
 			HandleExitGameRequest();
 			break;
@@ -601,13 +615,14 @@ int VideoDriver_SDL::PollEvent()
 				HandleKeypress(keycode, character);
 			}
 			break;
-
+#ifndef __ANDROID__
 		case SDL_VIDEORESIZE: {
 			int w = max(ev.resize.w, 64);
 			int h = max(ev.resize.h, 64);
 			CreateMainSurface(w, h);
 			break;
 		}
+#endif /* not __ANDROID__ */
 		case SDL_VIDEOEXPOSE: {
 			/* Force a redraw of the entire screen. Note
 			 * that SDL 1.2 seems to do this automatically
@@ -639,6 +654,9 @@ const char *VideoDriver_SDL::Start(const char * const *parm)
 	SetupKeyboard();
 
 	_draw_threaded = GetDriverParam(parm, "no_threads") == NULL && GetDriverParam(parm, "no_thread") == NULL;
+#ifdef __ANDROID__
+	_draw_threaded = false;
+#endif
 
 	return NULL;
 }
