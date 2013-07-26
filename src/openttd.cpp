@@ -534,6 +534,11 @@ static const OptionData _options[] = {
  */
 int openttd_main(int argc, char *argv[])
 {
+#if defined(__ANDROID__)
+	char const zero = '0';
+	SetDebugString(&zero);
+#endif
+
 	char *musicdriver = NULL;
 	char *sounddriver = NULL;
 	char *videodriver = NULL;
