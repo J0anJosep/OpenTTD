@@ -2397,10 +2397,11 @@ void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clic
 	int colour = _colour_gradient[button_colour][2];
 	Dimension dim = NWidgetScrollbar::GetHorizontalDimension();
 
-	DrawFrameRect(x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
-	DrawFrameRect(x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_LEFT, PAL_NONE, x + WD_IMGBTN_LEFT, y + WD_IMGBTN_TOP);
-	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, x + WD_IMGBTN_LEFT + dim.width, y + WD_IMGBTN_TOP);
+	DrawFrameRect(x,               y, x + dim.width            - 1, y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
+	DrawFrameRect(x + dim.width  , y, x + SETTING_BUTTON_WIDTH - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
+	Dimension d = GetSpriteSize(SPR_ARROW_LEFT);
+	DrawSprite(SPR_ARROW_LEFT,  PAL_NONE, Center(x,               dim.width, d.width), Center(y, dim.height, d.height));
+	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, Center(x + dim.width,   dim.width, d.width), Center(y, dim.height, d.height));
 
 	/* Grey out the buttons that aren't clickable */
 	bool rtl = _current_text_dir == TD_RTL;
