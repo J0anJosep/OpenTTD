@@ -69,6 +69,7 @@
 #include "zoning.h"
 #include "pbs_water.h"
 #include "toolbar_gui.h"
+#include "depot_map.h"
 
 #include "void_map.h"
 #include "station_base.h"
@@ -1130,7 +1131,7 @@ static bool ChangeCoastalTracks(int32 p1)
 
 	Ship *s;
 	FOR_ALL_SHIPS(s) {
-		if (!s->IsInDepot()) return false;
+		if (!s->IsInDepot() || IsBigDepot(s->tile)) return false;
 	}
 
 	/* For all tiles of the map,
@@ -1149,7 +1150,7 @@ static bool ChangeShipReservation(int32 p1)
 
 	Ship *s;
 	FOR_ALL_SHIPS(s) {
-		if (!s->IsInDepot()) return false;
+		if (!s->IsInDepot() || IsBigDepot(s->tile)) return false;
 	}
 
 	return RedrawScreen(p1);
