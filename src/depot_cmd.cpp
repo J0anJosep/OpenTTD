@@ -18,6 +18,7 @@
 #include "vehicle_gui.h"
 #include "vehiclelist.h"
 #include "window_func.h"
+#include "date_func.h"
 
 #include "table/strings.h"
 
@@ -81,5 +82,77 @@ CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		VehicleType vt = GetDepotVehicleType(d->xy);
 		SetWindowDirty(GetWindowClassForVehicleType(vt), VehicleListIdentifier(VL_DEPOT_LIST, vt, GetTileOwner(d->xy), d->index).Pack());
 	}
+	return CommandCost();
+}
+
+/**
+ * Look for or check depot to join to, building a new one if necessary.
+ * @param ta The area of the new depot.
+ * @param veh_type The vehicle type of the new depot.
+ * @param join_to DepotID of the depot to join to.
+ *                     If INVALID_DEPOT, will look if it is possible to join to an existing depot.
+ *                     If NEW_DEPOT, will directly create a new depot.
+ * @param depot The pointer to the depot.
+ * @param build_big_depot True iff building a depot with multiple parts.
+ * @return command cost with the error or 'okay'
+ */
+CommandCost FindJoiningBigDepot(TileArea ta, VehicleType veh_type, DepotID &join_to, Depot *&depot, bool build_big_depot, DoCommandFlag flags)
+{
+	assert(build_big_depot || join_to == NEW_DEPOT);
+
+	/* Look for a joining station if needed. */
+	if (join_to == INVALID_DEPOT) {
+		assert(depot == NULL);
+		DepotID closest_depot = INVALID_DEPOT;
+
+		ta.AddRadius(1);
+
+		/* Check around to see if there's any depot there. */
+		TILE_AREA_LOOP(tile_cur, ta) {
+			if (IsValidTile(tile_cur) && IsBigDepotTile(tile_cur)) {
+				Depot *t = Depot::GetByTile(tile_cur);
+				assert(t != NULL);
+				assert(t->is_big_depot);
+				if (t->veh_type != veh_type) continue;
+				if (t->company != _current_company) continue;
+
+				if (closest_depot == INVALID_DEPOT) {
+					closest_depot = t->index;
+				} else if (closest_depot != t->index) {
+					if (!(flags & DC_GUI_TEST)) return_cmd_error(STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING);
+				}
+			}
+		}
+
+		if (closest_depot != INVALID_DEPOT) {
+			assert(Depot::IsValidID(closest_depot));
+			depot = Depot::Get(closest_depot);
+			assert(depot->is_big_depot);
+		}
+
+		join_to = depot == NULL ? NEW_DEPOT : depot->index;
+	}
+
+	/* At this point, join_to is NEW_DEPOT or a valid DepotID. */
+
+	if (join_to == NEW_DEPOT) {
+		/* New depot needed. */
+		if (!Depot::CanAllocateItem()) return CMD_ERROR;
+		if (flags & DC_EXEC) {
+			depot = new Depot(ta.tile, build_big_depot);
+			depot->build_date = _date;
+			depot->company = _current_company;
+			depot->veh_type = veh_type;
+		}
+	} else {
+		/* Joining depots. */
+		assert(Depot::IsValidID(join_to));
+		depot = Depot::Get(join_to);
+		assert(depot->company == _current_company);
+		assert(depot->veh_type == veh_type);
+		assert(depot->is_big_depot);
+		if (!depot->BeforeAddTiles(ta)) return CMD_ERROR;
+	}
+
 	return CommandCost();
 }
