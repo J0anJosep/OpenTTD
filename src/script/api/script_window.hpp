@@ -333,6 +333,12 @@ public:
 		WC_SELECT_STATION                            = ::WC_SELECT_STATION,
 
 		/**
+		 * Select depot (when joining depots); %Window numbers:
+		 *   - #Vehicle type = #JoinStationWidgets
+		 */
+		WC_SELECT_DEPOT                              = ::WC_SELECT_DEPOT,
+
+		/**
 		 * News window; %Window numbers:
 		 *   - 0 = #NewsWidgets
 		 */
