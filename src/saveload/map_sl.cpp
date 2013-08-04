@@ -13,6 +13,7 @@
 #include "../map_func.h"
 #include "../core/bitmath_func.hpp"
 #include "../fios.h"
+#include "../rail_map.h"
 
 #include "saveload.h"
 
@@ -199,6 +200,19 @@ static void Load_MAP5()
 		SlArray(buf, MAP_SL_BUF_SIZE, SLE_UINT8);
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _m[i++].m5 = buf[j];
 	}
+
+	if (!IsSavegameVersionBefore(SL_USE_DEPOT_IDS)) return;
+
+	for (TileIndex i = 0; i != size; i++) {
+		if (IsTileType(i, MP_WATER)) {
+			SB(_m[i].m5, 6, 1, GB(_m[i].m5, 4, 1));
+			SB(_m[i].m5, 4, 1, 0);
+		} else if (IsRailDepotTile(i)) {
+			assert(GetRailTileType(i) == RAIL_TILE_BIG_DEPOT);
+			SB(_m[i].m5, 6, 2, RAIL_TILE_DEPOT);
+		}
+	}
+
 }
 
 static void Save_MAP5()
