@@ -75,8 +75,8 @@ the array so you can quickly see what is used and what is not.
     <tr>
       <td rowspan="2">0</td>
       <td class="caption">ground</td>
-      <td class="bits" rowspan=27><span class=used title="Tile type">XXXX</span> <span class=used title="Presence and direction of bridge above">XX</span> <span class=used title="Tropic Zone: only meaningfull in tropic climate. It contains the definition of the available zones">XX</span></td>
-      <td class="bits" rowspan=27><span class=used title="Tile height">XXXX XXXX</span></td>
+      <td class="bits" rowspan=30><span class=used title="Tile type">XXXX</span> <span class=used title="Presence and direction of bridge above">XX</span> <span class=used title="Tropic Zone: only meaningfull in tropic climate. It contains the definition of the available zones">XX</span></td>
+      <td class="bits" rowspan=30><span class=used title="Tile height">XXXX XXXX</span></td>
       <td class="bits" rowspan=2><span class="free">OOO</span> <span class="option" title="Owner">~~~~~</span></td>
       <td class="bits"><span class="free">OOOO OOOO OOOO OOOO</span></td>
       <td class="bits"><span class="used" title="Type of hedge on NE border">XXX</span> <span class=used title="Snow presence">X</span><span class="free">OOOO</span></td>
@@ -91,9 +91,9 @@ the array so you can quickly see what is used and what is not.
       <td class="bits"><span class="free">OOOO OOOO</span></td>
     </tr>
     <tr>
-      <td rowspan=3>1</td>
+      <td rowspan=4>1</td>
       <td class="caption">rail</td>
-      <td class="bits" rowspan=6><span class="free">OOO</span> <span class=used title="Owner">XXXXX</span></td>
+      <td class="bits" rowspan=8><span class="free">OOO</span> <span class=used title="Owner">XXXXX</span></td>
       <td class="bits"><span class="free">OOOO</span> <span class=used title="Reserved tracks">XXXX</span> <span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class="free">OOOO</span> <span class=used title="Railway type">XXXX</span></td>
       <td class="bits"><span class="free">OOOO</span> <span class=used title="Ground type: fences, snow, desert">XXXX</span></td>
@@ -111,8 +111,8 @@ the array so you can quickly see what is used and what is not.
       <td class="bits"><span class="free">OOOO</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
     </tr>
     <tr>
-      <td class="caption">depot</td>
-      <td class="bits"><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
+      <td class="caption">small rail depot</td>
+      <td class="bits" rowspan=2><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
       <td class="bits"><span class="free">OOOO</span> <span class=used title="Railway type">XXXX</span></td>
       <td class="bits"><span class="free">OOOO</span> <span class=used title="Ground type: fences, snow, desert (fences on depot are not valid)">XXXX</span></td>
       <td class="bits"><span class=used title="Rail tile type: rail, rail with signals, depot">11</span><span class="free">O</span><span class=used title="PBS reservation">X</span> <span class="free">OO</span><span class=used title="Depot exit direction">XX</span></td>
@@ -120,7 +120,15 @@ the array so you can quickly see what is used and what is not.
       <td class="bits"><span class="free">OOOO OOOO</span></td>
     </tr>
     <tr>
-      <td rowspan=3>2</td>
+      <td class="caption"><span class="patch">big rail depot</span></td>
+      <td class="bits"><span class="free">OOOO</span> <span class=used title="Railway type">XXXX</span></td>
+      <td class="bits"><span class="free">OOOO</span> <span class=used title="Ground type: fences, snow, desert (fences on depot are not valid)">XXXX</span></td>
+      <td class="bits"><span class=patch title="Rail tile type: rail, rail with signals, depot">11</span><span class="free">O</span><span class=used title="PBS reservation">X</span> <span class="free">OO</span><span class=used title="Depot exit direction">XX</span></td>
+      <td class="bits"><span class="free">OOOO OOOO</span></td>
+      <td class="bits"><span class="free">OOOO OOOO</span></td>
+    </tr>
+    <tr>
+      <td rowspan=4>2</td>
       <td class="caption">road</td>
       <td class="bits" rowspan=2><span class="pool" title="Town index on pool">XXXX XXXX XXXX XXXX</span></td>
       <td class="bits"><span class=used title="Owner of tram">XXXX</span> <span class=used title="Tram pieces">XXXX</span></td>
@@ -138,13 +146,21 @@ the array so you can quickly see what is used and what is not.
       <td class="bits"><span class=used title="Present roadtypes">XX</span>  <span class=used title="Snow/desert present">X</span> <span class=used title="Owner of road">XXXXX</span></td>
     </tr>
     <tr>
-      <td class="caption">road depot</td>
-      <td class="bits"><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
+      <td class="caption">small road depot</td>
+      <td class="bits" rowspan=2><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
       <td class="bits"><span class=used title="Owner of tram">XXXX</span> <span class="free">OOOO</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class=used title="Tile type: simple road (00), level crossing (01), road depot (10)">1O</span><span class="free">OO OO</span><span class=used title="Depot exit direction">XX</span></td>
       <td class="bits"><span class=free>OOOO OOOO</span></td>
       <td class="bits"><span class=used title="Present roadtypes">XX</span> <span class=used title="Snow/desert present">X</span> <span class=used title="Owner of road">XXXXX</span></td>
+    </tr>
+    <tr>
+      <td class="caption"><span class="patch">big road depot</span></td>
+      <td class="bits"><span class=used title="Owner of tram">XXXX</span> <span class="free">OOOO</span></td>
+      <td class="bits"><span class="free">OOOO OOOO</span></td>
+      <td class="bits"><span class=patch title="Tile type: simple road (00), level crossing (01), small road depot (10), big road depot (11)">11</span><span class="free">OO OO</span><span class=used title="Depot exit direction">XX</span></td>
+      <td class="bits"><span class="free">OOOO OOOO</span></td>
+      <td class="bits"><span class=used title="Present roadtypes">XX</span> <span class=used title="Snow/desert present">X</span><span class="free">OOOOO</span></td>
     </tr>
     <tr>
       <td rowspan=2>3</td>
@@ -225,31 +241,37 @@ the array so you can quickly see what is used and what is not.
       <td class="bits"><span class="free">OOOO OOOO</span></td>
     </tr>
     <tr>
-      <td rowspan=4>6</td>
+      <td rowspan=5>6</td>
       <td class="caption">sea, shore</td>
-      <td class="bits" rowspan=4><span class="free">O</span><span class="used" title="Water class">XX</span> <span class="used" title="Owner">XXXXX</span></td>
+      <td class="bits" rowspan=5><span class="free">O</span><span class="used" title="Water class">XX</span> <span class="used" title="Owner">XXXXX</span></td>
       <td class="bits"><span class=patch title="TrackBits ships can take in this tile">XXXX XX</span><span class="free">OO OO</span><span class=patch title="Shallow water tracks">XX XXXX</span></td>
-      <td rowspan=4 class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX XXXX</span></td>
+      <td rowspan=5 class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX XXXX</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="free">OOOO</span></td>
       <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">O<span class=usable>OO</span>O</span> <span class=free>OOO</span><span class=used title="Sea shore flag">X</span></td>
       <td class="bits" rowspan=3><span class="free">OOOO OOOO</span></td>
-      <td class="bits" rowspan=4><span class="free">OOOO</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
+      <td class="bits" rowspan=5><span class="free">OOOO</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
     </tr>
     <tr>
       <td class="caption">canal, river</td>
       <td class="bits"><span class=patch title="TrackBits ships can take in this tile">XXXX XX</span><span class="free">OO OO</span><span class=patch title="Shallow water tracks">XX XXXX</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class=used title="Canal/river random bits">XXXX</span></td>
-      <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">O<span class=usable>OO</span>O</span> <span class=free>OOOO</span></td>
+      <td class="bits"><span class=used title="Water tile type: normal, lock, small/big depot">OO</span><span class=free>OO</span> <span class=used title="Lock part">XX</span> <span class=used title="Lock orientation m5[1..0]">XX</span></td>
     </tr>
     <tr>
       <td class="caption">lock</td>
       <td class="bits"><span class="free">OOOO OOOO OOOO OOOO</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="patch" title="Water level for locks.">XXXX</span></td>
-      <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">O<span class=usable>OO</span>1</span> <span class=used title="Lock part">XX</span> <span class=used title="Lock orientation m5[1..0]">XX</span></td>
+      <td class="bits"><span class=used title="Water tile type: normal, lock, small/big depot">O1</span><span class=free>OO</span> <span class=used title="Lock part">XX</span> <span class=used title="Lock orientation m5[1..0]">XX</span></td>
     </tr>
     <tr>
-      <td class="caption">shipdepot</td>
-      <td class="bits"><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
+      <td class="caption">small ship depot</td>
+      <td class="bits" rowspan=2><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
+      <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="free">OOOO</span></td>
+      <td class="bits"><span class=used title="Water tile type: normal, lock, small/big depot">1O</span><span class=free>OO</span> <span class=free>OO</span><span class=used title="Depot axis">X</span> <span class=used title="Depot part">X</span></td>
+      <td class="bits"><span class="free">OOOO OOOO</td>
+    </tr>
+    <tr>
+      <td class="caption"><span class=patch>big ship depot</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="free">OOOO</span></td>
       <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">1<span class=usable>OOO</span></span> <span class=free>OO</span><span class=used title="Depot axis">X</span> <span class=used title="Depot part">X</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>
