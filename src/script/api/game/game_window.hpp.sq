@@ -70,6 +70,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_COMPANY_COLOUR,                         "WC_COMPANY_COLOUR");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_COMPANY_MANAGER_FACE,                   "WC_COMPANY_MANAGER_FACE");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_SELECT_STATION,                         "WC_SELECT_STATION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_SELECT_DEPOT,                           "WC_SELECT_DEPOT");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_NEWS_WINDOW,                            "WC_NEWS_WINDOW");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_TOWN_DIRECTORY,                         "WC_TOWN_DIRECTORY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_SUBSIDIES_LIST,                         "WC_SUBSIDIES_LIST");
