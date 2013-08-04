@@ -2366,12 +2366,16 @@ STR_STATION_BUILD_COVERAGE_AREA_ON_TOOLTIP                      :{BLACK}Highligh
 STR_STATION_BUILD_ACCEPTS_CARGO                                 :{BLACK}Accepts: {GOLD}{CARGO_LIST}
 STR_STATION_BUILD_SUPPLIES_CARGO                                :{BLACK}Supplies: {GOLD}{CARGO_LIST}
 
-# Join station window
+# Join station/depot window
 STR_JOIN_STATION_CAPTION                                        :{WHITE}Join station
 STR_JOIN_STATION_CREATE_SPLITTED_STATION                        :{YELLOW}Build a separate station
 
 STR_JOIN_WAYPOINT_CAPTION                                       :{WHITE}Join waypoint
 STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT                      :{YELLOW}Build a separate waypoint
+
+STR_JOIN_DEPOT_CAPTION                                          :{WHITE}Join depot
+STR_JOIN_DEPOT_CREATE_SPLITTED_DEPOT                            :{YELLOW}Build a separate depot
+STR_DEPOT_LIST_DEPOT                                            :{YELLOW}{DEPOT}
 
 # Rail construction toolbar
 STR_RAIL_TOOLBAR_RAILROAD_CONSTRUCTION_CAPTION                  :Railway Construction
