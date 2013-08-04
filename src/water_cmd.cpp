@@ -72,15 +72,27 @@ static const uint8 _flood_from_dirs[] = {
  * @param tile tile where ship depot is built
  * @param flags type of operation
  * @param p1 bit 0 depot orientation (Axis)
- * @param p2 unused
+ * @param p2 bits 16-35 -> DepotID to join to.
  * @param text unused
  * @return the cost of this operation or an error
  */
 CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	Axis axis = Extract<Axis, 0, 1>(p1);
-
+	DepotID join_to = GB(p2, 16, 16);
+	Depot *depot = NULL;
 	TileIndex tile2 = tile + (axis == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
+	if (!IsValidTile(tile2)) return_cmd_error(STR_ERROR_MUST_BE_BUILT_ON_WATER);
+	TileArea ta(tile, tile2);
+
+	assert(join_to == INVALID_DEPOT || _settings_game.construction.big_depots);
+	if (!_settings_game.construction.big_depots) {
+		join_to = NEW_DEPOT;
+	} else if (join_to == INVALID_DEPOT) {
+		CommandCost ret = FindJoiningBigDepot(ta, VEH_SHIP, &depot);
+		if (ret.Failed()) return ret;
+		join_to = depot == NULL ? NEW_DEPOT : depot->index;
+	}
 
 	if (!HasTileWaterGround(tile) || !HasTileWaterGround(tile2)) {
 		return_cmd_error(STR_ERROR_MUST_BE_BUILT_ON_WATER);
@@ -93,7 +105,8 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 	}
 
-	if (!Depot::CanAllocateItem()) return CMD_ERROR;
+	assert(join_to != INVALID_DEPOT);
+	if (join_to == NEW_DEPOT && !Depot::CanAllocateItem()) return CMD_ERROR;
 
 	WaterClass wc1 = GetWaterClass(tile);
 	WaterClass wc2 = GetWaterClass(tile2);
@@ -112,12 +125,20 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		cost.AddCost(ret);
 	}
 
-	if (flags & DC_EXEC) {
-		Depot *depot = new Depot(tile);
+	if (join_to != NEW_DEPOT) { //JOINING
+		depot = Depot::Get(join_to);
+		if (!depot->BeforeAddTiles(ta)) return CMD_ERROR;
+		assert(depot->company == _current_company);
+		assert(depot->veh_type == VEH_SHIP);
+		assert(depot->is_big_depot);
+	} else if (flags & DC_EXEC) { // OK, NEW_DEPOT...
+		depot = new Depot(tile, _settings_game.construction.big_depots);
 		depot->build_date = _date;
 		depot->company = _current_company;
 		depot->veh_type = VEH_SHIP;
+	}
 
+	if (flags & DC_EXEC) {
 		if (wc1 == WATER_CLASS_CANAL || wc2 == WATER_CLASS_CANAL) {
 			/* Update infrastructure counts after the unconditional clear earlier. */
 			Company::Get(_current_company)->infrastructure.water += wc1 == WATER_CLASS_CANAL && wc2 == WATER_CLASS_CANAL ? 2 : 1;
@@ -125,10 +146,12 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		Company::Get(_current_company)->infrastructure.water += 2 * LOCK_DEPOT_TILE_FACTOR;
 		DirtyCompanyInfrastructureWindows(_current_company);
 
-		MakeShipDepot(tile,  _current_company, depot->index, DEPOT_PART_NORTH, axis, wc1);
-		MakeShipDepot(tile2, _current_company, depot->index, DEPOT_PART_SOUTH, axis, wc2);
+		WaterTileTypeBitLayout depot_type = depot->is_big_depot ? WBL_TYPE_BIG_DEPOT : WBL_TYPE_DEPOT;
+		MakeShipDepot(tile,  _current_company, depot->index, depot_type, DEPOT_PART_NORTH, axis, wc1);
+		MakeShipDepot(tile2, _current_company, depot->index, depot_type, DEPOT_PART_SOUTH, axis, wc2);
 		UpdateWaterTiles(tile, 2);
 		MakeDefaultName(depot);
+		depot->AfterAddRemove(ta, true);
 	}
 
 	return cost;
@@ -202,9 +225,8 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (flags & DC_EXEC) {
-		delete Depot::GetByTile(tile);
-
-		Company *c = Company::GetIfValid(GetTileOwner(tile));
+		Depot *depot = Depot::GetByTile(tile);
+		Company *c = Company::GetIfValid(depot->company);
 		if (c != NULL) {
 			c->infrastructure.water -= 2 * LOCK_DEPOT_TILE_FACTOR;
 			DirtyCompanyInfrastructureWindows(c->index);
@@ -213,6 +235,8 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 		MakeWaterKeepingClass(tile,  GetTileOwner(tile));
 		MakeWaterKeepingClass(tile2, GetTileOwner(tile2));
 		UpdateWaterTiles(tile, 2);
+
+		depot->AfterAddRemove(TileArea(tile, tile2), false);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_SHIP]);
