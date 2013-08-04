@@ -215,7 +215,8 @@ static const byte _track_sloped_sprites[14] = {
  * MAP5:         00abcdef => rail
  *               01abcdef => rail w/ signals
  *               10uuuuuu => unused
- *               11uuuudd => rail depot
+ *               10uuuudd => small rail depot
+ *               11uuuudd => big rail depot
  */
 
 /**
