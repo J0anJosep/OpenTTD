@@ -24,7 +24,8 @@
 enum RailTileType {
 	RAIL_TILE_NORMAL   = 0, ///< Normal rail tile without signals
 	RAIL_TILE_SIGNALS  = 1, ///< Normal rail tile with signals
-	RAIL_TILE_DEPOT    = 3, ///< Depot (one entrance)
+	RAIL_TILE_DEPOT    = 2, ///< Depot (one entrance)
+	RAIL_TILE_BIG_DEPOT= 3, ///< Big depot
 };
 
 /**
@@ -95,7 +96,8 @@ static inline void SetHasSignals(TileIndex tile, bool signals)
  */
 static inline bool IsRailDepot(TileIndex t)
 {
-	return GetRailTileType(t) == RAIL_TILE_DEPOT;
+	assert(IsTileType(t, MP_RAILWAY));
+	return HasBit(_m[t].m5, 7);
 }
 
 /**
