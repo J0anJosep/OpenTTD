@@ -2379,7 +2379,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
 
 		if (flags & DC_EXEC) {
-			if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
+			if (IsHangarTile(tile_cur)) OrderBackup::Reset(st->airport.depot_id, false);
 			DeleteAnimatedTile(tile_cur);
 			DoClearSquare(tile_cur);
 			DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
