@@ -28,6 +28,7 @@
 #include "gui.h"
 #include "zoom_func.h"
 #include "bridge_map.h"
+#include "depot_func.h"
 
 #include "widgets/dock_widget.h"
 
@@ -271,9 +272,16 @@ struct BuildDocksToolbarWindow : Window {
 						case WID_DT_BUOY:
 							TouchCommandP(end_tile, 0, 0, CMD_BUILD_BUOY | CMD_MSG(STR_ERROR_CAN_T_POSITION_BUOY_HERE), CcBuildDocks);
 							break;
-						case WID_DT_DEPOT: // Build depot button
-							TouchCommandP(end_tile, _ship_depot_direction, 0, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT), CcBuildDocks);
+						case WID_DT_DEPOT: { // Build depot button
+							uint32 p2 = (uint32)INVALID_DEPOT << 16; // no DEPOT to join
+
+							/* Tile is always the land tile, so need to evaluate _thd.pos. */
+							CommandContainer cmdcont = { end_tile, _ship_depot_direction, p2, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT), CcBuildDocks, "" };
+
+							//SetObjectToPlace(SPR_CURSOR_DOCK, PAL_NONE, HT_SPECIAL, this->window_class, this->window_number);
+							ShowSelectDepotIfNeeded(cmdcont, TileArea(end_tile, end_tile + (_ship_depot_direction == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1))), VEH_SHIP); //revise
 							break;
+						}
 						default: NOT_REACHED();
 					}
 
