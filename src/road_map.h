@@ -21,9 +21,10 @@
 
 /** The different types of road tiles. */
 enum RoadTileType {
-	ROAD_TILE_NORMAL,   ///< Normal road
-	ROAD_TILE_CROSSING, ///< Level crossing
-	ROAD_TILE_DEPOT,    ///< Depot (one entrance)
+	ROAD_TILE_NORMAL,    ///< Normal road
+	ROAD_TILE_CROSSING,  ///< Level crossing
+	ROAD_TILE_DEPOT,     ///< Depot (one entrance)
+	ROAD_TILE_BIG_DEPOT, ///< Big depot (one entrance, multiple tiles)
 };
 
 /**
@@ -88,7 +89,8 @@ static inline bool IsLevelCrossingTile(TileIndex t)
  */
 static inline bool IsRoadDepot(TileIndex t)
 {
-	return GetRoadTileType(t) == ROAD_TILE_DEPOT;
+	assert(IsTileType(t, MP_ROAD));
+	return HasBit(_m[t].m5, 7);
 }
 
 /**
