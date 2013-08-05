@@ -28,6 +28,7 @@
 #include "vehiclelist.h"
 #include "order_backup.h"
 #include "zoom_func.h"
+#include "debug.h"
 
 #include "widgets/depot_widget.h"
 
@@ -220,6 +221,24 @@ void InitDepotWindowBlockSizes()
 		InitBlocksizeForVehicles(vt, EIT_PURCHASE);
 	}
 }
+
+void PrintDebug(Depot *depot)
+{
+	DEBUG(misc, 0, "Depot information:");
+	DEBUG(misc, 0, "TileIndex: %d", depot->xy);
+	DEBUG(misc, 0, "Tile type of xy: %d", GetTileType(depot->xy));
+	DEBUG(misc, 0, "Town index: %d, INVALID %d", depot->town->index, INVALID_TOWN);
+	DEBUG(misc, 0, "Number of depot of this town: %d", depot->town_cn);
+	DEBUG(misc, 0, "Company: %d", (int)depot->company);
+	DEBUG(misc, 0, "Veh type: %d", (int)depot->veh_type);
+	DEBUG(misc, 0, "IsBigDepot? %d", IsBigDepotTile(depot->xy));
+	DEBUG(misc, 0, "Tiles of possible destination: %d", depot->depot_tiles.Length());
+	DEBUG(misc, 0, "TileArea tile: %d", depot->ta.tile);
+	DEBUG(misc, 0, "TileArea h: %d", depot->ta.h);
+	DEBUG(misc, 0, "TileArea w: %d", depot->ta.w);
+	DEBUG(misc, 0, "r_types: %d", depot->r_types.rail_types);
+}
+
 
 static void DepotSellAllConfirmationCallback(Window *w, bool confirmed);
 const Sprite *GetAircraftSprite(EngineID engine);
@@ -746,6 +765,7 @@ struct DepotWindow : Window {
 				break;
 
 			case WID_D_LOCATION:
+				PrintDebug(this->depot);
 				if (_ctrl_pressed) {
 					ShowExtraViewPortWindow(tile);
 				} else {
