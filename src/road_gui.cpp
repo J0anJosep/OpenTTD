@@ -870,19 +870,26 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 		this->FinishInitNested(TRANSPORT_ROAD);
 	}
 
-	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
-	{
-		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
-
-		size->width  = ScaleGUITrad(64) + 2;
-		size->height = ScaleGUITrad(48) + 2;
-	}
+	inline uint GetDepotSpriteHeight() const { return _cur_roadtype == ROADTYPE_TRAM ? 35 : 18; }
 
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
 
-		DrawRoadDepotSprite(r.left + ScaleGUITrad(31), r.top + ScaleGUITrad(31), (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE), _cur_roadtype);
+		int x = Center(r.left + ScaleGUITrad(TILE_PIXELS), r.right - r.left, ScaleGUITrad(2 * TILE_PIXELS));
+		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetDepotSpriteHeight(). */
+		int y = Center(r.top + WD_FRAMERECT_TOP - WD_MATRIX_BOTTOM + IsWidgetLowered(widget) + this->GetDepotSpriteHeight(),
+				r.bottom - r.top, TILE_PIXELS + this->GetDepotSpriteHeight());
+
+		DrawRoadDepotSprite(x, y, (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE), _cur_roadtype);
+	}
+
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	{
+		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
+
+		size->height = max(size->height, (uint)ScaleGUITrad(2 * TILE_SIZE + this->GetDepotSpriteHeight())) + WD_FRAMERECT_TOP + WD_MATRIX_BOTTOM;
+		size->width = max(size->width, (uint)ScaleGUITrad(4 * TILE_SIZE + WD_FRAMERECT_LEFT + WD_MATRIX_RIGHT));
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
