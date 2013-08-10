@@ -1113,10 +1113,9 @@ public:
 				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
 					DrawPixelInfo *old_dpi = _cur_dpi;
 					_cur_dpi = &tmp_dpi;
-					int x = ScaleGUITrad(31) + 1;
-					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
-						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2);
+					int x = Center(TILE_PIXELS, r.right - r.left, 2 * TILE_PIXELS);
+					if (!DrawStationTile(x, 28, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
+						StationPickerDrawSprite(x, 28, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2);
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -1127,10 +1126,10 @@ public:
 				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
 					DrawPixelInfo *old_dpi = _cur_dpi;
 					_cur_dpi = &tmp_dpi;
-					int x = ScaleGUITrad(31) + 1;
-					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
-						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 3);
+
+					int x = Center(TILE_PIXELS, r.right - r.left, 2 * TILE_PIXELS);
+					if (!DrawStationTile(x, 28, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
+						StationPickerDrawSprite(x, 28, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 3);
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -1165,10 +1164,10 @@ public:
 				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
 					DrawPixelInfo *old_dpi = _cur_dpi;
 					_cur_dpi = &tmp_dpi;
-					int x = ScaleGUITrad(31) + 1;
-					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
-						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2 + _railstation.orientation);
+
+					int x = Center(TILE_PIXELS, r.right - r.left, 2 * TILE_PIXELS);
+					if (!DrawStationTile(x, 28, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
+						StationPickerDrawSprite(x, 28, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2 + _railstation.orientation);
 					}
 					_cur_dpi = old_dpi;
 				}
