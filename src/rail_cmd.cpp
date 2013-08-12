@@ -950,8 +950,9 @@ CommandCost CmdRemoveRailroadTrack(TileIndex tile, DoCommandFlag flags, uint32 p
  * Build a train depot
  * @param tile position of the train depot
  * @param flags operation to perform
- * @param p1 rail type
- * @param p2 bit 0..1 entrance direction (DiagDirection)
+ * @param p1 bits 0..3 : rail type
+ *           bits 4..5 : entrance direction (DiagDirection)
+ * @param p2 unused
  * @param text unused
  * @return the cost of this operation or an error
  *
@@ -966,7 +967,7 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 	Slope tileh = GetTileSlope(tile);
 
-	DiagDirection dir = Extract<DiagDirection, 0, 2>(p2);
+	DiagDirection dir = Extract<DiagDirection, 4, 2>(p1);
 
 	/* Prohibit construction if
 	 * The tile is non-flat AND
