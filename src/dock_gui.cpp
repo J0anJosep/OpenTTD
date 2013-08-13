@@ -149,8 +149,9 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEPOT: // Build depot button
+			case WID_DT_BIG_DEPOT:
 				if (!CanBuildVehicleInfrastructure(VEH_SHIP)) return;
-				if (HandlePlacePushButton(this, WID_DT_DEPOT, SPR_CURSOR_SHIP_DEPOT, HT_RECT)) ShowBuildDocksDepotPicker(this);
+				if (HandlePlacePushButton(this, widget, SPR_CURSOR_SHIP_DEPOT, HT_RECT)) ShowBuildDocksDepotPicker(this);
 				break;
 
 			case WID_DT_STATION: // Build station button
@@ -198,6 +199,7 @@ struct BuildDocksToolbarWindow : Window {
 				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_BUILD_STATION);
 				break;
 
+			case WID_DT_BIG_DEPOT:
 			case WID_DT_DEPOT: // Build depot button
 			case WID_DT_BUOY: // Build buoy button
 				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_SINGLE_TILE);
@@ -269,15 +271,17 @@ struct BuildDocksToolbarWindow : Window {
 
 				case DDSP_SINGLE_TILE:
 					assert(start_tile == end_tile);
-					switch (last_clicked_widget) {
+					switch (this->last_clicked_widget) {
 						case WID_DT_BUOY:
 							TouchCommandP(end_tile, 0, 0, CMD_BUILD_BUOY | CMD_MSG(STR_ERROR_CAN_T_POSITION_BUOY_HERE), CcBuildDocks);
 							break;
+
+						case WID_DT_BIG_DEPOT:
 						case WID_DT_DEPOT: { // Build depot button
-							uint32 p2 = (uint32)INVALID_DEPOT << 16; // no DEPOT to join
+							uint32 p1 = _ship_depot_direction | (this->last_clicked_widget == WID_DT_BIG_DEPOT ? 1 << 6 : 0) | ((this->last_clicked_widget == WID_DT_BIG_DEPOT ? INVALID_DEPOT : NEW_DEPOT) << 16);
 
 							/* Tile is always the land tile, so need to evaluate _thd.pos. */
-							CommandContainer cmdcont = { end_tile, _ship_depot_direction, p2, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT), CcBuildDocks, "" };
+							CommandContainer cmdcont = { end_tile, p1, 0, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT), CcBuildDocks, "" };
 
 							//SetObjectToPlace(SPR_CURSOR_DOCK, PAL_NONE, HT_SPECIAL, this->window_class, this->window_number);
 							ShowSelectDepotIfNeeded(cmdcont, TileArea(end_tile, end_tile + (_ship_depot_direction == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1))), VEH_SHIP); //revise
