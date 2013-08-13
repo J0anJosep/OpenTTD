@@ -428,6 +428,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_LOCK,                               "WID_DT_LOCK");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_DEMOLISH,                           "WID_DT_DEMOLISH");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_DEPOT,                              "WID_DT_DEPOT");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_BIG_DEPOT,                          "WID_DT_BIG_DEPOT");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_STATION,                            "WID_DT_STATION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_BUOY,                               "WID_DT_BUOY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_RIVER,                              "WID_DT_RIVER");
