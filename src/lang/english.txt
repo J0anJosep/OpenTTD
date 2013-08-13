@@ -4526,6 +4526,9 @@ STR_ERROR_CAN_T_BUILD_TRAM_DEPOT                                :{WHITE}Can't bu
 STR_ERROR_CAN_T_BUILD_SHIP_DEPOT                                :{WHITE}Can't build ship depot here...
 
 STR_ERROR_DEPOT_TYPE_NOT_AVAILABLE                              :{WHITE}Depot type not available
+STR_ERROR_DEPOT_EXTENDING_PLATFORMS                             :{WHITE}Extending already reserved depot platforms
+STR_ERROR_DEPOT_CANNOT_CONVERT_BIG_RAIL_DEPOTS                  :{WHITE}Big rail depots cannot be converted as its platforms could change.{}Rebuild them manually.
+STR_ERROR_DEPOT_BIG_RAIL_DEPOT_IS_NOT_FREE                      :{WHITE}Big rail depot has a reserved tile and cannot be converted
 
 STR_ERROR_CAN_T_RENAME_DEPOT                                    :{WHITE}Can't rename depot...
 
