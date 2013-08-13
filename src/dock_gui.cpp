@@ -123,6 +123,7 @@ struct BuildDocksToolbarWindow : Window {
 		bool can_build = CanBuildVehicleInfrastructure(VEH_SHIP);
 		this->SetWidgetsDisabledState(!can_build,
 			WID_DT_DEPOT,
+			WID_DT_BIG_DEPOT,
 			WID_DT_STATION,
 			WID_DT_BUOY,
 			WIDGET_LIST_END);
@@ -353,6 +354,30 @@ static Hotkey dockstoolbar_hotkeys[] = {
 HotkeyList BuildDocksToolbarWindow::hotkeys("dockstoolbar", dockstoolbar_hotkeys, DockToolbarGlobalHotkeys);
 
 /**
+ * Add the depot icons depending on availability of construction.
+ * @param biggest_index Storage for collecting the biggest index used in the returned tree.
+ * @return Panel with company buttons.
+ * @post \c *biggest_index contains the largest used index in the tree.
+ */
+static NWidgetBase *MakeNWidgetWaterDepot(int *biggest_index)
+{
+	NWidgetHorizontal *hor = new NWidgetHorizontal();
+
+	if (HasBit(_settings_game.depot.water_depot_types, 0)) {
+		// small depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_DEPOT, SPR_IMG_SHIP_DEPOT, STR_WATERWAYS_TOOLBAR_BUILD_DEPOT_TOOLTIP));
+	}
+
+	if (HasBit(_settings_game.depot.water_depot_types, 1)) {
+		// big depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_BIG_DEPOT, SPR_IMG_SHIP_DEPOT, STR_WATERWAYS_TOOLBAR_BUILD_BIG_DEPOT_TOOLTIP));
+	}
+
+	*biggest_index = WID_DT_BIG_DEPOT;
+	return hor;
+}
+
+/**
  * Nested widget parts of docks toolbar, game version.
  * Position of #WID_DT_RIVER widget has changed.
  */
@@ -367,7 +392,7 @@ static const NWidgetPart _nested_build_docks_toolbar_widgets[] = {
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_LOCK), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_BUILD_LOCK, STR_WATERWAYS_TOOLBAR_BUILD_LOCKS_TOOLTIP),
 		NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(5, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_DEMOLISH), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_DEPOT), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_SHIP_DEPOT, STR_WATERWAYS_TOOLBAR_BUILD_DEPOT_TOOLTIP),
+		NWidgetFunction(MakeNWidgetWaterDepot),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_STATION), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_SHIP_DOCK, STR_WATERWAYS_TOOLBAR_BUILD_DOCK_TOOLTIP),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_BUOY), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_BUOY, STR_WATERWAYS_TOOLBAR_BUOY_TOOLTIP),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_BUILD_AQUEDUCT), SetMinimalSize(23, 22), SetFill(0, 1), SetDataTip(SPR_IMG_AQUEDUCT, STR_WATERWAYS_TOOLBAR_BUILD_AQUEDUCT_TOOLTIP),
