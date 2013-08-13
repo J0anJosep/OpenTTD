@@ -71,72 +71,48 @@ static const uint8 _flood_from_dirs[] = {
  * Build a ship depot.
  * @param tile tile where ship depot is built
  * @param flags type of operation
- * @param p1 bit 0 depot orientation (Axis)
- * @param p2 bits 16-35 -> DepotID to join to.
+ * @param p1 bit 0    : depot orientation (Axis)
+ *           bit 6    : 0 for normal depots, 1 for big depots
+ *           bit 16-31: DepotID to join to.
+ * @param p2 unused
  * @param text unused
  * @return the cost of this operation or an error
  */
 CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	Axis axis = Extract<Axis, 0, 1>(p1);
-	DepotID join_to = GB(p2, 16, 16);
-	Depot *depot = NULL;
+	bool build_big_depot = HasBit(p1, 6);
+
+	if (!HasBit(_settings_game.depot.water_depot_types, build_big_depot)) return_cmd_error(STR_ERROR_DEPOT_TYPE_NOT_AVAILABLE);
 	TileIndex tile2 = tile + (axis == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
 	if (!IsValidTile(tile2)) return_cmd_error(STR_ERROR_MUST_BE_BUILT_ON_WATER);
 	TileArea ta(tile, tile2);
+	DepotID join_to = GB(p1, 16, 16);
+	Depot *depot = NULL;
 
-	assert(join_to == INVALID_DEPOT || _settings_game.construction.big_depots);
-	if (!_settings_game.construction.big_depots) {
-		join_to = NEW_DEPOT;
-	} else if (join_to == INVALID_DEPOT) {
-		CommandCost ret = FindJoiningBigDepot(ta, VEH_SHIP, &depot);
-		if (ret.Failed()) return ret;
-		join_to = depot == NULL ? NEW_DEPOT : depot->index;
-	}
-
-	if (!HasTileWaterGround(tile) || !HasTileWaterGround(tile2)) {
-		return_cmd_error(STR_ERROR_MUST_BE_BUILT_ON_WATER);
-	}
-
+	/* Build only depots on water... */
+	if (!HasTileWaterGround(tile) || !HasTileWaterGround(tile2)) return_cmd_error(STR_ERROR_MUST_BE_BUILT_ON_WATER);
+	/* ... with no bridges above... */
 	if (IsBridgeAbove(tile) || IsBridgeAbove(tile2)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+	/* ... and not on rapids. */
+	if (!IsTileFlat(tile) || !IsTileFlat(tile2)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 
-	if (!IsTileFlat(tile) || !IsTileFlat(tile2)) {
-		/* Prevent depots on rapids */
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	}
-
-	assert(join_to != INVALID_DEPOT);
-	if (join_to == NEW_DEPOT && !Depot::CanAllocateItem()) return CMD_ERROR;
-
+	/* Keep original water classes before clearing tiles. */
 	WaterClass wc1 = GetWaterClass(tile);
 	WaterClass wc2 = GetWaterClass(tile2);
 	CommandCost cost = CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_DEPOT_SHIP]);
 
-	bool add_cost = !IsWaterTile(tile);
-	CommandCost ret = DoCommand(tile, 0, 0, flags | DC_AUTO, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
-	if (add_cost) {
-		cost.AddCost(ret);
-	}
-	add_cost = !IsWaterTile(tile2);
-	ret = DoCommand(tile2, 0, 0, flags | DC_AUTO, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
-	if (add_cost) {
-		cost.AddCost(ret);
+	/* Clear tiles and add to construction cost. */
+	TILE_AREA_LOOP(tile_h, ta) {
+		bool add_cost = !IsWaterTile(tile_h);
+		CommandCost ret = DoCommand(tile_h, 0, 0, flags | DC_AUTO, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+		if (add_cost) cost.AddCost(ret);
 	}
 
-	if (join_to != NEW_DEPOT) { //JOINING
-		depot = Depot::Get(join_to);
-		if (!depot->BeforeAddTiles(ta)) return CMD_ERROR;
-		assert(depot->company == _current_company);
-		assert(depot->veh_type == VEH_SHIP);
-		assert(depot->is_big_depot);
-	} else if (flags & DC_EXEC) { // OK, NEW_DEPOT...
-		depot = new Depot(tile, _settings_game.construction.big_depots);
-		depot->build_date = _date;
-		depot->company = _current_company;
-		depot->veh_type = VEH_SHIP;
-	}
+	/* Create a new depot or find a depot to join to. */
+	CommandCost ret = FindJoiningBigDepot(ta, VEH_SHIP, join_to, depot, build_big_depot, flags);
+	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
 		if (wc1 == WATER_CLASS_CANAL || wc2 == WATER_CLASS_CANAL) {
@@ -146,12 +122,12 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		Company::Get(_current_company)->infrastructure.water += 2 * LOCK_DEPOT_TILE_FACTOR;
 		DirtyCompanyInfrastructureWindows(_current_company);
 
-		WaterTileTypeBitLayout depot_type = depot->is_big_depot ? WBL_TYPE_BIG_DEPOT : WBL_TYPE_DEPOT;
+		WaterTileTypeBitLayout depot_type = build_big_depot ? WBL_TYPE_BIG_DEPOT : WBL_TYPE_DEPOT;
 		MakeShipDepot(tile,  _current_company, depot->index, depot_type, DEPOT_PART_NORTH, axis, wc1);
 		MakeShipDepot(tile2, _current_company, depot->index, depot_type, DEPOT_PART_SOUTH, axis, wc2);
 		UpdateWaterTiles(tile, 2);
-		MakeDefaultName(depot);
 		depot->AfterAddRemove(ta, true);
+		if (join_to == NEW_DEPOT) MakeDefaultName(depot);
 	}
 
 	return cost;
