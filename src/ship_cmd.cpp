@@ -527,13 +527,18 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 {
 	assert(IsValidDiagDirection(enterdir));
 
-	/* Before choosing a track, if close to the destination station (not an oil rig)... */
-	if (v->current_order.IsType(OT_GOTO_STATION) &&
-			!IsTileType(v->dest_tile, MP_INDUSTRY) &&
-			DistanceManhattan(v->dest_tile, tile) <= 5 &&
-			HasWaterTrackReservation(v->dest_tile)) {
-		/* Get the closest and free dock if possible. */
-		v->dest_tile = GetBestDock(v, Station::Get(v->current_order.GetDestination()));
+	/* Before choosing a track, if close to the destination station or depot (not an oil rig)... */
+
+	if (WaterTrackMayExist(v->dest_tile) && DistanceManhattan(v->dest_tile, tile) <= 5) {
+		if (v->current_order.IsType(OT_GOTO_STATION) && HasWaterTrackReservation(v->dest_tile) &&
+				!IsTileType(v->dest_tile, MP_INDUSTRY)) {
+			/* Get the closest and free dock if possible. */
+			v->dest_tile = GetBestDock(v, Station::Get(v->current_order.GetDestination()));
+		} else if (v->current_order.IsType(OT_GOTO_DEPOT) &&
+				(!IsShipDepotTile(v->dest_tile) || HasWaterTrackReservation(v->dest_tile) ||
+				HasWaterTrackReservation(GetOtherShipDepotTile(v->dest_tile)))) {
+			v->dest_tile = Depot::Get(v->current_order.GetDestination())->GetBestDepotTile(v);
+		}
 	}
 
 	bool path_found = true;
