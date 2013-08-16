@@ -2247,7 +2247,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 				v->IncrementRealOrderIndex();
 			} else {
 				if (v->type != VEH_AIRCRAFT) {
-					v->dest_tile = Depot::Get(order->GetDestination())->xy;
+					v->dest_tile = Depot::Get(order->GetDestination())->GetBestDepotTile(v);
 				}
 				return true;
 			}
