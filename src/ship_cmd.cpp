@@ -412,6 +412,23 @@ static Vehicle *EnsureNoVisibleShipProc(Vehicle *v, void *data)
 	return v->type == VEH_SHIP && (v->vehstatus & VS_HIDDEN) == 0 ? v : NULL;
 }
 
+
+static bool CheckPlaceShipOnDepot(TileIndex tile)
+{
+	assert(IsShipDepotTile(tile));
+
+	/* Check we can reserve the depot track */
+	if (HasWaterTrackReservation(tile)) return false;
+
+	Axis axis = GetShipDepotAxis(tile);
+	DiagDirection exit_dir = AxisToDiagDir(axis);
+
+	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), exit_dir))) return false;
+	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), ReverseDiagDir(exit_dir)))) return false;
+
+	return true;
+}
+
 static bool CheckShipLeaveDepot(Ship *v)
 {
 	if (!v->IsChainInDepot()) return false;
