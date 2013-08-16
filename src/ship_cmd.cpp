@@ -387,6 +387,22 @@ static const TileIndexDiffC _ship_leave_depot_offs[] = {
 	{ 0, -1}
 };
 
+static bool CheckPlaceShipOnDepot(TileIndex tile)
+{
+	assert(IsShipDepotTile(tile));
+
+	/* Check we can reserve the depot track */
+	if (HasWaterTrackReservation(tile)) return false;
+
+	Axis axis = GetShipDepotAxis(tile);
+	DiagDirection exit_dir = AxisToDiagDir(axis);
+
+	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), exit_dir))) return false;
+	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), ReverseDiagDir(exit_dir)))) return false;
+
+	return true;
+}
+
 static bool CheckShipLeaveDepot(Ship *v)
 {
 	if (!v->IsChainInDepot()) return false;
