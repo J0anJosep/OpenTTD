@@ -18,6 +18,7 @@
 #include "vehicle_gui.h"
 #include "vehiclelist.h"
 #include "station_base.h" // revise: included for aircraft; this could change
+#include "pbs_water.h"
 
 #include "safeguards.h"
 
@@ -43,6 +44,34 @@ Depot::~Depot()
 
 	/* Delete the depot list */
 	DeleteWindowById(GetWindowClassForVehicleType(this->veh_type), VehicleListIdentifier(VL_DEPOT_LIST, this->veh_type, this->company, this->index).Pack());
+}
+
+/**
+ * Of all the depot parts a depot has, return the best destination for a vehicle.
+ * @param v The vehicle.
+ * @param dep Depot the vehicle \a v is heading for.
+ * @return The free and closest (if none is free, just closest) part of depot to vehicle v.
+ */
+TileIndex Depot::GetBestDepotTile(Vehicle *v) const
+{
+	if (this->veh_type != VEH_SHIP || !this->is_big_depot) return this->xy;
+
+	TileIndex best_depot = INVALID_TILE;
+	bool free_found = false;
+	uint best_distance = UINT_MAX;
+
+	for (uint i = this->depot_tiles.Length(); i--;) {
+		TileIndex tile = this->depot_tiles[i];
+		bool is_new_free = !HasWaterTrackReservation(tile) && !HasWaterTrackReservation(GetOtherShipDepotTile(tile));
+		uint new_distance = DistanceManhattan(v->tile, tile);
+		if (((free_found == is_new_free) && new_distance < best_distance) || (!free_found && is_new_free)) {
+			best_depot = tile;
+			best_distance = new_distance;
+			free_found |= is_new_free;
+		}
+	}
+
+	return best_depot;
 }
 
 /* Check we can add some tiles to this depot. */
