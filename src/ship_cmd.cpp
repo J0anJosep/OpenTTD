@@ -193,7 +193,7 @@ static void CheckIfShipNeedsService(Vehicle *v)
 	}
 
 	v->current_order.MakeGoToDepot(depot->index, ODTFB_SERVICE);
-	v->dest_tile = depot->xy;
+	v->dest_tile = depot->GetBestDepotTile(v);
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 }
 
@@ -1017,7 +1017,7 @@ bool Ship::FindClosestDepot(TileIndex *location, DestinationID *destination, boo
 
 	if (depot == NULL) return false;
 
-	if (location    != NULL) *location    = depot->xy;
+	if (location    != NULL) *location    = depot->GetBestDepotTile(this);
 	if (destination != NULL) *destination = depot->index;
 
 	return true;
