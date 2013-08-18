@@ -733,6 +733,8 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 	static const SaveLoad _roadveh_desc[] = {
 		SLE_WRITEBYTE(Vehicle, type, VEH_ROAD),
 		SLE_VEH_INCLUDE(),
+		 SLE_CONDVAR(RoadVehicle, wait_counter,         SLE_UINT16,        SL_STUCK_SHIPS, SL_MAX_VERSION),
+
 		     SLE_VAR(RoadVehicle, state,                SLE_UINT8),
 		     SLE_VAR(RoadVehicle, frame,                SLE_UINT8),
 		     SLE_VAR(RoadVehicle, blocked_ctr,          SLE_UINT16),
@@ -754,6 +756,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		SLE_WRITEBYTE(Vehicle, type, VEH_SHIP),
 		SLE_VEH_INCLUDE(),
 		     SLE_VAR(Ship, state, SLE_UINT8),
+		 SLE_CONDVAR(Ship, wait_counter,            SLE_UINT16,        SL_STUCK_SHIPS, SL_MAX_VERSION),
 
 		SLE_CONDNULL(16, 2, 143), // old reserved space
 
@@ -763,6 +766,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 	static const SaveLoad _aircraft_desc[] = {
 		SLE_WRITEBYTE(Vehicle, type, VEH_AIRCRAFT),
 		SLE_VEH_INCLUDE(),
+		 SLE_CONDVAR(Aircraft, wait_counter,          SLE_UINT16,        SL_STUCK_SHIPS, SL_MAX_VERSION),
 		     SLE_VAR(Aircraft, crashed_counter,       SLE_UINT16),
 		     SLE_VAR(Aircraft, pos,                   SLE_UINT8),
 
