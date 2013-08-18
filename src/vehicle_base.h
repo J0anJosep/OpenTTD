@@ -293,6 +293,7 @@ public:
 	uint16 cur_speed;                   ///< current speed
 	byte subspeed;                      ///< fractional speed
 	byte acceleration;                  ///< used by train & aircraft
+	uint16 wait_counter;                ///< waiting ticks used for trains and ships
 	uint32 motion_counter;              ///< counter to occasionally play a vehicle sound.
 	byte progress;                      ///< The percentage (if divided by 256) this vehicle already crossed the tile unit.
 
