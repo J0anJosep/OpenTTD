@@ -2167,9 +2167,12 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 			this->SetFill(0, 0);
 			break;
 
-		case WWT_EDITBOX:
+		case WWT_EDITBOX: {
+			Dimension sprite_size = GetSpriteSize(_current_text_dir == TD_RTL ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT);
+			this->SetMinimalSize(30 + GetMinSizing(this->sizing_type, sprite_size.width), sprite_size.height);
 			this->SetFill(0, 0);
 			break;
+		}
 
 		case WWT_CAPTION:
 			this->SetFill(1, 0);
