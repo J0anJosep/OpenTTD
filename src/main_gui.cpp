@@ -269,26 +269,6 @@ struct MainWindow : Window
 		this->GetWidget<NWidgetBase>(WID_M_VIEWPORT)->SetDirty(this);
 	}
 
-	virtual void OnPaint()
-	{
-		this->DrawWidgets();
-		if (_game_mode == GM_MENU) {
-			static const SpriteID title_sprites[] = {SPR_OTTD_O, SPR_OTTD_P, SPR_OTTD_E, SPR_OTTD_N, SPR_OTTD_T, SPR_OTTD_T, SPR_OTTD_D};
-			static const uint LETTER_SPACING = 10;
-			int name_width = (lengthof(title_sprites) - 1) * LETTER_SPACING;
-
-			for (uint i = 0; i < lengthof(title_sprites); i++) {
-				name_width += GetSpriteSize(title_sprites[i]).width;
-			}
-			int off_x = (this->width - name_width) / 2;
-
-			for (uint i = 0; i < lengthof(title_sprites); i++) {
-				DrawSprite(title_sprites[i], PAL_NONE, off_x, 50);
-				off_x += GetSpriteSize(title_sprites[i]).width + LETTER_SPACING;
-			}
-		}
-	}
-
 	virtual EventState OnHotkey(int hotkey)
 	{
 		if (hotkey == GHK_QUIT) {
