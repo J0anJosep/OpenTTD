@@ -1051,6 +1051,18 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BROS_LT_ON,                            "WID_BROS_LT_ON");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BROS_INFO,                             "WID_BROS_INFO");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BACKGROUND,                         "WID_GO_BACKGROUND");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_BEGIN,                          "WID_GO_TAB_BEGIN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_GENERAL,                        "WID_GO_TAB_GENERAL");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_GRAPHICS,                       "WID_GO_TAB_GRAPHICS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_SOUND,                          "WID_GO_TAB_SOUND");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_MUSIC,                          "WID_GO_TAB_MUSIC");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_FONTS,                          "WID_GO_TAB_FONTS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_TAB_END,                            "WID_GO_TAB_END");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_SEL_PANEL_BEGIN,                    "WID_GO_SEL_PANEL_BEGIN");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_SEL_GENERAL,                        "WID_GO_SEL_GENERAL");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_SEL_GRAPHICS,                       "WID_GO_SEL_GRAPHICS");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_SEL_SOUND,                          "WID_GO_SEL_SOUND");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_SEL_PANEL_END,                      "WID_GO_SEL_PANEL_END");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_CURRENCY_DROPDOWN,                  "WID_GO_CURRENCY_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_DISTANCE_DROPDOWN,                  "WID_GO_DISTANCE_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_ROADSIDE_DROPDOWN,                  "WID_GO_ROADSIDE_DROPDOWN");
@@ -1071,6 +1083,9 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BASE_MUSIC_STATUS,                  "WID_GO_BASE_MUSIC_STATUS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BASE_MUSIC_TEXTFILE,                "WID_GO_BASE_MUSIC_TEXTFILE");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BASE_MUSIC_DESCRIPTION,             "WID_GO_BASE_MUSIC_DESCRIPTION");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BASE_AUTOSIZING,                    "WID_GO_BASE_AUTOSIZING");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BASE_MIN_BUTTON_BUTTON,             "WID_GO_BASE_MIN_BUTTON_BUTTON");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GO_BASE_MIN_STEP_BUTTON,               "WID_GO_BASE_MIN_STEP_BUTTON");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GS_FILTER,                             "WID_GS_FILTER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GS_OPTIONSPANEL,                       "WID_GS_OPTIONSPANEL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GS_SCROLLBAR,                          "WID_GS_SCROLLBAR");
