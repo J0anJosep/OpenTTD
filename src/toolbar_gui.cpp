@@ -976,7 +976,7 @@ static CallBackFunction MenuClickBuildAir(int index)
 
 static CallBackFunction ToolbarForestClick(Window *w)
 {
-	PopupMainToolbMenu(w, WID_TN_LANDSCAPE, STR_LANDSCAPING_MENU_LANDSCAPING, 3);
+	PopupMainToolbMenu(w, WID_TN_LANDSCAPE, STR_LANDSCAPING_MENU_LANDSCAPING, 1);
 	return CBF_NONE;
 }
 
@@ -990,8 +990,6 @@ static CallBackFunction MenuClickForest(int index)
 {
 	switch (index) {
 		case 0: ShowTerraformToolbar();  break;
-		case 1: ShowBuildTreesToolbar(); break;
-		case 2: return SelectSignTool();
 	}
 	return CBF_NONE;
 }
