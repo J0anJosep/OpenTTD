@@ -453,8 +453,6 @@ STR_AIRCRAFT_MENU_AIRPORT_CONSTRUCTION                          :Airport constru
 
 ############ range for landscaping menu starts
 STR_LANDSCAPING_MENU_LANDSCAPING                                :Landscaping
-STR_LANDSCAPING_MENU_PLANT_TREES                                :Plant trees
-STR_LANDSCAPING_MENU_PLACE_SIGN                                 :Place sign
 ############ range ends here
 
 ############ range for music menu starts
