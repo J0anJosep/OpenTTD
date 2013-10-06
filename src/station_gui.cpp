@@ -659,17 +659,18 @@ static const NWidgetPart _nested_station_view_widgets[] = {
  * @param y y coordinate
  * @param width the width of the view
  */
-static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int y)
+static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int top, int bottom)
 {
-	int width = ScaleGUITrad(10);
+	SpriteID sprite = CargoSpec::Get(i)->GetCargoIcon();
+	Dimension d = GetSpriteSize(sprite);
+	int width = ScaleGUITrad(d.width);
+
 	uint num = min((waiting + (width / 2)) / width, (right - left) / width); // maximum is width / 10 icons so it won't overflow
 	if (num == 0) return;
 
-	SpriteID sprite = CargoSpec::Get(i)->GetCargoIcon();
-
 	int x = _current_text_dir == TD_RTL ? left : right - num * width;
 	do {
-		DrawSprite(sprite, PAL_NONE, x, y);
+		DrawSprite(sprite, PAL_NONE, x, top);
 		x += width;
 	} while (--num);
 }
@@ -1594,7 +1595,7 @@ struct StationViewWindow : public Window {
 
 				if (this->groupings[column] == GR_CARGO) {
 					str = STR_STATION_VIEW_WAITING_CARGO;
-					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y, y + FONT_HEIGHT_NORMAL);
 				} else {
 					if (!auto_distributed) grouping = GR_SOURCE;
 					StationID station = cd->GetStation();
