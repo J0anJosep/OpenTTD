@@ -537,3 +537,13 @@ void InitializeObjectGui()
 {
 	_selected_object_class = (ObjectClassID)0;
 }
+
+/**
+ * PlaceProc function, called when someone pressed the button if the
+ *  object-tool is selected
+ * @param tile on which to place the object
+ */
+void PlaceProc_Object(TileIndex tile)
+{
+	TouchCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(), _selected_object_view, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_BUILD_OBJECT), CcTerraform);
+}
