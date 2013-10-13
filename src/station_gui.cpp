@@ -2260,7 +2260,7 @@ void ShowSelectBaseStationIfNeeded(const CommandContainer &cmd, TileArea ta)
 		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
 		new SelectStationWindow<T>(&_select_station_desc, cmd, ta);
 	} else {
-		DoCommandP(&cmd);
+		TouchCommandP(&cmd);
 	}
 }
 
