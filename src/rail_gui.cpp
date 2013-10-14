@@ -1394,6 +1394,8 @@ public:
 				break;
 			}
 		}
+
+		EraseQueuedTouchCommand();
 	}
 
 	virtual void OnRealtimeTick(uint delta_ms)
@@ -1761,6 +1763,7 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 				_build_depot_direction = (DiagDirection)(widget - WID_BRAD_DEPOT_NE);
 				this->LowerWidget(_build_depot_direction + WID_BRAD_DEPOT_NE);
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+				EraseQueuedTouchCommand();
 				this->SetDirty();
 				break;
 		}
