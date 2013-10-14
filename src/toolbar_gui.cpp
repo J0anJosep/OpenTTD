@@ -2292,6 +2292,7 @@ struct TabletToolbar : Window {
 				this->ToggleWidgetLoweredState(WID_TT_CTRL);
 				HandleCtrlChanged();
 				this->SetWidgetDirty(WID_TT_CTRL);
+				EraseQueuedTouchCommand();
 				break;
 			case WID_TT_CHAT:
 				ShowNetworkChatQueryWindow(DESTTYPE_BROADCAST, 0);
