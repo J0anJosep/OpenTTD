@@ -1887,7 +1887,7 @@ void MarkTileDirtyByTile(TileIndex tile, int bridge_level_offset, int tile_heigh
  *
  * @ingroup dirty
  */
-static void SetSelectionTilesDirty()
+void SetSelectionTilesDirty()
 {
 	int x_size = _thd.size.x;
 	int y_size = _thd.size.y;
