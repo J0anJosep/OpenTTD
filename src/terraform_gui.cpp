@@ -287,6 +287,7 @@ struct TerraformToolbarWindow : Window {
 	virtual void OnPlaceObjectAbort()
 	{
 		this->RaiseButtons();
+		EraseQueuedTouchCommand();
 		ResetObjectToPlace();
 	}
 
