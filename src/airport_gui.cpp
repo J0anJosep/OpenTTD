@@ -28,6 +28,7 @@
 #include "hotkeys.h"
 #include "vehicle_func.h"
 #include "gui.h"
+#include "command_func.h"
 
 #include "widgets/airport_widget.h"
 
@@ -156,7 +157,7 @@ struct BuildAirToolbarWindow : Window {
 
 		DeleteWindowById(WC_BUILD_STATION, TRANSPORT_AIR);
 		DeleteWindowById(WC_SELECT_STATION, 0);
-
+		EraseQueuedTouchCommand();
 		ResetObjectToPlace();
 	}
 
@@ -276,6 +277,7 @@ public:
 
 	virtual ~BuildAirportWindow()
 	{
+		EraseQueuedTouchCommand();
 		DeleteWindowById(WC_SELECT_STATION, 0);
 	}
 
