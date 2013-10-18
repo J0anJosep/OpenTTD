@@ -359,15 +359,13 @@ Window *ShowTerraformToolbar(Window *link)
 {
 	if (!Company::IsValidID(_local_company)) return NULL;
 
-	Window *w;
 	if (link == NULL) {
-		w = AllocateWindowDescFront<TerraformToolbarWindow>(&_terraform_desc, 0);
-		return w;
+		return AllocateWindowDescFront<TerraformToolbarWindow>(&_terraform_desc, 0);
 	}
 
 	/* Delete the terraform toolbar to place it again. */
 	DeleteWindowById(WC_SCEN_LAND_GEN, 0, true);
-	w = AllocateWindowDescFront<TerraformToolbarWindow>(&_terraform_desc, 0);
+	Window *w = AllocateWindowDescFront<TerraformToolbarWindow>(&_terraform_desc, 0);
 	/* Align the terraform toolbar under the main toolbar. */
 	w->top -= w->height;
 	w->SetDirty();
