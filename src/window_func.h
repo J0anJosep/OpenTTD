@@ -43,6 +43,7 @@ void DeleteNonVitalWindows();
 void DeleteAllNonVitalWindows();
 void DeleteAllNewsWindows();
 void DeleteConstructionWindows();
+void DeleteToolbarLinkedWindows();
 void HideVitalWindows();
 void ShowVitalWindows();
 
