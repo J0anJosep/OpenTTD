@@ -202,7 +202,7 @@ struct TerraformToolbarWindow : Window {
 				break;
 
 			case WID_TT_PLANT_TREES: // Plant trees button
-				ShowBuildTreesToolbar();
+				ShowBuildTrees();
 				break;
 
 			case WID_TT_PLACE_SIGN: // Place sign button

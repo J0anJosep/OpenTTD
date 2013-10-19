@@ -1256,7 +1256,7 @@ static CallBackFunction ToolbarScenPlantTrees(Window *w)
 {
 	w->HandleButtonClick(WID_TE_TREES);
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-	ShowBuildTreesToolbar();
+	ShowBuildTrees();
 	return CBF_NONE;
 }
 
@@ -1736,7 +1736,7 @@ struct MainToolbarWindow : Window {
 			case MTHK_BUILD_ROAD: ShowBuildRoadToolbar(_last_built_roadtype); break;
 			case MTHK_BUILD_DOCKS: ShowBuildDocksToolbar(); break;
 			case MTHK_BUILD_AIRPORT: if (CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) ShowBuildAirToolbar(); break;
-			case MTHK_BUILD_TREES: ShowBuildTreesToolbar(); break;
+			case MTHK_BUILD_TREES: ShowBuildTrees(); break;
 			case MTHK_MUSIC: ShowMusicWindow(); break;
 			case MTHK_AI_DEBUG: ShowAIDebugWindow(); break;
 			case MTHK_SMALL_SCREENSHOT: MenuClickSmallScreenshot(); break;
