@@ -46,7 +46,7 @@ void ShowHeightmapLoad();
 /* misc_gui.cpp */
 void ShowLandInfo(TileIndex tile);
 void ShowAboutWindow();
-void ShowBuildTreesToolbar();
+void ShowBuildTrees();
 void ShowTownDirectory();
 void ShowIndustryDirectory();
 void ShowIndustryCargoesWindow();
