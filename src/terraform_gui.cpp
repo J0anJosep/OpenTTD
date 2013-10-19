@@ -367,6 +367,7 @@ Window *ShowTerraformToolbar(Window *link)
 	if (!Company::IsValidID(_local_company)) return NULL;
 
 	if (link == NULL) {
+		DeleteToolbarLinkedWindows();
 		return AllocateWindowDescFront<TerraformToolbarWindow>(&_terraform_desc, 0);
 	}
 
@@ -756,5 +757,6 @@ static WindowDesc _scen_edit_land_gen_desc(
  */
 Window *ShowEditorTerraformToolbar()
 {
+	DeleteToolbarLinkedWindows();
 	return AllocateWindowDescFront<ScenarioEditorLandscapeGenerationWindow>(&_scen_edit_land_gen_desc, 0);
 }
