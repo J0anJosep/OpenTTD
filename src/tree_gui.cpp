@@ -245,15 +245,23 @@ static const NWidgetPart _nested_build_trees_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_trees_desc(
-	WDP_AUTO, "build_tree", 0, 0,
+static WindowDesc _build_trees_toolbar_desc(
+	WDP_ALIGN_TOOLBAR, "build_tree", 0, 0,
 	WC_BUILD_TREES, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_trees_widgets, lengthof(_nested_build_trees_widgets)
 );
 
-void ShowBuildTreesToolbar()
+static WindowDesc _build_trees_desc(
+	WDP_AUTO, "build_tree", 0, 0,
+	WC_BUILD_TREES, WC_SCEN_LAND_GEN,
+	WDF_CONSTRUCTION,
+	_nested_build_trees_widgets, lengthof(_nested_build_trees_widgets)
+);
+
+void ShowBuildTrees()
 {
 	if (_game_mode != GM_EDITOR && !Company::IsValidID(_local_company)) return;
-	AllocateWindowDescFront<BuildTreesWindow>(&_build_trees_desc, 0);
+	if (_game_mode == GM_EDITOR) DeleteToolbarLinkedWindows();
+	AllocateWindowDescFront<BuildTreesWindow>(_game_mode == GM_EDITOR ? &_build_trees_toolbar_desc : &_build_trees_desc, 0);
 }
