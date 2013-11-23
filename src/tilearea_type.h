@@ -13,6 +13,8 @@
 #define TILEAREA_TYPE_H
 
 #include "map_func.h"
+#include "core/bitmath_func.hpp"
+#include <limits.h>
 
 /** Represents the covered area of e.g. a rail station */
 struct OrthogonalTileArea {
@@ -229,6 +231,45 @@ public:
 	}
 };
 
+typedef long int BitMap;
+assert_compile(CHAR_BIT == 8);
+
+inline BitMap *NewBitMap(uint positions)
+{
+	return new BitMap[(positions - 1 + CHAR_BIT * sizeof(BitMap)) / (CHAR_BIT * sizeof(BitMap))]();
+}
+
+inline void SetBitMapBit(BitMap *bit_map, uint32 position, bool value)
+{
+	// Check why SB(word, position, 1, value) doesn't work
+	if (value) {
+		SetBit(bit_map[position / (CHAR_BIT * sizeof(BitMap))], position % (CHAR_BIT * sizeof(BitMap)));
+	} else {
+		ClrBit(bit_map[position / (CHAR_BIT * sizeof(BitMap))], position % (CHAR_BIT * sizeof(BitMap)));
+	}
+}
+
+inline bool HasBitMapBit(BitMap *bit_map, uint position)
+{
+	return HasBit(bit_map[position / (CHAR_BIT * sizeof(BitMap))], position % (CHAR_BIT * sizeof(BitMap)));
+}
+
+/** BitMap index. */
+struct BitMapIndex {
+	uint word_index;
+	uint bit_index;
+
+	BitMapIndex() : word_index(0), bit_index(0) {}
+
+	inline BitMapIndex& operator ++() {
+		if (++bit_index == sizeof(BitMap) * CHAR_BIT) {
+			bit_index = 0;
+			word_index++;
+		}
+		return *this;
+	}
+};
+
 /**
  * A loop which iterates over the tiles of a TileArea.
  * @param var The name of the variable which contains the current tile.
@@ -237,9 +278,18 @@ public:
  */
 #define TILE_AREA_LOOP(var, ta) for (OrthogonalTileIterator var(ta); var != INVALID_TILE; ++var)
 
+/**
+ * A loop which iterates over the tiles of a TileArea under a given mask.
+ * @param var  The name of the variable which contains the current tile.
+ *             This variable will be allocated in this \c for of this loop.
+ * @param ta   The tile area to search over.
+ * @param mask The BitMap associated to \c ta. n-th bit is associated to the n-th tile of the tile area loop.
+ *             If the mask is set to NULL, the loop is equivalent to a simple TILE_AREA_LOOP.
+ *             If the n-th bit is set to 0, the n-th tile of the tile area loop is skipped.
+ */
 #define MASKED_TILE_AREA_LOOP(var, ta, mask) \
-	uint _index = 0; \
-	for (OrthogonalTileIterator var(ta); var != INVALID_TILE; ++var, _index++) \
-		if (mask == NULL || mask[_index])
+	BitMapIndex _ta_mask_index; \
+	for (OrthogonalTileIterator var(ta); var != INVALID_TILE; ++var, ++_ta_mask_index) \
+		if (mask == NULL || HasBit(mask[_ta_mask_index.word_index], _ta_mask_index.bit_index))
 
 #endif /* TILEAREA_TYPE_H */
