@@ -214,6 +214,12 @@ void Industry::PostDestructor(size_t index)
 void Industry::SetFootprint() {
 	assert(this->location.w != 0 && this->location.h != 0);
 	delete [] this->footprint;
+
+	if (!_settings_game.station.precise_catchment) {
+		this->footprint = NULL;
+		return;
+	}
+
 	this->footprint = NewBitMap(this->location.w * this->location.h);
 	bool complete = true;
 

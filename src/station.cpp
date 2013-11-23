@@ -441,6 +441,8 @@ const TileArea Station::GetStationCatchmentArea() const { return this->catchment
  */
 BitMap *Station::GetStationCatchmentFootprint(const TileArea ta) const
 {
+	if (!_settings_game.station.precise_catchment) return NULL;
+
 	BitMap *new_footprint = NewBitMap(ta.w * ta.h);
 	SmallVector<TileIndex, 32> list_of_tiles = this->GetStationTiles();
 
