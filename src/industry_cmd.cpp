@@ -215,16 +215,22 @@ void Industry::SetFootprint() {
 	assert(this->location.w != 0 && this->location.h != 0);
 	delete [] this->footprint;
 	this->footprint = NewBitMap(this->location.w * this->location.h);
+	bool complete = true;
 
 	BitMapIndex mask_index;
 	TILE_AREA_LOOP(tile, this->location) {
-		if (this->TileBelongsToIndustry(tile)) {
+		if (this->TileBelongsToIndustry(tile) ||
+				(tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile))) {
 			SetBit(this->footprint[mask_index.word_index], mask_index.bit_index);
 		} else {
-			if (tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile))
-					SetBit(this->footprint[mask_index.word_index], mask_index.bit_index);
+			complete = false;
 		}
 		++mask_index;
+	}
+
+	if (complete) {
+		delete [] this->footprint;
+		this->footprint = NULL;
 	}
 }
 

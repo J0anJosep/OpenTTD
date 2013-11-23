@@ -456,7 +456,15 @@ BitMap *Station::GetStationCatchmentFootprint(const TileArea ta) const
 			++mask_index;
 		}
 	}
-	return new_footprint;
+
+	BitMapIndex check_complete;
+	TILE_AREA_LOOP(tile, ta) {
+		if (!HasBit(new_footprint[check_complete.word_index], check_complete.bit_index)) return new_footprint;
+		++check_complete;
+	}
+
+	delete [] new_footprint;
+	return NULL;
 }
 
 /**
