@@ -16,7 +16,7 @@
 #include "station_base.h"
 
 FilterActive _ca_controller;
-bool *_ca_layer = NULL;
+BitMap *_ca_layer = NULL;
 bool _stations_modified;
 
 /**
@@ -24,9 +24,9 @@ bool _stations_modified;
  */
 void ResetCatchmentAreaLayer()
 {
-	free(_ca_layer);
+	delete [] _ca_layer;
 	extern uint _map_size;
-	_ca_layer = CallocT<bool>(_map_size);
+	_ca_layer = NewBitMap(_map_size);
 	_ca_controller.Reset();
 	_stations_modified = false;
 }
@@ -39,9 +39,9 @@ void ResetCatchmentAreaLayer()
  */
 void SetZoning(const Station *st, const TileArea check_area, bool setting_tiles_to)
 {
-	const bool *mask = st->GetStationCatchmentFootprint(check_area);
+	const BitMap *mask = st->GetStationCatchmentFootprint(check_area);
 	MASKED_TILE_AREA_LOOP(tile, check_area, mask) {
-		_ca_layer[tile] = setting_tiles_to;
+		SetBitMapBit(_ca_layer, tile, setting_tiles_to);
 	}
 	delete [] mask;
 }
@@ -49,7 +49,8 @@ void SetZoning(const Station *st, const TileArea check_area, bool setting_tiles_
 void UpdateCatchmentAreaLayer()
 {
 	extern uint _map_size;
-	MemSetT<bool>(_ca_layer, 0, _map_size);
+	delete [] _ca_layer;
+	_ca_layer = NewBitMap(_map_size);
 
 	Station *st;
 	for (bool setting_tiles_to = true;; setting_tiles_to = false) {
@@ -84,7 +85,7 @@ void UpdateCALayer(const TileArea check_area)
 	}
 	//reset area to check
 	TILE_AREA_LOOP(tile, check_area) {
-		_ca_layer[tile] = 0;
+		SetBitMapBit(_ca_layer, tile, 0);
 	}
 
 	for (uint setting_tiles_to = 2; setting_tiles_to--;) {
@@ -152,7 +153,8 @@ void UpdateCALayer(ListType list_type, const uint id)
 				}
 			}
 
-			MemSetT<bool>(_ca_layer, 0, _map_size);
+			delete [] _ca_layer;
+			_ca_layer = NewBitMap(_map_size);
 
 			for (uint i = _ca_controller.lists[LT_STATIONS].Length(); i--;) {
 				Station *st = Station::Get(_ca_controller.lists[LT_STATIONS][i].GetElement());

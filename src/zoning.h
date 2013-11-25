@@ -18,7 +18,7 @@
 #include "filters/filter_active.h"
 
 extern FilterActive _ca_controller;
-extern bool *_ca_layer;
+extern BitMap *_ca_layer;
 extern bool _stations_modified;
 
 void ResetCatchmentAreaLayer();
