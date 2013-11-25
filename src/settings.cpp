@@ -65,6 +65,8 @@
 #include "fios.h"
 #include "strings_func.h"
 #include "industry.h"
+#include "autoreplace_base.h"
+#include "zoning.h"
 
 #include "void_map.h"
 #include "station_base.h"
@@ -1321,6 +1323,8 @@ static bool StationCatchmentChanged(int32 p1)
 
 	InvalidateWindowClassesData(WC_STATION_LIST);
 	InvalidateWindowClassesData(WC_STATION_VIEW);
+
+	UpdateCatchmentAreaLayer();
 
 	return true;
 }
