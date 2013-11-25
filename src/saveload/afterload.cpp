@@ -287,7 +287,12 @@ static void InitializeWindowsAndCaches()
 
 	GroupStatistics::UpdateAfterLoad();
 
-	Station::RecomputeIndustriesNearForAll();
+	Station *st;
+	FOR_ALL_STATIONS(st) {
+		st->UpdateCatchment();
+		st->RecomputeIndustriesNear();
+	}
+
 	RebuildSubsidisedSourceAndDestinationCache();
 
 	/* Towns have a noise controlled number of airports system
