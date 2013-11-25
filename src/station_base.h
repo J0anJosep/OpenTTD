@@ -455,7 +455,7 @@ struct Station FINAL : SpecializedStation<Station, false> {
 
 protected:
 	TileArea catchment;     ///< NOSAVE: TileArea of tiles this station could catch
-	bool *footprint;        ///< NOSAVE: mask that used with this->catchment indicates if the tile is caught by the station
+	BitMap *footprint;      ///< NOSAVE: mask that used with this->catchment indicates if the tile is caught by the station
 
 public:
 	RoadStop *GetPrimaryRoadStop(RoadStopType type) const
@@ -512,12 +512,12 @@ public:
 	void UpdateCatchment();
 	static TileArea GetStationCatchmentAreaByTile(TileIndex tile);
 	const TileArea GetStationCatchmentArea() const;
-	bool *GetStationCatchmentFootprint(const TileArea ta) const;
-	const bool *GetStationCatchmentFootprint() const;
+	BitMap *GetStationCatchmentFootprint(const TileArea ta) const;
+	const BitMap *GetStationCatchmentFootprint() const;
 
 	/* Stuff related with relationship between industries and stations */
 	void RecomputeIndustriesNear();
-	static void RecomputeIndustriesNearArea(const TileArea ta, const bool *footprint);
+	static void RecomputeIndustriesNearArea(const TileArea ta, const BitMap *footprint);
 	static void RecomputeIndustriesNearForAll();
 
 

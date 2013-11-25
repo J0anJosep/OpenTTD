@@ -439,22 +439,23 @@ const TileArea Station::GetStationCatchmentArea() const { return this->catchment
 /**
  * Returns a mask containing all tiles of given ta that this station really can catch
  */
-bool *Station::GetStationCatchmentFootprint(const TileArea ta) const
+BitMap *Station::GetStationCatchmentFootprint(const TileArea ta) const
 {
-	bool *new_footprint = new bool[ta.w*ta.h]();
+	BitMap *new_footprint = NewBitMap(ta.w * ta.h);
 	SmallVector<TileIndex, 32> list_of_tiles = this->GetStationTiles();
 
 	for (uint i = list_of_tiles.Length(); i--;) {
 		TileArea catchment_area = this->GetStationCatchmentAreaByTile(list_of_tiles[i]);
 		catchment_area.IntersectionWith(ta);
 
-		uint f_index = 0;
+		BitMapIndex mask_index;
 		TILE_AREA_LOOP(tile, ta) {
-			if (catchment_area.Contains(tile)) new_footprint[f_index] = true;
-			f_index++;
+			if (catchment_area.Contains(tile)) {
+				SetBit(new_footprint[mask_index.word_index], mask_index.bit_index);
+			}
+			++mask_index;
 		}
 	}
-
 	return new_footprint;
 }
 
@@ -463,7 +464,7 @@ bool *Station::GetStationCatchmentFootprint(const TileArea ta) const
  * @note	mask[i] is true if tile number i of this->catchment is caught by station
  *		mask[i] is false if tile cannot reach the station
  */
-const bool *Station::GetStationCatchmentFootprint() const { return this->footprint; };
+const BitMap *Station::GetStationCatchmentFootprint() const { return this->footprint; };
 
 
 
@@ -477,7 +478,7 @@ void Station::RecomputeIndustriesNear()
 	if (this->rect.IsEmpty()) return;
 
 	const TileArea ta = this->GetStationCatchmentArea();
-	const bool *mask = this->GetStationCatchmentFootprint();
+	const BitMap *mask = this->GetStationCatchmentFootprint();
 	Industry *ind;
 
 	MASKED_TILE_AREA_LOOP(tile, ta, mask) {
@@ -504,7 +505,7 @@ void Station::RecomputeIndustriesNear()
  * @param mask tiles modified
  * @note ta will be expanded appropriately
  */
-/* static */ void Station::RecomputeIndustriesNearArea(const TileArea ta, const bool *mask)
+/* static */ void Station::RecomputeIndustriesNearArea(const TileArea ta, const BitMap *mask)
 {
 	StationList stations;
 	FindStationsAroundTiles(ta, mask, &stations);

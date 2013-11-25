@@ -214,16 +214,17 @@ void Industry::PostDestructor(size_t index)
 void Industry::SetFootprint() {
 	assert(this->location.w != 0 && this->location.h != 0);
 	delete [] this->footprint;
-	this->footprint = new bool[this->location.w * this->location.h]();
+	this->footprint = NewBitMap(this->location.w * this->location.h);
 
-	uint mask_index = 0;
+	BitMapIndex mask_index;
 	TILE_AREA_LOOP(tile, this->location) {
 		if (this->TileBelongsToIndustry(tile)) {
-			this->footprint[mask_index] = true;
+			SetBit(this->footprint[mask_index.word_index], mask_index.bit_index);
 		} else {
-			if (tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile)) this->footprint[mask_index] = true;
+			if (tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile))
+					SetBit(this->footprint[mask_index.word_index], mask_index.bit_index);
 		}
-		mask_index++;
+		++mask_index;
 	}
 }
 

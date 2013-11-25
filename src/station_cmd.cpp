@@ -473,7 +473,7 @@ static void ShowRejectOrAcceptNews(const Station *st, uint num_items, CargoID *c
  * @param ta TileArea to check
  * @param mask containing a bool array mask of tiles of ta really to check
  */
-CargoArray GetProductionAroundTiles(const TileArea ta, const bool *mask)
+CargoArray GetProductionAroundTiles(const TileArea ta, const BitMap *mask)
 {
 	CargoArray produced;
 	Industry *i;
@@ -499,7 +499,7 @@ CargoArray GetProductionAroundTiles(const TileArea ta, const bool *mask)
  * @param mask tiles of area really to be checked
  * @param always_accepted bitmask of cargo accepted by houses and headquarters; can be NULL
  */
-CargoArray GetAcceptanceAroundTiles(const TileArea ta, const bool *mask, uint32 *always_accepted)
+CargoArray GetAcceptanceAroundTiles(const TileArea ta, const BitMap *mask, uint32 *always_accepted)
 {
 	CargoArray acceptance;
 	if (always_accepted != NULL) *always_accepted = 0;
@@ -3253,7 +3253,7 @@ void TriggerWatchedCargoCallbacks(Station *st)
 
 	/* Loop over all houses in the catchment. */
 	const TileArea &ta = st->GetStationCatchmentArea();
-	const bool *footprint = st->GetStationCatchmentFootprint();
+	const BitMap *footprint = st->GetStationCatchmentFootprint();
 	MASKED_TILE_AREA_LOOP(tile, ta, footprint) {
  		if (IsTileType(tile, MP_HOUSE)) {
  			WatchedCargoCallback(tile, cargoes);
@@ -3817,7 +3817,7 @@ CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
  * @param mask The tiles of location that are to be considered (NULL if all are to be considered)
  * @param stations The list to store the stations in
  */
-void FindStationsAroundTiles(const TileArea &location, const bool *mask, StationList *stations)
+void FindStationsAroundTiles(const TileArea &location, const BitMap *mask, StationList *stations)
 {
 	/* area to search = producer plus station catchment radius */
 	uint max_rad = (_settings_game.station.modified_catchment ? MAX_CATCHMENT : CA_UNMODIFIED);

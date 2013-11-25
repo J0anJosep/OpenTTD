@@ -105,14 +105,14 @@ typedef SmallVector<Station *, 2> StationList;
  * is created upon first call to GetStations()
  */
 class StationFinder : TileArea {
-	const bool *mask;
+	const BitMap *mask;
 	StationList stations; ///< List of stations nearby
 public:
 	/**
 	 * Constructs StationFinder
 	 * @param area the area to search from
 	 */
-	StationFinder(const TileArea &area, const bool *mask) : TileArea(area), mask(mask) {}
+	StationFinder(const TileArea &area, const BitMap *mask) : TileArea(area), mask(mask) {}
 	const StationList *GetStations();
 };
 

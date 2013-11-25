@@ -22,13 +22,13 @@
 
 void ModifyStationRatingAround(TileIndex tile, Owner owner, int amount, uint radius);
 
-void FindStationsAroundTiles(const TileArea &location, const bool *mask, StationList *stations);
+void FindStationsAroundTiles(const TileArea &location, const BitMap *mask, StationList *stations);
 
 void ShowStationViewWindow(StationID station);
 void UpdateAllStationVirtCoords();
 
-CargoArray GetProductionAroundTiles(const TileArea ta, const bool *mask);
-CargoArray GetAcceptanceAroundTiles(const TileArea ta, const bool *mask, uint32 *always_accepted = NULL);
+CargoArray GetProductionAroundTiles(const TileArea ta, const BitMap *mask);
+CargoArray GetAcceptanceAroundTiles(const TileArea ta, const BitMap *mask, uint32 *always_accepted = NULL);
 
 void UpdateStationAcceptance(Station *st, bool show_msg);
 
