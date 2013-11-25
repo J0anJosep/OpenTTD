@@ -1017,7 +1017,7 @@ void DrawTileZoning(const TileInfo *ti)
 	if (ti->tile == INVALID_TILE) return;
 	if (IsTileType(ti->tile, MP_VOID)) return;
 
-	if (_ca_layer[ti->tile] != 0) {
+	if (HasBitMapBit(_ca_layer, ti->tile)) {
 		/* Tile is zoned */
 		DrawSelectionSprite(SPR_SELECT_TILE + _slope_to_sprite_offset[ti->tileh], IsTileType(ti->tile, MP_STATION) ? PAL_NONE : PALETTE_SEL_TILE_BLUE, ti, 7, FOUNDATION_PART_NORMAL);
 	} else {
