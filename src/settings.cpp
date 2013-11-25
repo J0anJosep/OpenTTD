@@ -1309,7 +1309,16 @@ static bool ChangeMaxHeightLevel(int32 p1)
 
 static bool StationCatchmentChanged(int32 p1)
 {
-	Station::RecomputeIndustriesNearForAll();
+	Station *st;
+	FOR_ALL_STATIONS(st) {
+		st->UpdateCatchment();
+		st->RecomputeIndustriesNear();
+		UpdateStationAcceptance(st, true);
+	}
+
+	InvalidateWindowClassesData(WC_STATION_LIST);
+	InvalidateWindowClassesData(WC_STATION_VIEW);
+
 	return true;
 }
 
