@@ -701,6 +701,9 @@ void Airport::SetDepot(bool adding)
 		this->depot_id = dep->index;
 		dep->build_date = st->build_date;
 		dep->town = st->town;
+		dep->ta.tile = st->airport.tile;
+		dep->ta.w = st->airport.w;
+		dep->ta.h = st->airport.h;
 	} else {
 		delete Depot::GetIfValid(this->depot_id);
 		this->depot_id = INVALID_DEPOT;
