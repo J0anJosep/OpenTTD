@@ -3618,6 +3618,8 @@ STR_BUY_VEHICLE_TRAIN_ELRAIL_CAPTION                            :New Electric Ra
 STR_BUY_VEHICLE_TRAIN_MONORAIL_CAPTION                          :New Monorail Vehicles
 STR_BUY_VEHICLE_TRAIN_MAGLEV_CAPTION                            :New Maglev Vehicles
 
+STR_BUY_VEHICLE_TRAIN_MULTIDEPOT_CAPTION                        :New Rail Vehicles (multi-rail depot)
+
 STR_BUY_VEHICLE_TRAIN_ALL_CAPTION                               :New Rail Vehicles
 STR_BUY_VEHICLE_ROAD_VEHICLE_CAPTION                            :New Road Vehicles
 STR_BUY_VEHICLE_SHIP_CAPTION                                    :New Ships
