@@ -1162,6 +1162,8 @@ CommandCost CmdBuildRoadDepot(DoCommandFlag flags, TileIndex tile, RoadType rt, 
 	if (flags & DC_EXEC) {
 		Depot *dep = new Depot(tile);
 		dep->build_date = _date;
+		dep->company = _current_company;
+		dep->veh_type = VEH_ROAD;
 
 		/* A road depot has two road bits. */
 		UpdateCompanyRoadInfrastructure(rt, _current_company, ROAD_DEPOT_TRACKBIT_FACTOR);

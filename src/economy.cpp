@@ -51,6 +51,7 @@
 #include "company_cmd.h"
 #include "economy_cmd.h"
 #include "vehicle_cmd.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
 #include "table/pricebase.h"
@@ -360,6 +361,12 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 		}
 	}
 	if (new_owner == INVALID_OWNER) RebuildSubsidisedSourceAndDestinationCache();
+
+	for (Depot *dep : Depot::Iterate()) {
+		if (dep->company == old_owner && new_owner != INVALID_OWNER) {
+			dep->company = new_owner;
+		}
+	}
 
 	/* Take care of rating and transport rights in towns */
 	for (Town *t : Town::Iterate()) {

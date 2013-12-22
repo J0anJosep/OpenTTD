@@ -136,6 +136,8 @@ CommandCost CmdBuildShipDepot(DoCommandFlag flags, TileIndex tile, Axis axis)
 	if (flags & DC_EXEC) {
 		Depot *depot = new Depot(tile);
 		depot->build_date = _date;
+		depot->company = _current_company;
+		depot->veh_type = VEH_SHIP;
 
 		if (wc1 == WATER_CLASS_CANAL || wc2 == WATER_CLASS_CANAL) {
 			/* Update infrastructure counts after the unconditional clear earlier. */

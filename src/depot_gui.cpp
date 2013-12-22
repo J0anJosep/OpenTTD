@@ -290,7 +290,7 @@ struct DepotWindow : Window {
 		this->SetupWidgetData(this->type);
 		this->FinishInitNested(depot_id);
 
-		this->owner = GetTileOwner(tile);
+		this->owner = depot->company;
 		OrderBackup::Reset();
 	}
 
