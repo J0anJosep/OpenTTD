@@ -704,6 +704,9 @@ void Airport::SetDepot(bool adding)
 		dep->ta.tile = st->airport.tile;
 		dep->ta.w = st->airport.w;
 		dep->ta.h = st->airport.h;
+		for (uint i = 0; i < this->GetNumHangars(); i++) {
+			*dep->depot_tiles.Append() = this->GetHangarTile(i);
+		}
 	} else {
 		delete Depot::GetIfValid(this->depot_id);
 		this->depot_id = INVALID_DEPOT;
