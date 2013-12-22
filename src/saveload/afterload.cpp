@@ -289,6 +289,10 @@ static void InitializeWindowsAndCaches()
 		}
 	}
 
+	for (Depot *dep : Depot::Iterate()) {
+		dep->RescanDepotTiles();
+	}
+
 	RecomputePrices();
 
 	GroupStatistics::UpdateAfterLoad();
@@ -2783,6 +2787,30 @@ bool AfterLoadGame()
 			if (a->current_order.IsType(OT_GOTO_DEPOT)) {
 				Station *st = Station::Get(a->current_order.GetDestination());
 				a->current_order.SetDestination(st->airport.depot_id);
+			}
+		}
+
+		for (Depot *depot : Depot::Iterate()) {
+			if (!IsDepotTile(depot->xy) || GetDepotIndex(depot->xy) != depot->index) {
+				/* It can happen there is no depot here anymore (TTO/TTD savegames) */
+				depot->veh_type = VEH_TRAIN;
+				depot->company = INVALID_OWNER;
+				delete depot;
+				continue;
+			}
+
+			depot->company = GetTileOwner(depot->xy);
+			depot->veh_type = GetDepotVehicleType(depot->xy);
+			switch (depot->veh_type) {
+				case VEH_SHIP:
+					depot->AfterAddRemove(TileArea(depot->xy, 2, 2), true);
+					break;
+				case VEH_ROAD:
+				case VEH_TRAIN:
+					depot->AfterAddRemove(TileArea(depot->xy, 1, 1), true);
+					break;
+				default:
+					break;
 			}
 		}
 	}
