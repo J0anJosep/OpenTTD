@@ -288,6 +288,10 @@ static void InitializeWindowsAndCaches()
 		}
 	}
 
+	for (Depot *dep : Depot::Iterate()) {
+		dep->RescanDepotTiles();
+	}
+
 	RecomputePrices();
 
 	GroupStatistics::UpdateAfterLoad();
@@ -2754,6 +2758,22 @@ bool AfterLoadGame()
 				/* Add a built-in hangar for some airport types. */
 				assert(Depot::CanAllocateItem());
 				st->airport.SetHangar(true);
+			}
+		}
+
+		for (Depot *depot : Depot::Iterate()) {
+			depot->company = GetTileOwner(depot->xy);
+			depot->veh_type = GetDepotVehicleType(depot->xy);
+			switch (depot->veh_type) {
+				case VEH_SHIP:
+					depot->AfterAddRemove(TileArea(depot->xy, 2, 2), true);
+					break;
+				case VEH_ROAD:
+				case VEH_TRAIN:
+					depot->AfterAddRemove(TileArea(depot->xy, 1, 1), true);
+					break;
+				default:
+					break;
 			}
 		}
 	}
