@@ -974,7 +974,7 @@ struct BuildVehicleWindow : Window {
 	VehicleType vehicle_type;                   ///< Type of vehicles shown in the window.
 	Depot *depot;                               ///< Depot associated to the window; NULL if general available engines list.
 	union {
-		RailTypeByte railtype;              ///< Rail type to show, or #RAILTYPE_END.
+		RailTypes railtypes;                ///< Rail type to show, or #INVALID_RAILTYPES
 		RoadTypes roadtypes;                ///< Road type to show, or #ROADTYPES_ALL.
 	} filter;                                   ///< Filter to apply.
 	bool descending_sort_order;                 ///< Sort direction, @see _engine_sort_direction
@@ -1001,18 +1001,6 @@ struct BuildVehicleWindow : Window {
 		this->sort_criteria         = _engine_sort_last_criteria[type];
 		this->descending_sort_order = _engine_sort_last_order[type];
 		this->show_hidden_engines   = _engine_sort_show_hidden_engines[type];
-
-		switch (type) {
-			default: NOT_REACHED();
-			case VEH_TRAIN:
-				this->filter.railtype = (depot == NULL) ? RAILTYPE_END : GetRailType(depot->xy);
-				break;
-			case VEH_ROAD:
-				this->filter.roadtypes = (depot == NULL) ? ROADTYPES_ALL : GetRoadTypes(depot->xy);
-			case VEH_SHIP:
-			case VEH_AIRCRAFT:
-				break;
-		}
 
 		this->listview_mode = (depot == NULL);
 
@@ -1052,7 +1040,7 @@ struct BuildVehicleWindow : Window {
 
 		this->owner = (depot != NULL) ? GetTileOwner(depot->xy) : _local_company;
 
-		this->eng_list.ForceRebuild();
+		this->OnInvalidateData();
 		this->GenerateBuildList(); // generate the list, since we need it in the next line
 		/* Select the first engine in the list as default when opening the window */
 		if (this->eng_list.Length() > 0) this->sel_engine = this->eng_list[0];
@@ -1121,7 +1109,6 @@ struct BuildVehicleWindow : Window {
 		int num_wagons  = 0;
 
 		assert(this->listview_mode == (depot == NULL));
-		this->filter.railtype = this->listview_mode ? RAILTYPE_END : GetRailType(depot->xy);
 
 		const Engine *e;
 		FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {
@@ -1129,7 +1116,7 @@ struct BuildVehicleWindow : Window {
 			EngineID eid = e->index;
 			const RailVehicleInfo *rvi = &e->u.rail;
 
-			if (this->filter.railtype != RAILTYPE_END && !HasPowerOnRail(rvi->railtype, this->filter.railtype)) continue;
+			if (this->filter.railtypes != INVALID_RAILTYPES && !HasPowerOnRails(rvi->railtype, this->filter.railtypes)) continue;
 
 			/* Filtered/Complete. */
 			if (this->show_hidden_engines) {
@@ -1316,6 +1303,20 @@ struct BuildVehicleWindow : Window {
 			this->sort_criteria = 0;
 			_engine_sort_last_criteria[VEH_ROAD] = 0;
 		}
+
+		switch (this->vehicle_type) {
+			default: NOT_REACHED();
+			case VEH_TRAIN:
+				this->filter.railtypes = (depot == NULL) ? INVALID_RAILTYPES : this->depot->r_types.rail_types;
+				break;
+			case VEH_ROAD:
+				this->filter.roadtypes = (depot == NULL) ? ROADTYPES_ALL : this->depot->r_types.road_types;
+				break;
+			case VEH_SHIP:
+			case VEH_AIRCRAFT:
+				break;
+		}
+
 		this->eng_list.ForceRebuild();
 	}
 
@@ -1328,8 +1329,13 @@ struct BuildVehicleWindow : Window {
 
 			case WID_BV_CAPTION:
 				if (this->vehicle_type == VEH_TRAIN && !this->listview_mode) {
-					const RailtypeInfo *rti = GetRailTypeInfo(this->filter.railtype);
-					SetDParam(0, rti->strings.build_caption);
+					uint num_railtypes = CountBits(this->filter.railtypes);
+					if (num_railtypes != 1) {
+						SetDParam(0, STR_BUY_VEHICLE_TRAIN_MULTIDEPOT_CAPTION);
+					} else {
+						const RailtypeInfo *rti = GetRailTypeInfo((RailType)FindFirstBit(this->filter.railtypes));
+						SetDParam(0, rti->strings.build_caption);
+					}
 				} else {
 					SetDParam(0, (this->listview_mode ? STR_VEHICLE_LIST_AVAILABLE_TRAINS : STR_BUY_VEHICLE_TRAIN_ALL_CAPTION) + this->vehicle_type);
 				}
