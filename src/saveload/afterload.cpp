@@ -289,6 +289,10 @@ static void InitializeWindowsAndCaches()
 		}
 	}
 
+	for (Depot *dep : Depot::Iterate()) {
+		dep->RescanDepotTiles();
+	}
+
 	RecomputePrices();
 
 	GroupStatistics::UpdateAfterLoad();
@@ -2773,6 +2777,22 @@ bool AfterLoadGame()
 				Station *st = Station::Get(station_id);
 				assert(st->airport.depot_id != INVALID_DEPOT);
 				order->SetDestination(st->airport.depot_id);
+			}
+		}
+
+		for (Depot *depot : Depot::Iterate()) {
+			depot->company = GetTileOwner(depot->xy);
+			depot->veh_type = GetDepotVehicleType(depot->xy);
+			switch (depot->veh_type) {
+				case VEH_SHIP:
+					depot->AfterAddRemove(TileArea(depot->xy, 2, 2), true);
+					break;
+				case VEH_ROAD:
+				case VEH_TRAIN:
+					depot->AfterAddRemove(TileArea(depot->xy, 1, 1), true);
+					break;
+				default:
+					break;
 			}
 		}
 	}
