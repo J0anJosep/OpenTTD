@@ -66,6 +66,15 @@ struct Depot : DepotPool::PoolItem<&_depot_pool> {
 	{
 		return GetTileType(d->xy) == GetTileType(this->xy);
 	}
+
+	/* Check we can add some tiles to this depot. */
+	bool BeforeAddTiles(TileArea ta);
+
+	/* Add some tiles to this depot and rescan area for depot_tiles. */
+	void AfterAddRemove(TileArea ta, bool adding);
+
+	/* Rescan depot_tiles. Done after AfterAddRemove and SaveLoad. */
+	void RescanDepotTiles();
 };
 
 #define FOR_ALL_DEPOTS_FROM(var, start) FOR_ALL_ITEMS_FROM(Depot, depot_index, var, start)
