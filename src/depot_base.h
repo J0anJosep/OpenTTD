@@ -14,6 +14,9 @@
 
 #include "depot_map.h"
 #include "core/pool_type.hpp"
+#include "tile_list.h"
+#include "rail_type.h"
+#include "road_type.h"
 
 typedef Pool<Depot, DepotID, 64, 64000> DepotPool;
 extern DepotPool _depot_pool;
@@ -26,11 +29,30 @@ struct Depot : DepotPool::PoolItem<&_depot_pool> {
 	uint16 town_cn;    ///< The N-1th depot for this town (consecutive number)
 	Date build_date;   ///< Date of construction
 
-	Depot(TileIndex xy = INVALID_TILE) : xy(xy) {}
+	bool is_big_depot;
+	CompanyByte company;
+	VehicleTypeByte veh_type;
+
+	union {
+		RoadTypes road_types;
+		RailTypes rail_types;
+	} r_types;
+
+	TileArea ta;
+	TileIDVector depot_tiles;
+
+	Depot(TileIndex xy = INVALID_TILE, bool big = false) : xy(xy), is_big_depot(big), ta(xy, 1, 1) {}
+
 	~Depot();
+
+	void SetCompanyAndType(CompanyID company, VehicleType veh_type) {
+		this->company = company;
+		this->veh_type = veh_type;
+	}
 
 	static inline Depot *GetByTile(TileIndex tile)
 	{
+		assert(Depot::IsValidID(GetDepotIndex(tile)));
 		return Depot::Get(GetDepotIndex(tile));
 	}
 
