@@ -327,6 +327,23 @@ static inline bool HasPowerOnRail(RailType enginetype, RailType tiletype)
 }
 
 /**
+ * Checks if an engine got power on a depot provided with various RailTypes. This would normally just be an equality check, but for electric
+ * rails (which also support non-electric engines).
+ * @return Whether the engine got power on this tile.
+ * @param  enginetype The RailType of the engine we are considering.
+ * @param  tiletype   The RailType of the tile we are considering.
+ */
+static inline bool HasPowerOnRails(RailType enginetype, RailTypes tiletypes)
+{
+	for (RailType i = RAILTYPE_BEGIN; i < RAILTYPE_END; i++) {
+		if (!HasBit(tiletypes, i)) continue;
+		if (HasBit(GetRailTypeInfo(enginetype)->powered_railtypes, i)) return true;
+	}
+
+	return false;
+}
+
+/**
  * Test if a RailType disallows build of level crossings.
  * @param rt The RailType to check.
  * @return Whether level crossings are not allowed.
