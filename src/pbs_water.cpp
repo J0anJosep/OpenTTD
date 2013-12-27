@@ -264,10 +264,13 @@ static Vehicle *FindShipOnTrackEnum(Vehicle *v, void *data)
 {
 	FindShipOnTrackInfo *info = (FindShipOnTrackInfo *)data;
 
-	if (v->type != VEH_SHIP || v->IsInDepot()) return NULL;
+	if (v->type != VEH_SHIP) return NULL;
 
 	Ship *s = Ship::From(v);
 	TrackBits tracks = s->state;
+
+	if (tracks == TRACK_BIT_DEPOT) return NULL;
+
 	if (tracks == TRACK_BIT_WORMHOLE || HasBit(tracks, TrackdirToTrack(info->res.trackdir))) {
 		/* ALWAYS return the lowest ID (anti-desync!) */
 		if (info->best == NULL || s->index < info->best->index) info->best = s;
