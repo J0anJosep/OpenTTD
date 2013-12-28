@@ -3529,6 +3529,7 @@ STR_FILTER_PROPERTIES_SHOW_UNCAUGHT_BUILDINGS                   :Mark uncaught b
 STR_FILTER_PROPERTIES_SHOW_UNCAUGHT_INDUSTRIES                  :Mark uncaught industries
 
 STR_FILTER_PROPERTIES_LOCAL_COMPANY_HAS_STATUE                  :Local company has statue
+STR_FILTER_PROPERTIES_TOWN_IS_GROWING                           :Town is growing
 
 # Build vehicle window
 STR_BUY_VEHICLE_TRAIN_RAIL_CAPTION                              :New Rail Vehicles
