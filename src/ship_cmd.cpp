@@ -710,6 +710,8 @@ static void ShipController(Ship *v)
 
 	if (v->vehstatus & VS_STOPPED) return;
 
+	if (v->ContinueServicing()) return;
+
 	if (v->IsStuck() && !v->TryUnblock()) return;
 
 	ProcessOrders(v);
