@@ -813,15 +813,6 @@ static void ShipController(Ship *v)
 						if (ShipNeedsReversingInDock(v)) v->direction = ReverseDir(v->direction);
 						break;
 
-					case OT_GOTO_DEPOT:
-						if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
-							assert(v->tile == v->dest_tile);
-							SetWaterTrackReservation(v->tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
-							VehicleEnterDepot(v);
-							return;
-						}
-						break;
-
 					case OT_GOTO_STATION:
 						/* Oil rigs won't be processed here as they will reverse when reaching the tile */
 						if (v->dest_tile == gp.new_tile && (gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
@@ -835,6 +826,7 @@ static void ShipController(Ship *v)
 		} else {
 			/* New tile */
 			if (!IsValidTile(gp.new_tile)) goto reverse_direction;
+			DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
 
 			if (v->current_order.IsType(OT_GOTO_WAYPOINT)) {
 				if (DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
@@ -848,9 +840,16 @@ static void ShipController(Ship *v)
 				ShipArrivesAt(v, Station::Get(v->last_station_visited));
 				v->BeginLoading();
 				goto reverse_direction;
-			}
+			} else if (v->current_order.IsType(OT_GOTO_DEPOT) &&
+						IsShipDepotTile(gp.new_tile) &&
+						GetOtherShipDepotTile(gp.new_tile) == gp.old_tile &&
+						v->current_order.GetDestination() == GetDepotIndex(gp.new_tile)) {
+				/* Free path ahead, if it continues in next tile. */
+				if (HasWaterTrackReservation(gp.new_tile)) LiftPathReservation(gp.new_tile, v->GetVehicleTrackdir());
 
-			DiagDirection diagdir = DiagdirBetweenTiles(gp.old_tile, gp.new_tile);
+				HandleShipEnterDepot(v);
+				goto getout;
+			}
 
 			/* Choose a ship track */
 			tracks = GetAvailShipTracks(gp.new_tile, diagdir);
