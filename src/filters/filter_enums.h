@@ -73,6 +73,7 @@ enum CatchmentAreaProperties {
 enum TownProperties {
 	TP_BEGIN,
 	TP_LOCAL_COMPANY_HAS_STATUE = TP_BEGIN,
+	TP_TOWN_IS_GROWING,
 	TP_END
 };
 
