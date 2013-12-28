@@ -180,6 +180,26 @@ bool TestProperty(const Group *g, VehicleGroupProperties property, bool value)
 }
 
 /**
+ * Given a town, say whether it satisfies a property
+ * @param t the town
+ * @param property like: local company has statue, town is growing...
+ * @return true if the town satisfies the property
+ */
+bool TestProperty(const Town *t, TownProperties property)
+{
+	switch (property) {
+		case TP_LOCAL_COMPANY_HAS_STATUE:
+			if (_local_company >= MAX_COMPANIES) return false;
+			return HasBit(t->statues, _local_company);
+
+		case TP_TOWN_IS_GROWING:
+			return HasBit(t->flags, TOWN_IS_GROWING);
+
+		default: NOT_REACHED();
+	}
+}
+
+/**
  * Check if v satisfies ALL the properties of the filter
  * @param v the vehicle
  * @return true if v passes the test, false otherwise
@@ -340,8 +360,7 @@ bool FilterActive::FilterTest(const Town *town) const
 					}
 					break;
 				case LT_TOWN_PROPERTIES:
-					if (_local_company >= MAX_COMPANIES) break;
-					if (HasBit(town->statues, _local_company) != state_is) return false;
+					if (state_is != TestProperty(town, (TownProperties)lists[i][j].GetElement())) return false;
 					break;
 				default: NOT_REACHED();
 			}
