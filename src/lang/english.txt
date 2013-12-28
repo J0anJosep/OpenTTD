@@ -3903,6 +3903,7 @@ STR_VEHICLE_STATUS_STOPPED                                      :{RED}Stopped
 STR_VEHICLE_STATUS_TRAIN_STOPPING_VEL                           :{RED}Stopping, {VELOCITY}
 STR_VEHICLE_STATUS_TRAIN_NO_POWER                               :{RED}No power
 STR_VEHICLE_STATUS_TRAIN_STUCK                                  :{ORANGE}Waiting for free path
+STR_VEHICLE_STATUS_SERVICING                                    :{LTBLUE}Servicing vehicle
 STR_VEHICLE_STATUS_SHIP_LOCK                                    :{LTBLUE}Lock procedure
 STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR                             :{ORANGE}Too far to next destination
 
@@ -4320,6 +4321,7 @@ STR_TEXTFILE_VIEW_LICENCE                                       :{BLACK}Licence
 
 
 # Vehicle loading indicators
+STR_SERVICING_INDICATOR                                         :{LTBLUE}Servicing
 STR_PERCENT_UP_SMALL                                            :{TINY_FONT}{WHITE}{NUM}%{SMALL_ICONS}{UP_ARROW}
 STR_PERCENT_UP                                                  :{WHITE}{NUM}%{NORMAL_ICONS}{UP_ARROW}
 STR_PERCENT_DOWN_SMALL                                          :{TINY_FONT}{WHITE}{NUM}%{SMALL_ICONS}{DOWN_ARROW}
