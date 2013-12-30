@@ -432,10 +432,13 @@ static bool CheckShipLeaveDepot(Ship *v)
 	/* We are leaving a depot, but have to go to the exact same one; re-enter */
 	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
 			IsShipDepotTile(v->tile) && GetDepotIndex(v->tile) == v->current_order.GetDestination()) {
-		VehicleEnterDepot(v);
+		HandleShipEnterDepot(v);
 		return true;
 	}
 
+	if (IsBigDepot(v->tile)) goto exit_depot;
+
+	{
 	TileIndex tile = v->tile;
 	Axis axis = GetShipDepotAxis(tile);
 
@@ -467,7 +470,10 @@ static bool CheckShipLeaveDepot(Ship *v)
 	if (!SetWaterTrackReservation(tile, (Track)axis, true)) NOT_REACHED();
 	v->state = AxisToTrackBits(axis);
 	v->vehstatus &= ~VS_HIDDEN;
+	}
 
+exit_depot:
+	v->state &= ~TRACK_BIT_DEPOT;
 	v->cur_speed = 0;
 	v->UpdateViewport(true, true);
 	SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
