@@ -2560,6 +2560,17 @@ const CargoSpec *FindFirstCargoWithTownEffect(TownEffect effect)
 	return NULL;
 }
 
+static void UpdateTownDirectoryFilter()
+{
+	Window *w;
+	FOR_ALL_WINDOWS_FROM_BACK(w) {
+		if (w->window_class == WC_TOWN_FILTER) {
+			InvalidateWindowData(WC_TOWN_FILTER, 0, 2);
+			return;
+		}
+	}
+}
+
 /**
  * Change the cargo goal of a town.
  * @param tile Unused.
@@ -2589,6 +2600,7 @@ CommandCost CmdTownCargoGoal(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (flags & DC_EXEC) {
 		t->goal[te] = p2;
 		UpdateTownGrowth(t);
+		UpdateTownDirectoryFilter();
 		InvalidateWindowData(WC_TOWN_VIEW, index);
 	}
 
@@ -2653,6 +2665,7 @@ CommandCost CmdTownGrowthRate(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 			SetBit(t->flags, TOWN_CUSTOM_GROWTH);
 		}
 		UpdateTownGrowth(t);
+		UpdateTownDirectoryFilter();
 		InvalidateWindowData(WC_TOWN_VIEW, p1);
 	}
 
@@ -2941,6 +2954,7 @@ static CommandCost TownActionFundBuildings(Town *t, DoCommandFlag flags)
 
 		/* Enable growth (also checking GameScript's opinion) */
 		UpdateTownGrowth(t);
+		UpdateTownDirectoryFilter();
 
 		/* Build a new house, but add a small delay to make sure
 		 * that spamming funding doesn't let town grow any faster
@@ -3494,6 +3508,7 @@ void TownsMonthlyLoop()
 	}
 
 	UpdateTownCargoBitmap();
+	UpdateTownDirectoryFilter();
 }
 
 void TownsYearlyLoop()
