@@ -458,7 +458,7 @@ static bool CheckShipLeaveDepot(Ship *v)
 	/* We are leaving a depot, but have to go to the exact same one; re-enter */
 	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
 			IsShipDepotTile(v->tile) && GetDepotIndex(v->tile) == v->current_order.GetDestination()) {
-		VehicleEnterDepot(v);
+		HandleShipEnterDepot(v);
 		return true;
 	}
 
@@ -469,38 +469,41 @@ static bool CheckShipLeaveDepot(Ship *v)
 	/* This helps avoid CPU load if many ships are set to start at the same time */
 	if (HasVehicleOnPos(v->tile, NULL, &EnsureNoVisibleShipProc)) return true;
 
-	TileIndex tile = v->tile;
-	Axis axis = GetShipDepotAxis(tile);
+	if (!IsBigDepot(v->tile)) {
+		TileIndex tile = v->tile;
+		Axis axis = GetShipDepotAxis(tile);
 
-	/* Check we can reserve the depot track */
-	if (HasWaterTrackReservation(tile)) return true;
+		/* Check we can reserve the depot track */
+		if (HasWaterTrackReservation(tile)) return true;
 
-	DiagDirection south_dir = AxisToDiagDir(axis);
-	DiagDirection north_dir = ReverseDiagDir(south_dir);
+		DiagDirection south_dir = AxisToDiagDir(axis);
+		DiagDirection north_dir = ReverseDiagDir(south_dir);
 
-	TileIndex north_neighbour = TILE_ADD(tile, TileOffsByDiagDir(north_dir));
-	TrackBits north_tracks = DiagdirReachesTracks(north_dir) & GetTileShipTrackStatus(north_neighbour);
+		TileIndex north_neighbour = TILE_ADD(tile, TileOffsByDiagDir(north_dir));
+		TrackBits north_tracks = DiagdirReachesTracks(north_dir) & GetTileShipTrackStatus(north_neighbour);
 
-	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), south_dir))) return true;
-	if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), north_dir))) return true;
+		if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), south_dir))) return true;
+		if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), north_dir))) return true;
 
-	/* Ask pathfinder for best direction */
-	bool reverse = false;
-	bool path_found;
-	switch (_settings_game.pf.pathfinder_for_ships) {
-		case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_tracks, path_found) == INVALID_TRACK; break; // OPF always allows reversing
-		case VPF_NPF: reverse = NPFShipCheckReverse(v); break;
-		case VPF_YAPF: reverse = YapfShipCheckReverse(v); break;
-		default: NOT_REACHED();
+		/* Ask pathfinder for best direction */
+		bool reverse = false;
+		bool path_found;
+		switch (_settings_game.pf.pathfinder_for_ships) {
+			case VPF_OPF: reverse = OPFShipChooseTrack(v, north_neighbour, north_dir, north_tracks, path_found) == INVALID_TRACK; break; // OPF always allows reversing
+			case VPF_NPF: reverse = NPFShipCheckReverse(v); break;
+			case VPF_YAPF: reverse = YapfShipCheckReverse(v); break;
+			default: NOT_REACHED();
+		}
+
+		/* Leave towards south if reverse. */
+		v->rotation = v->direction = DiagDirToDir(reverse ? south_dir : north_dir);
+
+		if (!SetWaterTrackReservation(tile, (Track)axis, true)) NOT_REACHED();
+		v->state = AxisToTrackBits(axis);
+		v->vehstatus &= ~VS_HIDDEN;
 	}
 
-	/* Leave towards south if reverse. */
-	v->rotation = v->direction = DiagDirToDir(reverse ? south_dir : north_dir);
-
-	if (!SetWaterTrackReservation(tile, (Track)axis, true)) NOT_REACHED();
-	v->state = AxisToTrackBits(axis);
-	v->vehstatus &= ~VS_HIDDEN;
-
+	v->state &= ~TRACK_BIT_DEPOT;
 	v->cur_speed = 0;
 	v->UpdateViewport(true, true);
 	SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
