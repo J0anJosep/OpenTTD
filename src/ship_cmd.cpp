@@ -36,6 +36,7 @@
 #include "zoom_func.h"
 #include "pbs_water.h"
 #include "pathfinder/follow_track.hpp"
+#include "command_func.h"
 
 #include "table/strings.h"
 
@@ -1001,10 +1002,25 @@ bool Ship::Tick()
  */
 CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, uint16 data, Vehicle **ret)
 {
-	tile = GetShipDepotNorthTile(tile);
+	bool is_big_depot = IsBigDepot(tile);
+
+	if (is_big_depot && !(flags & DC_AUTOREPLACE)) {
+		Depot *depot = Depot::GetByTile(tile);
+		tile = INVALID_TILE;
+		for (uint i = depot->depot_tiles.Length(); i--;) {
+			if (CheckPlaceShipOnDepot(depot->depot_tiles[i])) {
+				tile = depot->depot_tiles[i];
+				break;
+			}
+		}
+		if (tile == INVALID_TILE) return_cmd_error(STR_ERROR_NO_DEPOT_FREE);
+	}
+
 	if (flags & DC_EXEC) {
 		int x;
 		int y;
+		TrackBits tracks = AxisToTrackBits(GetShipDepotAxis(tile));
+		TileIndexDiffC offset = TileIndexDiffCByDiagDir(ReverseDiagDir(GetShipDepotDirection(tile)));
 
 		const ShipVehicleInfo *svi = &e->u.ship;
 
@@ -1013,14 +1029,24 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 
 		v->owner = _current_company;
 		v->tile = tile;
-		x = TileX(tile) * TILE_SIZE + TILE_SIZE / 2;
-		y = TileY(tile) * TILE_SIZE + TILE_SIZE / 2;
+		x = TileX(tile) * TILE_SIZE + TILE_SIZE / 2 + offset.x * (TILE_SIZE / 2 - 1);
+		y = TileY(tile) * TILE_SIZE + TILE_SIZE / 2 + offset.y * (TILE_SIZE / 2 - 1);
 		v->x_pos = x;
 		v->y_pos = y;
 		v->z_pos = GetSlopePixelZ(x, y);
 
+		v->state = TRACK_BIT_DEPOT;
+		if (is_big_depot) {
+			v->state |= tracks;
+			v->direction = AxisToDirection(GetShipDepotAxis(v->tile));
+			SetWaterTrackReservation(v->tile, TrackBitsToTrack(tracks), true);
+			SetReservationAsDepot(v->tile, true);
+		} else {
+			v->vehstatus |= VS_HIDDEN;
+		}
+
 		v->UpdateDeltaXY(v->direction);
-		v->vehstatus = VS_HIDDEN | VS_STOPPED | VS_DEFPAL;
+		v->vehstatus |= VS_STOPPED | VS_DEFPAL;
 
 		v->spritenum = svi->image_index;
 		v->cargo_type = e->GetDefaultCargoType();
@@ -1035,8 +1061,6 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 		v->reliability_spd_dec = e->reliability_spd_dec;
 		v->max_age = e->GetLifeLengthInDays();
 		_new_vehicle_id = v->index;
-
-		v->state = TRACK_BIT_DEPOT;
 
 		v->SetServiceInterval(Company::Get(_current_company)->settings.vehicle.servint_ships);
 		v->date_of_last_service = _date;
@@ -1056,6 +1080,8 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 		v->InvalidateNewGRFCacheOfChain();
 
 		v->UpdatePosition();
+
+		if (is_big_depot) v->MarkDirty();
 	}
 
 	return CommandCost();
