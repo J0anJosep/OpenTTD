@@ -2520,6 +2520,17 @@ const CargoSpec *FindFirstCargoWithTownEffect(TownEffect effect)
 
 static void UpdateTownGrowRate(Town *t);
 
+static void UpdateTownDirectoryFilter()
+{
+	Window *w;
+	FOR_ALL_WINDOWS_FROM_BACK(w) {
+		if (w->window_class == WC_TOWN_FILTER) {
+			InvalidateWindowData(WC_TOWN_FILTER, 0, 2);
+			return;
+		}
+	}
+}
+
 /**
  * Change the cargo goal of a town.
  * @param tile Unused.
@@ -2549,6 +2560,7 @@ CommandCost CmdTownCargoGoal(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (flags & DC_EXEC) {
 		t->goal[te] = p2;
 		UpdateTownGrowRate(t);
+		UpdateTownDirectoryFilter();
 		InvalidateWindowData(WC_TOWN_VIEW, index);
 	}
 
@@ -2613,6 +2625,7 @@ CommandCost CmdTownGrowthRate(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 			t->growth_rate = p2 | TOWN_GROW_RATE_CUSTOM;
 		}
 		UpdateTownGrowRate(t);
+		UpdateTownDirectoryFilter();
 		InvalidateWindowData(WC_TOWN_VIEW, p1);
 	}
 
@@ -2903,6 +2916,7 @@ static CommandCost TownActionFundBuildings(Town *t, DoCommandFlag flags)
 
 		/* Enable growth (also checking GameScript's opinion) */
 		UpdateTownGrowRate(t);
+		UpdateTownDirectoryFilter();
 
 		SetWindowDirty(WC_TOWN_VIEW, t->index);
 	}
@@ -3404,6 +3418,7 @@ void TownsMonthlyLoop()
 	}
 
 	UpdateTownCargoBitmap();
+	UpdateTownDirectoryFilter();
 }
 
 void TownsYearlyLoop()
