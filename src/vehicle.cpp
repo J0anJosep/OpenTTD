@@ -589,6 +589,43 @@ static CommandCost EnsureNoShipAround(TileIndex tile)
 	return CommandCost();
 }
 
+CommandCost FixReplacementOnBigDepot(const Vehicle *old_head, Vehicle *new_head)
+{
+	assert(old_head->type == new_head->type);
+	assert(IsBigDepotTile(old_head->tile));
+	switch (old_head->type) {
+		case VEH_TRAIN:
+			/* Check lenght of current platform and compatibility. */
+			/* If not, find a compatible platform for new new head. */
+			break;
+
+		case VEH_ROAD:
+			/* Nothing to be done. */
+			break;
+
+		case VEH_AIRCRAFT:
+			/* Nothing to be done. */
+			break;
+
+		case VEH_SHIP: {
+			const Ship *old_ship = Ship::From(old_head);
+			Ship *new_ship = Ship::From(new_head);
+
+			new_ship->x_pos = old_ship->x_pos;
+			new_ship->y_pos = old_ship->y_pos;
+			new_ship->z_pos = old_ship->z_pos;
+			new_ship->state = old_ship->state;
+			new_ship->direction = old_ship->direction;
+			new_ship->cur_image = new_ship->GetImage(new_ship->direction, EIT_ON_MAP);
+			break;
+		}
+
+		default: NOT_REACHED();
+	}
+
+	return CommandCost();
+}
+
 /**
  * Ensure there is no vehicle at the ground at the given position.
  * @param tile Position to examine.

@@ -19,6 +19,8 @@
 #include "autoreplace_gui.h"
 #include "articulated_vehicles.h"
 #include "core/random_func.hpp"
+#include "depot_map.h"
+#include "depot_func.h"
 
 #include "table/strings.h"
 
@@ -633,6 +635,9 @@ static CommandCost ReplaceChain(Vehicle **chain, DoCommandFlag flags, bool wagon
 			/* The new vehicle is constructed, now take over orders and everything... */
 			cost.AddCost(CopyHeadSpecificThings(old_head, new_head, flags));
 
+			/* Copy direction, track, etc. */
+			if (IsBigDepotTile(old_head->tile) && cost.Succeeded()) cost.AddCost(FixReplacementOnBigDepot(old_head, new_head));
+
 			if (cost.Succeeded()) {
 				/* The new vehicle is constructed, now take over cargo */
 				if ((flags & DC_EXEC) != 0) {
@@ -711,6 +716,9 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 
 		assert(free_wagon || v->IsStoppedInDepot());
 
+		/* Amend reservations for big depots. */
+		if (IsBigDepotTile(v->tile)) SetBigDepotReservation(v, false);
+
 		/* We have to construct the new vehicle chain to test whether it is valid.
 		 * Vehicle construction needs random bits, so we have to save the random seeds
 		 * to prevent desyncs and to replay newgrf callbacks during DC_EXEC */
@@ -736,6 +744,9 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 				GroupStatistics::Get(v->owner, v->group_id, v->type).UpdateMinProfit(v, v->group_id);
 			}
 		}
+
+		/* Amend reservations for big depots. */
+		if (IsBigDepotTile(v->tile)) SetBigDepotReservation(v, true);
 
 		/* Restart the vehicle */
 		if (!was_stopped) cost.AddCost(CmdStartStopVehicle(v, false));
