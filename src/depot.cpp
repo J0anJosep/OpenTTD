@@ -161,3 +161,31 @@ void Depot::RescanDepotTiles()
 
 	if (old_types != this->r_types.rail_types) InvalidateWindowData(WC_BUILD_VEHICLE, this->index, 0, true);
 }
+
+/**
+ * Fix tile reservations on big depots and vehicle changes.
+ * @param v Vehicle to be revised.
+ * @param state Whether to reserve or free the position v is occupying.
+ */
+void SetBigDepotReservation(Vehicle *v, bool state)
+{
+	assert(IsBigDepotTile(v->tile));
+
+	Track track = TrackdirToTrack(v->GetVehicleTrackdir());
+
+	switch (v->type) {
+		case VEH_ROAD:
+			/* Road vehicles don't reserve the depot tile. */
+			break;
+
+		case VEH_SHIP:
+			SetWaterTrackReservation(v->tile, track, state);
+			break;
+
+		case VEH_TRAIN:
+			/* Trains in big depots are handled in other functions. */
+			NOT_REACHED();
+
+		default: NOT_REACHED();
+	}
+}
