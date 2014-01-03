@@ -20,6 +20,7 @@
 void ShowDepotWindow(TileIndex tile, VehicleType type);
 
 void DeleteDepotHighlightOfVehicle(const Vehicle *v);
+void SetBigDepotReservation(Vehicle *v, bool state);
 
 /**
  * Find out if the slope of the tile is suitable to build a depot of given direction
