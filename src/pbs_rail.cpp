@@ -429,3 +429,24 @@ bool IsWaitingPositionFree(const Train *v, TileIndex tile, Trackdir trackdir, bo
 
 	return !HasReservedTracks(ft.m_new_tile, TrackdirBitsToTrackBits(ft.m_new_td_bits));
 }
+
+/**
+ * Fix the sprites of depots to show it opened or closed depending on its neighbours.
+ * @param tile Tile that has changed.
+ */
+void FixBigRailDepotSprites(TileIndex tile)
+{
+	/* Expand tile area to check. */
+	TileArea ta(tile, 1, 1, 1);
+
+	TILE_AREA_LOOP(tile, ta) {
+		if (!IsBigRailDepotTile(tile)) continue;
+		CFollowTrackRail ft(GetTileOwner(tile), GetRailTypeInfo(GetTileRailType(tile))->compatible_railtypes);
+		Track track = GetRailDepotTrack(tile);
+		Trackdir trackdir = TrackToTrackdir(track);
+		if (track == TRACK_X) trackdir = ReverseTrackdir(trackdir);
+		bool opened = ft.Follow(tile, trackdir);
+		if (track == TRACK_Y) opened = !opened;
+		SB(_m[tile].m5, 1, 1, opened);
+	}
+}
