@@ -34,6 +34,7 @@
 #include "vehicle_func.h"
 #include "zoom_func.h"
 #include "rail_gui.h"
+#include "depot_func.h"
 
 #include "station_map.h"
 #include "tunnelbridge_map.h"
@@ -536,7 +537,8 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_DEPOT, GetRailTypeInfo(_cur_railtype)->cursor.depot, HT_RECT)) {
+			case WID_RAT_BUILD_BIG_DEPOT:
+				if (HandlePlacePushButton(this, widget, GetRailTypeInfo(_cur_railtype)->cursor.depot, HT_RECT)) {
 					ShowBuildTrainDepotPicker(this);
 					this->last_user_action = widget;
 				}
@@ -629,6 +631,11 @@ struct BuildRailToolbarWindow : Window {
 				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_SINGLE_TILE);
 				break;
 
+			case WID_RAT_BUILD_BIG_DEPOT:
+				VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DDSP_BUILD_STATION);
+				VpSetPlaceSizingLimit(_settings_game.station.station_spread);
+				break;
+
 			case WID_RAT_BUILD_WAYPOINT:
 				PlaceRail_Waypoint(tile);
 				break;
@@ -712,6 +719,16 @@ struct BuildRailToolbarWindow : Window {
 					break;
 
 				case DDSP_BUILD_STATION:
+					if (this->last_user_action == WID_RAT_BUILD_BIG_DEPOT) {
+						/* Tile is always the land tile, so need to evaluate _thd.pos. */
+						CommandContainer cmdcont = { start_tile, (uint32)(_cur_railtype | (_build_depot_direction << 4) | (1 << 6) | (INVALID_DEPOT << 16)), end_tile, CMD_BUILD_TRAIN_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT), CcRailDepot, "" };
+
+						//SetObjectToPlace(SPR_CURSOR_DOCK, PAL_NONE, HT_SPECIAL, this->window_class, this->window_number);
+						ShowSelectDepotIfNeeded(cmdcont, TileArea(start_tile, end_tile), VEH_TRAIN); //revise
+
+						break;
+					}
+
 					if (!_remove_button_clicked && !_settings_client.gui.station_dragdrop) {
 						uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
 						uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
@@ -752,9 +769,12 @@ struct BuildRailToolbarWindow : Window {
 				case DDSP_SINGLE_TILE:
 					assert(end_tile == start_tile);
 					assert(last_user_action == WID_RAT_BUILD_DEPOT);
-					TouchCommandP(end_tile, _cur_railtype | (_build_depot_direction << 4), 0,
-							CMD_BUILD_TRAIN_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT),
-							CcRailDepot);
+
+					/* Tile is always the land tile, so need to evaluate _thd.pos. */
+					CommandContainer cmdcont = { end_tile, (uint32)(_cur_railtype | (_build_depot_direction << 4) | (NEW_DEPOT << 16)), end_tile, CMD_BUILD_TRAIN_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT), CcRailDepot, "" };
+
+					//SetObjectToPlace(SPR_CURSOR_DOCK, PAL_NONE, HT_SPECIAL, this->window_class, this->window_number);
+					ShowSelectDepotIfNeeded(cmdcont, TileArea(end_tile), VEH_TRAIN); //revise
 					break;
 			}
 		}
