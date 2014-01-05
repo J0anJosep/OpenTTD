@@ -240,7 +240,7 @@ static inline DiagDirection GetRailDepotDirection(TileIndex t)
  */
 static inline Track GetRailDepotTrack(TileIndex t)
 {
-	return DiagDirToDiagTrack(GetRailDepotDirection(t));
+	return (Track)GB(_m[t].m5, 0, 1);
 }
 
 
