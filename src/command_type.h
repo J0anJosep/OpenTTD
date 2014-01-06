@@ -348,6 +348,7 @@ enum DoCommandFlag {
 	DC_NO_WATER              = 0x008, ///< don't allow building on water
 	DC_NO_RAIL_OVERLAP       = 0x010, ///< don't allow overlap of rails (used in buildrail)
 	DC_NO_TEST_TOWN_RATING   = 0x020, ///< town rating does not disallow you from building
+	DC_GUI_TEST = DC_NO_TEST_TOWN_RATING, ///< GUI test
 	DC_BANKRUPT              = 0x040, ///< company bankrupts, skip money check, skip vehicle on tile check in some cases
 	DC_AUTOREPLACE           = 0x080, ///< autoreplace/autorenew is in progress, this shall disable vehicle limits when building, and ignore certain restrictions when undoing things (like vehicle attach callback)
 	DC_NO_CARGO_CAP_CHECK    = 0x100, ///< when autoreplace/autorenew is in progress, this shall prevent truncating the amount of cargo in the vehicle to prevent testing the command to remove cargo
