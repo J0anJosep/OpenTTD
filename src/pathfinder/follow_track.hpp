@@ -228,7 +228,7 @@ protected:
 		m_new_tile = TileAddByDiagDir(m_old_tile, m_exitdir);
 
 		/* special handling for stations */
-		if (IsRailTT() && HasStationTileRail(m_new_tile)) {
+		if (IsRailTT() && IsRailStationTile(m_new_tile)) {
 			m_is_station = true;
 		} else if (IsRoadTT() && IsRoadStopTile(m_new_tile)) {
 			m_is_station = true;
