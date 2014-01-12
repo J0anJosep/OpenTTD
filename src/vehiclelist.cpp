@@ -86,7 +86,7 @@ void BuildDepotVehicleList(VehicleType type, DepotID depot_id, VehicleList *engi
 			case VEH_TRAIN: {
 				const Train *t = Train::From(v);
 				if (t->IsArticulatedPart() || t->IsRearDualheaded()) continue;
-				if (t->track != TRACK_BIT_DEPOT) continue;
+				if (!HasBit((byte)t->track, TRACK_DEPOT)) continue;
 				if (wagons != NULL && t->First()->IsFreeWagon()) {
 					if (individual_wagons || t->IsFreeWagon()) *wagons->Append() = t;
 					continue;
