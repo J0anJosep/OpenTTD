@@ -199,7 +199,13 @@ bool GroundVehicle<T, Type>::IsChainInDepot() const
 
 	/* Check whether the rest is also already trying to enter the depot. */
 	for (; v != NULL; v = v->Next()) {
-		if (!v->T::IsInDepot() || v->tile != this->tile) return false;
+		if (!v->T::IsInDepot()) return false;
+		assert(IsDepotTile(v->tile));
+		if (IsBigDepot(this->tile)) {
+			assert(GetDepotIndex(this->tile) == GetDepotIndex(v->tile));
+		} else {
+			assert(this->tile == v->tile); ///< This is just a check for possible simplification.
+		}
 	}
 
 	return true;
