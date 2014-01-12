@@ -23,6 +23,7 @@ enum VehicleEnterTileStatus {
 	VETS_ENTERED_STATION  = 1, ///< The vehicle entered a station
 	VETS_ENTERED_WORMHOLE = 2, ///< The vehicle either entered a bridge, tunnel or depot tile (this includes the last tile of the bridge/tunnel)
 	VETS_CANNOT_ENTER     = 3, ///< The vehicle cannot enter the tile
+	VETS_ENTERED_DEPOT_PLATFORM = 4, ///< The vehicle entered a depot platform.
 
 	/**
 	 * Shift the VehicleEnterTileStatus this many bits
@@ -37,6 +38,7 @@ enum VehicleEnterTileStatus {
 	VETSB_ENTERED_STATION  = 1 << VETS_ENTERED_STATION,  ///< The vehicle entered a station
 	VETSB_ENTERED_WORMHOLE = 1 << VETS_ENTERED_WORMHOLE, ///< The vehicle either entered a bridge, tunnel or depot tile (this includes the last tile of the bridge/tunnel)
 	VETSB_CANNOT_ENTER     = 1 << VETS_CANNOT_ENTER,     ///< The vehicle cannot enter the tile
+	VETSB_ENTERED_DEPOT_PLATFORM = 1 << VETS_ENTERED_DEPOT_PLATFORM, ///< The vehicle entered a depot platform.
 };
 DECLARE_ENUM_AS_BIT_SET(VehicleEnterTileStatus)
 
