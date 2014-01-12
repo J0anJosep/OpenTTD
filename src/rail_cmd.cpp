@@ -34,6 +34,7 @@
 #include "strings_func.h"
 #include "company_gui.h"
 #include "object_map.h"
+#include "platform_func.h"
 
 #include "table/strings.h"
 #include "table/railtypes.h"
@@ -3070,7 +3071,47 @@ int TicksToLeaveDepot(const Train *v)
 static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int x, int y)
 {
 	/* This routine applies only to trains in depot tiles. */
-	if (u->type != VEH_TRAIN || !IsSmallRailDepotTile(tile)) return VETSB_CONTINUE;
+	if (u->type != VEH_TRAIN || !IsRailDepotTile(tile)) return VETSB_CONTINUE;
+
+	Train *v = Train::From(u);
+
+	if (IsRailDepotBig(tile)) {
+		DepotID depot_id = GetDepotIndex(tile);
+		if (!v->current_order.ShouldStopAtDepot(depot_id)) return VETSB_CONTINUE;
+		if (!v->IsFrontEngine()) return VETSB_CONTINUE; // revise
+		int depot_ahead  = GetPlatformLength(tile, DirToDiagDir(v->direction)) * TILE_SIZE;
+		int depot_length = GetPlatformLength(tile) * TILE_SIZE;
+
+		/* Subtract half the front vehicle length of the train so we get the real
+		 * stop location of the train. */
+		int stop = depot_length - (v->gcache.cached_veh_length + 1) / 2;
+
+		/* Stop whenever that amount of station ahead + the distance from the
+		 * begin of the platform to the stop location is longer than the length
+		 * of the platform. Station ahead 'includes' the current tile where the
+		 * vehicle is on, so we need to subtract that. */
+		if (stop + depot_ahead - (int)TILE_SIZE >= depot_length) return VETSB_CONTINUE;
+
+		DiagDirection dir = DirToDiagDir(v->direction);
+
+		x &= 0xF;
+		y &= 0xF;
+
+		if (DiagDirToAxis(dir) != AXIS_X) Swap(x, y);
+		if (y == TILE_SIZE / 2) {
+			if (dir != DIAGDIR_SE && dir != DIAGDIR_SW) x = TILE_SIZE - 1 - x;
+			stop &= TILE_SIZE - 1;
+
+			if (x == stop) {
+				return VETSB_ENTERED_DEPOT_PLATFORM | (VehicleEnterTileStatus)(depot_id << VETS_STATION_ID_OFFSET); // enter station
+			} else if (x < stop) {
+				v->vehstatus |= VS_TRAIN_SLOWING;
+				uint16 spd = max(0, (stop - x) * 20 - 15);
+				if (spd < v->cur_speed) v->cur_speed = spd;
+			}
+		}
+		return VETSB_CONTINUE;
+	}
 
 	/* Depot direction. */
 	DiagDirection dir = GetRailDepotDirection(tile);
@@ -3079,8 +3120,6 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 
 	/* Make sure a train is not entering the tile from behind. */
 	if (_fractcoords_behind[dir] == fract_coord) return VETSB_CANNOT_ENTER;
-
-	Train *v = Train::From(u);
 
 	/* Leaving depot? */
 	if (v->direction == DiagDirToDir(dir)) {
@@ -3106,7 +3145,7 @@ static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int
 		v->track = TRACK_BIT_DEPOT,
 		v->vehstatus |= VS_HIDDEN;
 		v->direction = ReverseDir(v->direction);
-		if (v->Next() == NULL) VehicleEnterDepot(v->First());
+		if (v->Next() == NULL) HandleTrainEnterDepot(v->First());
 		v->tile = tile;
 
 		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
