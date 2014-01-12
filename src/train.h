@@ -333,6 +333,8 @@ protected: // These functions should not be called outside acceleration code.
 	}
 };
 
+bool HandleTrainEnterDepot(Train *v);
+
 #define FOR_ALL_TRAINS(var) FOR_ALL_VEHICLES_OF_TYPE(Train, var)
 
 #endif /* TRAIN_H */
