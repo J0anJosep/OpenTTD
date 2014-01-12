@@ -31,7 +31,8 @@ static const uint NPF_HASH_HALFMASK = (1 << NPF_HASH_HALFBITS) - 1;
 /** Meant to be stored in AyStar.targetdata */
 struct NPFFindStationOrTileData {
 	TileIndex dest_coords;    ///< An indication of where the station is, for heuristic purposes, or the target tile
-	StationID station_index;  ///< station index we're heading for, or INVALID_STATION when we're heading for a tile
+	StationID station_index;  ///< station index we're heading for, or INVALID_STATION if not heading to a station
+	DepotID depot_index;      ///< depot index we're heading for, or INVALID_DEPOT if not heading to a depot
 	bool reserve_path;        ///< Indicates whether the found path should be reserved
 	StationType station_type; ///< The type of station we're heading for
 	bool not_articulated;     ///< The (road) vehicle is not articulated
@@ -160,8 +161,12 @@ static int32 NPFCalcStationOrTileHeuristic(AyStar *as, AyStarNode *current, Open
 	uint dist;
 
 	/* for train-stations, we are going to aim for the closest station tile */
-	if (as->user_data[NPF_TYPE] != TRANSPORT_WATER && fstd->station_index != INVALID_STATION) {
-		to = CalcClosestStationTile(fstd->station_index, from, fstd->station_type);
+	if (as->user_data[NPF_TYPE] != TRANSPORT_WATER) {
+		if (fstd->station_index != INVALID_STATION) {
+			to = CalcClosestStationTile(fstd->station_index, from, fstd->station_type);
+		} else if (fstd->depot_index != INVALID_DEPOT) {
+			to = CalcClosestDepotTile(fstd->depot_index, from);
+		}
 	}
 
 	if (as->user_data[NPF_TYPE] == TRANSPORT_ROAD) {
@@ -409,6 +414,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 
 		case MP_RAILWAY:
 			cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
+			if (IsBigRailDepot(tile)) cost += _settings_game.pf.npf.npf_rail_station_penalty; // Reuse station penalty; it is possible to add a new rail_depot_penalty.
 			break;
 
 		case MP_ROAD: // Railway crossing
@@ -585,8 +591,14 @@ static int32 NPFFindStationOrTile(AyStar *as, OpenListNode *current)
 
 		assert(fstd->v->type == VEH_ROAD);
 		/* Only if it is a valid station *and* we can stop there */
-		if (GetStationType(tile) == fstd->station_type && (fstd->not_articulated || IsDriveThroughStopTile(tile))) return AYSTAR_FOUND_END_NODE;
+		if (GetStationType(tile) == fstd->station_type &&
+				(fstd->not_articulated || IsDriveThroughStopTile(tile))) 
+			return AYSTAR_FOUND_END_NODE;
+	} else if (IsDepotTypeTile(tile, (TransportType)as->user_data[NPF_TYPE]) &&
+			GetDepotIndex(tile) == fstd->depot_index) {
+		return AYSTAR_FOUND_END_NODE;
 	}
+
 	return AYSTAR_DONE;
 }
 
@@ -695,7 +707,12 @@ static void NPFSaveTargetData(AyStar *as, OpenListNode *current)
 					ftd->node.tile = end_tile;
 					if (!IsWaitingPositionFree(v, end_tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
 					SetPlatformReservation(target->node.tile, dir, true);
-					SetRailStationReservation(target->node.tile, false);
+					if (IsDepotTile(target->node.tile)) {
+						SetDepotReservation(target->node.tile, false);
+					} else {
+						assert(IsTileType(target->node.tile, MP_STATION));
+						SetRailStationReservation(target->node.tile, false);
+					}
 				} else {
 					if (!IsWaitingPositionFree(v, target->node.tile, target->node.direction, _settings_game.pf.forbid_90_deg)) return;
 				}
@@ -822,7 +839,7 @@ static DiagDirection GetSingleTramBit(TileIndex tile)
  */
 static DiagDirection GetTileSingleEntry(TileIndex tile, TransportType type, uint subtype)
 {
-	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type)) return GetDepotDirection(tile, type);
+	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type) && !IsBigRailDepot(tile)) return GetDepotDirection(tile, type);
 
 	if (type == TRANSPORT_ROAD) {
 		if (IsStandardRoadStopTile(tile)) return GetRoadStopDir(tile);
@@ -1188,16 +1205,23 @@ static void NPFFillWithOrderData(NPFFindStationOrTileData *fstd, const Vehicle *
 	 * dest_tile, not just any stop of that station.
 	 * So only for train orders to stations we fill fstd->station_index, for all
 	 * others only dest_coords */
-	if (v->type != VEH_SHIP && (v->current_order.IsType(OT_GOTO_STATION) || v->current_order.IsType(OT_GOTO_WAYPOINT))) {
-		assert(v->IsGroundVehicle());
-		fstd->station_index = v->current_order.GetDestination();
-		fstd->station_type = (v->type == VEH_TRAIN) ? (v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT) : (RoadVehicle::From(v)->IsBus() ? STATION_BUS : STATION_TRUCK);
-		fstd->not_articulated = v->type == VEH_ROAD && !RoadVehicle::From(v)->HasArticulatedPart();
-		/* Let's take the closest tile of the station as our target for vehicles */
-		fstd->dest_coords = CalcClosestStationTile(fstd->station_index, v->tile, fstd->station_type);
+	if (v->type != VEH_SHIP) {
+		if (v->current_order.IsType(OT_GOTO_STATION) || v->current_order.IsType(OT_GOTO_WAYPOINT)) {
+			assert(v->IsGroundVehicle());
+			fstd->station_index = v->current_order.GetDestination();
+			fstd->station_type = (v->type == VEH_TRAIN) ? (v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT) : (RoadVehicle::From(v)->IsBus() ? STATION_BUS : STATION_TRUCK);
+			fstd->not_articulated = v->type == VEH_ROAD && !RoadVehicle::From(v)->HasArticulatedPart();
+			/* Let's take the closest tile of the station as our target for vehicles */
+			fstd->dest_coords = CalcClosestStationTile(fstd->station_index, v->tile, fstd->station_type);
+		} else if (v->current_order.IsType(OT_GOTO_DEPOT)) {
+			fstd->station_index = INVALID_STATION;
+			fstd->depot_index = v->current_order.GetDestination();
+			fstd->dest_coords = CalcClosestDepotTile(fstd->depot_index, v->tile);
+		}
 	} else {
 		fstd->dest_coords = v->dest_tile;
 		fstd->station_index = INVALID_STATION;
+		fstd->depot_index = INVALID_DEPOT;
 		/* Hack: reusing the articulated bool for keeping whether we are heading to an oil rig.
 		 * not_articulated == true -> heading to an industry.
 		 * not_articulated == false -> heading to a crossable tile.  */
