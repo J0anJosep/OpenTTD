@@ -3123,6 +3123,22 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SL_RESET_AIRCRAFT)) {
+		/* We have to destroy all aircraft to completely restart from scratch. */
+		Aircraft *v;
+		FOR_ALL_AIRCRAFT(v) {
+			if (v->IsNormalAircraft()) {
+				if ((v->vehstatus & VS_CRASHED) == 0) {
+					if (Company::IsValidID(v->owner)) SubtractMoneyFromCompanyFract(v->owner, CommandCost(EXPENSES_NEW_VEHICLES, -2 * v->value));
+					v->Crash();
+				}
+				v->crashed_counter = 0; // Make aircraft disappear on next tick.
+				v->cargo.Truncate();
+				v->Next()->cargo.Truncate();
+			}
+		}
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
