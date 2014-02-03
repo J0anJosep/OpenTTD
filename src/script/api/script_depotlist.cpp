@@ -18,31 +18,13 @@
 
 ScriptDepotList::ScriptDepotList(ScriptTile::TransportType transport_type)
 {
-	::TileType tile_type;
-	switch (transport_type) {
-		default: return;
-
-		case ScriptTile::TRANSPORT_ROAD:  tile_type = ::MP_ROAD; break;
-		case ScriptTile::TRANSPORT_RAIL:  tile_type = ::MP_RAILWAY; break;
-		case ScriptTile::TRANSPORT_WATER: tile_type = ::MP_WATER; break;
-
-		case ScriptTile::TRANSPORT_AIR: {
-			/* Hangars are not seen as real depots by the depot code. */
-			const Station *st;
-			FOR_ALL_STATIONS(st) {
-				if (st->owner == ScriptObject::GetCompany() || ScriptObject::GetCompany() == OWNER_DEITY) {
-					for (uint i = 0; i < st->airport.GetNumHangars(); i++) {
-						this->AddItem(st->airport.GetHangarTile(i));
-					}
-				}
-			}
-			return;
-		}
-	}
-
-	/* Handle 'standard' depots. */
 	const Depot *depot;
 	FOR_ALL_DEPOTS(depot) {
-		if ((::GetTileOwner(depot->xy) == ScriptObject::GetCompany() || ScriptObject::GetCompany() == OWNER_DEITY) && ::IsTileType(depot->xy, tile_type)) this->AddItem(depot->xy);
+		if (depot->veh_type != (VehicleType)transport_type) continue;
+		if (::GetTileOwner(depot->xy) != ScriptObject::GetCompany() && ScriptObject::GetCompany() != OWNER_DEITY) continue;
+		uint num_tiles = depot->depot_tiles.Length();
+		for (uint i = 0; i < num_tiles; i++) {
+			this->AddItem(depot->depot_tiles[i]);
+		}
 	}
 }
