@@ -14,6 +14,7 @@
 #include "script_station.hpp"
 #include "../../station_base.h"
 #include "../../town.h"
+#include "../../depot_base.h"
 
 #include "../../safeguards.h"
 
@@ -98,22 +99,20 @@
 
 	const Station *st = ::Station::GetByTile(tile);
 	if (st->owner != ScriptObject::GetCompany() && ScriptObject::GetCompany() != OWNER_DEITY) return -1;
-	if ((st->facilities & FACIL_AIRPORT) == 0) return -1;
-
-	return st->airport.GetNumHangars();
+	if (st->airport.depot_id == INVALID_DEPOT) return -1;
+	return Depot::Get(st->airport.depot_id)->depot_tiles.Length();
 }
 
 /* static */ TileIndex ScriptAirport::GetHangarOfAirport(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return INVALID_TILE;
 	if (!::IsTileType(tile, MP_STATION)) return INVALID_TILE;
-	if (GetNumHangars(tile) < 1) return INVALID_TILE;
 
 	const Station *st = ::Station::GetByTile(tile);
 	if (st->owner != ScriptObject::GetCompany() && ScriptObject::GetCompany() != OWNER_DEITY) return INVALID_TILE;
-	if ((st->facilities & FACIL_AIRPORT) == 0) return INVALID_TILE;
+	if (st->airport.depot_id == INVALID_DEPOT) return INVALID_TILE;
 
-	return st->airport.GetHangarTile(0);
+	return Depot::Get(st->airport.depot_id)->depot_tiles[0];
 }
 
 /* static */ ScriptAirport::AirportType ScriptAirport::GetAirportType(TileIndex tile)
