@@ -57,6 +57,7 @@
 #include "../order_backup.h"
 #include "../error.h"
 #include "../disaster_vehicle.h"
+#include "../table/airport_translation.h"
 
 
 #include "saveload_internal.h"
@@ -3072,6 +3073,16 @@ bool AfterLoadGame()
 		FOR_ALL_SHIPS(v) {
 			if ((v->state & TrackStatusToTrackBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0))) == 0) {
 				v->Crash();
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(SL_USE_DEPOT_IDS)) {
+		Station *st;
+		FOR_ALL_STATIONS(st) {
+			if (st->HasFacilities(FACIL_AIRPORT) && _translation_airport_hangars[st->airport.type]) {
+				/* Add a built-in hangar for some airport types. */
+				st->airport.SetDepot(true);
 			}
 		}
 	}
