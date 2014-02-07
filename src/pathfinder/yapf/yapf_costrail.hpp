@@ -607,7 +607,9 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			if ((end_segment_reason & ESRB_STATION) != ESRB_NONE) {
 				const BaseStation *st = BaseStation::GetByTile(n.GetLastTile());
 				assert(st != NULL);
-				uint platform_length = st->GetPlatformLength(n.GetLastTile(), ReverseDiagDir(TrackdirToExitdir(n.GetLastTrackdir())));
+				//REVISE: MIGHT IT BE A WAYPOINT?
+				assert(IsRailStationTile(n.GetLastTile()));
+				uint platform_length = GetPlatformLength(n.GetLastTile(), ReverseDiagDir(TrackdirToExitdir(n.GetLastTrackdir())));
 				/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
 				extra_cost -= Yapf().PfGetSettings().rail_station_penalty * platform_length;
 				/* Add penalty for the inappropriate platform length. */
