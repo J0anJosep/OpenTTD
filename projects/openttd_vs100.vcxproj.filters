@@ -1908,6 +1908,9 @@
     <ClInclude Include="..\src\table\airport_movement.h">
       <Filter>Tables</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\table\airport_translation.h">
+      <Filter>Tables</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\table\airporttile_ids.h">
       <Filter>Tables</Filter>
     </ClInclude>
