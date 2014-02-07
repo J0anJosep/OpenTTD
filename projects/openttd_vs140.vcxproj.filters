@@ -309,6 +309,9 @@
     <ClCompile Include="..\src\pbs_water.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\platform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\progress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -937,6 +940,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pbs_water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform_func.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\progress.h">
