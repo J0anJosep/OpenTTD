@@ -501,9 +501,6 @@ public:
 
 	void AfterStationTileSetChange(bool adding, const TileArea ta, StationType type);
 
-	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
-	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
-
 	/* Stuff related with catchment of the station */
 	static CatchmentArea GetCatchmentRadius(StationType type);
 	uint GetCatchmentRadius() const;
