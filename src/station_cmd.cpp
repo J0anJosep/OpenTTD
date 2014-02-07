@@ -58,8 +58,10 @@
 #include "filters/filter_window_gui.h"
 #include "zoning.h"
 #include "platform_func.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
+#include "table/airport_translation.h"
 
 #include "safeguards.h"
 
@@ -2200,11 +2202,14 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 	/* Check if a valid, buildable airport was chosen for construction */
 	const AirportSpec *as = AirportSpec::Get(airport_type);
+
+	if (_translation_airport_hangars[airport_type] && !Depot::CanAllocateItem()) return CMD_ERROR;
 	if (!as->IsAvailable() || layout >= as->num_table) return CMD_ERROR;
 
 	Direction rotation = as->rotation[layout];
 	int w = as->size_x;
 	int h = as->size_y;
+
 	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
 	TileArea airport_area = TileArea(tile, w, h);
 
@@ -2291,6 +2296,8 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
 		}
 
+		if (_translation_airport_hangars[airport_type]) st->airport.SetDepot(true);
+
 		UpdateAirplanesOnNewStation(st);
 
 		Company::Get(st->owner)->infrastructure.airport++;
@@ -2332,6 +2339,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (flags & DC_EXEC) {
+		st->airport.SetDepot(false);
 		const AirportSpec *as = st->airport.GetSpec();
 		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
 		 * And as for construction, always remove it, even if the setting is not set, in order to avoid the
