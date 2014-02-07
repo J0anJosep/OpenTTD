@@ -28,6 +28,7 @@
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
 #include "filters/filter_window_gui.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
 
@@ -687,4 +688,21 @@ Money AirportMaintenanceCost(Owner owner)
 	}
 	/* 3 bits fraction for the maintenance cost factor. */
 	return total_cost >> 3;
+}
+
+void Airport::SetDepot(bool adding)
+{
+	if (adding) {
+		assert(this->depot_id == INVALID_DEPOT);
+		if (!Depot::CanAllocateItem()) NOT_REACHED();
+		assert(this->GetNumHangars() > 0);
+		Station *st = Station::GetByTile(this->GetHangarTile(0));
+		Depot *dep = new Depot(this->GetHangarTile(0));
+		this->depot_id = dep->index;
+		dep->build_date = st->build_date;
+		dep->town = st->town;
+	} else {
+		delete Depot::GetIfValid(this->depot_id);
+		this->depot_id = INVALID_DEPOT;
+	}
 }

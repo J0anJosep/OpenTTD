@@ -19,6 +19,7 @@
 #include "industry_type.h"
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
+#include "depot_type.h"
 #include <map>
 
 typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
@@ -311,12 +312,13 @@ struct GoodsEntry {
 
 /** All airport-related information. Only valid if tile != INVALID_TILE. */
 struct Airport : public TileArea {
-	Airport() : TileArea(INVALID_TILE, 0, 0) {}
+	Airport() : TileArea(INVALID_TILE, 0, 0), depot_id(INVALID_DEPOT) {}
 
 	uint64 flags;       ///< stores which blocks on the airport are taken. was 16 bit earlier on, then 32
 	byte type;          ///< Type of this airport, @see AirportTypes
 	byte layout;        ///< Airport layout number.
 	DirectionByte rotation; ///< How this airport is rotated.
+	DepotID depot_id;       ///< The corresponding depot ID for this airport.
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
@@ -428,6 +430,8 @@ struct Airport : public TileArea {
 		}
 		return num;
 	}
+
+	void SetDepot(bool adding);
 
 private:
 	/**
