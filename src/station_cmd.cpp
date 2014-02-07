@@ -57,6 +57,7 @@
 #include "widgets/station_widget.h"
 #include "filters/filter_window_gui.h"
 #include "zoning.h"
+#include "platform_func.h"
 
 #include "table/strings.h"
 
@@ -1289,9 +1290,9 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 					if (v != NULL) {
 						FreeTrainTrackReservation(v);
 						*affected_vehicles.Append() = v;
-						if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), false);
+						if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), false);
 						for (; v->Next() != NULL; v = v->Next()) { }
-						if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), false);
+						if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), false);
 					}
 				}
 
@@ -1343,10 +1344,10 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 		for (uint i = 0; i < affected_vehicles.Length(); ++i) {
 			/* Restore reservations of trains. */
 			Train *v = affected_vehicles[i];
-			if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
+			if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
 			TryPathReserve(v, true, true);
 			for (; v->Next() != NULL; v = v->Next()) { }
-			if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), true);
+			if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), true);
 		}
 
 		/* Check whether we need to expand the reservation of trains already on the station. */
@@ -1367,21 +1368,21 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 			TileIndex platform_end = tile;
 
 			/* We can only account for tiles that are reachable from this tile, so ignore primarily blocked tiles while finding the platform begin and end. */
-			for (TileIndex next_tile = platform_begin - tile_offset; IsCompatibleTrainStationTile(next_tile, platform_begin); next_tile -= tile_offset) {
+			for (TileIndex next_tile = platform_begin - tile_offset; IsCompatiblePlatformTile(next_tile, platform_begin); next_tile -= tile_offset) {
 				platform_begin = next_tile;
 			}
-			for (TileIndex next_tile = platform_end + tile_offset; IsCompatibleTrainStationTile(next_tile, platform_end); next_tile += tile_offset) {
+			for (TileIndex next_tile = platform_end + tile_offset; IsCompatiblePlatformTile(next_tile, platform_end); next_tile += tile_offset) {
 				platform_end = next_tile;
 			}
 
 			/* If there is at least on reservation on the platform, we reserve the whole platform. */
 			bool reservation = false;
 			for (TileIndex t = platform_begin; !reservation && t <= platform_end; t += tile_offset) {
-				reservation = HasStationReservation(t);
+				reservation = HasPlatformReservation(t);
 			}
 
 			if (reservation) {
-				SetRailStationPlatformReservation(platform_begin, dir, true);
+				SetPlatformReservation(platform_begin, dir, true);
 			}
 		}
 
@@ -1507,10 +1508,10 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, SmallVector<T *, 4> &affected
 				if (v != NULL) {
 					/* Free train reservation. */
 					FreeTrainTrackReservation(v);
-					if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), false);
+					if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), false);
 					Vehicle *temp = v;
 					for (; temp->Next() != NULL; temp = temp->Next()) { }
-					if (IsRailStationTile(temp->tile)) SetRailStationPlatformReservation(temp->tile, TrackdirToExitdir(ReverseTrackdir(temp->GetVehicleTrackdir())), false);
+					if (IsPlatformTile(temp->tile)) SetPlatformReservation(temp->tile, TrackdirToExitdir(ReverseTrackdir(temp->GetVehicleTrackdir())), false);
 				}
 			}
 
@@ -1533,10 +1534,10 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, SmallVector<T *, 4> &affected
 
 			if (v != NULL) {
 				/* Restore station reservation. */
-				if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
+				if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
 				TryPathReserve(v, true, true);
 				for (; v->Next() != NULL; v = v->Next()) { }
-				if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), true);
+				if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), true);
 			}
 		}
 	}
