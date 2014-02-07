@@ -288,6 +288,7 @@ static void InitializeWindowsAndCaches()
 	}
 	Depot *dep;
 	FOR_ALL_DEPOTS(dep) {
+		dep->is_big_depot = IsBigDepotTile(dep->xy);
 		dep->RescanDepotTiles();
 	}
 
