@@ -53,6 +53,7 @@
 #include "filters/filter_window_gui.h"
 #include "zoning.h"
 #include "platform_func.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
 #include "table/pricebase.h"
@@ -315,8 +316,6 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 		assert(old_owner != _local_company);
 	}
 
-	Town *t;
-
 	assert(old_owner != new_owner);
 
 	{
@@ -371,7 +370,13 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 	}
 	if (new_owner == INVALID_OWNER) RebuildSubsidisedSourceAndDestinationCache();
 
+	Depot *dep;
+	FOR_ALL_DEPOTS(dep) {
+		if (dep->company == old_owner) dep->company = new_owner;
+	}
+
 	/* Take care of rating and transport rights in towns */
+	Town *t;
 	FOR_ALL_TOWNS(t) {
 		/* If a company takes over, give the ratings to that company. */
 		if (new_owner != INVALID_OWNER) {
