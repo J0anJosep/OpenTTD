@@ -701,6 +701,8 @@ void Airport::SetDepot(bool adding)
 		this->depot_id = dep->index;
 		dep->build_date = st->build_date;
 		dep->town = st->town;
+		dep->company = GetTileOwner(dep->xy);
+		dep->veh_type = VEH_AIRCRAFT;
 		dep->ta.tile = st->airport.tile;
 		dep->ta.w = st->airport.w;
 		dep->ta.h = st->airport.h;
