@@ -61,6 +61,7 @@
 #include "../ship.h"
 #include "../pathfinder/pathfinder_type.h"
 #include "../pbs_water.h"
+#include "../table/airport_translation.h"
 
 #include "saveload_internal.h"
 
@@ -3261,6 +3262,16 @@ bool AfterLoadGame()
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (WaterTrackMayExist(t)) {
 				SetPreferredWaterTrackdirs(t, TRACKDIR_BIT_NONE, false);
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(SLV_USE_DEPOT_IDS)) {
+		Station *st;
+		FOR_ALL_STATIONS(st) {
+			if (st->HasFacilities(FACIL_AIRPORT) && _translation_airport_hangars[st->airport.type]) {
+				/* Add a built-in hangar for some airport types. */
+				st->airport.SetDepot(true);
 			}
 		}
 	}
