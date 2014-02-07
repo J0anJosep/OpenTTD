@@ -68,6 +68,7 @@ openttd.cpp
 order_backup.cpp
 pbs_rail.cpp
 pbs_water.cpp
+platform.cpp
 progress.cpp
 rail.cpp
 rev.cpp
@@ -309,6 +310,8 @@ order_type.h
 pbs.h
 pbs_rail.h
 pbs_water.h
+platform_func.h
+platform_type.h
 progress.h
 querystring_gui.h
 rail.h
