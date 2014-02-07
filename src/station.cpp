@@ -476,7 +476,10 @@ BitMap *Station::GetStationCatchmentFootprint(const TileArea ta) const
  */
 const BitMap *Station::GetStationCatchmentFootprint() const { return this->footprint; };
 
-
+int CDECL IndustrySorterByDate(Industry* const * a, Industry* const * b)
+{
+	return (*a)->construction_date - (*b)->construction_date;
+}
 
 /**
  * Recomputes Station::industries_near, list of industries possibly
@@ -507,6 +510,9 @@ void Station::RecomputeIndustriesNear()
 
 		*this->industries_near.Append() = ind;
 	}
+
+	/* Sort by construction date. */
+	GSortT(this->industries_near.Begin(), this->industries_near.Length(), &IndustrySorterByDate, false);
 }
 
 /**

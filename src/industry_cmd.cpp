@@ -2239,6 +2239,11 @@ void Industry::RecomputeProductionMultipliers()
 	this->production_rate[1] = min(CeilDiv(indspec->production_rate[1] * this->prod_level, PRODLEVEL_DEFAULT), 0xFF);
 }
 
+int CDECL StationSorterByDate(Station* const * a, Station* const * b)
+{
+	return (*a)->build_date - (*b)->build_date;
+}
+
 /**
  * Recomputes Industries::stations_near, list of stations possibly accepting cargo
  */
@@ -2253,6 +2258,9 @@ void Industry::RecomputeStationsNear()
 
 	/* Get all close stations */
 	FindStationsAroundTiles(this->location, this->footprint, &this->stations_near);
+
+	/* Sort close stations by construction date. */
+	GSortT(this->stations_near.Begin(), this->stations_near.Length(), &StationSorterByDate, false);
 }
 
 /**
