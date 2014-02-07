@@ -49,9 +49,10 @@ static void Save_DEPT()
 static void Load_DEPT()
 {
 	int index;
+	Depot *depot;
 
 	while ((index = SlIterateArray()) != -1) {
-		Depot *depot = new (index) Depot();
+		depot = new (index) Depot();
 		SlObject(depot, _depot_desc);
 
 		/* Set the town 'pointer' so we can restore it later. */
