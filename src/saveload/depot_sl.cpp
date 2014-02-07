@@ -12,6 +12,7 @@
 #include "../stdafx.h"
 #include "../depot_base.h"
 #include "../town.h"
+#include "../debug.h"
 
 #include "saveload.h"
 
@@ -27,6 +28,11 @@ static const SaveLoad _depot_desc[] = {
 	 SLE_CONDVAR(Depot, town_cn,    SLE_UINT16,               SLV_141, SL_MAX_VERSION),
 	 SLE_CONDSTR(Depot, name,       SLE_STR, 0,               SLV_141, SL_MAX_VERSION),
 	 SLE_CONDVAR(Depot, build_date, SLE_INT32,                SLV_142, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, company,        SLE_UINT8,                   SLV_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, veh_type,       SLE_UINT8,                   SLV_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, ta.tile,        SLE_UINT32,                  SLV_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, ta.w,           SLE_FILE_U8 | SLE_VAR_U16,   SLV_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, ta.h,           SLE_FILE_U8 | SLE_VAR_U16,   SLV_USE_DEPOT_IDS, SL_MAX_VERSION),
 	 SLE_END()
 };
 
