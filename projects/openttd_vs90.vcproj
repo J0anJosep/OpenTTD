@@ -708,6 +708,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\platform.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\progress.cpp"
 				>
 			</File>
@@ -1549,6 +1553,14 @@
 			</File>
 			<File
 				RelativePath=".\..\src\pbs_water.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\platform_func.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\platform_type.h"
 				>
 			</File>
 			<File
