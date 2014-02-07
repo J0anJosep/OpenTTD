@@ -12,6 +12,7 @@
 #include "../stdafx.h"
 #include "../depot_base.h"
 #include "../town.h"
+#include "../debug.h"
 
 #include "saveload.h"
 
@@ -20,13 +21,18 @@
 static TownID _town_index;
 
 static const SaveLoad _depot_desc[] = {
-	 SLE_CONDVAR(Depot, xy,         SLE_FILE_U16 | SLE_VAR_U32, 0, 5),
-	 SLE_CONDVAR(Depot, xy,         SLE_UINT32,                 6, SL_MAX_VERSION),
-	SLEG_CONDVAR(_town_index,       SLE_UINT16,                 0, 140),
-	 SLE_CONDREF(Depot, town,       REF_TOWN,                 141, SL_MAX_VERSION),
-	 SLE_CONDVAR(Depot, town_cn,    SLE_UINT16,               141, SL_MAX_VERSION),
-	 SLE_CONDSTR(Depot, name,       SLE_STR, 0,               141, SL_MAX_VERSION),
-	 SLE_CONDVAR(Depot, build_date, SLE_INT32,                142, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, xy,             SLE_FILE_U16 | SLE_VAR_U32,                 0, 5),
+	 SLE_CONDVAR(Depot, xy,             SLE_UINT32,                                 6, SL_MAX_VERSION),
+	SLEG_CONDVAR(_town_index,           SLE_UINT16,                                 0, 140),
+	 SLE_CONDREF(Depot, town,           REF_TOWN,                                 141, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, town_cn,        SLE_UINT16,                               141, SL_MAX_VERSION),
+	 SLE_CONDSTR(Depot, name,           SLE_STR, 0,                               141, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, build_date,     SLE_INT32,                                142, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, company,        SLE_UINT8,                   SL_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, veh_type,       SLE_UINT8,                   SL_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, ta.tile,        SLE_UINT32,                  SL_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, ta.w,           SLE_FILE_U8 | SLE_VAR_U16,   SL_USE_DEPOT_IDS, SL_MAX_VERSION),
+	 SLE_CONDVAR(Depot, ta.h,           SLE_FILE_U8 | SLE_VAR_U16,   SL_USE_DEPOT_IDS, SL_MAX_VERSION),
 	 SLE_END()
 };
 
