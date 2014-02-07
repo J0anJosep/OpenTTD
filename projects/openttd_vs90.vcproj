@@ -2868,6 +2868,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\table\airport_translation.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\table\airporttile_ids.h"
 				>
 			</File>
