@@ -1000,6 +1000,8 @@ CommandCost CmdBuildTrainDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	if (flags & DC_EXEC) {
 		Depot *d = new Depot(tile);
 		d->build_date = _date;
+		d->company = _current_company;
+		d->veh_type = VEH_TRAIN;
 
 		MakeRailDepot(tile, _current_company, d->index, dir, railtype);
 		MarkTileDirtyByTile(tile);
