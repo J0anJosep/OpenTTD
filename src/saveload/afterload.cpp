@@ -284,6 +284,10 @@ static void InitializeWindowsAndCaches()
 			(*it)->tile = t->xy;
 		}
 	}
+	Depot *dep;
+	FOR_ALL_DEPOTS(dep) {
+		dep->RescanDepotTiles();
+	}
 
 	RecomputePrices();
 
@@ -3083,6 +3087,25 @@ bool AfterLoadGame()
 			if (st->HasFacilities(FACIL_AIRPORT) && _translation_airport_hangars[st->airport.type]) {
 				/* Add a built-in hangar for some airport types. */
 				st->airport.SetDepot(true);
+			}
+		}
+
+		Depot *depot;
+		FOR_ALL_DEPOTS(depot) {
+			/* Set small depot bit. */
+			depot->is_big_depot = false;
+
+			depot->SetCompanyAndType(GetTileOwner(depot->xy), GetDepotVehicleType(depot->xy));
+			switch (depot->veh_type) {
+				case VEH_SHIP:
+					depot->AfterAddRemove(TileArea(depot->xy, 2, 2), true);
+					break;
+				case VEH_ROAD:
+				case VEH_TRAIN:
+					depot->AfterAddRemove(TileArea(depot->xy, 1, 1), true);
+					break;
+				default:
+					break;
 			}
 		}
 	}
