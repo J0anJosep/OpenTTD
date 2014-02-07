@@ -20,6 +20,7 @@
 #include "../tunnelbridge.h"
 #include "../tunnelbridge_map.h"
 #include "../depot_map.h"
+#include "../platform_func.h"
 #include "pf_performance_timer.hpp"
 
 /**
@@ -371,12 +372,11 @@ protected:
 
 		/* special handling for rail stations - get to the end of platform */
 		if (IsRailTT() && m_is_station) {
-			/* entered railway station
-			 * get platform length */
-			uint length = BaseStation::GetByTile(m_new_tile)->GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td));
-			/* how big step we must do to get to the last platform tile; */
-			m_tiles_skipped = length - 1;
-			/* move to the platform end */
+			/* Entered railway station. */
+			assert(IsRailStationTile(m_new_tile));
+			/* How big step we must do to get to the last platform tile. */
+			m_tiles_skipped = GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td)) - 1;
+			/* Move to the platform end. */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			diff *= m_tiles_skipped;
 			m_new_tile = TILE_ADD(m_new_tile, diff);
