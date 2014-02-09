@@ -36,8 +36,6 @@ void AfterLoadLinkGraphs();
 void AfterLoadCompanyStats();
 void UpdateHousesAndTowns();
 
-void UpdateOldAircraft();
-
 void SaveViewportBeforeSaveGame();
 void ResetViewportAfterLoadGame();
 
