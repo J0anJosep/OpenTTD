@@ -1950,14 +1950,14 @@ void CheckOrders(const Vehicle *v)
 				n_st++;
 				if (!CanVehicleUseStation(v, st)) {
 					message = STR_NEWS_VEHICLE_HAS_INVALID_ENTRY;
-				} else if (v->type == VEH_AIRCRAFT &&
+				} /* else if (v->type == VEH_AIRCRAFT &&
 							(AircraftVehInfo(v->engine_type)->subtype & AIR_FAST) &&
 							(st->airport.GetFTA()->flags & AirportFTAClass::SHORT_STRIP) &&
 							_settings_game.vehicle.plane_crashes != 0 &&
 							!_cheats.no_jetcrash.value &&
 							message == INVALID_STRING_ID) {
 					message = STR_NEWS_PLANE_USES_TOO_SHORT_RUNWAY;
-				}
+				} revise */
 			}
 		}
 
@@ -2230,12 +2230,8 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					if (v->type == VEH_TRAIN && reverse) DoCommand(v->tile, v->index, 0, DC_EXEC, CMD_REVERSE_TRAIN_DIRECTION);
 
 					if (v->type == VEH_AIRCRAFT) {
-						Aircraft *a = Aircraft::From(v);
-						if (a->state == FLYING && a->targetairport != destination) {
-							/* The aircraft is now heading for a different hangar than the next in the orders */
-							extern void AircraftNextAirportPos_and_Order(Aircraft *a);
-							AircraftNextAirportPos_and_Order(a);
-						}
+						//Aircraft *a = Aircraft::From(v);
+						//revise
 					}
 					return true;
 				}

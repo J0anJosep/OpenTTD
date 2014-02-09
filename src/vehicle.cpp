@@ -980,12 +980,9 @@ void Vehicle::PreDestructor()
 	}
 
 	if (this->type == VEH_AIRCRAFT && this->IsPrimaryVehicle()) {
-		Aircraft *a = Aircraft::From(this);
-		Station *st = GetTargetAirportIfValid(a);
-		if (st != NULL) {
-			const AirportFTA *layout = st->airport.GetFTA()->layout;
-			CLRBITS(st->airport.flags, layout[a->previous_pos].block | layout[a->pos].block);
-		}
+		//Aircraft *a = Aircraft::From(this);
+		//Station *st = GetTargetAirportIfValid(a);
+		// revise free track
 	}
 
 
@@ -2499,12 +2496,8 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 		if (this->type == VEH_TRAIN && reverse) DoCommand(this->tile, this->index, 0, DC_EXEC, CMD_REVERSE_TRAIN_DIRECTION);
 
 		if (this->type == VEH_AIRCRAFT) {
-			Aircraft *a = Aircraft::From(this);
-			if (a->state == FLYING && a->targetairport != destination) {
-				/* The aircraft is now heading for a different hangar than the next in the orders */
-				extern void AircraftNextAirportPos_and_Order(Aircraft *a);
-				AircraftNextAirportPos_and_Order(a);
-			}
+			//Aircraft *a = Aircraft::From(this);
+			// revise
 		}
 	}
 

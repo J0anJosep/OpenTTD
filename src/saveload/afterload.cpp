@@ -957,9 +957,6 @@ bool AfterLoadGame()
 		}
 	}
 
-	/* In version 2.2 of the savegame, we have new airports, so status of all aircraft is reset.
-	 * This has to be called after the oilrig airport_type update above ^^^ ! */
-	if (IsSavegameVersionBefore(2, 2)) UpdateOldAircraft();
 
 	/* In version 6.1 we put the town index in the map-array. To do this, we need
 	 *  to use m2 (16bit big), so we need to clean m2, and that is where this is
@@ -2428,29 +2425,6 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(142)) {
 		Depot *d;
 		FOR_ALL_DEPOTS(d) d->build_date = _date;
-	}
-
-	/* In old versions it was possible to remove an airport while a plane was
-	 * taking off or landing. This gives all kind of problems when building
-	 * another airport in the same station so we don't allow that anymore.
-	 * For old savegames with such aircraft we just throw them in the air and
-	 * treat the aircraft like they were flying already. */
-	if (IsSavegameVersionBefore(146)) {
-		Aircraft *v;
-		FOR_ALL_AIRCRAFT(v) {
-			if (!v->IsNormalAircraft()) continue;
-			Station *st = GetTargetAirportIfValid(v);
-			if (st == NULL && v->state != FLYING) {
-				v->state = FLYING;
-				UpdateAircraftCache(v);
-				AircraftNextAirportPos_and_Order(v);
-				/* get aircraft back on running altitude */
-				if ((v->vehstatus & VS_CRASHED) == 0) {
-					GetAircraftFlightLevelBounds(v, &v->z_pos, NULL);
-					SetAircraftPosition(v, v->x_pos, v->y_pos, GetAircraftFlightLevel(v));
-				}
-			}
-		}
 	}
 
 	/* Move the animation frame to the same location (m7) for all objects. */

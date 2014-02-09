@@ -162,50 +162,6 @@ void ConvertOldMultiheadToNew()
 	}
 }
 
-
-/** need to be called to load aircraft from old version */
-void UpdateOldAircraft()
-{
-	/* set airport_flags to 0 for all airports just to be sure */
-	Station *st;
-	FOR_ALL_STATIONS(st) {
-		st->airport.flags = 0; // reset airport
-	}
-
-	Aircraft *a;
-	FOR_ALL_AIRCRAFT(a) {
-		/* airplane has another vehicle with subtype 4 (shadow), helicopter also has 3 (rotor)
-		 * skip those */
-		if (a->IsNormalAircraft()) {
-			/* airplane in terminal stopped doesn't hurt anyone, so goto next */
-			if ((a->vehstatus & VS_STOPPED) && a->state == 0) {
-				a->state = HANGAR;
-				continue;
-			}
-
-			AircraftLeaveHangar(a, a->direction); // make airplane visible if it was in a depot for example
-			a->vehstatus &= ~VS_STOPPED; // make airplane moving
-			UpdateAircraftCache(a);
-			a->cur_speed = a->vcache.cached_max_speed; // so aircraft don't have zero speed while in air
-			if (!a->current_order.IsType(OT_GOTO_STATION) && !a->current_order.IsType(OT_GOTO_DEPOT)) {
-				/* reset current order so aircraft doesn't have invalid "station-only" order */
-				a->current_order.MakeDummy();
-			}
-			a->state = FLYING;
-			AircraftNextAirportPos_and_Order(a); // move it to the entry point of the airport
-			GetNewVehiclePosResult gp = GetNewVehiclePos(a);
-			a->tile = 0; // aircraft in air is tile=0
-
-			/* correct speed of helicopter-rotors */
-			if (a->subtype == AIR_HELICOPTER) a->Next()->Next()->cur_speed = 32;
-
-			/* set new position x,y,z */
-			GetAircraftFlightLevelBounds(a, &a->z_pos, NULL);
-			SetAircraftPosition(a, gp.x, gp.y, GetAircraftFlightLevel(a));
-		}
-	}
-}
-
 /**
  * Check all vehicles to ensure their engine type is valid
  * for the currently loaded NewGRFs (that includes none...)
@@ -769,14 +725,14 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		SLE_VEH_INCLUDE(),
 		 SLE_CONDVAR(Aircraft, wait_counter,          SLE_UINT16,        SL_STUCK_SHIPS, SL_MAX_VERSION),
 		     SLE_VAR(Aircraft, crashed_counter,       SLE_UINT16),
-		     SLE_VAR(Aircraft, pos,                   SLE_UINT8),
+		     SLE_CONDNULL(1, 1, SL_RESET_AIRCRAFT - 1), // Old pos
 
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_FILE_U8  | SLE_VAR_U16,   0, 4),
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_UINT16,                   5, SL_MAX_VERSION),
 
-		     SLE_VAR(Aircraft, state,                 SLE_UINT8),
+		     SLE_CONDNULL(1, 1, SL_RESET_AIRCRAFT - 1), // Old state
+		     SLE_CONDNULL(1, 2, SL_RESET_AIRCRAFT - 1), // Old previous pos
 
-		 SLE_CONDVAR(Aircraft, previous_pos,          SLE_UINT8,                    2, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, last_direction,        SLE_UINT8,                    2, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, number_consecutive_turns, SLE_UINT8,                 2, SL_MAX_VERSION),
 
