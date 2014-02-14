@@ -59,6 +59,7 @@
 #include "../error.h"
 #include "../disaster_vehicle.h"
 #include "../ship.h"
+#include "../pathfinder/pathfinder_type.h"
 
 
 #include "saveload_internal.h"
@@ -770,6 +771,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_COMPANY_RIGHTS)) _settings_game.vehicle.buy_engine_rights = false;
 	if (IsSavegameVersionBefore(SLV_STORE_WATER_TRACKS)) {
 		_settings_game.pf.coastal_water_tracks = true;
+		_settings_game.pf.npf.npf_water_depot_penalty = 4 * NPF_TILE_LENGTH;
 	}
 
 	/* Load the sprites */
