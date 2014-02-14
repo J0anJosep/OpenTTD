@@ -213,6 +213,8 @@ public:
 			c += YAPF_TILE_LENGTH;
 		}
 
+		if (IsShipDepotTile(n.GetTile()) || IsDockTile(n.GetTile())) c += YAPF_TILE_LENGTH;
+
 		/* Skipped tile cost for aqueducts. */
 		c += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
 
