@@ -300,8 +300,18 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 
 	cost = IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH;
 
-	if (IsBuoyTile(current->tile) && IsDiagonalTrackdir(trackdir)) {
-		cost += _settings_game.pf.npf.npf_buoy_penalty; // A small penalty for going over buoys
+	switch (GetTileType(current->tile)) {
+		default: NOT_REACHED();
+
+		case MP_STATION:
+			// Add a small penalty for crossing a dock (always crossed using a diagonal trackdir)
+			// or a buoy (only when crossed using a diagonal trackdir).
+			if (IsDiagonalTrackdir(trackdir)) cost += _settings_game.pf.npf.npf_buoy_penalty;
+			break;
+
+		case MP_WATER:
+			if (IsShipDepotTile(current->tile)) cost += _settings_game.pf.npf.npf_water_depot_penalty;
+			break;
 	}
 
 	if (current->direction != NextTrackdir((Trackdir)parent->path.node.direction)) {
