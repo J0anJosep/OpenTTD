@@ -207,11 +207,20 @@ public:
 	{
 		/* base tile cost depending on distance */
 		int c = IsDiagonalTrackdir(n.GetTrackdir()) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
+
+		/* Apply a penalty for using reserved trackdirs on a tile. */
+		if (_settings_game.pf.ship_path_reservation && HasWaterTrackReservation(n.GetTile()) &&
+				TracksOverlap(TrackToTrackBits(TrackdirToTrack(n.GetTrackdir())) | GetReservedWaterTracks(n.GetTile()))) {
+			c += 3 * (IsDiagonalTrackdir(n.GetTrackdir()) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH);
+		}
+
 		/* additional penalty for curves */
 		if (n.GetTrackdir() != NextTrackdir(n.m_parent->GetTrackdir())) {
 			/* new trackdir does not match the next one when going straight */
 			c += YAPF_TILE_LENGTH;
 		}
+
+		if (IsShipDepotTile(n.GetTile()) || IsDockTile(n.GetTile())) c += YAPF_TILE_LENGTH;
 
 		/* Skipped tile cost for aqueducts. */
 		c += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
