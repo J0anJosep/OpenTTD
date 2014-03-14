@@ -253,9 +253,9 @@ struct StatusBarWindow : Window {
 
 static const NWidgetPart _nested_main_status_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_PANEL, COLOUR_GREY, WID_S_LEFT), SetMinimalSize(140, 12), EndContainer(),
-		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_MIDDLE), SetMinimalSize(40, 12), SetDataTip(0x0, STR_STATUSBAR_TOOLTIP_SHOW_LAST_NEWS), SetResize(1, 0),
-		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_RIGHT), SetMinimalSize(140, 12),
+		NWidget(WWT_PANEL, COLOUR_GREY, WID_S_LEFT), SetSizingType(NWST_STATUSBAR_SIDE), SetMinimalSize(140, 12), EndContainer(),
+		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_MIDDLE), SetSizingType(NWST_STATUSBAR_MIDDLE), SetMinimalSize(40, 12), SetDataTip(0x0, STR_STATUSBAR_TOOLTIP_SHOW_LAST_NEWS), SetResize(1, 0),
+		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_RIGHT), SetSizingType(NWST_STATUSBAR_SIDE), SetMinimalSize(140, 12),
 	EndContainer(),
 };
 
