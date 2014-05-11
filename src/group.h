@@ -104,6 +104,7 @@ void UpdateTrainGroupID(Train *v);
 void RemoveVehicleFromGroup(const Vehicle *v);
 void RemoveAllGroupsForCompany(const CompanyID company);
 bool GroupIsInGroup(GroupID search, GroupID group);
+bool GroupInheritsFromGroup(GroupID search, GroupID group);
 
 extern GroupID _new_group_id;
 
