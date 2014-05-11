@@ -860,6 +860,15 @@ static bool InvalidateTownViewWindow(int32 p1)
 	return true;
 }
 
+static bool InvalidateVehicleListWindows(int32 p1)
+{
+	InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
+	InvalidateWindowClassesData(WC_SHIPS_LIST, 0);
+	InvalidateWindowClassesData(WC_ROADVEH_LIST, 0);
+	InvalidateWindowClassesData(WC_AIRCRAFT_LIST, 0);
+	return true;
+}
+
 static bool DeleteSelectStationWindow(int32 p1)
 {
 	DeleteWindowById(WC_SELECT_STATION, 0);

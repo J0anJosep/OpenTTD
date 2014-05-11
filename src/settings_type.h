@@ -157,6 +157,7 @@ struct GUISettings {
 	uint8  settings_restriction_mode;        ///< selected restriction mode in adv. settings GUI. @see RestrictionMode
 	bool   newgrf_show_old_versions;         ///< whether to show old versions in the NewGRF list
 	uint8  newgrf_default_palette;           ///< default palette to use for NewGRFs without action 14 palette information
+	bool   show_compact_groups_when_filtering;     ///< whether to show a compact list of groups or the complete list when filtering groups
 
 	/**
 	 * Returns true when the user has sufficient privileges to edit newgrfs on a running game
@@ -530,6 +531,7 @@ struct VehicleDefaultSettings {
 
 /** Settings that can be set per company. */
 struct CompanySettings {
+	bool group_hierarchy;                    ///< whether group statistics must be calculated with hierarchy or not
 	bool engine_renew;                       ///< is autorenew enabled
 	int16 engine_renew_months;               ///< months before/after the maximum vehicle age a vehicle should be renewed
 	uint32 engine_renew_money;               ///< minimum amount of money before autorenew is used
