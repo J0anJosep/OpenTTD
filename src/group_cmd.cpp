@@ -728,3 +728,30 @@ bool GroupIsInGroup(GroupID search, GroupID group)
 
 	return false;
 }
+
+/**
+ * Test if GroupID group is a descendant of (or is) GroupID search
+ * and if it should inherit properties from parent.
+ * @param search The GroupID to search in
+ * @param group The GroupID to search for
+ * @return True iff group is search or a descendant of search and must inherit properties.
+ */
+bool GroupInheritsFromGroup(GroupID search, GroupID group)
+{
+	if (search == group) return true;
+
+	if (search == NEW_GROUP ||
+	    search == ALL_GROUP ||
+	    search == DEFAULT_GROUP ||
+	    search == INVALID_GROUP) return false;
+
+	Group *g = Group::Get(search);
+	if (!Company::Get(g->owner)->settings.group_hierarchy) return false;
+
+	for (;;) {
+		if (g->parent == group) return true;
+		if (g->parent == INVALID_GROUP) return false;
+		g = Group::Get(g->parent);
+	}
+}
+
