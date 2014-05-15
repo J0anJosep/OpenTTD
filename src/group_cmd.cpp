@@ -364,26 +364,65 @@ static bool IsUniqueGroupNameForVehicleType(const char *name, VehicleType type)
 }
 
 /**
+ * Delete group names of a given company and a vehicle type.
+ * @param tile unused
+ * @param flags type of operation
+ * @param p1   index of array group
+ *   - p1 bit 0-31 : VehicleListIdentifier
+ * @param p2 unused
+ * @param text the new name or an empty string when resetting to the default
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdDefaultName(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	VehicleListIdentifier vli;
+	if (!vli.Unpack(p1)) return CMD_ERROR;
+	if (vli.company != _current_company) return CMD_ERROR;
+
+	if (flags & DC_EXEC) {
+		Group *g;
+		FOR_ALL_GROUPS(g) {
+			if (g->owner != _current_company) continue;
+			if (g->vehicle_type != vli.vtype) continue;
+			/* Delete the old name */
+			free(g->name);
+			g->name = NULL;
+		}
+
+		SetWindowDirty(WC_REPLACE_VEHICLE, vli.vtype);
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(vli.vtype));
+	}
+
+	return CommandCost();
+}
+
+/**
  * Alter a group
  * @param tile unused
  * @param flags type of operation
  * @param p1   index of array group
- *   - p1 bit 0-15 : GroupID
- *   - p1 bit 16: 0 - Rename grouop
- *                1 - Set group parent
- * @param p2   parent group index
+ *   - p1 bit 0-15 : GroupID (p2 == 0)
+ *   - p1 bit 16-31: Parent Group ID (p2 == 0)
+ *   - p1 bit 0-31 : VehicleListIdentifier (p2 == 1)
+ * @param p2   0: only rename the name of the given group
+ *             1: rename all groups of a company and given vehicle type to NULL
+ *             2: set group parent
  * @param text the new name or an empty string when resetting to the default
  * @return the cost of this operation or an error
  */
 CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
+	assert(p2 < 3);
+	assert(p2 == 0 || text == NULL);
+
+	if (p2 == 1) return CmdDefaultName(tile, flags, p1, p2, text);
+
 	Group *g = Group::GetIfValid(GB(p1, 0, 16));
 	if (g == NULL || g->owner != _current_company) return CMD_ERROR;
 
-	if (!HasBit(p1, 16)) {
-		/* Rename group */
+	if (p2 == 0) {
+		// just rename this group
 		bool reset = StrEmpty(text);
-
 		if (!reset) {
 			if (Utf8StringLength(text) >= MAX_LENGTH_GROUP_NAME_CHARS) return CMD_ERROR;
 			if (!IsUniqueGroupNameForVehicleType(text, g->vehicle_type)) return_cmd_error(STR_ERROR_NAME_MUST_BE_UNIQUE);
@@ -396,8 +435,12 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			g->name = reset ? NULL : stredup(text);
 		}
 	} else {
+		assert(p2 == 2);
 		/* Set group parent */
-		const Group *pg = Group::GetIfValid(GB(p2, 0, 16));
+		const Group *pg = Group::GetIfValid(GB(p1, 16, 16));
+
+		if (pg->index == g->index) return CMD_ERROR;
+		if (pg->index == g->parent) return CMD_ERROR;
 
 		if (pg != NULL) {
 			if (pg->owner != _current_company) return CMD_ERROR;
@@ -407,7 +450,6 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			 * This is the only place that infinite loops are prevented. */
 			if (GroupIsInGroup(pg->index, g->index)) return CMD_ERROR;
 		}
-
 		if (flags & DC_EXEC) {
 			g->parent = (pg == NULL) ? INVALID_GROUP : pg->index;
 		}
