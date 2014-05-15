@@ -624,13 +624,15 @@ CommandCost CmdRemoveAllVehiclesGroup(TileIndex tile, DoCommandFlag flags, uint3
  * @param g initial group.
  * @param protect 1 to set or 0 to clear protection.
  */
-static void SetGroupReplaceProtection(Group *g, bool protect)
+static void SetGroupReplaceProtection(Group *g, bool protect, bool subgroups)
 {
 	g->replace_protection = protect;
 
+	if (!subgroups) return;
+
 	Group *pg;
 	FOR_ALL_GROUPS(pg) {
-		if (pg->parent == g->index) SetGroupReplaceProtection(pg, protect);
+		if (pg->parent == g->index) SetGroupReplaceProtection(pg, protect, subgroups);
 	}
 }
 
@@ -652,11 +654,7 @@ CommandCost CmdSetGroupReplaceProtection(TileIndex tile, DoCommandFlag flags, ui
 	if (g == NULL || g->owner != _current_company) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		if (HasBit(p2, 1)) {
-			SetGroupReplaceProtection(g, HasBit(p2, 0));
-		} else {
-			g->replace_protection = HasBit(p2, 0);
-		}
+		SetGroupReplaceProtection(g, HasBit(p2, 0), HasBit(p2, 1));
 
 		SetWindowDirty(GetWindowClassForVehicleType(g->vehicle_type), VehicleListIdentifier(VL_GROUP_LIST, g->vehicle_type, _current_company).Pack());
 		InvalidateWindowData(WC_REPLACE_VEHICLE, g->vehicle_type);
