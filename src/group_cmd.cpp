@@ -695,10 +695,13 @@ uint GetGroupNumEngines(CompanyID company, GroupID id_g, EngineID id_e)
 {
 	uint count = 0;
 	const Engine *e = Engine::Get(id_e);
-	const Group *g;
-	FOR_ALL_GROUPS(g) {
-		if (g->parent == id_g) count += GetGroupNumEngines(company, g->index, id_e);
+	if (Company::Get(company)->settings.group_hierarchy) {
+		const Group *g;
+		FOR_ALL_GROUPS(g) {
+			if (g->parent == id_g) count += GetGroupNumEngines(company, g->index, id_e);
+		}
 	}
+
 	return count + GroupStatistics::Get(company, id_g, e->type).num_engines[id_e];
 }
 
