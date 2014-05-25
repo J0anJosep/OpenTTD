@@ -118,6 +118,25 @@ const StringID BaseVehicleListWindow::vehicle_depot_name[] = {
 	STR_VEHICLE_LIST_SEND_AIRCRAFT_TO_HANGAR
 };
 
+GroupAndIndent::GroupAndIndent(Group *g, bool active) : g(g), active(active), has_active_descendant(false) {
+	this->indent = 0;
+	Group *g2 = g;
+	while (g2->parent != INVALID_GROUP) {
+		this->indent++;
+		g2 = Group::Get(g2->parent);
+	}
+}
+
+void AddParents(GUIGroupList *sort_list, const GUIGroupList source, GroupID parent)
+{
+	for (const GroupAndIndent *gi = source.Begin(); gi != source.End(); gi++) {
+		if (gi->g->parent == parent) {
+			*sort_list->Append() = *gi;
+			AddParents(sort_list, source, gi->g->index);
+		}
+	}
+}
+
 /**
  * Get the number of digits the biggest unit number of a set of vehicles has.
  * @param vehicles The list of vehicles.
@@ -143,9 +162,10 @@ uint GetUnitNumberDigits(VehicleList &vehicles)
 }
 
 /**
- * (Re)Build a group list
+ * (Re)Build a group list and sort it.
+ * @param group_window true if the group list will need hierarchy for group window.
  */
-bool BaseVehicleListWindow::BuildGroupList()
+bool BaseVehicleListWindow::BuildGroupList(bool group_window)
 {
 	if (!this->groups.NeedRebuild()) return true;
 	this->groups.Clear();
@@ -167,7 +187,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 						FOR_VEHICLE_ORDERS(v, order) {
 							if ((order->IsType(OT_GOTO_STATION) || order->IsType(OT_GOTO_WAYPOINT) || order->IsType(OT_IMPLICIT))
 									&& order->GetDestination() == this->vli.index) {
-								if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
+								*this->groups.Append() = GroupAndIndent(g, filter == NULL || filter->FilterTest(g));
 								continue_flag = false;
 								break;
 							}
@@ -184,7 +204,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 				v = Vehicle::GetIfValid(this->vli.index);
 				if (v == NULL || v->type != this->vli.vtype || !v->IsPrimaryVehicle() || IsDefaultGroupID(v->group_id)) return false;
 				g = Group::GetIfValid(v->group_id);
-				if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
+				*this->groups.Append() = GroupAndIndent(g, filter == NULL || filter->FilterTest(g));
 				break;
 
 			case VL_GROUP_LIST:
@@ -192,7 +212,8 @@ bool BaseVehicleListWindow::BuildGroupList()
 				if (!IsAllGroupID(this->vli.index)) {
 					/* only the group which refers to this group will be shown */
 					g = Group::GetIfValid(this->vli.index);
-					if (g != NULL && g->vehicle_type == this->vli.vtype && g->owner == vli.company) if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
+					if (g != NULL && g->vehicle_type == this->vli.vtype && g->owner == vli.company) *this->groups.Append() = GroupAndIndent(g, filter == NULL || filter->FilterTest(g));
+
 					break;
 				}
 				/* fall through in case of all_group */
@@ -202,7 +223,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 				/* on these cases, we add any group */
 				FOR_ALL_GROUPS(g) {
 					if (g->owner == vli.company && g->vehicle_type == this->vli.vtype) {
-						if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
+						*this->groups.Append() = GroupAndIndent(g, filter == NULL || filter->FilterTest(g));
 					}
 				}
 				break;
@@ -218,7 +239,7 @@ bool BaseVehicleListWindow::BuildGroupList()
 							const Order *order;
 							FOR_VEHICLE_ORDERS(v, order) {
 								if (order->IsType(OT_GOTO_DEPOT) && !(order->GetDepotActionType() & ODATFB_NEAREST_DEPOT) && order->GetDestination() == this->vli.index) {
-									if (filter == NULL || filter->FilterTest(g)) *this->groups.Append() = g;
+									*this->groups.Append() = GroupAndIndent(g, filter == NULL || filter->FilterTest(g));
 									continue_flag = false;
 									break;
 								}
@@ -234,6 +255,45 @@ bool BaseVehicleListWindow::BuildGroupList()
 
 	this->groups.Compact();
 	this->groups.RebuildDone();
+
+	if (!group_window) {
+		/* Erase filtered groups. */
+		for (uint pos = this->groups.Length(); pos--; ) {
+			GroupAndIndent *iter = &this->groups[pos];
+			if (!iter->active) this->groups.Erase(iter);
+		}
+		return true;
+	}
+
+	if (filter != NULL && _settings_client.gui.show_compact_groups_when_filtering) {
+		/* Client wants a compact list. */
+		GUIGroupList sort_list;
+		AddParents(&sort_list, this->groups, INVALID_GROUP);
+		this->groups.Assign(sort_list);
+
+		/* Fill in active_descendant. */
+		for (uint length = this->groups.Length(); length--; ) {
+			GroupAndIndent *iter = &this->groups[length];
+			if (iter->active && !iter->has_active_descendant) {
+				iter->has_active_descendant = true;
+				GroupID g_id = iter->g->parent;
+				for (uint inner_length = length; g_id != INVALID_GROUP; inner_length--) {
+					GroupAndIndent *iter2 = &this->groups[inner_length];
+					if (iter2->g->index == g_id) {
+						iter2->has_active_descendant = true;
+						g_id = iter2->g->parent;
+					}
+				}
+			}
+		}
+
+		/* Erase items that don't have an active descendant. */
+		for (uint pos = this->groups.Length(); pos--; ) {
+			GroupAndIndent *iter = &this->groups[pos];
+			if (!iter->has_active_descendant) this->groups.Erase(iter);
+		}
+	}
+
 	return true;
 }
 
@@ -301,6 +361,23 @@ void BaseVehicleListWindow::SortVehicleList()
 
 	/* invalidate cached values for name sorter - vehicle names could change */
 	_last_vehicle[0] = _last_vehicle[1] = NULL;
+}
+
+void SameIndentParents(const Group **a, const Group **b, int indent_difference) {
+	if (indent_difference > 0) {
+		for (int step = indent_difference; step > 0; step--) { *a = Group::Get((*a)->parent);}
+	} else if (indent_difference < 0) {
+		for (int step = abs(indent_difference); step > 0; step--) { *b = Group::Get((*b)->parent);}
+	}
+}
+
+void BaseVehicleListWindow::SortGroupList()
+{
+	this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
+
+	GUIGroupList sort_list;
+	AddParents(&sort_list, this->groups, INVALID_GROUP);
+	this->groups.Assign(sort_list);
 }
 
 void DepotSortList(VehicleList *list)
@@ -1313,41 +1390,50 @@ static int CDECL VehicleTimetableDelaySorter(const Vehicle * const *a, const Veh
 }
 
 /** Sort the groups by their name */
-static int CDECL GroupNameSorter(const Group * const *a, const Group * const *b)
+static int CDECL GroupNameSorter(const GroupAndIndent *ai, const GroupAndIndent *bi)
 {
 	static const Group *last_group[2] = { NULL, NULL };
 	static char         last_name[2][64] = { "", "" };
 
-	if (*a != last_group[0]) {
-		last_group[0] = *a;
-		SetDParam(0, (*a)->index);
+	const Group *a = ai->g;
+	const Group *b = bi->g;
+
+	if (a != last_group[0]) {
+		last_group[0] = a;
+		SetDParam(0, a->index);
 		GetString(last_name[0], STR_GROUP_NAME, lastof(last_name[0]));
 	}
 
-	if (*b != last_group[1]) {
-		last_group[1] = *b;
-		SetDParam(0, (*b)->index);
+	if (b != last_group[1]) {
+		last_group[1] = b;
+		SetDParam(0, b->index);
 		GetString(last_name[1], STR_GROUP_NAME, lastof(last_name[1]));
 	}
 
 	int r = strnatcmp(last_name[0], last_name[1]); // Sort by name (natural sorting).
-	if (r == 0) return (*a)->index - (*b)->index;
+	if (r == 0) return a->index - b->index;
 	return r;
 }
 
 /** Sort groups by the number of vehicles*/
-static int CDECL GroupNumberVehicleSorter(const Group * const *a, const Group * const *b)
+static int CDECL GroupNumberVehicleSorter(const GroupAndIndent *ai, const GroupAndIndent *bi)
 {
-	return (*a)->statistics.num_vehicle - (*b)->statistics.num_vehicle;
+	const Group *a = ai->g;
+	const Group *b = bi->g;
+
+	return a->statistics.num_vehicle - b->statistics.num_vehicle;
 }
 
 /** Sort groups by mean profit */
-static int CDECL GroupMeanProfitSorter(const Group * const *a, const Group * const *b)
+static int CDECL GroupMeanProfitSorter(const GroupAndIndent *ai, const GroupAndIndent *bi)
 {
-	if ((*b)->statistics.num_profit_vehicle == 0) return 1;
-	if ((*a)->statistics.num_profit_vehicle == 0) return -1;
-	Money a_money = (*a)->statistics.profit_last_year / (*a)->statistics.num_profit_vehicle;
-	Money b_money = (*b)->statistics.profit_last_year / (*b)->statistics.num_profit_vehicle;
+	const Group *a = ai->g;
+	const Group *b = bi->g;
+
+	if (b->statistics.num_profit_vehicle == 0) return 1;
+	if (a->statistics.num_profit_vehicle == 0) return -1;
+	Money a_money = a->statistics.profit_last_year / a->statistics.num_profit_vehicle;
+	Money b_money = b->statistics.profit_last_year / b->statistics.num_profit_vehicle;
 	return (a_money - b_money);
 }
 
@@ -1578,7 +1664,7 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 	uint vscroll_max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->groups.Length());
 
 	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
-		const Group *g = this->groups[i];
+		const Group *g = this->groups[i].g;
 
 		/* NAME OF GROUP */
 		SetDParam(0, STR_GROUP_NAME);
@@ -1614,7 +1700,7 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 		/* DrawSmallOrderLists */
 		int end = next_margin;
 		for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
-			end = DrawSmallOrderList(this->groups[i], left, right, y);
+			end = DrawSmallOrderList(this->groups[i].g, left, right, y);
 			UpdateMarginEnd(end, next_margin, false);
 			y += line_height;
 		}
@@ -1625,7 +1711,7 @@ void BaseVehicleListWindow::DrawGroupListItems(const int line_height, const Rect
 	}
 
 	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
-		const GroupStatistics &stat = this->groups[i]->statistics;
+		const GroupStatistics &stat = this->groups[i].g->statistics;
 		SmallVector<Vehicle *, 32>  vector =stat.GetListOfFirstSharedVehicles();
 		if (vector.Length() == 0) break;
 		Vehicle *v = vector[0];
@@ -1662,19 +1748,6 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		order_list = Vehicle::Get(selected_vehicle)->orders.list;
 	}
 
-	// revise : gui changes
-	int text_offset = max<int>(GetSpriteSize(SPR_PROFIT_LOT).width, GetDigitWidth() * this->unitnumber_digits) + WD_FRAMERECT_RIGHT;
-	int text_left  = left  + (rtl ?           0 : text_offset);
-	int text_right = right - (rtl ? text_offset :           0);
-
-	bool show_orderlist = this->vli.vtype >= VEH_SHIP;
-	int orderlist_left  = left  + (rtl ? 0 : max(ScaleGUITrad(100) + text_offset, width / 2));
-	int orderlist_right = right - (rtl ? max(ScaleGUITrad(100) + text_offset, width / 2) : 0);
-
-	int image_left  = (rtl && show_orderlist) ? orderlist_right : text_left;
-	int image_right = (!rtl && show_orderlist) ? orderlist_left : text_right;
-	// end revise
-
 	int vehicle_button_x = rtl ? right - GetSpriteSize(SPR_PROFIT_LOT).width : left;
 
 	uint vscroll_max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->vehicles.Length());
@@ -1682,6 +1755,11 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 	for (uint i = this->vscroll->GetPosition(); i < vscroll_max; ++i) {
 		const Vehicle *v = this->vehicles[i];
 		StringID str;
+
+		/* Mark vehicles in subgroups in group/vehicles window. */
+		if (this->vli.type == VL_GROUPS_WINDOW && this->vli.index != ALL_GROUP && v->group_id != this->vli.index) {
+			GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
+		}
 
 		/* Highlight the vehicle if it is selected. */
 		if (selected_vehicle == v->index || (_ctrl_pressed && v->orders.list == order_list)) {
@@ -1934,7 +2012,7 @@ public:
 				break;
 
 			case VLS_GROUPS:
-				this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
+				this->SortGroupList();
 				this->vscroll->SetCount(this->groups.Length());
 				break;
 		}
@@ -2000,7 +2078,7 @@ public:
 				const Vehicle *v;
 				if (show == VLS_GROUPS) {
 					if (id_v >= this->groups.Length()) return; // click out of list bound
-					v = this->groups[id_v]->statistics.GetListOfFirstSharedVehicles()[0];
+					v = this->groups[id_v].g->statistics.GetListOfFirstSharedVehicles()[0];
 				} else {
 					if (id_v >= this->vehicles.Length()) return; // click out of list bound
 					v = this->vehicles[id_v];
@@ -2009,7 +2087,7 @@ public:
 				if (VehicleClicked(v)) return;
 
 				if (_ctrl_pressed) {
-					ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, this->vli.vtype, this->vli.company, show == VLS_GROUPS ? this->groups[id_v]->index : this->vehicles[id_v]->group_id).Pack());
+					ShowGroupDetailsWindow(VehicleListIdentifier(VL_GROUP_LIST, this->vli.vtype, this->vli.company, show == VLS_GROUPS ? this->groups[id_v].g->index : this->vehicles[id_v]->group_id).Pack());
 				} else {
 					ShowVehicleViewWindow(v);
 				}
