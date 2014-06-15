@@ -57,6 +57,7 @@
 #include "../order_backup.h"
 #include "../error.h"
 #include "../disaster_vehicle.h"
+#include "../pbs_air.h"
 #include "../table/airport_translation.h"
 
 
@@ -862,7 +863,7 @@ bool AfterLoadGame()
 						st = STATION_BUS;
 						SetStationGfx(t, gfx - 71);
 					} else if (gfx == 75) {                 // Oil rig
-						st = STATION_OILRIG;
+						st = STATION_OLD_OILRIG;
 						SetStationGfx(t, gfx - 75);
 					} else if (IsInsideMM(gfx,  76,  82)) { // Dock
 						st = STATION_DOCK;
@@ -926,7 +927,7 @@ bool AfterLoadGame()
 						}
 						break;
 
-					case STATION_OILRIG: {
+					case STATION_OLD_OILRIG: {
 						/* Very old savegames sometimes have phantom oil rigs, i.e.
 						 * an oil rig which got shut down, but not completely removed from
 						 * the map
@@ -1743,7 +1744,7 @@ bool AfterLoadGame()
 			switch (GetTileType(t)) {
 				case MP_STATION:
 					switch (GetStationType(t)) {
-						case STATION_OILRIG:
+						case STATION_OLD_OILRIG:
 						case STATION_DOCK:
 						case STATION_BUOY:
 							SetWaterClass(t, (WaterClass)GB(_m[t].m3, 0, 2));
@@ -1895,7 +1896,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(99)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Set newly introduced WaterClass of industry tiles */
-			if (IsTileType(t, MP_STATION) && IsOilRig(t)) {
+			if (IsTileType(t, MP_STATION) && GetStationType(t) == STATION_OLD_OILRIG) {
 				SetWaterClassDependingOnSurroundings(t, true);
 			}
 			if (IsTileType(t, MP_INDUSTRY)) {
@@ -2390,6 +2391,22 @@ bool AfterLoadGame()
 		}
 	}
 
+	/* Data structure on airport has changed. */
+	if (IsSavegameVersionBefore(SL_RESET_AIRCRAFT)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (!IsTileType(t, MP_STATION)) continue;
+			if (GetStationType(t) != STATION_OLD_OILRIG) continue;
+			SetStationType(t, STATION_AIRPORT);
+		}
+		AfterLoadSetAirportTileTypes();
+	} else {
+		Station *st;
+		FOR_ALL_STATIONS(st) {
+			st->UpdateAirportDataStructure();
+		}
+	}
+
+
 	if (IsSavegameVersionBefore(141)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Reset tropic zone for VOID tiles, they shall not have any. */
@@ -2477,7 +2494,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(149)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (!IsTileType(t, MP_STATION)) continue;
-			if (!IsBuoy(t) && !IsOilRig(t) && !(IsDock(t) && IsTileFlat(t))) {
+			if (!IsBuoy(t) && !IsBuiltInHeliportTile(t) && !(IsDock(t) && IsTileFlat(t))) {
 				SetWaterClass(t, WATER_CLASS_INVALID);
 			}
 		}
@@ -3001,7 +3018,7 @@ bool AfterLoadGame()
 		FOR_ALL_STATIONS(st) {
 			if (st->dock_station.tile == INVALID_TILE) continue;
 			assert(Dock::CanAllocateItem());
-			if (IsOilRig(st->dock_station.tile)) {
+			if (IsBuiltInHeliportTile(st->dock_station.tile)) {
 				/* Set dock station tile to dest tile instead of station. */
 				st->docks = new Dock(st->dock_station.tile, st->dock_station.tile + ToTileIndexDiff({1, 0}));
 			} else if (IsSavegameVersionBefore(SL_SET_DOCK_TRACKS)) {
@@ -3092,14 +3109,6 @@ bool AfterLoadGame()
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsRoadDepotTile(t)) {
 				SB(_m[t].m5, 2, 4, 0);
-			}
-		}
-
-		Station *st;
-		FOR_ALL_STATIONS(st) {
-			if (st->HasFacilities(FACIL_AIRPORT) && _translation_airport_hangars[st->airport.type]) {
-				/* Add a built-in hangar for some airport types. */
-				st->airport.SetDepot(true);
 			}
 		}
 

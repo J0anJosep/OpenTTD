@@ -169,9 +169,7 @@
 
 	const Industry *ind = ::Industry::Get(industry_id);
 	TILE_AREA_LOOP(tile_cur, ind->location) {
-		if (IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) {
-			return tile_cur;
-		}
+		if (IsBuiltInHeliportTile(tile_cur)) return tile_cur;
 	}
 
 	return INVALID_TILE;
@@ -191,9 +189,7 @@
 
 	const Industry *ind = ::Industry::Get(industry_id);
 	TILE_AREA_LOOP(tile_cur, ind->location) {
-		if (IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) {
-			return tile_cur;
-		}
+		if (IsBuiltInHeliportTile(tile_cur)) return tile_cur;
 	}
 
 	return INVALID_TILE;

@@ -73,28 +73,6 @@
  */
 /* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
 
-/**
- * Check whether the given tile is a hangar.
- * @param t the tile to of whether it is a hangar.
- * @pre IsTileType(t, MP_STATION)
- * @return true if and only if the tile is a hangar.
- */
-bool IsHangar(TileIndex t)
-{
-	assert(IsTileType(t, MP_STATION));
-
-	/* If the tile isn't an airport there's no chance it's a hangar. */
-	if (!IsAirport(t)) return false;
-
-	const Station *st = Station::GetByTile(t);
-	const AirportSpec *as = st->airport.GetSpec();
-
-	for (uint i = 0; i < as->nof_depots; i++) {
-		if (st->airport.GetHangarTile(i) == t) return true;
-	}
-
-	return false;
-}
 
 /**
  * Look for a station around the given tile area.
@@ -405,7 +383,6 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 			return;
 
 		case STATION_DOCK:
-		case STATION_OILRIG:
 			*ta = this->dock_station;
 			break;
 
@@ -2921,7 +2898,7 @@ draw_default_foundation:
 		if (_settings_client.gui.show_track_reservation) DrawWaterTrackReservation(ti->tile);
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
+	} else if (IsDock(ti->tile) || (IsBuiltInHeliportTile(ti->tile) && IsTileOnWater(ti->tile))) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
 			if (IsDock(ti->tile)) {
@@ -3110,11 +3087,11 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 		default: NOT_REACHED();
 		case STATION_RAIL:     str = STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION; break;
 		case STATION_AIRPORT:
-			str = (IsHangar(tile) ? STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR : STR_LAI_STATION_DESCRIPTION_AIRPORT);
+			str = IsBuiltInHeliportTile(tile) ? STR_INDUSTRY_NAME_OIL_RIG :
+					STR_LAI_STATION_DESCRIPTION_AIRPORT;
 			break;
 		case STATION_TRUCK:    str = STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA; break;
 		case STATION_BUS:      str = STR_LAI_STATION_DESCRIPTION_BUS_STATION; break;
-		case STATION_OILRIG:   str = STR_INDUSTRY_NAME_OIL_RIG; break;
 		case STATION_DOCK:     str = STR_LAI_STATION_DESCRIPTION_SHIP_DOCK; break;
 		case STATION_BUOY:     str = STR_LAI_STATION_DESCRIPTION_BUOY; break;
 		case STATION_WAYPOINT: str = STR_LAI_STATION_DESCRIPTION_WAYPOINT; break;
@@ -3175,13 +3152,16 @@ static void TileLoop_Station(TileIndex tile)
 	 * hardcoded.....not good */
 	switch (GetStationType(tile)) {
 		case STATION_AIRPORT:
-			AirportTileAnimationTrigger(Station::GetByTile(tile), tile, AAT_TILELOOP);
+			if (IsBuiltInHeliportTile(tile)) {
+				TileLoop_Water(tile);
+			} else {
+				AirportTileAnimationTrigger(Station::GetByTile(tile), tile, AAT_TILELOOP);
+			}
 			break;
 
 		case STATION_DOCK:
 			if (!IsTileFlat(tile)) break; // only handle water part
 			/* FALL THROUGH */
-		case STATION_OILRIG: //(station part)
 		case STATION_BUOY:
 			TileLoop_Water(tile);
 			break;
@@ -3198,7 +3178,7 @@ static void AnimateTile_Station(TileIndex tile)
 		return;
 	}
 
-	if (IsAirport(tile)) {
+	if (IsAirport(tile) && !IsBuiltInHeliportTile(tile)) {
 		AnimateAirportTile(tile);
 	}
 }
@@ -3984,7 +3964,15 @@ void BuildOilRig(TileIndex tile)
 
 	assert(IsTileType(tile, MP_INDUSTRY));
 	DeleteAnimatedTile(tile);
-	MakeOilrig(tile, st->index, GetWaterClass(tile));
+	MakeStation(tile, OWNER_NONE, st->index, STATION_AIRPORT, 0, GetWaterClass(tile));
+
+	const TileTranslation *translation = &_translation_oilrig_0[0];
+	SetAirportType(tile, translation->ground);
+	SetAirportTileType(tile, translation->type);
+	_m[tile].m4 = 0;
+	_m[tile].m5 = 0;
+	SetAirportTileTracks(tile, translation->trackbits);
+	SetTerminalType(tile, translation->terminal_type);
 
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
@@ -4030,7 +4018,7 @@ void DeleteOilRig(TileIndex tile)
 	st->UpdateVirtCoord();
 	st->UpdateCatchment();
 	st->RecomputeIndustriesNear();
-	const TileArea affected_ta(tile, 1, 1, Station::GetCatchmentRadius(STATION_OILRIG));
+	const TileArea affected_ta(tile, 1, 1, Station::GetCatchmentRadius(STATION_AIRPORT));
 	Industry::RecomputeStationsNearArea(affected_ta);
 	UpdateCALayer(affected_ta);
 	if (!st->IsInUse()) delete st;
@@ -4163,9 +4151,6 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags)
 			case STATION_BUS:      return_cmd_error(HasTileRoadType(tile, ROADTYPE_TRAM) ? STR_ERROR_MUST_DEMOLISH_PASSENGER_TRAM_STATION_FIRST : STR_ERROR_MUST_DEMOLISH_BUS_STATION_FIRST);
 			case STATION_BUOY:     return_cmd_error(STR_ERROR_BUOY_IN_THE_WAY);
 			case STATION_DOCK:     return_cmd_error(STR_ERROR_MUST_DEMOLISH_DOCK_FIRST);
-			case STATION_OILRIG:
-				SetDParam(1, STR_INDUSTRY_NAME_OIL_RIG);
-				return_cmd_error(STR_ERROR_GENERIC_OBJECT_IN_THE_WAY);
 		}
 	}
 

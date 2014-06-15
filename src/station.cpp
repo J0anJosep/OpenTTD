@@ -252,8 +252,6 @@ void Station::MarkTilesDirty(bool cargo_change) const
 				return CA_BUS;
 			case STATION_DOCK:
 				return CA_DOCK;
-			case STATION_OILRIG:
-				return CA_OILRIG;
 			case STATION_AIRPORT:
 				return MAX_CATCHMENT;
 			case STATION_BUOY:
@@ -268,7 +266,6 @@ void Station::MarkTilesDirty(bool cargo_change) const
 			case STATION_BUS:
 			case STATION_DOCK:
 			case STATION_AIRPORT:
-			case STATION_OILRIG:
 				return CA_UNMODIFIED;
 			case STATION_BUOY:
 			case STATION_WAYPOINT:

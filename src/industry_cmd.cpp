@@ -152,7 +152,7 @@ Industry::~Industry()
 			/* MakeWaterKeepingClass() can also handle 'land' */
 			MakeWaterKeepingClass(tile_cur, OWNER_NONE);
 		} else {
-			if (oil_rig_tile == INVALID_TILE && IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) oil_rig_tile = tile_cur;
+			if (oil_rig_tile == INVALID_TILE && IsBuiltInHeliportTile(tile_cur)) oil_rig_tile = tile_cur;
 		}
 	}
 
@@ -226,7 +226,7 @@ void Industry::SetFootprint() {
 	BitMapIndex mask_index;
 	TILE_AREA_LOOP(tile, this->location) {
 		if (this->TileBelongsToIndustry(tile) ||
-				(tile == this->location.tile && IsTileType(this->location.tile, MP_STATION) && IsOilRig(this->location.tile))) {
+				(tile == this->location.tile && IsBuiltInHeliportTile(this->location.tile))) {
 			SetBit(this->footprint[mask_index.word_index], mask_index.bit_index);
 		} else {
 			complete = false;
