@@ -1913,6 +1913,7 @@ void CheckWindowMinSizings(bool close)
 
 	if (_z_front_window == NULL || !close) return;
 
+	bool size_window = FindWindowById(WC_GAME_OPTIONS, WN_GAME_OPTIONS_GAME_OPTIONS) != NULL;
 	DeleteAllNonVitalWindows();
 	ReInitAllWindows();
 
@@ -1934,6 +1935,7 @@ void CheckWindowMinSizings(bool close)
 		}
 	}
 
+	if (size_window) ShowGameOptions();
 }
 
 /**
