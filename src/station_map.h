@@ -574,15 +574,4 @@ static inline void MakeDock(TileIndex t, Owner o, StationID sid, DiagDirection d
 	MakeStation(t + TileOffsByDiagDir(d), o, sid, STATION_DOCK, GFX_DOCK_BASE_WATER_PART + DiagDirToAxis(d), wc);
 }
 
-/**
- * Make the given tile an oilrig tile.
- * @param t the tile to make an oilrig
- * @param sid the station to which this tile belongs
- * @param wc the type of water on this tile
- */
-static inline void MakeOilrig(TileIndex t, StationID sid, WaterClass wc)
-{
-	MakeStation(t, OWNER_NONE, sid, STATION_OILRIG, 0, wc);
-}
-
 #endif /* STATION_MAP_H */
