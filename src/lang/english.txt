@@ -3408,6 +3408,7 @@ STR_GROUP_DELETE_QUERY_TEXT                                     :{WHITE}Are you 
 
 STR_GROUP_ADD_SHARED_VEHICLE                                    :Add shared vehicles
 STR_GROUP_REMOVE_ALL_VEHICLES                                   :Remove all vehicles
+STR_GROUP_DEFAULT_GROUP_NAME                                    :Default name
 
 STR_GROUP_RENAME_CAPTION                                        :{BLACK}Rename a group
 
@@ -3416,7 +3417,15 @@ STR_GROUP_PROFIT_LAST_YEAR                                      :Profit last yea
 STR_GROUP_OCCUPANCY                                             :Current usage:
 STR_GROUP_OCCUPANCY_VALUE                                       :{NUM}%
 
+STR_GROUP_MANAGE_BUILD_ORDER_SIMPLE                             :Group by: Shared orders
+STR_GROUP_MANAGE_BUILD_ORDER_STATIONS                           :Group by: Stations visited (slow)
+STR_GROUP_MANAGE_BUILD_CARGO                                    :Group by: Cargo
+STR_GROUP_MANAGE_BUILD_1ST_ENGINE_CLASS_CARGO                   :Group by: 1st engine class and cargo
+STR_GROUP_MANAGE_BUILD_1ST_ENGINE                               :Group by: 1st engine
+STR_GROUP_MANAGE_BUILD_CARGO_ORDER                              :Group by: Cargo -> Shared orders
+STR_GROUP_MANAGE_DEFAULT_GROUP_NAMES                            :Default group names
 STR_GROUP_MANAGE_UPDATE_CARGO                                   :Update cargo for groups of this class
+STR_GROUP_SCHEDULE                                              :L-{COMMA}:{NBSP}
 
 # Group info window
 STR_GROUP_DETAILS_CAPTION                                       :{WHITE}Group details ({STRING}): {STRING}
@@ -4463,6 +4472,7 @@ STR_ERROR_GROUP_CAN_T_SET_PARENT                                :{WHITE}Can't se
 STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES                       :{WHITE}Can't remove all vehicles from this group...
 STR_ERROR_GROUP_CAN_T_ADD_VEHICLE                               :{WHITE}Can't add the vehicle to this group...
 STR_ERROR_GROUP_CAN_T_ADD_SHARED_VEHICLE                        :{WHITE}Can't add shared vehicles to group...
+STR_ERROR_GROUP_CAN_T_BUILD_GROUPS                              :{WHITE}When building groups for the given vehicle type...
 
 # Generic vehicle errors
 STR_ERROR_TRAIN_IN_THE_WAY                                      :{WHITE}Train in the way
