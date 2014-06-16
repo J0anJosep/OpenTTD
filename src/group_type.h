@@ -23,4 +23,15 @@ static const uint MAX_LENGTH_GROUP_NAME_CHARS = 32; ///< The maximum length of a
 
 struct Group;
 
+enum GroupedByType {
+	GBT_ORDER_SIMPLE = 0,
+	GBT_ORDER_STATIONS,
+	GBT_CARGO,
+	GBT_1ST_ENGINE_CLASS_CARGO,
+	GBT_1ST_ENGINE,
+	GBT_CARGO_ORDER,
+
+	GBT_END
+};
+
 #endif /* GROUP_TYPE_H */
