@@ -293,7 +293,7 @@ private:
 		DropDownList *list = new DropDownList();
 
 		if (groups) {
-			for (uint iter = ADIG_BEGIN; iter < ADIG_END; iter++) *list->Append() = new DropDownListStringItem(STR_GROUP_MANAGE_UPDATE_CARGO + iter, ADIG_BEGIN + iter, false);
+			for (uint iter = _local_company == this->owner ? ADIG_BEGIN : ADIG_BEGIN_ONLY_LOCAL; iter < ADIG_END; iter++) *list->Append() = new DropDownListStringItem(STR_GROUP_MANAGE_BUILD_ORDER_SIMPLE + iter, ADIG_BEGIN + iter, false);
 		} else {
 			if (_local_company == this->vli.company && this->vehicles.Length() != 0) {
 				*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_REPLACE_VEHICLES, ADI_REPLACE, false);
@@ -309,6 +309,11 @@ private:
 		}
 
 		return list;
+	}
+
+	void DefaultGroupNames()
+	{
+		DoCommandP(0, this->vli.Pack(), 1, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_RENAME), NULL, NULL);
 	}
 
 public:
@@ -908,6 +913,21 @@ public:
 
 			case WID_GL_MANAGE_GROUPS_DROPDOWN:
 				switch (index) {
+					case ADIG_GROUP_MANAGE_BUILD_ORDERS_SIMPLE:
+					case ADIG_GROUP_MANAGE_BUILD_ORDERS_STATIONS:
+					case ADIG_GROUP_MANAGE_BUILD_CARGO:
+					case ADIG_GROUP_MANAGE_BUILD_1ST_ENGINE_CLASS_CARGO:
+					case ADIG_GROUP_MANAGE_BUILD_1ST_ENGINE:
+					case ADIG_GROUP_MANAGE_BUILD_CARGO_ORDERS:
+						DoCommandP(0, this->vli.vtype, index - ADIG_GROUP_MANAGE_BUILD_ORDERS_SIMPLE, CMD_BUILD_GROUPS_OF_VEHICLE_TYPE | CMD_MSG(STR_ERROR_GROUP_CAN_T_BUILD_GROUPS));
+						/* The dropdown could be over the group list and
+						 * would redraw an old list with invalid indexes */
+						this->groups.ForceRebuild();
+						this->BuildGroupList();
+						break;
+					case ADIG_GROUP_MANAGE_DEFAULT_NAMES:
+						this->DefaultGroupNames();
+						break;
 					case ADIG_UPDATE_CARGO:
 						GroupStatistics::UpdateCargoForVehicleType(this->owner, this->vli.vtype);
 						break;

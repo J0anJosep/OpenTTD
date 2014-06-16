@@ -146,6 +146,7 @@ void RemoveVehicleFromGroup(const Vehicle *v);
 void RemoveAllGroupsForCompany(const CompanyID company);
 bool GroupIsInGroup(GroupID search, GroupID group);
 bool GroupInheritsFromGroup(GroupID search, GroupID group);
+void MoveVehiclesToVoidAndRemoveGroups(CompanyID company, VehicleType type);
 
 extern GroupID _new_group_id;
 
