@@ -21,6 +21,8 @@
 #include "company_func.h"
 #include "core/pool_func.hpp"
 #include "order_backup.h"
+#include "strings_func.h"
+#include "window_gui.h"
 
 #include "table/strings.h"
 
@@ -716,31 +718,38 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 	return CommandCost();
 }
 
+/**
+ * Insert a vehicle to a group, without removing it from the previous group
+ * @param v vehicle to add
+ * @param g_id group index where to add the vehicle
+ * @note Sometimes, when fast rebuilding of groups, you do not need to remove the vehicle from the old group
+ */
+static void InsertVehicleToGroup(Vehicle *v, GroupID g_id)
+{
+	switch (v->type) {
+		default: NOT_REACHED();
+		case VEH_TRAIN:
+			SetTrainGroupID(Train::From(v), g_id);
+			break;
+		case VEH_ROAD:
+		case VEH_SHIP:
+		case VEH_AIRCRAFT:
+			if (v->IsEngineCountable()) UpdateNumEngineGroup(v, v->group_id, g_id);
+			v->group_id = g_id;
+			break;
+	}
+	GroupStatistics::CountVehicle(v, 1);
+}
 
 /**
- * Do add a vehicle to a group.
+ * Do add a vehicle to a group: remove from old group and add to new group
  * @param v Vehicle to add.
  * @param new_g Group to add to.
  */
 static void AddVehicleToGroup(Vehicle *v, GroupID new_g)
 {
 	GroupStatistics::CountVehicle(v, -1);
-
-	switch (v->type) {
-		default: NOT_REACHED();
-		case VEH_TRAIN:
-			SetTrainGroupID(Train::From(v), new_g);
-			break;
-
-		case VEH_ROAD:
-		case VEH_SHIP:
-		case VEH_AIRCRAFT:
-			if (v->IsEngineCountable()) UpdateNumEngineGroup(v, v->group_id, new_g);
-			v->group_id = new_g;
-			break;
-	}
-
-	GroupStatistics::CountVehicle(v, 1);
+	InsertVehicleToGroup(v, new_g);
 }
 
 /**
@@ -1024,7 +1033,6 @@ void RemoveAllGroupsForCompany(const CompanyID company)
 	}
 }
 
-
 /**
  * Test if GroupID group is a descendant of (or is) GroupID search
  * @param search The GroupID to search in
@@ -1069,3 +1077,189 @@ bool GroupInheritsFromGroup(GroupID search, GroupID group)
 	}
 }
 
+/**
+ * Move all vehicles of a company and vehicle type to DEFAULT_GROUP (no update of statistics)
+ * And those groups are deleted
+ * @see CmdBuildGroupsOfVehicleType
+ */
+void MoveVehiclesToVoidAndRemoveGroups(CompanyID company, VehicleType type)
+{
+	assert(company == _current_company);
+
+	Vehicle *v;
+	Company *c = Company::Get(company);
+	FOR_ALL_VEHICLES(v) {
+		if (v->type == type && v->owner == company) v->group_id = DEFAULT_GROUP;
+	}
+
+	Group *g;
+	FOR_ALL_GROUPS(g) {
+		if (g->owner == company && g->vehicle_type == type) {
+			/* If we set an autoreplace for the group we delete, remove it. */
+			if (company < MAX_COMPANIES) {
+				EngineRenew *er;
+				FOR_ALL_ENGINE_RENEWS(er) {
+					if (er->group_id == g->index) RemoveEngineReplacementForCompany(c, er->from, g->index, DC_EXEC);
+				}
+			}
+			delete g;
+		}
+	}
+}
+
+/**
+ * Decide if two vehicles should be in the same group
+ * @param v first vehicle
+ * @param v2 second vehicle
+ * @param grouped_by_type criteria to be used
+ * @return true if the two vehicles should be in the same group, false otherwise
+ * @see CmdBuildGroupsOfVehicleType
+ */
+bool ShouldBeGrouped(Vehicle *v, Vehicle *v2, GroupedByType grouped_by_type)
+{
+	if (v == v2) return true;
+	switch (grouped_by_type) {
+		case GBT_ORDER_SIMPLE:
+			return v->orders.list == v2->orders.list;
+		case GBT_ORDER_STATIONS: {
+			if (v2 != v2->FirstShared()) return false; //try this to speed up things
+			if (v->orders.list == v2->orders.list) return true;
+			if (v->orders.list == NULL || v2->orders.list == NULL) return false;
+			SmallVector<DestinationID, 32> destinations_1 = GetDestinations(v->orders.list, 1);
+			SmallVector<DestinationID, 32> destinations_2 = GetDestinations(v2->orders.list, 1);
+			if (destinations_1.Length() != destinations_2.Length()) return false;
+			for (uint i = destinations_1.Length(); i--;) {
+				if (destinations_1[i] != destinations_2[i]) return false;
+			}
+			return true;
+		}
+		case GBT_CARGO:
+			return GetCargoType(v) == GetCargoType(v2);
+		case GBT_1ST_ENGINE_CLASS_CARGO:
+			if (GetEngineLiveryScheme(v->engine_type, INVALID_ENGINE, v) != GetEngineLiveryScheme(v2->engine_type, INVALID_ENGINE, v2)) return false;
+			return GetCargoType(v) == GetCargoType(v2);
+		case GBT_1ST_ENGINE:
+			return v->engine_type == v2->engine_type;
+		default: NOT_REACHED();
+	}
+}
+
+/**
+ * Rebuilds groups for a vehicle type given a certain criteria.
+ * @param tile unused
+ * @param flags type of operation
+ * @param p1 vehicle type
+ * @param p2 how to group vehicles (@see #GroupedByType enum)
+ * @param text unused
+ */
+CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	VehicleType vt = Extract<VehicleType, 0, 3>(p1);
+	GroupedByType grouped_by_type = (GroupedByType)p2;
+
+	if (!IsCompanyBuildableVehicleType(vt)) return CMD_ERROR;
+
+	Vehicle *v, *v2;
+
+	/* We must check if we can allocate enough groups.
+	 * It can be done roughly as twice
+	 * the number of different involved order lists.
+	 * So we would need to allocate
+	 * 2 * involved_order_lists - existing groups.
+	 */
+	uint used = GetGroupNumByVehicleType(_current_company, vt);
+	uint needed = 0;
+	FOR_ALL_VEHICLES(v) {
+		if (v->owner == _current_company && v->type == vt &&
+				v == v->FirstShared()) needed++;
+	}
+
+	if (!Group::CanAllocateItem(2 * needed - used)) return CMD_ERROR;
+	if (!(flags & DC_EXEC)) return CommandCost();
+
+	/* Delete all groups and move their vehicles to default group. */
+	Window *w = FindWindowById(WC_REPLACE_VEHICLE, vt);
+	if (w != NULL && w->owner == _current_company) delete w;
+	MoveVehiclesToVoidAndRemoveGroups(_current_company, vt);
+
+	/* Reset the ALL_GROUP statistics. */
+	GroupStatistics::Get(_current_company, ALL_GROUP, vt).num_vehicle = 0;
+	GroupStatistics::Get(_current_company, ALL_GROUP, vt).ClearProfits();
+
+	uint i = 0; // Number of vehicles already checked.
+	uint j = 0; // Number of already created groups.
+
+	FOR_ALL_VEHICLES(v) {
+		if (v->type != vt || v->owner != _current_company || v->group_id != DEFAULT_GROUP || !v->IsPrimaryVehicle()) {
+			// These vehicles do not need a new group.
+			i++;
+			continue;
+		}
+
+		/* A new group for vehicle v is needed. */
+		if (!Group::CanAllocateItem()) return CMD_ERROR;
+
+		Group *g = new Group(_current_company);
+		g->replace_protection = false;
+		g->vehicle_type = vt;
+		j++;
+
+		FOR_ALL_VEHICLES_FROM(v2, i) {
+			/* If v and v2 not in the same group, continue. */
+			if (v2->type != vt || v2->owner != _current_company || v2->group_id != DEFAULT_GROUP || !v2->IsPrimaryVehicle() || !ShouldBeGrouped(v, v2, grouped_by_type)) continue;
+
+			/* v and v2 must be grouped; to make things faster,
+			 * if all shared vehicles must also be in the same group, add them;
+			 * this way, we don't need to do unnecessary checks. */
+			if (grouped_by_type == GBT_ORDER_SIMPLE || grouped_by_type == GBT_CARGO_ORDER || grouped_by_type == GBT_ORDER_STATIONS) {
+				for (v2 = v2->FirstShared(); v2 != NULL; v2 = v2->NextShared())
+					InsertVehicleToGroup(v2, g->index);
+				if (grouped_by_type == GBT_ORDER_SIMPLE || grouped_by_type == GBT_CARGO_ORDER) break;
+			} else {
+				InsertVehicleToGroup(v2, g->index);
+			}
+		}
+
+		/* Once we have all vehicles on group, update the cargo_types. */
+		g->statistics.UpdateCargoTypes();
+
+		i++;
+	}
+
+	/* Build tree for cargoes. */
+	if (grouped_by_type == GBT_CARGO_ORDER) {
+		SmallVector<GroupID, 2> involved_groups;
+		Group *g;
+		FOR_ALL_GROUPS(g) {
+			if (g->owner != _current_company) continue;
+			if (g->vehicle_type != vt) continue;
+			*involved_groups.Append() = g->index;
+		}
+
+		while (involved_groups.Length() > 0) {
+			if (!Group::CanAllocateItem()) return CMD_ERROR;
+			Group *g_cargo = new Group(_current_company);
+			g_cargo->replace_protection = false;
+			g_cargo->vehicle_type = vt;
+			uint32 cargoes = Group::Get(involved_groups[0])->statistics.cargo_types;
+
+			for (uint i = involved_groups.Length(); i--; ) {
+				Group *iter = Group::Get(involved_groups[i]);
+				if (iter->statistics.cargo_types != cargoes) continue;
+				iter->parent = g_cargo->index;
+				involved_groups.Erase(&involved_groups[i]);
+			}
+		}
+	}
+
+	/* Update DEFAULT_GROUP statistics. */
+	GroupStatistics::Get(_current_company, DEFAULT_GROUP, vt).Clear();
+	GroupStatistics::UpdateCargo(_current_company, ALL_GROUP, vt);
+
+	/* Update and invalidate. */
+	GroupStatistics::UpdateAutoreplace(_current_company);
+	InvalidateWindowClassesData(GetWindowClassForVehicleType(vt), 0);
+	SetWindowClassesDirty(WC_GROUP_DETAILS);
+
+	return CommandCost();
+}
