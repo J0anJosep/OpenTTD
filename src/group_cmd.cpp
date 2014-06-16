@@ -997,6 +997,24 @@ uint GetGroupNumEngines(CompanyID company, GroupID id_g, EngineID id_e)
 	return count + GroupStatistics::Get(company, id_g, e->type).num_engines[id_e];
 }
 
+/**
+ * Get the number of groups of a company and a certain vehicle type.
+ * @param company The company the group belongs to.
+ * @param type Vehicle Type.
+ * @return The number of groups of a company and vehicle type.
+ */
+uint GetGroupNumByVehicleType(CompanyID company, VehicleType type)
+{
+	uint count = 0;
+	Group *g;
+	FOR_ALL_GROUPS(g) {
+		if (g->owner == company && g->vehicle_type == type) count++;
+	}
+
+	return count;
+}
+
+
 void RemoveAllGroupsForCompany(const CompanyID company)
 {
 	Group *g;
