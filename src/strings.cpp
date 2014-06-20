@@ -2074,6 +2074,9 @@ class LanguagePackGlyphSearcher : public MissingGlyphSearcher {
 		strecpy(settings->fonts[FS_SMALL].font,  font_name, lastof(settings->fonts[FS_SMALL].font));
 		strecpy(settings->fonts[FS_NORMAL].font, font_name, lastof(settings->fonts[FS_NORMAL].font));
 		strecpy(settings->fonts[FS_LARGE].font,  font_name, lastof(settings->fonts[FS_LARGE].font));
+		strecpy(settings->fonts[FS_ICONS_NORMAL].font,  font_name, lastof(settings->fonts[FS_ICONS_NORMAL].font));
+		strecpy(settings->fonts[FS_ICONS_BIG].font,  font_name, lastof(settings->fonts[FS_ICONS_BIG].font));
+		strecpy(settings->fonts[FS_ICONS_SMALL].font,  font_name, lastof(settings->fonts[FS_ICONS_SMALL].font));
 #endif /* WITH_FREETYPE */
 	}
 };
