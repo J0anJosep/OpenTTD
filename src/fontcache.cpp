@@ -30,8 +30,8 @@ static const int ASCII_LETTERSTART = 32; ///< First printable ASCII letter.
 static const int MAX_FONT_SIZE     = 72; ///< Maximum font size.
 
 /** Default heights for the different sizes of fonts. */
-static const int _default_font_height[FS_END]   = {10, 6, 18, 10};
-static const int _default_font_ascender[FS_END] = { 8, 5, 15,  8};
+static const int _default_font_height[FS_END]   = {10, 6, 18, 10, 18, 10, 6};
+static const int _default_font_ascender[FS_END] = { 8, 5, 15,  8, 15,  8, 5};
 
 /**
  * Create a new font cache.
@@ -127,9 +127,12 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 	switch (this->fs) {
 		default: NOT_REACHED();
 		case FS_MONO:   // Use normal as default for mono spaced font, i.e. FALL THROUGH
-		case FS_NORMAL: base = SPR_ASCII_SPACE;       break;
-		case FS_SMALL:  base = SPR_ASCII_SPACE_SMALL; break;
-		case FS_LARGE:  base = SPR_ASCII_SPACE_BIG;   break;
+		case FS_NORMAL:       base = SPR_ASCII_SPACE;       break;
+		case FS_SMALL:        base = SPR_ASCII_SPACE_SMALL; break;
+		case FS_LARGE:        base = SPR_ASCII_SPACE_BIG;   break;
+		case FS_ICONS_BIG:    base = SPR_ASCII_SPACE_ICONS_BIG; break;
+		case FS_ICONS_NORMAL: base = SPR_ASCII_SPACE_ICONS_NORMAL; break;
+		case FS_ICONS_SMALL:  base = SPR_ASCII_SPACE_ICONS_SMALL; break;
 	}
 
 	for (uint i = ASCII_LETTERSTART; i < 256; i++) {
@@ -196,7 +199,14 @@ bool SpriteFontCache::GetDrawGlyphShadow()
 	return false;
 }
 
-/* static */ FontCache *FontCache::caches[FS_END] = { new SpriteFontCache(FS_NORMAL), new SpriteFontCache(FS_SMALL), new SpriteFontCache(FS_LARGE), new SpriteFontCache(FS_MONO) };
+/* static */ FontCache *FontCache::caches[FS_END] = { new SpriteFontCache(FS_NORMAL),
+		new SpriteFontCache(FS_SMALL),
+		new SpriteFontCache(FS_LARGE),
+		new SpriteFontCache(FS_MONO),
+		new SpriteFontCache(FS_ICONS_BIG),
+		new SpriteFontCache(FS_ICONS_NORMAL),
+		new SpriteFontCache(FS_ICONS_SMALL)
+	};
 
 #ifdef WITH_FREETYPE
 #include <ft2build.h>
@@ -373,7 +383,7 @@ static void LoadFreeTypeFont(FontSize fs)
 
 	FT_Done_Face(face);
 
-	static const char *SIZE_TO_NAME[] = { "medium", "small", "large", "mono" };
+	static const char *SIZE_TO_NAME[] = { "medium", "small", "large", "mono", "big_icons", "normal_icons", "small_icons" };
 	ShowInfoF("Unable to use '%s' for %s font, FreeType reported error 0x%X, using sprite font instead", settings->font, SIZE_TO_NAME[fs], error);
 	return;
 
@@ -474,6 +484,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 	FT_GlyphSlot slot = this->face->glyph;
 
 	bool aa = GetFontAAState(this->fs);
+	bool is_normal = (this->fs == FS_NORMAL) || (this->fs == FS_ICONS_NORMAL);
 
 	GlyphEntry new_glyph;
 	if (key == 0) {
@@ -509,7 +520,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 			Sprite *spr = BlitterFactory::GetCurrentBlitter()->Encode(&builtin_questionmark, AllocateFont);
 			assert(spr != NULL);
 			new_glyph.sprite = spr;
-			new_glyph.width  = spr->width + (this->fs != FS_NORMAL);
+			new_glyph.width  = spr->width + is_normal;
 			this->SetGlyphPtr(key, &new_glyph, false);
 			return new_glyph.sprite;
 		} else {
@@ -527,8 +538,8 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 	aa = (slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY);
 
 	/* Add 1 pixel for the shadow on the medium font. Our sprite must be at least 1x1 pixel */
-	uint width  = max(1U, (uint)slot->bitmap.width + (this->fs == FS_NORMAL));
-	uint height = max(1U, (uint)slot->bitmap.rows  + (this->fs == FS_NORMAL));
+	uint width  = max(1U, (uint)slot->bitmap.width + is_normal);
+	uint height = max(1U, (uint)slot->bitmap.rows  + is_normal);
 
 	/* Limit glyph size to prevent overflows later on. */
 	if (width > 256 || height > 256) usererror("Font glyph is too large");
@@ -543,7 +554,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 	sprite.y_offs = this->ascender - slot->bitmap_top;
 
 	/* Draw shadow for medium size */
-	if (this->fs == FS_NORMAL && !aa) {
+	if (is_normal == FS_NORMAL && !aa) {
 		for (uint y = 0; y < (uint)slot->bitmap.rows; y++) {
 			for (uint x = 0; x < (uint)slot->bitmap.width; x++) {
 				if (aa ? (slot->bitmap.buffer[x + y * slot->bitmap.pitch] > 0) : HasBit(slot->bitmap.buffer[(x / 8) + y * slot->bitmap.pitch], 7 - (x % 8))) {
@@ -574,7 +585,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 
 bool FreeTypeFontCache::GetDrawGlyphShadow()
 {
-	return this->fs == FS_NORMAL && GetFontAAState(FS_NORMAL);
+	return (this->fs == FS_NORMAL || this->fs == FS_ICONS_NORMAL) && GetFontAAState(this->fs);
 }
 
 

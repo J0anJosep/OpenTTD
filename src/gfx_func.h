@@ -175,6 +175,15 @@ int GetCharacterHeight(FontSize size);
 /** Height of characters in the large (#FS_MONO) font. */
 #define FONT_HEIGHT_MONO  (GetCharacterHeight(FS_MONO))
 
+/** Height of characters in the large icons(#FS_ICONS_BIG) font. */
+#define FONT_HEIGHT_ICONS_BIG (GetCharacterHeight(FS_ICONS_BIG))
+
+/** Height of characters in the large icons(#FS_ICONS_NORMAL) font. */
+#define FONT_HEIGHT_ICONS_NORMAL (GetCharacterHeight(FS_ICONS_NORMAL))
+
+/** Height of characters in the large icons(#FS_ICONS_SMALL) font. */
+#define FONT_HEIGHT_ICONS_SMALL (GetCharacterHeight(FS_ICONS_SMALL))
+
 int InitTempMargin(int left, int right, bool to_end_line);
 void AddSpace(int space, int &here, bool to_end_line);
 
