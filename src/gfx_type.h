@@ -201,13 +201,13 @@ assert_compile(sizeof(Colour) == sizeof(uint32));
 
 /** Available font sizes */
 enum FontSize {
-	FS_NORMAL, ///< Index of the normal font in the font tables.
+	FS_BEGIN, ///< First font.
+	FS_NORMAL = FS_BEGIN, ///< Index of the normal font in the font tables.
 	FS_SMALL,  ///< Index of the small font in the font tables.
 	FS_LARGE,  ///< Index of the large font in the font tables.
 	FS_MONO,   ///< Index of the monospaced font in the font tables.
 	FS_END,
 
-	FS_BEGIN = FS_NORMAL, ///< First font.
 };
 DECLARE_POSTFIX_INCREMENT(FontSize)
 
