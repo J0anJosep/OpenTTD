@@ -1854,10 +1854,10 @@ void CheckWindowMinSizings(bool close)
 		_settings_client.gui.min_button = min(_cur_resolution.width / swap_x, _cur_resolution.height / swap_y);
 		_settings_client.gui.min_step = _settings_client.gui.min_button * 3 / 4;
 
-		_freetype.large.size = max(10u, _settings_client.gui.min_button);
-		_freetype.medium.size = max(6u, _settings_client.gui.min_step * 2 / 3);
-		_freetype.mono.size = _freetype.medium.size;
-		_freetype.small.size = max(4u, _freetype.medium.size * 2 / 3);
+		_freetype.fonts[FS_LARGE].size = max(10u, _settings_client.gui.min_button);
+		_freetype.fonts[FS_NORMAL].size = max(6u, _settings_client.gui.min_step * 2 / 3);
+		_freetype.fonts[FS_MONO].size = _freetype.fonts[FS_NORMAL].size;
+		_freetype.fonts[FS_SMALL].size = max(4u, _freetype.fonts[FS_NORMAL].size * 2 / 3);
 	}
 
 	InitFreeType(false);
