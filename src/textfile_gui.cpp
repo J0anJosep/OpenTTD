@@ -197,7 +197,7 @@ void TextfileWindow::SetupScrollbars()
 /* virtual */ void TextfileWindow::SetFontNames(FreeTypeSettings *settings, const char *font_name)
 {
 #ifdef WITH_FREETYPE
-	strecpy(settings->mono.font, font_name, lastof(settings->mono.font));
+	strecpy(settings->fonts[FS_MONO].font, font_name, lastof(settings->fonts[FS_MONO].font));
 #endif /* WITH_FREETYPE */
 }
 
