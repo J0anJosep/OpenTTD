@@ -48,9 +48,11 @@ static const SpriteID SPR_DOT_SMALL    = 4078;
 static const SpriteID SPR_WHITE_POINT  = 4079;
 
 /* ASCII */
-static const SpriteID SPR_ASCII_SPACE       = 2;
-static const SpriteID SPR_ASCII_SPACE_SMALL = 226;
-static const SpriteID SPR_ASCII_SPACE_BIG   = 450;
+static const SpriteID SPR_ASCII_SPACE              = 2;
+static const SpriteID SPR_ASCII_SPACE_SMALL        = 226; // +224
+static const SpriteID SPR_ASCII_SPACE_BIG          = 450; // +224
+static const SpriteID SPR_FIRST_PRINTABLE_ICON     = 20;
+static const uint16   FONT_ICON_COUNT              = 43;
 
 static const SpriteID SPR_LARGE_SMALL_WINDOW = 682;
 
