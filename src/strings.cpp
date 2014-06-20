@@ -2077,9 +2077,9 @@ class LanguagePackGlyphSearcher : public MissingGlyphSearcher {
 	/* virtual */ void SetFontNames(FreeTypeSettings *settings, const char *font_name)
 	{
 #ifdef WITH_FREETYPE
-		strecpy(settings->small.font,  font_name, lastof(settings->small.font));
-		strecpy(settings->medium.font, font_name, lastof(settings->medium.font));
-		strecpy(settings->large.font,  font_name, lastof(settings->large.font));
+		strecpy(settings->fonts[FS_SMALL].font,  font_name, lastof(settings->fonts[FS_SMALL].font));
+		strecpy(settings->fonts[FS_NORMAL].font, font_name, lastof(settings->fonts[FS_NORMAL].font));
+		strecpy(settings->fonts[FS_LARGE].font,  font_name, lastof(settings->fonts[FS_LARGE].font));
 #endif /* WITH_FREETYPE */
 	}
 };
