@@ -323,14 +323,9 @@ FreeTypeFontCache::FreeTypeFontCache(FontSize fs, FT_Face face, int pixels) : Fo
  */
 static void LoadFreeTypeFont(FontSize fs)
 {
-	FreeTypeSubSetting *settings = NULL;
-	switch (fs) {
-		default: NOT_REACHED();
-		case FS_SMALL:  settings = &_freetype.small;  break;
-		case FS_NORMAL: settings = &_freetype.medium; break;
-		case FS_LARGE:  settings = &_freetype.large;  break;
-		case FS_MONO:   settings = &_freetype.mono;   break;
-	}
+	assert(IsInsideMM(fs, FS_BEGIN, FS_END));
+
+	FreeTypeSubSetting *settings = &_freetype.fonts[fs];
 
 	if (StrEmpty(settings->font)) return;
 
@@ -462,13 +457,9 @@ static bool GetFontAAState(FontSize size)
 	/* AA is only supported for 32 bpp */
 	if (BlitterFactory::GetCurrentBlitter()->GetScreenDepth() != 32) return false;
 
-	switch (size) {
-		default: NOT_REACHED();
-		case FS_NORMAL: return _freetype.medium.aa;
-		case FS_SMALL:  return _freetype.small.aa;
-		case FS_LARGE:  return _freetype.large.aa;
-		case FS_MONO:   return _freetype.mono.aa;
-	}
+	assert(IsInsideMM(size, FS_BEGIN, FS_END));
+
+	return _freetype.fonts[size].aa;
 }
 
 

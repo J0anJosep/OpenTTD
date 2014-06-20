@@ -202,10 +202,7 @@ struct FreeTypeSubSetting {
 
 /** Settings for the freetype fonts. */
 struct FreeTypeSettings {
-	FreeTypeSubSetting small;  ///< The smallest font; mostly used for zoomed out view.
-	FreeTypeSubSetting medium; ///< The normal font size.
-	FreeTypeSubSetting large;  ///< The largest font; mostly used for newspapers.
-	FreeTypeSubSetting mono;   ///< The mono space font used for license/readme viewers.
+	FreeTypeSubSetting fonts[FS_END];
 };
 
 extern FreeTypeSettings _freetype;
