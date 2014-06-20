@@ -1864,6 +1864,9 @@ void CheckWindowMinSizings(bool close)
 		_freetype.fonts[FS_NORMAL].size = max(6u, _settings_client.gui.min_step * 2 / 3);
 		_freetype.fonts[FS_MONO].size = _freetype.fonts[FS_NORMAL].size;
 		_freetype.fonts[FS_SMALL].size = max(4u, _freetype.fonts[FS_NORMAL].size * 2 / 3);
+		_freetype.fonts[FS_ICONS_BIG].size = _settings_client.gui.min_button * 4 / 5;
+		_freetype.fonts[FS_ICONS_NORMAL].size = _freetype.fonts[FS_NORMAL].size;
+		_freetype.fonts[FS_ICONS_SMALL].size = _freetype.fonts[FS_SMALL].size;
 	}
 
 	InitFreeType(false);
