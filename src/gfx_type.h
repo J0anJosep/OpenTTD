@@ -200,6 +200,9 @@ enum FontSize {
 	FS_SMALL,  ///< Index of the small font in the font tables.
 	FS_LARGE,  ///< Index of the large font in the font tables.
 	FS_MONO,   ///< Index of the monospaced font in the font tables.
+	FS_ICONS_BIG, ///< Index for button font.
+	FS_ICONS_NORMAL,
+	FS_ICONS_SMALL,
 	FS_END,
 
 };
