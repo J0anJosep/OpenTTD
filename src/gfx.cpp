@@ -502,7 +502,10 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 int DrawString(int left, int right, int top, const char *str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
 {
 	/* The string may contain control chars to change the font, just use the biggest font for clipping. */
-	int max_height = max(max(FONT_HEIGHT_SMALL, FONT_HEIGHT_NORMAL), max(FONT_HEIGHT_LARGE, FONT_HEIGHT_MONO));
+	int max_height = 0;
+	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
+		max_height = max(max_height, GetCharacterHeight(fs));
+	}
 
 	/* Funny glyphs may extent outside the usual bounds, so relax the clipping somewhat. */
 	int extra = max_height / 2;
