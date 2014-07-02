@@ -232,7 +232,7 @@ STR_TOOLTIP_GROUP_ORDER                                         :{BLACK}Select g
 STR_TOOLTIP_SORT_ORDER                                          :{BLACK}Select sorting order (descending/ascending)
 STR_TOOLTIP_SORT_CRITERIA                                       :{BLACK}Select sorting criteria
 STR_TOOLTIP_FILTER_CRITERIA                                     :{BLACK}Select filtering criteria
-STR_BUTTON_SORT_BY                                              :{BLACK}Sort by
+STR_BUTTON_SORT_BY                                              :{BLACK}Sort by{STRING}
 STR_BUTTON_LOCATION                                             :{BLACK}Location
 STR_BUTTON_RENAME                                               :{BLACK}Rename
 
@@ -276,8 +276,8 @@ STR_MEASURE_AREA_HEIGHTDIFF                                     :{BLACK}Area: {N
 
 
 # These are used in buttons
-STR_SORT_BY_CAPTION_NAME                                        :{BLACK}Name
-STR_SORT_BY_CAPTION_DATE                                        :{BLACK}Date
+STR_SORT_BY_CAPTION_NAME                                        :{BLACK}Name{STRING}
+STR_SORT_BY_CAPTION_DATE                                        :{BLACK}Date{STRING}
 # These are used in dropdowns
 STR_SORT_BY_NAME                                                :Name
 STR_SORT_BY_PRODUCTION                                          :Production
@@ -1961,17 +1961,17 @@ STR_NETWORK_SERVER_LIST_ADVERTISED_YES                          :Yes
 STR_NETWORK_SERVER_LIST_PLAYER_NAME                             :{BLACK}Player name:
 STR_NETWORK_SERVER_LIST_ENTER_NAME_TOOLTIP                      :{BLACK}This is the name other players will identify you by
 
-STR_NETWORK_SERVER_LIST_GAME_NAME                               :{BLACK}Name
+STR_NETWORK_SERVER_LIST_GAME_NAME                               :{BLACK}Name{STRING}
 STR_NETWORK_SERVER_LIST_GAME_NAME_TOOLTIP                       :{BLACK}Name of the game
 STR_NETWORK_SERVER_LIST_GENERAL_ONLINE                          :{BLACK}{COMMA}/{COMMA} - {COMMA}/{COMMA}
-STR_NETWORK_SERVER_LIST_CLIENTS_CAPTION                         :{BLACK}Clients
+STR_NETWORK_SERVER_LIST_CLIENTS_CAPTION                         :{BLACK}Clients{STRING}
 STR_NETWORK_SERVER_LIST_CLIENTS_CAPTION_TOOLTIP                 :{BLACK}Clients online / clients max{}Companies online / companies max
 STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT                          :{BLACK}{COMMA}x{COMMA}
-STR_NETWORK_SERVER_LIST_MAP_SIZE_CAPTION                        :{BLACK}Map size
+STR_NETWORK_SERVER_LIST_MAP_SIZE_CAPTION                        :{BLACK}Map size{STRING}
 STR_NETWORK_SERVER_LIST_MAP_SIZE_CAPTION_TOOLTIP                :{BLACK}Map size of the game{}Click to sort by area
-STR_NETWORK_SERVER_LIST_DATE_CAPTION                            :{BLACK}Date
+STR_NETWORK_SERVER_LIST_DATE_CAPTION                            :{BLACK}Date{STRING}
 STR_NETWORK_SERVER_LIST_DATE_CAPTION_TOOLTIP                    :{BLACK}Current date
-STR_NETWORK_SERVER_LIST_YEARS_CAPTION                           :{BLACK}Years
+STR_NETWORK_SERVER_LIST_YEARS_CAPTION                           :{BLACK}Years{STRING}
 STR_NETWORK_SERVER_LIST_YEARS_CAPTION_TOOLTIP                   :{BLACK}Number of years{}the game is running
 STR_NETWORK_SERVER_LIST_INFO_ICONS_TOOLTIP                      :{BLACK}Language, server version, etc.
 
@@ -2086,8 +2086,8 @@ STR_NETWORK_GAME_LOBBY_CURRENT_BALANCE                          :{SILVER}Current
 STR_NETWORK_GAME_LOBBY_LAST_YEARS_INCOME                        :{SILVER}Last year's income: {WHITE}{CURRENCY_LONG}
 STR_NETWORK_GAME_LOBBY_PERFORMANCE                              :{SILVER}Performance: {WHITE}{NUM}
 
-STR_NETWORK_GAME_LOBBY_VEHICLES                                 :{SILVER}Vehicles: {WHITE}{NUM} {TRAIN}, {NUM} {LORRY}, {NUM} {BUS}, {NUM} {SHIP}, {NUM} {PLANE}
-STR_NETWORK_GAME_LOBBY_STATIONS                                 :{SILVER}Stations: {WHITE}{NUM} {TRAIN}, {NUM} {LORRY}, {NUM} {BUS}, {NUM} {SHIP}, {NUM} {PLANE}
+STR_NETWORK_GAME_LOBBY_VEHICLES                                 :{SILVER}Vehicles: {WHITE}{NUM} {NORMAL_ICONS}{TRAIN}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{LORRY}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{BUS}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{SHIP}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{PLANE}
+STR_NETWORK_GAME_LOBBY_STATIONS                                 :{SILVER}Stations: {WHITE}{NUM} {NORMAL_ICONS}{TRAIN}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{LORRY}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{BUS}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{SHIP}{NORMAL_FONT}, {NUM} {NORMAL_ICONS}{PLANE}
 STR_NETWORK_GAME_LOBBY_PLAYERS                                  :{SILVER}Players: {WHITE}{RAW_STRING}
 
 STR_NETWORK_GAME_LOBBY_NEW_COMPANY                              :{BLACK}New company
@@ -2246,9 +2246,9 @@ STR_NETWORK_MESSAGE_SERVER_REBOOT                               :{WHITE}The serv
 
 # Content downloading window
 STR_CONTENT_TITLE                                               :{WHITE}Content downloading
-STR_CONTENT_TYPE_CAPTION                                        :{BLACK}Type
+STR_CONTENT_TYPE_CAPTION                                        :{BLACK}Type{STRING}
 STR_CONTENT_TYPE_CAPTION_TOOLTIP                                :{BLACK}Type of the content
-STR_CONTENT_NAME_CAPTION                                        :{BLACK}Name
+STR_CONTENT_NAME_CAPTION                                        :{BLACK}Name{STRING}
 STR_CONTENT_NAME_CAPTION_TOOLTIP                                :{BLACK}Name of the content
 STR_CONTENT_MATRIX_TOOLTIP                                      :{BLACK}Click on a line to see the details{}Click on the checkbox to select it for downloading
 STR_CONTENT_SELECT_ALL_CAPTION                                  :{BLACK}Select all
@@ -3173,7 +3173,7 @@ STR_STORY_BOOK_INVALID_GOAL_REF                                 :{RED}Invalid go
 STR_STATION_LIST_TOOLTIP                                        :{BLACK}Station names - click on name to centre main view on station. Ctrl+Click opens a new viewport on station location
 STR_STATION_LIST_USE_CTRL_TO_SELECT_MORE                        :{BLACK}Hold Ctrl to select more than one item
 STR_STATION_LIST_CAPTION                                        :{WHITE}{COMPANY} - {COMMA} Station{P "" s}
-STR_STATION_LIST_STATION                                        :{YELLOW}{STATION} {STATION_FEATURES}
+STR_STATION_LIST_STATION                                        :{YELLOW}{STATION} {NORMAL_ICONS}{STATION_FEATURES}
 STR_STATION_LIST_WAYPOINT                                       :{YELLOW}{WAYPOINT}
 STR_STATION_LIST_NONE                                           :{YELLOW}- None -
 STR_STATION_LIST_SELECT_ALL_FACILITIES                          :{BLACK}Select all facilities
@@ -3181,7 +3181,7 @@ STR_STATION_LIST_SELECT_ALL_TYPES                               :{BLACK}Select a
 STR_STATION_LIST_NO_WAITING_CARGO                               :{BLACK}No cargo of any type is waiting
 
 # Station view window
-STR_STATION_VIEW_CAPTION                                        :{WHITE}{STATION} {STATION_FEATURES}
+STR_STATION_VIEW_CAPTION                                        :{WHITE}{STATION} {NORMAL_ICONS}{STATION_FEATURES}
 STR_STATION_VIEW_WAITING_CARGO                                  :{WHITE}{CARGO_LONG}
 STR_STATION_VIEW_EN_ROUTE_FROM                                  :{YELLOW}({CARGO_SHORT} from {STATION})
 STR_STATION_VIEW_RESERVED                                       :{YELLOW}({CARGO_SHORT} reserved for loading)
@@ -3571,15 +3571,15 @@ STR_FILTER_TAB_STATE_TOOLTIP                                    :{BLACK}Click to
 STR_FILTER_TAB_RESET_TOOLTIP                                    :{BLACK}Click to clear selected filter criteria
 
 STR_FILTER_TOWN                                                 :{TOWN} {BLACK}({COMMA})
-STR_FILTER_LIST_STATION                                         :{STATION} {YELLOW}{STATION_FEATURES}
+STR_FILTER_LIST_STATION                                         :{STATION} {YELLOW}{NORMAL_ICONS}{STATION_FEATURES}
 STR_FILTER_CARGO_PRODUCTION                                     :Production: {STRING}
 STR_FILTER_CARGO_ACCEPTANCE                                     :Acceptance: {STRING}
 
-STR_FILTER_STATION_FACILITIES_TRAIN                             :{TRAIN} Railway station
-STR_FILTER_STATION_FACILITIES_LORRY                             :{LORRY} Lorry loading area
-STR_FILTER_STATION_FACILITIES_BUS                               :{BUS} Bus stop
-STR_FILTER_STATION_FACILITIES_PLANE                             :{PLANE} Airport
-STR_FILTER_STATION_FACILITIES_SHIP                              :{SHIP} Ship dock
+STR_FILTER_STATION_FACILITIES_TRAIN                             :{NORMAL_ICONS}{TRAIN}{NORMAL_FONT} Railway station
+STR_FILTER_STATION_FACILITIES_LORRY                             :{NORMAL_ICONS}{LORRY}{NORMAL_FONT} Lorry loading area
+STR_FILTER_STATION_FACILITIES_BUS                               :{NORMAL_ICONS}{BUS}{NORMAL_FONT} Bus stop
+STR_FILTER_STATION_FACILITIES_PLANE                             :{NORMAL_ICONS}{PLANE}{NORMAL_FONT} Airport
+STR_FILTER_STATION_FACILITIES_SHIP                              :{NORMAL_ICONS}{SHIP}{NORMAL_FONT} Ship dock
 
 STR_FILTER_PROPERTIES_STOPPED                                   :Stopped vehicles
 STR_FILTER_PROPERTIES_STOPPED_DEPOT                             :Stopped vehicles on depot
@@ -4284,12 +4284,12 @@ STR_TEXTFILE_VIEW_LICENCE                                       :{BLACK}Licence
 
 
 # Vehicle loading indicators
-STR_PERCENT_UP_SMALL                                            :{TINY_FONT}{WHITE}{NUM}%{UP_ARROW}
-STR_PERCENT_UP                                                  :{WHITE}{NUM}%{UP_ARROW}
-STR_PERCENT_DOWN_SMALL                                          :{TINY_FONT}{WHITE}{NUM}%{DOWN_ARROW}
-STR_PERCENT_DOWN                                                :{WHITE}{NUM}%{DOWN_ARROW}
-STR_PERCENT_UP_DOWN_SMALL                                       :{TINY_FONT}{WHITE}{NUM}%{UP_ARROW}{DOWN_ARROW}
-STR_PERCENT_UP_DOWN                                             :{WHITE}{NUM}%{UP_ARROW}{DOWN_ARROW}
+STR_PERCENT_UP_SMALL                                            :{TINY_FONT}{WHITE}{NUM}%{SMALL_ICONS}{UP_ARROW}
+STR_PERCENT_UP                                                  :{WHITE}{NUM}%{NORMAL_ICONS}{UP_ARROW}
+STR_PERCENT_DOWN_SMALL                                          :{TINY_FONT}{WHITE}{NUM}%{SMALL_ICONS}{DOWN_ARROW}
+STR_PERCENT_DOWN                                                :{WHITE}{NUM}%{NORMAL_ICONS}{DOWN_ARROW}
+STR_PERCENT_UP_DOWN_SMALL                                       :{TINY_FONT}{WHITE}{NUM}%{SMALL_ICONS}{UP_ARROW}{DOWN_ARROW}
+STR_PERCENT_UP_DOWN                                             :{WHITE}{NUM}%{NORMAL_ICONS}{UP_ARROW}{DOWN_ARROW}
 STR_PERCENT_NONE_SMALL                                          :{TINY_FONT}{WHITE}{NUM}%
 STR_PERCENT_NONE                                                :{WHITE}{NUM}%
 
@@ -5133,7 +5133,7 @@ STR_VIEWPORT_TOWN_TINY_WHITE                                    :{TINY_FONT}{WHI
 STR_VIEWPORT_SIGN_SMALL_BLACK                                   :{TINY_FONT}{BLACK}{SIGN}
 STR_VIEWPORT_SIGN_SMALL_WHITE                                   :{TINY_FONT}{WHITE}{SIGN}
 
-STR_VIEWPORT_STATION                                            :{STATION} {STATION_FEATURES}
+STR_VIEWPORT_STATION                                            :{STATION} {NORMAL_ICONS}{STATION_FEATURES}
 STR_VIEWPORT_STATION_TINY                                       :{TINY_FONT}{STATION}
 
 STR_VIEWPORT_WAYPOINT                                           :{WAYPOINT}
@@ -5155,7 +5155,7 @@ STR_VEHICLE_NAME                                                :{VEHICLE}
 STR_WAYPOINT_NAME                                               :{WAYPOINT}
 
 STR_JUST_CARGO                                                  :{CARGO_LONG}
-STR_JUST_CHECKMARK                                              :{CHECKMARK}
+STR_JUST_CHECKMARK                                              :{NORMAL_ICONS}a
 STR_JUST_COMMA                                                  :{COMMA}
 STR_JUST_CURRENCY_SHORT                                         :{CURRENCY_SHORT}
 STR_JUST_CURRENCY_LONG                                          :{CURRENCY_LONG}
@@ -5180,6 +5180,35 @@ STR_WHITE_COMMA                                                 :{WHITE}{COMMA}
 STR_TINY_BLACK_DECIMAL                                          :{TINY_FONT}{BLACK}{DECIMAL}
 STR_COMPANY_MONEY                                               :{WHITE}{CURRENCY_LONG}
 STR_BLACK_DATE_LONG                                             :{BLACK}{DATE_LONG}
+STR_BLACK_CROSS                                                 :{BIG_ICONS}{BLACK}{CROSS}
+STR_SILVER_CROSS                                                :{BIG_ICONS}{SILVER}{CROSS}
+STR_DOWNARROW                                                   :{NORMAL_ICONS}{DOWN_ARROW}
+STR_UPARROW                                                     :{NORMAL_ICONS}{UP_ARROW}
+STR_LEFTARROW                                                   :{NORMAL_ICONS}{BLACK}4
+STR_RIGHTARROW                                                  :{NORMAL_ICONS}{BLACK}3
+STR_SMALL_UPARROW                                               :{NORMAL_ICONS}5
+STR_SMALL_DOWNARROW                                             :{NORMAL_ICONS}6
+STR_ICON_HOME                                                   :{BLACK}{BIG_ICONS}A
+STR_ICON_DEFAULT_SIZE                                           :{BLACK}{BIG_ICONS}B
+STR_ICON_COLLAPSE_WINDOW                                        :{BLACK}{BIG_ICONS}C
+STR_ICON_EXPAND_WINDOW                                          :{BLACK}{BIG_ICONS}D
+STR_ICON_RESIZE_WINDOW_LTR                                      :{BLACK}{BIG_ICONS}F
+STR_ICON_RESIZE_WINDOW_RTL                                      :{BLACK}{BIG_ICONS}E
+STR_ICON_PIN_WINDOW                                             :{BLACK}{BIG_ICONS}G
+STR_ICON_UNPIN_WINDOW                                           :{BLACK}{BIG_ICONS}H
+STR_ICON_DEBUG                                                  :{BLACK}{BIG_ICONS}I
+STR_ICON_WINDOW                                                 :{BLACK}{BIG_ICONS}J
+STR_ICON_SHARED_ORDERS                                          :{BLACK}{BIG_ICONS}K
+STR_ICON_DELETE_STRING_LTR                                      :{BLACK}{BIG_ICONS}L
+STR_ICON_DELETE_STRING_RTL                                      :{BLACK}{BIG_ICONS}M
+STR_ICON_TABULAR                                                :{BLACK}{BIG_ICONS}N
+STR_ICON_BACKSPACE                                              :{BLACK}{BIG_ICONS}O
+STR_ICON_SHIFT                                                  :{BLACK}{BIG_ICONS}P
+STR_ICON_CAPS                                                   :{BLACK}{BIG_ICONS}Q
+STR_ICON_ARROW_LEFT_OSK                                         :{BLACK}{BIG_ICONS}R
+STR_ICON_ARROW_RIGHT_OSK                                        :{BLACK}{BIG_ICONS}S
+STR_ICON_FILTER                                                 :{BLACK}{BIG_ICONS}<
+STR_ICON_FILTER_GROUPS                                          :{BLACK}{BIG_ICONS}=
 STR_WHITE_DATE_LONG                                             :{WHITE}{DATE_LONG}
 STR_SHORT_DATE                                                  :{WHITE}{DATE_TINY}
 STR_DATE_LONG_SMALL                                             :{TINY_FONT}{BLACK}{DATE_LONG}
@@ -5197,7 +5226,11 @@ STR_ORANGE_STRING1_WHITE                                        :{ORANGE}{STRING
 STR_ORANGE_STRING1_LTBLUE                                       :{ORANGE}{STRING1}{LTBLUE}
 STR_TINY_BLACK_HEIGHT                                           :{TINY_FONT}{BLACK}{HEIGHT}
 STR_TINY_BLACK_VEHICLE                                          :{TINY_FONT}{BLACK}{VEHICLE}
-STR_TINY_RIGHT_ARROW                                            :{TINY_FONT}{RIGHT_ARROW}
+STR_TINY_RIGHT_ARROW                                            :{SMALL_ICONS}b
+STR_CIRCLE_FOLDED                                               :{ORANGE}{NORMAL_ICONS}Y
+STR_CIRCLE_UNFOLDED                                             :{ORANGE}{NORMAL_ICONS}Z
+STR_ORDER_ARROW_LTR                                             :{NORMAL_ICONS}b
+STR_ORDER_ARROW_RTL                                             :{NORMAL_ICONS}c
 
 STR_BLACK_1                                                     :{BLACK}1
 STR_BLACK_2                                                     :{BLACK}2
@@ -5207,10 +5240,10 @@ STR_BLACK_5                                                     :{BLACK}5
 STR_BLACK_6                                                     :{BLACK}6
 STR_BLACK_7                                                     :{BLACK}7
 
-STR_TRAIN                                                       :{BLACK}{TRAIN}
-STR_BUS                                                         :{BLACK}{BUS}
-STR_LORRY                                                       :{BLACK}{LORRY}
-STR_PLANE                                                       :{BLACK}{PLANE}
-STR_SHIP                                                        :{BLACK}{SHIP}
+STR_TRAIN                                                       :{NORMAL_ICONS}{BLACK}{TRAIN}
+STR_BUS                                                         :{NORMAL_ICONS}{BLACK}{BUS}
+STR_LORRY                                                       :{NORMAL_ICONS}{BLACK}{LORRY}
+STR_PLANE                                                       :{NORMAL_ICONS}{BLACK}{PLANE}
+STR_SHIP                                                        :{NORMAL_ICONS}{BLACK}{SHIP}
 
 STR_TOOLBAR_RAILTYPE_VELOCITY                                   :{STRING} ({VELOCITY})

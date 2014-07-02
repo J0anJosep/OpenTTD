@@ -214,24 +214,20 @@ void DrawOrderString(const Vehicle *v, const Order *order, int order_index, int 
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
-	SpriteID sprite = rtl ? SPR_ARROW_LEFT : SPR_ARROW_RIGHT;
-	Dimension sprite_size = GetSpriteSize(sprite);
-	if (v->cur_real_order_index == order_index) {
-		DrawSprite(sprite, PAL_NONE, rtl ? right -     sprite_size.width : left,                     y + ((int)FONT_HEIGHT_NORMAL - (int)sprite_size.height) / 2);
-		DrawSprite(sprite, PAL_NONE, rtl ? right - 2 * sprite_size.width : left + sprite_size.width, y + ((int)FONT_HEIGHT_NORMAL - (int)sprite_size.height) / 2);
-	} else if (v->cur_implicit_order_index == order_index) {
-		DrawSprite(sprite, PAL_NONE, rtl ? right -     sprite_size.width : left,                     y + ((int)FONT_HEIGHT_NORMAL - (int)sprite_size.height) / 2);
-	}
+	StringID arrow_str = STR_ORDER_ARROW_LTR + rtl;
+	Dimension arrow_size = GetStringBoundingBox(arrow_str);
 
-	TextColour colour = TC_BLACK;
+	TextColour colour;
 	if (order->IsType(OT_IMPLICIT)) {
 		colour = (selected ? TC_SILVER : TC_GREY) | TC_NO_SHADE;
-	} else if (selected) {
-		colour = TC_WHITE;
+		if (v->cur_implicit_order_index == order_index) DrawString(left, right, y, arrow_str, colour);
+	} else {
+		colour = selected ? TC_WHITE : TC_BLACK;
+		if (v->cur_real_order_index == order_index) DrawString(left, right, y, arrow_str, colour);
 	}
 
 	SetDParam(0, order_index + 1);
-	DrawString(left, rtl ? right - 2 * sprite_size.width - 3 : middle, y, STR_ORDER_INDEX, colour, SA_RIGHT | SA_FORCE);
+	DrawString(left, rtl ? right - 2 * arrow_size.width - 3 : middle, y, STR_ORDER_INDEX, colour, SA_RIGHT | SA_FORCE);
 
 	SetDParam(5, STR_EMPTY);
 	SetDParam(8, STR_EMPTY);
@@ -1083,7 +1079,7 @@ public:
 
 		bool rtl = _current_text_dir == TD_RTL;
 		SetDParamMaxValue(0, this->vehicle->GetNumOrders(), 2);
-		int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + 2 * GetSpriteSize(rtl ? SPR_ARROW_RIGHT : SPR_ARROW_LEFT).width + 3;
+		int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + GetStringBoundingBox(STR_ORDER_ARROW_LTR + rtl).width + 3;
 		int middle = rtl ? r.right - WD_FRAMETEXT_RIGHT - index_column_width : r.left + WD_FRAMETEXT_LEFT + index_column_width;
 
 		int line_height = this->GetWidget<NWidgetBase>(WID_O_ORDER_LIST)->resize_y;
@@ -1578,7 +1574,7 @@ static const NWidgetPart _nested_orders_train_widgets[] = {
 															SetDataTip(STR_BLACK_COMMA, STR_ORDER_CONDITIONAL_VALUE_TOOLTIP), SetResize(1, 0),
 			EndContainer(),
 		EndContainer(),
-		NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_O_SHARED_ORDER_LIST), SetMinimalSize(12, 12), SetDataTip(SPR_SHARED_ORDERS_ICON, STR_ORDERS_VEH_WITH_SHARED_ORDERS_LIST_TOOLTIP),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_SHARED_ORDER_LIST), SetMinimalSize(12, 12), SetDataTip(STR_ICON_SHARED_ORDERS, STR_ORDERS_VEH_WITH_SHARED_ORDERS_LIST_TOOLTIP),
 	EndContainer(),
 
 	/* Second button row. */
@@ -1653,7 +1649,7 @@ static const NWidgetPart _nested_orders_widgets[] = {
 			EndContainer(),
 		EndContainer(),
 
-		NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_O_SHARED_ORDER_LIST), SetMinimalSize(12, 12), SetDataTip(SPR_SHARED_ORDERS_ICON, STR_ORDERS_VEH_WITH_SHARED_ORDERS_LIST_TOOLTIP),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_O_SHARED_ORDER_LIST), SetMinimalSize(12, 12), SetDataTip(STR_ICON_SHARED_ORDERS, STR_ORDERS_VEH_WITH_SHARED_ORDERS_LIST_TOOLTIP),
 	EndContainer(),
 
 	/* Second button row. */

@@ -167,14 +167,15 @@ enum StringControlCode {
 	SCC_CHECKMARK        = SCC_SPRITE_START + 0xAC,
 	SCC_CROSS            = SCC_SPRITE_START + 0xAD,
 	SCC_RIGHT_ARROW      = SCC_SPRITE_START + 0xAF,
-	SCC_TRAIN            = SCC_SPRITE_START + 0xB4,
-	SCC_LORRY            = SCC_SPRITE_START + 0xB5,
-	SCC_BUS              = SCC_SPRITE_START + 0xB6,
-	SCC_PLANE            = SCC_SPRITE_START + 0xB7,
-	SCC_SHIP             = SCC_SPRITE_START + 0xB8,
 	SCC_SUPERSCRIPT_M1   = SCC_SPRITE_START + 0xB9,
 	SCC_SMALL_UP_ARROW   = SCC_SPRITE_START + 0xBC,
 	SCC_SMALL_DOWN_ARROW = SCC_SPRITE_START + 0xBD,
+
+	SCC_TRAIN            = 0x37,
+	SCC_LORRY            = 0x38,
+	SCC_BUS              = 0x39,
+	SCC_PLANE            = 0x3A,
+	SCC_SHIP             = 0x3B,
 };
 
 #endif /* CONTROL_CODES_H */
