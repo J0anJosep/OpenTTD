@@ -609,9 +609,9 @@ static const NWidgetPart _nested_town_directory_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_BROWN),
 		NWidget(WWT_CAPTION, COLOUR_BROWN), SetDataTip(STR_TOWN_DIRECTORY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
-		NWidget(WWT_IMGBTN, COLOUR_BROWN, WID_TD_FILTER), SetMinimalSize(12, 12), SetFill(0, 1),
-				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_TOWN_DIRECTORY_FILTER_TOOLTIP),
-
+		NWidget(WWT_TEXTBTN, COLOUR_BROWN, WID_TD_FILTER), SetMinimalSize(12, 12),
+				SetFill(0, 1),
+				SetDataTip(STR_ICON_FILTER, STR_TOWN_DIRECTORY_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_BROWN),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_BROWN),
 		NWidget(WWT_STICKYBOX, COLOUR_BROWN),
@@ -748,16 +748,16 @@ public:
 			case WID_TD_SORT_CRITERIA:
 				SetDParam(0, TownDirectoryWindow::sorter_names[this->towns.SortType()]);
 				break;
+
+			case WID_TD_SORT_ORDER:
+				SetDParam(0, STR_SMALL_UPARROW + this->towns.IsDescSortOrder());
+				break;
 		}
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		switch (widget) {
-			case WID_TD_SORT_ORDER:
-				this->DrawSortButtonState(widget, this->towns.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
-				break;
-
 			case WID_TD_LIST: {
 				int n = 0;
 				int y = r.top + WD_FRAMERECT_TOP;
@@ -804,7 +804,7 @@ public:
 		switch (widget) {
 			case WID_TD_SORT_ORDER: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				d.height += padding.height;
 				*size = maxdim(*size, d);
 				break;
