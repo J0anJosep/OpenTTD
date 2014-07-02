@@ -1677,7 +1677,8 @@ uint SettingsPage::Draw(GameSettings *settings_ptr, int left, int right, int y, 
 void SettingsPage::DrawSetting(GameSettings *settings_ptr, int left, int right, int y, bool highlight) const
 {
 	bool rtl = _current_text_dir == TD_RTL;
-	DrawSprite((this->folded ? SPR_CIRCLE_FOLDED : SPR_CIRCLE_UNFOLDED), PAL_NONE, rtl ? right - _circle_size.width : left, Center(y, SETTING_HEIGHT, _circle_size.height));
+	StringID str = this->folded ? STR_CIRCLE_FOLDED : STR_CIRCLE_UNFOLDED;
+	DrawString(left, right, Center(y, SETTING_HEIGHT, FONT_HEIGHT_NORMAL), str);
 	DrawString(rtl ? left : left + _circle_size.width + 2, rtl ? right - _circle_size.width - 2 : right, Center(y, SETTING_HEIGHT), this->title);
 }
 
@@ -2032,7 +2033,7 @@ struct GameSettingsWindow : Window {
 		this->filter.type_hides = false;
 		this->settings_ptr = &GetGameSettings();
 
-		_circle_size = maxdim(GetSpriteSize(SPR_CIRCLE_FOLDED), GetSpriteSize(SPR_CIRCLE_UNFOLDED));
+		_circle_size = maxdim(GetStringBoundingBox(STR_CIRCLE_FOLDED), GetStringBoundingBox(STR_CIRCLE_UNFOLDED));
 		GetSettingsTree().FoldAll(); // Close all sub-pages
 
 		this->valuewindow_entry = NULL; // No setting entry for which a entry window is opened
@@ -2628,9 +2629,14 @@ void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clic
 
 	DrawFrameRect(x,               y, x + dim.width            - 1, y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
 	DrawFrameRect(x + dim.width  , y, x + SETTING_BUTTON_WIDTH - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
-	Dimension d = GetSpriteSize(SPR_ARROW_LEFT);
-	DrawSprite(SPR_ARROW_LEFT,  PAL_NONE, Center(x,               dim.width, d.width), Center(y, dim.height, d.height));
-	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, Center(x + dim.width,   dim.width, d.width), Center(y, dim.height, d.height));
+
+	DrawString(x, x + dim.width - 1,
+			Center(y + (state == 1), dim.height, FONT_HEIGHT_ICONS_NORMAL),
+			STR_LEFTARROW, TC_BLACK, SA_HOR_CENTER);
+
+	DrawString(x + dim.width, x + SETTING_BUTTON_WIDTH - 1,
+			Center(y + (state == 2), dim.height, FONT_HEIGHT_ICONS_NORMAL),
+			STR_RIGHTARROW, TC_BLACK, SA_HOR_CENTER);
 
 	/* Grey out the buttons that aren't clickable */
 	bool rtl = _current_text_dir == TD_RTL;
@@ -2655,7 +2661,7 @@ void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool cl
 	int colour = _colour_gradient[button_colour][2];
 
 	DrawFrameRect(x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
+	DrawString(x + (state ? 1 : 0), x + SETTING_BUTTON_WIDTH - (state ? 0 : 1), y + (state ? 2 : 1), STR_DOWNARROW, TC_BLACK, SA_HOR_CENTER);
 
 	if (!clickable) {
 		GfxFillRect(x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
