@@ -258,8 +258,9 @@ public:
 	{
 		switch (widget) {
 			case WID_RV_SORT_ASCENDING_DESCENDING: {
+				SetDParam(0, STR_SMALL_UPARROW);
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				d.height += padding.height;
 				*size = maxdim(*size, d);
 				break;
@@ -370,16 +371,16 @@ public:
 			case WID_RV_TRAIN_ENGINEWAGON_TOGGLE:
 				SetDParam(0, this->replace_engines ? STR_REPLACE_ENGINES : STR_REPLACE_WAGONS);
 				break;
+
+			case WID_RV_SORT_ASCENDING_DESCENDING:
+				SetDParam(0, STR_SMALL_UPARROW + this->descending_sort_order);
+				break;
 		}
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		switch (widget) {
-			case WID_RV_SORT_ASCENDING_DESCENDING:
-				this->DrawSortButtonState(WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
-				break;
-
 			case WID_RV_INFO_TAB: {
 				const Company *c = Company::Get(_local_company);
 				StringID str;
