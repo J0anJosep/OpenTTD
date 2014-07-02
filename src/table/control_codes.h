@@ -26,16 +26,19 @@ enum StringControlCode {
 	/* This must be the first entry. It's encoded in strings that are saved. */
 	SCC_ENCODED = SCC_CONTROL_START,
 
-	/* Font selection codes, must be in same order as FontSize enum */
-	SCC_FIRST_FONT,
-	SCC_NORMALFONT = SCC_FIRST_FONT, ///< Switch to normal size font
-	SCC_TINYFONT,   ///< Switch to small font
-	SCC_BIGFONT,    ///< Switch to large font
-	SCC_MONOFONT,   ///< Switch to monospaced font
-	SCC_LAST_FONT = SCC_MONOFONT,
+	/* Display control codes */
+	SCC_FONT_BEGIN,
+	SCC_FONT_NORMAL = SCC_FONT_BEGIN,  ///< Switch to normal font
+	SCC_FONT_TINY,                     ///< Switch to small font
+	SCC_FONT_BIG,                      ///< Switch to large font
+	SCC_FONT_MONO,                     ///< Switch to mono font
+	SCC_FONT_ICONS_BIG,                ///< Switch to button font
+	SCC_FONT_ICONS_NORMAL,
+	SCC_FONT_ICONS_SMALL,
+	SCC_FONT_END,
 
 	/* Formatting control codes */
-	SCC_REVISION,
+	SCC_REVISION = SCC_FONT_END,
 	SCC_COMPANY_NUM,
 	SCC_STATION_FEATURES,
 	SCC_INDUSTRY_NAME,
