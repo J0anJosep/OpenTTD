@@ -1491,7 +1491,7 @@ static const NWidgetPart _nested_vehicle_list[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_VL_CAPTION),
-		NWidget(WWT_IMGBTN, COLOUR_GREY, WID_VL_FILTER), SetMinimalSize(12, 12), SetFill(0, 1), SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_GROUP_DUAL_FILTER_TOOLTIP),
+		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_VL_FILTER), SetMinimalSize(12, 12), SetFill(0, 1), SetDataTip(STR_ICON_FILTER, STR_GROUP_DUAL_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
@@ -1547,8 +1547,10 @@ static int DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Vehi
 	if (order == NULL) return next_margin;
 
 	bool rtl = _current_text_dir == TD_RTL;
-	int l_offset = rtl ? 0 : ScaleGUITrad(6);
-	int r_offset = rtl ? ScaleGUITrad(6) : 0;
+	Dimension d = GetStringBoundingBox(STR_TINY_RIGHT_ARROW);
+	int l_offset = rtl ? 0 : d.width;
+	int r_offset = rtl ? d.width : 0;
+
 	int i = 0;
 	VehicleOrderID oid = start;
 
@@ -1910,7 +1912,7 @@ public:
 
 			case WID_VL_SORT_ORDER: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width ;
 				d.height += padding.height;
 				*size = maxdim(*size, d);
 				break;
@@ -1929,6 +1931,15 @@ public:
 	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
+			case WID_VL_SORT_ORDER: {
+				/* Draw arrow pointing up/down for ascending/descending sorting. */
+				bool down = (show == VLS_GROUPS) ?
+						this->groups.IsDescSortOrder() :
+						this->vehicles.IsDescSortOrder();
+				SetDParam(0, STR_SMALL_UPARROW + down);
+				break;
+			}
+
 			case WID_VL_AVAILABLE_VEHICLES:
 				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
 				break;
@@ -1988,15 +1999,6 @@ public:
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		switch (widget) {
-			case WID_VL_SORT_ORDER:
-				/* draw arrow pointing up/down for ascending/descending sorting */
-				if (show == VLS_GROUPS) {
-					this->DrawSortButtonState(widget, this->groups.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
-				} else {
-					this->DrawSortButtonState(widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
-				}
-				break;
-
 			case WID_VL_LIST:
 				if (show == VLS_VEHICLES) {
 					this->DrawVehicleListItems(INVALID_VEHICLE, this->resize.step_height, r);
