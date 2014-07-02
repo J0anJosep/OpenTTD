@@ -379,8 +379,8 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 					grfmsg(1, "Detected newline in string that does not allow one");
 				}
 				break;
-			case 0x0E: d += Utf8Encode(d, SCC_TINYFONT); break;
-			case 0x0F: d += Utf8Encode(d, SCC_BIGFONT); break;
+			case 0x0E: d += Utf8Encode(d, SCC_FONT_TINY); break;
+			case 0x0F: d += Utf8Encode(d, SCC_FONT_BIG); break;
 			case 0x1F:
 				if (str[0] == '\0' || str[1] == '\0') goto string_end;
 				d += Utf8Encode(d, ' ');

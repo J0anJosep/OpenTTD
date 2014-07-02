@@ -617,8 +617,8 @@ static inline void GetLayouter(Layouter::LineCacheItem &line, const char *&str, 
 			state.PushColour();
 		} else if (c == SCC_POP_COLOUR) {
 			state.PopColour();
-		} else if (c >= SCC_FIRST_FONT && c <= SCC_LAST_FONT) {
-			state.SetFontSize((FontSize)(c - SCC_FIRST_FONT));
+		} else if (IsInsideMM(c, SCC_FONT_BEGIN, SCC_FONT_END)) {
+			state.SetFontSize((FontSize)(c - SCC_FONT_BEGIN + FS_BEGIN));
 		} else {
 			/* Filter out text direction characters that shouldn't be drawn, and
 			 * will not be handled in the fallback non ICU case because they are
