@@ -915,7 +915,7 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
 			SetDParam(0, cs->name);
 			Dimension d = GetStringBoundingBox(STR_GRAPH_CARGO_PAYMENT_CARGO);
-			d.width += 14; // colour field
+			d.width += GetMinSizing(NWST_STEP, FONT_HEIGHT_SMALL) * 3 / 2; // colour field
 			d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
 			d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 			*size = maxdim(d, *size);
@@ -938,6 +938,9 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 
 		int x = r.left + WD_FRAMERECT_LEFT;
 		int y = r.top;
+		int font_height = FONT_HEIGHT_SMALL;
+		int text_x_offset = GetMinSizing(NWST_STEP, font_height);
+		int text_y_offset = Center(0, GetMinSizing(NWST_STEP, font_height), font_height);
 
 		int pos = this->vscroll->GetPosition();
 		int max = pos + this->vscroll->GetCapacity();
@@ -953,12 +956,12 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 			if (lowered) DrawFrameRect(r.left, y, r.right, y + this->line_height - 1, COLOUR_ORANGE, lowered ? FR_LOWERED : FR_NONE);
 
 			byte clk_dif = lowered ? 1 : 0;
-			int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
+			int rect_x = clk_dif + (rtl ? r.right - text_y_offset : r.left + WD_FRAMERECT_LEFT);
 
-			GfxFillRect(rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
-			GfxFillRect(rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+			GfxFillRect(rect_x, y + clk_dif, rect_x + font_height, y + clk_dif + text_y_offset + font_height, PC_BLACK);
+			GfxFillRect(rect_x + 1, y + 1 + clk_dif + text_y_offset, rect_x + font_height - 1, y + 4 + clk_dif, cs->legend_colour);
 			SetDParam(0, cs->name);
-			DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
+			DrawString(rtl ? r.left : x + text_x_offset + clk_dif, (rtl ? r.right - text_x_offset + clk_dif : r.right), y + clk_dif + text_y_offset - 1, STR_GRAPH_CARGO_PAYMENT_CARGO);
 
 			y += this->line_height;
 		}
