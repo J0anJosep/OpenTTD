@@ -930,7 +930,7 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		const CargoSpec *cs = _sorted_cargo_specs[widget - WID_CPR_CARGO_FIRST];
 		SetDParam(0, cs->name);
 		Dimension d = GetStringBoundingBox(STR_GRAPH_CARGO_PAYMENT_CARGO);
-		d.width += 14; // colour field
+		d.width += GetMinSizing(NWST_STEP, FONT_HEIGHT_SMALL) * 3 / 2; // colour field and post space
 		d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
 		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 		*size = maxdim(d, *size);
@@ -953,13 +953,16 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		byte clk_dif = this->IsWidgetLowered(widget) ? 1 : 0;
 		int x = r.left + WD_FRAMERECT_LEFT;
 		int y = r.top;
+		int font_height = FONT_HEIGHT_SMALL;
+		int text_x_offset = GetMinSizing(NWST_STEP, font_height);
+		int text_y_offset = Center(0, GetMinSizing(NWST_STEP, font_height), font_height);
 
-		int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
+		int rect_x = clk_dif + (rtl ? r.right - text_y_offset : r.left + text_y_offset);
 
-		GfxFillRect(rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
-		GfxFillRect(rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+		GfxFillRect(rect_x, y + clk_dif + text_y_offset, rect_x + font_height, y + clk_dif + text_y_offset + font_height, PC_BLACK);
+		GfxFillRect(rect_x + 1, y + clk_dif + text_y_offset + 1, rect_x + font_height - 1, y + clk_dif + text_y_offset + font_height - 1, cs->legend_colour);
 		SetDParam(0, cs->name);
-		DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
+		DrawString(rtl ? r.left : x + text_x_offset + clk_dif, (rtl ? r.right - text_x_offset + clk_dif : r.right), y + clk_dif + text_y_offset, STR_GRAPH_CARGO_PAYMENT_CARGO);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1035,17 +1038,26 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 /** Construct the row containing the digit keys. */
 static NWidgetBase *MakeCargoButtons(int *biggest_index)
 {
-	NWidgetVertical *ver = new NWidgetVertical;
+	NWidgetHorizontal *hor = new NWidgetHorizontal(NC_EQUALSIZE);
+	NWidgetVertical *ver = NULL;
 
 	for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+		if (i % 12 == 0) {
+			ver = new NWidgetVertical;
+			hor->Add(ver);
+		}
+
 		NWidgetBackground *leaf = new NWidgetBackground(WWT_PANEL, COLOUR_ORANGE, WID_CPR_CARGO_FIRST + i, NULL);
+		leaf->sizing_type = NWST_STEP;
 		leaf->tool_tip = STR_GRAPH_CARGO_PAYMENT_TOGGLE_CARGO;
 		leaf->SetFill(1, 0);
 		leaf->SetLowered(true);
+		leaf->SetMinimalSize(0, 0);
 		ver->Add(leaf);
 	}
+
 	*biggest_index = WID_CPR_CARGO_FIRST + _sorted_standard_cargo_specs_size - 1;
-	return ver;
+	return hor;
 }
 
 
