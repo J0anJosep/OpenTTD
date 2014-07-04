@@ -187,6 +187,38 @@ static const NWidgetPart _nested_save_dialog_widgets[] = {
 	EndContainer(),
 };
 
+/** Save game/scenario */
+static const NWidgetPart _nested_select_font_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
+		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SL_CAPTION),
+		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_BACKGROUND), SetFill(1, 0), SetResize(1, 0), EndContainer(),
+	NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+		NWidget(NWID_VERTICAL),
+			NWidget(NWID_HORIZONTAL),
+				NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYNAME), SetDataTip(STR_SORT_BY_CAPTION_NAME, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYDATE), SetDataTip(STR_SORT_BY_CAPTION_DATE, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
+				EndContainer(),
+				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(SPR_HOUSE_ICON, STR_SAVELOAD_HOME_BUTTON),
+			EndContainer(),
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_FILE_BACKGROUND),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(WWT_INSET, COLOUR_GREY, WID_SL_DRIVES_DIRECTORIES_LIST), SetPadding(2, 1, 0, 2),
+							SetDataTip(0x0, STR_SAVELOAD_LIST_TOOLTIP), SetResize(1, 10), SetScrollbar(WID_SL_SCROLLBAR), EndContainer(),
+					NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_SL_SCROLLBAR),
+				EndContainer(),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SELECT_FONT), SetDataTip(STR_SAVELOAD_SELECT_FONT_BUTTON, STR_SAVELOAD_SELECT_FONT_TOOLTIP), SetFill(1, 0), SetResize(1, 0),
+				NWidget(WWT_RESIZEBOX, COLOUR_GREY),
+			EndContainer(),
+		EndContainer(),
+	EndContainer(),
+};
+
 /** Colours for fios types, indexed by #FiosType. */
 const TextColour _fios_colours[] = {
 	TC_LIGHT_BLUE, TC_DARK_GREEN,  TC_DARK_GREEN, TC_ORANGE, TC_LIGHT_BROWN,
@@ -205,6 +237,8 @@ void BuildFileList()
 		case SLD_SAVE_HEIGHTMAP:
 		case SLD_LOAD_HEIGHTMAP:
 			FiosGetHeightmapList(_saveload_mode); break;
+		case SLD_SELECT_TRUETYPE_FONT:
+			FiosGetFontList(_saveload_mode); break;
 
 		default: FiosGetSavegameList(_saveload_mode); break;
 	}
@@ -259,6 +293,7 @@ public:
 			STR_SAVELOAD_SAVE_SCENARIO,
 			STR_SAVELOAD_LOAD_HEIGHTMAP,
 			STR_SAVELOAD_SAVE_HEIGHTMAP,
+			STR_SAVELOAD_SELECT_FONT,
 		};
 		assert((uint)mode < lengthof(saveload_captions));
 
@@ -285,7 +320,8 @@ public:
 
 		/* pause is only used in single-player, non-editor mode, non-menu mode. It
 		 * will be unpaused in the WE_DESTROY event handler. */
-		if (_game_mode != GM_MENU && !_networking && _game_mode != GM_EDITOR) {
+		if (_game_mode != GM_MENU && !_networking && _game_mode != GM_EDITOR &&
+				mode != SLD_SELECT_TRUETYPE_FONT) {
 			DoCommandP(0, PM_PAUSED_SAVELOAD, 1, CMD_PAUSE);
 		}
 		SetObjectToPlace(SPR_CURSOR_ZZZ, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
@@ -505,6 +541,13 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
+			case WID_SL_SELECT_FONT:
+				assert(this->parent != NULL);
+				if (this->selected != NULL) {
+					char *name = const_cast<char*>(FiosBrowseTo(this->selected));
+					this->parent->OnQueryTextFinished(name);
+				}
+				return;
 			case WID_SL_SORT_BYNAME: // Sort save names by name
 				_savegame_sort_order = (_savegame_sort_order == SORT_BY_NAME) ?
 					SORT_BY_NAME | SORT_DESCENDING : SORT_BY_NAME;
@@ -583,6 +626,9 @@ public:
 							this->filename_editbox.text.Assign(file->title);
 							this->SetWidgetDirty(WID_SL_SAVE_OSK_TITLE);
 						}
+					} else if (this->parent != NULL) {
+						this->selected = file;
+						this->OnClick(pt, WID_SL_SELECT_FONT, 1);
 					} else if (!_load_check_data.HasErrors()) {
 						this->selected = file;
 						if (_saveload_mode == SLD_LOAD_GAME || _saveload_mode == SLD_LOAD_SCENARIO) {
@@ -734,6 +780,14 @@ static WindowDesc _save_dialog_desc(
 	_nested_save_dialog_widgets, lengthof(_nested_save_dialog_widgets)
 );
 
+/** Select a font */
+static WindowDesc _select_font_dialog_desc(
+	WDP_CENTER, "select_font", 500, 294,
+	WC_SAVELOAD, WC_NONE,
+	0,
+	_nested_select_font_widgets, lengthof(_nested_select_font_widgets)
+);
+
 /**
  * These values are used to convert the file/operations mode into a corresponding file type.
  * So each entry, as expressed by the related comment, is based on the enum
@@ -751,7 +805,7 @@ static const FileType _file_modetotype[] = {
  * Launch save/load dialog in the given mode.
  * @param mode Save/load mode.
  */
-void ShowSaveLoadDialog(SaveLoadDialogMode mode)
+void ShowSaveLoadDialog(SaveLoadDialogMode mode, Window *w)
 {
 	DeleteWindowById(WC_SAVELOAD, 0);
 
@@ -763,6 +817,8 @@ void ShowSaveLoadDialog(SaveLoadDialogMode mode)
 			sld = &_save_dialog_desc; break;
 		case SLD_LOAD_HEIGHTMAP:
 			sld = &_load_heightmap_dialog_desc; break;
+		case SLD_SELECT_TRUETYPE_FONT:
+			sld = &_select_font_dialog_desc; break;
 		default:
 			sld = &_load_dialog_desc; break;
 	}
@@ -770,7 +826,8 @@ void ShowSaveLoadDialog(SaveLoadDialogMode mode)
 	_saveload_mode = mode;
 	_file_to_saveload.filetype = _file_modetotype[mode];
 
-	new SaveLoadWindow(sld, mode);
+	Window *new_window = new SaveLoadWindow(sld, mode);
+	new_window->parent = w;
 }
 
 void SetFiosType(const byte fiostype)
