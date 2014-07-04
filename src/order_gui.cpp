@@ -799,7 +799,7 @@ public:
 	{
 		switch (widget) {
 			case WID_O_ORDER_LIST:
-				resize->height = FONT_HEIGHT_NORMAL;
+				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
 				size->height = 6 * resize->height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 				break;
 
@@ -1086,8 +1086,8 @@ public:
 		int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + 2 * GetSpriteSize(rtl ? SPR_ARROW_RIGHT : SPR_ARROW_LEFT).width + 3;
 		int middle = rtl ? r.right - WD_FRAMETEXT_RIGHT - index_column_width : r.left + WD_FRAMETEXT_LEFT + index_column_width;
 
-		int y = r.top + WD_FRAMERECT_TOP;
 		int line_height = this->GetWidget<NWidgetBase>(WID_O_ORDER_LIST)->resize_y;
+		int y = Center(r.top + WD_FRAMERECT_TOP, line_height, FONT_HEIGHT_NORMAL);
 
 		int i = this->vscroll->GetPosition();
 		const Order *order = this->vehicle->GetOrder(i);
