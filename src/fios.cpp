@@ -136,6 +136,7 @@ const char *FiosBrowseTo(const FiosItem *item)
 		case FIOS_TYPE_OLD_SCENARIO:
 		case FIOS_TYPE_PNG:
 		case FIOS_TYPE_BMP:
+		case FIOS_TYPE_TTF:
 			return item->name;
 	}
 
@@ -546,6 +547,24 @@ static FiosType FiosGetHeightmapListCallback(SaveLoadDialogMode mode, const char
 	return type;
 }
 
+
+static FiosType FiosGetFontListCallback(SaveLoadDialogMode mode, const char *file, const char *ext, char *title, const char *last)
+{
+	/* Show font files.
+	 * *.ttf files.
+	 */
+
+	/* Don't crash if we supply no extension */
+	if (ext == NULL) return FIOS_TYPE_INVALID;
+
+	if (strcasecmp(ext, ".ttf") == 0) {
+		GetFileTitle(file, title, last, FONTS_DIR);
+		return FIOS_TYPE_FILE;
+	}
+
+	return FIOS_TYPE_INVALID;
+}
+
 /**
  * Get a list of heightmaps.
  * @param mode Save/load mode.
@@ -568,6 +587,32 @@ void FiosGetHeightmapList(SaveLoadDialogMode mode)
 	FioGetDirectory(base_path, lastof(base_path), HEIGHTMAP_DIR);
 
 	FiosGetFileList(mode, &FiosGetHeightmapListCallback, strcmp(base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY);
+}
+
+
+/**
+ * Get a list of fonts.
+ */
+void FiosGetFontList(SaveLoadDialogMode mode)
+{
+	assert(mode == SLD_SELECT_TRUETYPE_FONT);
+
+	static char *fios_hmap_path = NULL;
+	static char *fios_hmap_path_last = NULL;
+
+	if (fios_hmap_path == NULL) {
+		fios_hmap_path = MallocT<char>(MAX_PATH);
+		fios_hmap_path_last = fios_hmap_path + MAX_PATH - 1;
+		FioGetDirectory(fios_hmap_path, fios_hmap_path_last, FONTS_DIR);
+	}
+
+	_fios_path = fios_hmap_path;
+	_fios_path_last = fios_hmap_path_last;
+
+	char base_path[MAX_PATH];
+	FioGetDirectory(base_path, lastof(base_path), FONTS_DIR);
+
+	FiosGetFileList(mode, &FiosGetFontListCallback, strcmp(base_path, _fios_path) == 0 ? FONTS_DIR : NO_DIRECTORY);
 }
 
 /**

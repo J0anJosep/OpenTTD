@@ -105,6 +105,7 @@ enum SaveLoadDialogMode {
 	SLD_SAVE_SCENARIO,  ///< Save a scenario.
 	SLD_LOAD_HEIGHTMAP, ///< Load a heightmap.
 	SLD_SAVE_HEIGHTMAP, ///< Save a heightmap.
+	SLD_SELECT_TRUETYPE_FONT, ///< Select a font.
 };
 
 /** The different types of files that the system knows about. */
@@ -113,6 +114,7 @@ enum FileType {
 	FT_SAVEGAME,  ///< old or new savegame
 	FT_SCENARIO,  ///< old or new scenario
 	FT_HEIGHTMAP, ///< heightmap file
+	FT_TRUETYPE_FONT, ///< TrueType font
 };
 
 enum FiosType {
@@ -126,6 +128,7 @@ enum FiosType {
 	FIOS_TYPE_DIRECT,
 	FIOS_TYPE_PNG,
 	FIOS_TYPE_BMP,
+	FIOS_TYPE_TTF,
 	FIOS_TYPE_INVALID = 255,
 };
 
@@ -159,11 +162,14 @@ extern SmallFiosItem _file_to_saveload;
 extern SaveLoadDialogMode _saveload_mode;
 extern SortingBits _savegame_sort_order;
 
-void ShowSaveLoadDialog(SaveLoadDialogMode mode);
+struct window;
+
+void ShowSaveLoadDialog(SaveLoadDialogMode mode, Window *w = NULL);
 
 void FiosGetSavegameList(SaveLoadDialogMode mode);
 void FiosGetScenarioList(SaveLoadDialogMode mode);
 void FiosGetHeightmapList(SaveLoadDialogMode mode);
+void FiosGetFontList(SaveLoadDialogMode mode);
 
 void FiosFreeSavegameList();
 const char *FiosBrowseTo(const FiosItem *item);
