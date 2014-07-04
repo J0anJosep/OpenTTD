@@ -916,6 +916,20 @@ STR_GAME_OPTIONS_MIN_STEP_SIZE_TOOLTIP                          :{BLACK}Select t
 STR_GAME_OPTIONS_MIN_BUTTON_SIZE_CAPTION                        :{WHITE}Select the smallest size for generic buttons
 STR_GAME_OPTIONS_MIN_STEP_SIZE_CAPTION                          :{WHITE}Select the smallest size for steps in lists
 
+STR_GAME_OPTIONS_FONTS_MEDIUM                                   :{BLACK}Medium font
+STR_GAME_OPTIONS_FONTS_SMALL                                    :{BLACK}Small font
+STR_GAME_OPTIONS_FONTS_LARGE                                    :{BLACK}Large font
+STR_GAME_OPTIONS_FONTS_MONO                                     :{BLACK}Monospaced font
+STR_GAME_OPTIONS_FONTS_SYMBOL_BIG                               :{BLACK}Big OpenTTD symbols
+STR_GAME_OPTIONS_FONTS_SYMBOL                                   :{BLACK}Normal OpenTTD symbols
+STR_GAME_OPTIONS_FONTS_SYMBOL_SMALL                             :{BLACK}Small OpenTTD symbols
+STR_GAME_OPTIONS_FONTS_CUSTOM                                   :{BLACK}TT
+STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP                           :{BLACK}Enable to use a TrueType font
+STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP                      :{BLACK}Select a font type
+STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP                      :{BLACK}Select a size for this font type
+STR_GAME_OPTIONS_FONTS_AA                                       :{BLACK}AA
+STR_GAME_OPTIONS_FONTS_AA_TOOLTIP                               :{BLACK}Enable/disable antialiasing for this font
+
 ############ start of currency region
 STR_GAME_OPTIONS_CURRENCY_GBP                                   :British Pound (GBP)
 STR_GAME_OPTIONS_CURRENCY_USD                                   :American Dollar (USD)
@@ -2755,6 +2769,7 @@ STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Save Sce
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Load Scenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Load Heightmap
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Save Heightmap
+STR_SAVELOAD_SELECT_FONT                                        :{WHITE}Select a Font
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Click here to jump to the current default save/load directory
 STR_SAVELOAD_BYTES_FREE                                         :{BLACK}{BYTES} free
 STR_SAVELOAD_LIST_TOOLTIP                                       :{BLACK}List of drives, directories and saved-game files
@@ -2766,6 +2781,8 @@ STR_SAVELOAD_SAVE_TOOLTIP                                       :{BLACK}Save the
 STR_SAVELOAD_LOAD_BUTTON                                        :{BLACK}Load
 STR_SAVELOAD_LOAD_TOOLTIP                                       :{BLACK}Load the selected game
 STR_SAVELOAD_LOAD_HEIGHTMAP_TOOLTIP                             :{BLACK}Load the selected heightmap
+STR_SAVELOAD_SELECT_FONT_BUTTON                                 :{BLACK}Select font
+STR_SAVELOAD_SELECT_FONT_TOOLTIP                                :{BLACK}Choose the selected font
 STR_SAVELOAD_DETAIL_CAPTION                                     :{BLACK}Game Details
 STR_SAVELOAD_DETAIL_NOT_AVAILABLE                               :{BLACK}No information available
 STR_SAVELOAD_DETAIL_COMPANY_INDEX                               :{SILVER}{COMMA}: {WHITE}{STRING1}
