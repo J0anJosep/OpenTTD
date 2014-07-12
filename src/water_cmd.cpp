@@ -616,6 +616,16 @@ uint16 SetTileBanks(TileIndex tile)
 	 * Bits 12, 13, 14, 15   -> Border on edge is a lock/depot (NO SAVE). */
 	uint wa = 0;
 
+	if (IsCoastTile(tile)) {
+		switch (GetTileSlope(tile)) {
+			case SLOPE_W: wa |= (1 << 2) | (1 << 3); break;
+			case SLOPE_S: wa |= (1 << 1) | (1 << 2); break;
+			case SLOPE_E: wa |= (1 << 0) | (1 << 1); break;
+			case SLOPE_N: wa |= (1 << 0) | (1 << 3); break;
+			default: wa |= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);
+		}
+	}
+
 	/* Determine the edges around with water. */
 	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir != DIAGDIR_END; diagdir++) {
 		TileIndex t = TileAddByDiagDir(tile, diagdir);
@@ -653,8 +663,17 @@ uint16 SetTileBanks(TileIndex tile)
 		 * tile in the direction of the corner. */
 		if (HasBit(wa, diagdir + 12) ||
 				HasBit(wa, diagdir == 3 ? 12 : (diagdir + 13)) ||
-				!IsWateredTile(t, ReverseDir(direction)))
+				!IsWateredTile(t, ReverseDir(direction))) {
 			SetBit(wa, diagdir + 8);
+		} else if (IsWaterTile(t) && IsInclinedSlope(GetTileSlope(t))) {
+			/* Check final case: an inclined river. */
+			Direction alternative_river_flow = DiagDirToDir(diagdir);
+			t = tile + TileOffsByDir(alternative_river_flow);
+			if (!IsWaterTile(t) || !IsInclinedSlope(GetTileSlope(t))) {
+				t = tile + TileOffsByDir(ChangeDir(direction, DIRDIFF_45RIGHT));
+				if (!IsWaterTile(t) || !IsInclinedSlope(GetTileSlope(t))) SetBit(wa, diagdir + 8);
+			}
+		}
 	}
 
 	if (HasBanksStoredInMapArray(tile)) {
@@ -699,6 +718,18 @@ TrackBits GetWaterTracks(TileIndex t)
  * Get the available tracks on this tile for water transport.
  * @param t  Tile.
  * @return Tracks that can be choosen on this tile for ships.
+ * @pre IsWaterTile || IsCoastTile
+ */
+TrackBits GetShallowTracks(TileIndex t)
+{
+	assert(IsTileType(t, MP_WATER) && (IsWater(t) || IsCoast(t)));
+	return (TrackBits)GB(_m[t].m2, 0, 6);
+}
+
+/**
+ * Get the available tracks on this tile for water transport.
+ * @param t  Tile.
+ * @return Tracks that can be choosen on this tile for ships.
  * @pre IsBuoyTile
  */
 TrackBits GetWaterTracksForBuoy(TileIndex t)
@@ -720,6 +751,7 @@ void UpdateWaterTracks(TileIndex t)
 	static const byte coast_tracks[] = {0, 32, 4, 0, 16, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0};
 
 	TrackBits ts = TRACK_BIT_MASK;
+	TrackBits shallow = TRACK_BIT_NONE;
 
 	/* Prevent buoy tiles trying to get water tile type. */
 	if (IsTileType(t, MP_WATER)) {
@@ -755,6 +787,18 @@ void UpdateWaterTracks(TileIndex t)
 				}
 			}
 		}
+
+		Track track;
+		FOR_EACH_SET_TRACK(track, ts) {
+			if (IsDiagonalTrack(track)) {
+				if (edges != 0) shallow |= TrackToTrackBits(track);
+			} else {
+				static const byte track_corners[] = {11, 9, 10, 8};
+				if (edges > 1 || HasBit(shores, track_corners[track - 2])) {
+					shallow |= TrackToTrackBits(track);
+				}
+			}
+		}
 	}
 
 	TrackBits reserved_invalid = GetReservedWaterTracks(t) & ~ts;
@@ -768,6 +812,7 @@ void UpdateWaterTracks(TileIndex t)
 		SB(_me[t].m7, 4, 2, GB(ts, 4, 2));
 	} else {
 		SB(_m[t].m2, 6, 6, ts);
+		SB(_m[t].m2, 0, 6, shallow);
 	}
 }
 
