@@ -698,6 +698,18 @@ TrackBits GetWaterTracks(TileIndex t)
  * Get the available tracks on this tile for water transport.
  * @param t  Tile.
  * @return Tracks that can be choosen on this tile for ships.
+ * @pre IsWaterTile || IsCoastTile
+ */
+TrackBits GetShallowTracks(TileIndex t)
+{
+	assert(IsTileType(t, MP_WATER) && (IsWater(t) || IsCoast(t)));
+	return (TrackBits)GB(_m[t].m2, 0, 6);
+}
+
+/**
+ * Get the available tracks on this tile for water transport.
+ * @param t  Tile.
+ * @return Tracks that can be choosen on this tile for ships.
  * @pre IsBuoyTile
  */
 TrackBits GetWaterTracksForBuoy(TileIndex t)
@@ -719,6 +731,7 @@ void UpdateWaterTracks(TileIndex t)
 	static const byte coast_tracks[] = {0, 32, 4, 0, 16, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0};
 
 	TrackBits ts = TRACK_BIT_MASK;
+	TrackBits shallow = TRACK_BIT_NONE;
 
 	/* Prevent buoy tiles trying to get water tile type. */
 	if (IsTileType(t, MP_WATER)) {
@@ -754,6 +767,18 @@ void UpdateWaterTracks(TileIndex t)
 		}
 	}
 
+	Track track;
+	FOR_EACH_SET_TRACK(track, ts) {
+		if (IsDiagonalTrack(track)) {
+			if (edges != 0) shallow |= TrackToTrackBits(track);
+		} else {
+			static const byte track_corners[] = {11, 9, 10, 8};
+			if (edges > 1 || HasBit(shores, track_corners[track - 2])) {
+				shallow |= TrackToTrackBits(track);
+			}
+		}
+	}
+
 	TrackBits reserved_invalid = GetReservedWaterTracks(t) & ~ts;
 	if (reserved_invalid != TRACK_BIT_NONE) {
 		LiftReservations(t);
@@ -765,6 +790,7 @@ void UpdateWaterTracks(TileIndex t)
 		SB(_me[t].m7, 4, 2, GB(ts, 4, 2));
 	} else {
 		SB(_m[t].m2, 10, 6, ts);
+		SB(_m[t].m2,  0, 6, shallow);
 	}
 }
 
