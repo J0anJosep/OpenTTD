@@ -327,6 +327,7 @@ CommandCost CmdBuildBuoy(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		TrackBits tracks = GetReservedWaterTracks(tile);
 		MakeBuoy(tile, wp->index, GetWaterClass(tile));
 		SetWaterTrackReservation(tile, tracks);
+		UpdateWaterTiles(tile, 0);
 		MarkTileDirtyByTile(tile);
 
 		wp->UpdateVirtCoord();
@@ -368,6 +369,7 @@ CommandCost RemoveBuoy(TileIndex tile, DoCommandFlag flags)
 		TrackBits tracks = GetReservedWaterTracks(tile);
 		MakeWaterKeepingClass(tile, GetTileOwner(tile));
 		SetWaterTrackReservation(tile, tracks);
+		UpdateWaterTiles(tile, 0);
 
 		wp->rect.AfterRemoveTile(wp, tile);
 
