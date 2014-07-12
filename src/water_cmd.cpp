@@ -680,6 +680,94 @@ uint GetTileBanks(TileIndex t)
 	return SetTileBanks(t);
 }
 
+
+/**
+ * Get the available tracks on this tile for water transport.
+ * @param t  Tile.
+ * @return Tracks that can be choosen on this tile for ships.
+ * @pre IsWaterTile || IsCoastTile
+ */
+TrackBits GetWaterTracks(TileIndex t)
+{
+	assert(IsTileType(t, MP_WATER) && (IsWater(t) || IsCoast(t)));
+
+	return (TrackBits)GB(_m[t].m2, 10, 6);
+}
+
+/**
+ * Get the available tracks on this tile for water transport.
+ * @param t  Tile.
+ * @return Tracks that can be choosen on this tile for ships.
+ * @pre IsBuoyTile
+ */
+TrackBits GetWaterTracksForBuoy(TileIndex t)
+{
+	assert(IsBuoyTile(t));
+	return (TrackBits)(GB(_m[t].m4, 0, 4) | (GB(_me[t].m7, 4, 2) << 4));
+}
+
+/**
+ * Update the available water tracks on a tile.
+ * @param t Tile.
+ * @pre IsWaterTile || IsCoastTile || IsBuoyTile
+ * @note Tile banks must be updated previously.
+ */
+void UpdateWaterTracks(TileIndex t)
+{
+	assert((IsTileType(t, MP_WATER) && (IsWater(t) || IsCoast(t))) || IsBuoyTile(t));
+
+	static const byte coast_tracks[] = {0, 32, 4, 0, 16, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0};
+
+	TrackBits ts = TRACK_BIT_MASK;
+
+	/* Prevent buoy tiles trying to get water tile type. */
+	if (IsTileType(t, MP_WATER)) {
+		switch (GetWaterTileType(t)) {
+			case WATER_TILE_CLEAR: ts = (GetTileSlope(t) == SLOPE_FLAT) ? TRACK_BIT_MASK : TRACK_BIT_NONE; break;
+			case WATER_TILE_COAST: ts = (TrackBits)coast_tracks[GetTileSlope(t) & 0xF]; break;
+			default: NOT_REACHED();
+		}
+	}
+
+	/* Get the shores of this tile so we can later remove tracks that cross those shores. */
+	uint16 shores = GetTileBanks(t);
+	uint16 edges = 0;
+
+	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
+		if (HasBit(shores, dir) || !IsValidTile(TileAddByDiagDir(t, dir))) {
+			edges++;
+			switch (dir) {
+				case DIAGDIR_NE:
+					ts &= ~TRACK_BIT_3WAY_NE;
+					break;
+				case DIAGDIR_SE:
+					ts &= ~TRACK_BIT_3WAY_SE;
+					break;
+				case DIAGDIR_SW:
+					ts &= ~TRACK_BIT_3WAY_SW;
+					break;
+				case DIAGDIR_NW:
+					ts &= ~TRACK_BIT_3WAY_NW;
+					break;
+				default: NOT_REACHED();
+			}
+		}
+	}
+
+	TrackBits reserved_invalid = GetReservedWaterTracks(t) & ~ts;
+	if (reserved_invalid != TRACK_BIT_NONE) {
+		LiftReservations(t);
+		assert((GetReservedWaterTracks(t) & ~ts) == 0);
+	}
+
+	if (IsBuoyTile(t)) {
+		SB(_m[t].m4, 0, 4, GB(ts, 0, 4));
+		SB(_me[t].m7, 4, 2, GB(ts, 4, 2));
+	} else {
+		SB(_m[t].m2, 10, 6, ts);
+	}
+}
+
 /**
  * Update all the water tiles in the map array, setting the edges, corners and available tracks.
  * Only applies to those tiles which really store them in the map array.
@@ -691,6 +779,12 @@ void UpdateWaterTiles()
 	for (TileIndex t = 0; t < map_size; t++) {
 		if (HasBanksStoredInMapArray(t)) {
 			SetTileBanks(t);
+		}
+	}
+
+	for (TileIndex t = 0; t < map_size; t++) {
+		if ((IsTileType(t, MP_WATER) && (IsWater(t) || IsCoast(t))) || IsBuoyTile(t)) {
+			UpdateWaterTracks(t);
 		}
 	}
 }
@@ -709,6 +803,13 @@ void UpdateWaterTiles(TileIndex tile, uint rad)
 		if (HasBanksStoredInMapArray(tile)) {
 			SetTileBanks(tile);
 			MarkTileDirtyByTile(tile);
+		}
+	}
+
+	/* Then tracks. */
+	TILE_AREA_LOOP(tile, ta) {
+		if ((IsTileType(tile, MP_WATER) && (IsWater(tile) || IsCoast(tile))) || IsBuoyTile(tile)) {
+			UpdateWaterTracks(tile);
 		}
 	}
 }
