@@ -40,6 +40,7 @@
 #include "company_gui.h"
 #include "newgrf_generic.h"
 #include "pbs_water.h"
+#include "tilearea_type.h"
 
 #include "table/strings.h"
 
@@ -65,31 +66,6 @@ static const uint8 _flood_from_dirs[] = {
 	(1 << DIR_S ) | (1 << DIR_SW) | (1 << DIR_SE),                 // SLOPE_ENW, SLOPE_STEEP_N
 	(1 << DIR_W ) | (1 << DIR_SW) | (1 << DIR_NW),                 // SLOPE_SEN, SLOPE_STEEP_E
 };
-
-/**
- * Marks tile dirty if it is a canal or river tile.
- * Called to avoid glitches when flooding tiles next to canal tile.
- *
- * @param tile tile to check
- */
-static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
-{
-	if (IsTileType(tile, MP_WATER) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile);
-}
-
-/**
- * Marks the tiles around a tile as dirty, if they are canals or rivers.
- *
- * @param tile The center of the tile where all other tiles are marked as dirty
- * @ingroup dirty
- */
-static void MarkCanalsAndRiversAroundDirty(TileIndex tile)
-{
-	for (Direction dir = DIR_BEGIN; dir < DIR_END; dir++) {
-		MarkTileDirtyIfCanalOrRiver(tile + TileOffsByDir(dir));
-	}
-}
-
 
 /**
  * Build a ship depot.
@@ -149,8 +125,7 @@ CommandCost CmdBuildShipDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 		MakeShipDepot(tile,  _current_company, depot->index, DEPOT_PART_NORTH, axis, wc1);
 		MakeShipDepot(tile2, _current_company, depot->index, DEPOT_PART_SOUTH, axis, wc2);
-		MarkTileDirtyByTile(tile);
-		MarkTileDirtyByTile(tile2);
+		UpdateWaterTiles(tile, 2);
 		MakeDefaultName(depot);
 	}
 
@@ -235,6 +210,7 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 
 		MakeWaterKeepingClass(tile,  GetTileOwner(tile));
 		MakeWaterKeepingClass(tile2, GetTileOwner(tile2));
+		UpdateWaterTiles(tile, 2);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_SHIP]);
@@ -311,11 +287,7 @@ static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlag 
 		}
 
 		MakeLock(tile, _current_company, dir, wc_lower, wc_upper, wc_middle);
-		MarkTileDirtyByTile(tile);
-		MarkTileDirtyByTile(tile - delta);
-		MarkTileDirtyByTile(tile + delta);
-		MarkCanalsAndRiversAroundDirty(tile - delta);
-		MarkCanalsAndRiversAroundDirty(tile + delta);
+		UpdateWaterTiles(tile, 2);
 	}
 	cost.AddCost(_price[PR_BUILD_LOCK]);
 
@@ -358,9 +330,7 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 		}
 		MakeWaterKeepingClass(tile + delta, GetTileOwner(tile + delta));
 		MakeWaterKeepingClass(tile - delta, GetTileOwner(tile - delta));
-		MarkCanalsAndRiversAroundDirty(tile);
-		MarkCanalsAndRiversAroundDirty(tile - delta);
-		MarkCanalsAndRiversAroundDirty(tile + delta);
+		UpdateWaterTiles(tile, 2);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_LOCK]);
@@ -455,8 +425,7 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 					}
 					break;
 			}
-			MarkTileDirtyByTile(tile);
-			MarkCanalsAndRiversAroundDirty(tile);
+			UpdateWaterTiles(tile, 1);
 		}
 
 		cost.AddCost(_price[PR_BUILD_CANAL]);
@@ -504,7 +473,7 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 					DirtyCompanyInfrastructureWindows(owner);
 				}
 				DoClearSquare(tile);
-				MarkCanalsAndRiversAroundDirty(tile);
+				UpdateWaterTiles(tile, 1);
 			}
 
 			return CommandCost(EXPENSES_CONSTRUCTION, base_cost);
@@ -519,7 +488,7 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 
 			if (flags & DC_EXEC) {
 				DoClearSquare(tile);
-				MarkCanalsAndRiversAroundDirty(tile);
+				UpdateWaterTiles(tile, 1);
 			}
 			if (IsSlopeWithOneCornerRaised(slope)) {
 				return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_WATER]);
@@ -722,6 +691,24 @@ void UpdateWaterTiles()
 	for (TileIndex t = 0; t < map_size; t++) {
 		if (HasBanksStoredInMapArray(t)) {
 			SetTileBanks(t);
+		}
+	}
+}
+
+/**
+ * Update banks, tracks and mark tiles dirty.
+ * @param tile Tile to check.
+ * @param rad Radius of the tile area to check.
+ */
+void UpdateWaterTiles(TileIndex tile, uint rad)
+{
+	TileArea ta(tile, 1, 1, rad);
+
+	/* First, edges and dirty. */
+	TILE_AREA_LOOP(tile, ta) {
+		if (HasBanksStoredInMapArray(tile)) {
+			SetTileBanks(tile);
+			MarkTileDirtyByTile(tile);
 		}
 	}
 }
@@ -1214,8 +1201,8 @@ void DoFloodTile(TileIndex target)
 	}
 
 	if (flooded) {
-		/* Mark surrounding canal tiles dirty too to avoid glitches */
-		MarkCanalsAndRiversAroundDirty(target);
+		/* Update surrounding water tiles. */
+		UpdateWaterTiles(target, 1);
 
 		/* update signals if needed */
 		UpdateSignalsInBuffer();

@@ -411,6 +411,7 @@ static inline bool HasTileWaterGround(TileIndex t)
 }
 
 void UpdateWaterTiles();
+void UpdateWaterTiles(TileIndex tile, uint rad);
 
 /**
  * Helper function to make a coast tile.
