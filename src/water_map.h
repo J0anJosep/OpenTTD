@@ -14,6 +14,7 @@
 
 #include "depot_type.h"
 #include "tile_map.h"
+#include "track_type.h"
 
 /**
  * Bit field layout of m5 for water tiles.
@@ -409,6 +410,10 @@ static inline bool HasTileWaterGround(TileIndex t)
 {
 	return HasTileWaterClass(t) && IsTileOnWater(t) && !IsCoastTile(t);
 }
+
+/* Routines related to available tracks for water transport. */
+TrackBits GetWaterTracks(TileIndex t);
+TrackBits GetWaterTracksForBuoy(TileIndex t);
 
 void UpdateWaterTiles();
 void UpdateWaterTiles(TileIndex tile, uint rad);
