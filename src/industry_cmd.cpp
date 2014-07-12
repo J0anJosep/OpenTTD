@@ -161,6 +161,8 @@ Industry::~Industry()
 	 * so when recalculating close industries we won't find the industry we are erasing */
 	if (oil_rig_tile != INVALID_TILE) DeleteOilRig(oil_rig_tile);
 
+	UpdateWaterTiles(this->location.tile, max(this->location.h, this->location.w));
+
 	if (GetIndustrySpec(this->type)->behaviour & INDUSTRYBEH_PLANT_FIELDS) {
 		TileArea ta(this->location.tile - TileDiffXY(min(TileX(this->location.tile), 21), min(TileY(this->location.tile), 21)), 42, 42);
 		ta.ClampToMap();
@@ -1787,6 +1789,7 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 			DoCommand(cur_tile, 0, 0, DC_EXEC | DC_NO_TEST_TOWN_RATING | DC_NO_MODIFY_TOWN_RATING, CMD_LANDSCAPE_CLEAR);
 
 			MakeIndustry(cur_tile, i->index, it->gfx, Random(), wc);
+			if (wc != WATER_CLASS_INVALID) UpdateWaterTiles(cur_tile, 1);
 
 			if (_generating_world) {
 				SetIndustryConstructionCounter(cur_tile, 3);

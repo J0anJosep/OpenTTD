@@ -2535,6 +2535,8 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			SetDockTracks(tile_cur, TRACK_BIT_CROSS);
 		}
 
+		UpdateWaterTiles(tile_cur, 1);
+
 		st->AfterStationTileSetChange(true, dock_area, STATION_DOCK);
 	}
 
@@ -2612,6 +2614,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		}
 
 		MakeWaterKeepingClass(tile2, st->owner);
+		UpdateWaterTiles(tile2, 0);
 		st->rect.AfterRemoveTile(st, tile2);
 
 		st->dock_station.Clear();
