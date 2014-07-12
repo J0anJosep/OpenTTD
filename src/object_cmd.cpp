@@ -347,6 +347,8 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	if (flags & DC_EXEC) {
 		BuildObject(type, tile, _current_company, NULL, view);
 
+		if (HasTileWaterGround(tile)) UpdateWaterTiles(tile, 1);
+
 		/* Make sure the HQ starts at the right size. */
 		if (type == OBJECT_HQ) UpdateCompanyHQ(tile, hq_score);
 	}
@@ -441,6 +443,7 @@ static void ReallyClearObjectTile(Object *o)
 		DeleteNewGRFInspectWindow(GSF_OBJECTS, tile_cur);
 
 		MakeWaterKeepingClass(tile_cur, GetTileOwner(tile_cur));
+		if (HasTileWaterGround(tile_cur)) UpdateWaterTiles(tile_cur, 1);
 	}
 	delete o;
 }
