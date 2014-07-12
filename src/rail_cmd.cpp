@@ -586,6 +586,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	}
 
 	if (flags & DC_EXEC) {
+		if (GetRailGroundType(tile) == RAIL_GROUND_WATER) UpdateWaterTiles(tile, 1);
 		MarkTileDirtyByTile(tile);
 		AddTrackToSignalBuffer(tile, track, _current_company);
 		YapfNotifyTrackLayoutChange(tile, track);
@@ -704,6 +705,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 					/* If there is flat water on the lower halftile, convert the tile to shore so the water remains */
 					if (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh)) {
 						MakeShore(tile);
+						UpdateWaterTiles(tile, 1);
 					} else {
 						DoClearSquare(tile);
 					}
@@ -1835,7 +1837,10 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 				if (ret.Failed()) return ret;
 
 				/* The track was removed, and left a coast tile. Now also clear the water. */
-				if (flags & DC_EXEC) DoClearSquare(tile);
+				if (flags & DC_EXEC) {
+					DoClearSquare(tile);
+					UpdateWaterTiles(tile, 1);
+				}
 				cost.AddCost(_price[PR_CLEAR_WATER]);
 			}
 
