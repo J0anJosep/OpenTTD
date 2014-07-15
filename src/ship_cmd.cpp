@@ -407,6 +407,27 @@ static bool CheckPlaceShipOnDepot(TileIndex tile)
 	return true;
 }
 
+void HandleShipEnterDepot(Ship *v)
+{
+	assert(IsShipDepotTile(v->tile));
+
+	if (IsBigDepot(v->tile)) {
+		v->state |= TRACK_BIT_DEPOT;
+		v->cur_speed = 0;
+		v->UpdateCache();
+		v->UpdateViewport(true, true);
+		SetWindowClassesDirty(WC_SHIPS_LIST);
+		SetWindowDirty(WC_VEHICLE_VIEW, v->index);
+
+		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
+		v->StartService();
+	} else {
+		/* Remove reservations on normal depots. */
+		SetWaterTrackReservation(v->tile, TrackdirToTrack(v->GetVehicleTrackdir()), false);
+		VehicleEnterDepot(v);
+	}
+}
+
 static bool CheckShipLeaveDepot(Ship *v)
 {
 	if (!v->IsChainInDepot()) return false;
