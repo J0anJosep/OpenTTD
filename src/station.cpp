@@ -703,3 +703,8 @@ void Airport::SetDepot(bool adding)
 		this->depot_id = INVALID_DEPOT;
 	}
 }
+
+DepotID GetHangarIndex(TileIndex t) {
+	assert(IsAirportTile(t));
+	return Station::GetByTile(t)->airport.depot_id;
+}
