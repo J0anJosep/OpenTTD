@@ -1749,7 +1749,7 @@ static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int 
 				if (rv->Next() == NULL) VehicleEnterDepot(rv->First());
 				rv->tile = tile;
 
-				InvalidateWindowData(WC_VEHICLE_DEPOT, rv->tile);
+				InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(rv->tile));
 				return VETSB_ENTERED_WORMHOLE;
 			}
 			break;
