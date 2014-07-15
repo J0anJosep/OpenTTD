@@ -1050,14 +1050,23 @@ void DrawWaterClassGround(const TileInfo *ti)
 /**
  * Draw the reserved water tracks of a tile if setting show reserved tracks is enabled.
  * @param t The tile to draw the tracks of.
+ * @note Patched for debugging available water tracks visually.
  */
 void DrawWaterTrackReservation(TileIndex tile)
 {
 	assert(WaterTrackMayExist(tile));
-	TrackBits trackbits = GetReservedWaterTracks(tile);
 
-	/* No track reserved: return */
-	if (trackbits == TRACK_BIT_NONE) return;
+	TrackBits available = TRACK_BIT_NONE;
+	TrackBits shallow   = TRACK_BIT_NONE;
+	if (IsWaterTile(tile) || IsCoastTile(tile)) {
+		available = GetWaterTracks(tile);
+		shallow = GetShallowTracks(tile);
+	} else {
+		available = TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0, DIAGDIR_BEGIN));
+		shallow = available;
+	}
+
+	TrackBits trackbits = GetReservedWaterTracks(tile);
 
 	static const byte autorail_offset[] = {0, 8, 16, 25, 34, 42};
 	static const byte slope_offset[] = {2, 2, 5, 5};
@@ -1071,6 +1080,15 @@ void DrawWaterTrackReservation(TileIndex tile)
 	}
 
 	Track track;
+
+	FOR_EACH_SET_TRACK(track, available) {
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PALETTE_SEL_TILE_BLUE, 0, 0, TILE_HEIGHT);
+	}
+
+	FOR_EACH_SET_TRACK(track, shallow) {
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PALETTE_SEL_TILE_RED, 0, 0, TILE_HEIGHT);
+	}
+
 	FOR_EACH_SET_TRACK(track, trackbits) {
 		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
 	}
