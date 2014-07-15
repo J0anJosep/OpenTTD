@@ -2385,11 +2385,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		/* Clear the persistent storage. */
 		delete st->airport.psa;
 
-		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-			DeleteWindowById(
-				WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
-			);
-		}
+		DeleteWindowById(WC_VEHICLE_DEPOT, st->airport.depot_id);
 
 		st->rect.AfterRemoveRect(st, st->airport);
 

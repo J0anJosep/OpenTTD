@@ -466,7 +466,7 @@ public:
 
 		/**
 		 * Depot view; %Window numbers:
-		 *   - #TileIndex = #DepotWidgets
+		 *   - #DepotID = #DepotWidgets
 		 */
 		WC_VEHICLE_DEPOT                             = ::WC_VEHICLE_DEPOT,
 
@@ -497,8 +497,8 @@ public:
 
 		/**
 		 * Build vehicle; %Window numbers:
-		 *   - #VehicleType = #BuildVehicleWidgets
-		 *   - #TileIndex = #BuildVehicleWidgets
+		 *   - #INVALID_DEPOT + VehicleType = #BuildVehicleWidgets
+		 *   - #DepotID = #BuildVehicleWidgets
 		 */
 		WC_BUILD_VEHICLE                             = ::WC_BUILD_VEHICLE,
 

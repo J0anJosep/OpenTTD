@@ -43,7 +43,7 @@ Depot::~Depot()
 	RemoveOrderFromAllVehicles(OT_GOTO_DEPOT, this->index);
 
 	/* Delete the depot-window */
-	DeleteWindowById(WC_VEHICLE_DEPOT, this->xy);
+	DeleteWindowById(WC_VEHICLE_DEPOT, this->index);
 
 	/* Delete the depot list */
 	VehicleType vt = GetDepotVehicleType(this->xy);
