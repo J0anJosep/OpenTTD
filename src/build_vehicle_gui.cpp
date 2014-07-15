@@ -32,6 +32,7 @@
 #include "cargotype.h"
 #include "core/geometry_func.hpp"
 #include "autoreplace_func.h"
+#include "depot_base.h"
 
 #include "widgets/build_vehicle_widget.h"
 
@@ -985,6 +986,7 @@ void DisplayVehicleSortDropDown(Window *w, VehicleType vehicle_type, int selecte
 /** GUI for building vehicles. */
 struct BuildVehicleWindow : Window {
 	VehicleType vehicle_type;                   ///< Type of vehicles shown in the window.
+	Depot *depot;                               ///< Depot associated to the window; NULL if general available engines list.
 	union {
 		RailTypeByte railtype;              ///< Rail type to show, or #RAILTYPE_END.
 		RoadTypes roadtypes;                ///< Road type to show, or #ROADTYPES_ALL.
@@ -1002,10 +1004,11 @@ struct BuildVehicleWindow : Window {
 	int details_height;                         ///< Minimal needed height of the details panels (found so far).
 	Scrollbar *vscroll;
 
-	BuildVehicleWindow(WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
+	BuildVehicleWindow(WindowDesc *desc, DepotID depot_id, VehicleType type) : Window(desc)
 	{
 		this->vehicle_type = type;
-		this->window_number = tile == INVALID_TILE ? (int)type : tile;
+		this->depot = depot_id == INVALID_DEPOT ? NULL : Depot::Get(depot_id);
+		if (depot_id == INVALID_DEPOT) depot_id += type;
 
 		this->sel_engine = INVALID_ENGINE;
 
@@ -1016,16 +1019,16 @@ struct BuildVehicleWindow : Window {
 		switch (type) {
 			default: NOT_REACHED();
 			case VEH_TRAIN:
-				this->filter.railtype = (tile == INVALID_TILE) ? RAILTYPE_END : GetRailType(tile);
+				this->filter.railtype = (depot == NULL) ? RAILTYPE_END : GetRailType(depot->xy);
 				break;
 			case VEH_ROAD:
-				this->filter.roadtypes = (tile == INVALID_TILE) ? ROADTYPES_ALL : GetRoadTypes(tile);
+				this->filter.roadtypes = (depot == NULL) ? ROADTYPES_ALL : GetRoadTypes(depot->xy);
 			case VEH_SHIP:
 			case VEH_AIRCRAFT:
 				break;
 		}
 
-		this->listview_mode = (this->window_number <= VEH_END);
+		this->listview_mode = (depot == NULL);
 
 		this->CreateNestedTree();
 
@@ -1059,9 +1062,9 @@ struct BuildVehicleWindow : Window {
 
 		this->details_height = ((this->vehicle_type == VEH_TRAIN) ? 10 : 9) * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 
-		this->FinishInitNested(tile == INVALID_TILE ? (int)type : tile);
+		this->FinishInitNested(depot_id);
 
-		this->owner = (tile != INVALID_TILE) ? GetTileOwner(tile) : _local_company;
+		this->owner = (depot != NULL) ? GetTileOwner(depot->xy) : _local_company;
 
 		this->eng_list.ForceRebuild();
 		this->GenerateBuildList(); // generate the list, since we need it in the next line
@@ -1131,7 +1134,8 @@ struct BuildVehicleWindow : Window {
 		int num_engines = 0;
 		int num_wagons  = 0;
 
-		this->filter.railtype = this->listview_mode ? RAILTYPE_END : GetRailType(this->window_number);
+		assert(this->listview_mode == (depot == NULL));
+		this->filter.railtype = this->listview_mode ? RAILTYPE_END : GetRailType(depot->xy);
 
 		const Engine *e;
 		FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {
@@ -1178,7 +1182,8 @@ struct BuildVehicleWindow : Window {
 	void BuildAndSortEngineListButRail()
 	{
 		/* Get station for aircraft list */
-		const Station *st = (this->listview_mode || this->vehicle_type != VEH_AIRCRAFT) ? NULL : Station::GetByTile(this->window_number);
+		assert(this->listview_mode == (depot == NULL));
+		const Station *st = (this->listview_mode || this->vehicle_type != VEH_AIRCRAFT) ? NULL : Station::GetByTile(depot->xy);
 
 		const Engine *e;
 		FOR_ALL_ENGINES_OF_TYPE(e, this->vehicle_type) {
@@ -1292,7 +1297,8 @@ struct BuildVehicleWindow : Window {
 				EngineID sel_eng = this->sel_engine;
 				if (sel_eng != INVALID_ENGINE) {
 					CommandCallback *callback = (this->vehicle_type == VEH_TRAIN && RailVehInfo(sel_eng)->railveh_type == RAILVEH_WAGON) ? CcBuildWagon : CcBuildPrimaryVehicle;
-					DoCommandP(this->window_number, sel_eng, 0, GetCmdBuildVeh(this->vehicle_type), callback);
+					assert(this->depot != NULL);
+					DoCommandP(this->depot->xy, sel_eng, 0, GetCmdBuildVeh(this->vehicle_type), callback);
 				}
 				break;
 			}
@@ -1473,17 +1479,11 @@ static WindowDesc _build_vehicle_desc(
 	_nested_build_vehicle_widgets, lengthof(_nested_build_vehicle_widgets)
 );
 
-void ShowBuildVehicleWindow(TileIndex tile, VehicleType type)
+void ShowBuildVehicleWindow(DepotID depot_id, VehicleType type)
 {
-	/* We want to be able to open both Available Train as Available Ships,
-	 *  so if tile == INVALID_TILE (Available XXX Window), use 'type' as unique number.
-	 *  As it always is a low value, it won't collide with any real tile
-	 *  number. */
-	uint num = (tile == INVALID_TILE) ? (int)type : tile;
-
 	assert(IsCompanyBuildableVehicleType(type));
 
-	DeleteWindowById(WC_BUILD_VEHICLE, num);
+	DeleteWindowById(WC_BUILD_VEHICLE, depot_id);
 
-	new BuildVehicleWindow(&_build_vehicle_desc, tile, type);
+	new BuildVehicleWindow(&_build_vehicle_desc, depot_id, type);
 }
