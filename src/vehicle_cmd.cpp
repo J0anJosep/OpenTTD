@@ -31,6 +31,7 @@
 #include "ship.h"
 #include "newgrf.h"
 #include "company_base.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
 
@@ -85,7 +86,9 @@ CommandCost CmdBuildAircraft   (TileIndex tile, DoCommandFlag flags, const Engin
 CommandCost CmdBuildVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	/* Elementary check for valid location. */
-	if (!IsDepotTile(tile) || !IsTileOwner(tile, _current_company)) return CMD_ERROR;
+	assert(IsDepotTile(tile));
+	DepotID depot_id = GetDepotIndex(tile);
+	if (!IsTileOwner(tile, _current_company)) return CMD_ERROR;
 
 	VehicleType type = GetDepotVehicleType(tile);
 
@@ -135,7 +138,7 @@ CommandCost CmdBuildVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		v->unitnumber = unit_num;
 		v->value      = value.GetCost();
 
-		InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
+		InvalidateWindowData(WC_VEHICLE_DEPOT, depot_id);
 		InvalidateWindowClassesData(GetWindowClassForVehicleType(type), 0);
 		SetWindowDirty(WC_COMPANY, _current_company);
 		if (IsLocalCompany()) {
@@ -496,7 +499,7 @@ CommandCost CmdRefitVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			InvalidateWindowData(WC_VEHICLE_DETAILS, front->index);
 			InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 0);
 		}
-		SetWindowDirty(WC_VEHICLE_DEPOT, front->tile);
+		SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(front->tile));
 	} else {
 		/* Always invalidate the cache; querycost might have filled it. */
 		v->InvalidateNewGRFCacheOfChain();
@@ -579,7 +582,7 @@ CommandCost CmdStartStopVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 		if (v->type != VEH_TRAIN) v->cur_speed = 0; // trains can stop 'slowly'
 		v->MarkDirty();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-		SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);
+		if (IsDepotTile(v->tile)) SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
 		SetWindowClassesDirty(GetWindowClassForVehicleType(v->type));
 	}
 	return CommandCost();
@@ -610,7 +613,8 @@ CommandCost CmdMassStartStopVehicle(TileIndex tile, DoCommandFlag flags, uint32 
 		if (!GenerateVehicleSortList(&list, vli)) return CMD_ERROR;
 	} else {
 		/* Get the list of vehicles in the depot */
-		BuildDepotVehicleList(vli.vtype, tile, &list, NULL);
+		DepotID depot_id = GetDepotIndex(tile);
+		BuildDepotVehicleList(vli.vtype, depot_id, &list, NULL);
 	}
 
 	for (uint i = 0; i < list.Length(); i++) {
@@ -642,13 +646,15 @@ CommandCost CmdDepotSellAllVehicles(TileIndex tile, DoCommandFlag flags, uint32 
 
 	CommandCost cost(EXPENSES_NEW_VEHICLES);
 	VehicleType vehicle_type = Extract<VehicleType, 0, 3>(p1);
+	assert(IsDepotTile(tile));
+	DepotID depot_id = GetDepotIndex(tile);
 
 	if (!IsCompanyBuildableVehicleType(vehicle_type)) return CMD_ERROR;
 
 	uint sell_command = GetCmdSellVeh(vehicle_type);
 
 	/* Get the list of vehicles in the depot */
-	BuildDepotVehicleList(vehicle_type, tile, &list, &list);
+	BuildDepotVehicleList(vehicle_type, depot_id, &list, &list);
 
 	CommandCost last_error = CMD_ERROR;
 	bool had_success = false;
@@ -684,7 +690,7 @@ CommandCost CmdDepotMassAutoReplace(TileIndex tile, DoCommandFlag flags, uint32 
 	if (!IsDepotTile(tile) || !IsTileOwner(tile, _current_company)) return CMD_ERROR;
 
 	/* Get the list of vehicles in the depot */
-	BuildDepotVehicleList(vehicle_type, tile, &list, &list, true);
+	BuildDepotVehicleList(vehicle_type, GetDepotIndex(tile), &list, &list, true);
 
 	for (uint i = 0; i < list.Length(); i++) {
 		const Vehicle *v = list[i];

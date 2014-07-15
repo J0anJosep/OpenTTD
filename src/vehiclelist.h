@@ -56,7 +56,7 @@ struct VehicleListIdentifier {
 typedef SmallVector<const Vehicle *, 32> VehicleList;
 
 bool GenerateVehicleSortList(VehicleList *list, const VehicleListIdentifier &identifier, const FilterActive *filter = NULL);
-void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engine_list, VehicleList *wagon_list, bool individual_wagons = false);
+void BuildDepotVehicleList(VehicleType type, DepotID depot_id, VehicleList *engine_list, VehicleList *wagon_list, bool individual_wagons = false);
 uint GetUnitNumberDigits(VehicleList &vehicles);
 
 #endif /* VEHICLELIST_H */
