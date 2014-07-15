@@ -1079,10 +1079,18 @@ void DrawWaterClassGround(const TileInfo *ti)
 void DrawWaterTracks(TileIndex tile)
 {
 	assert(WaterTrackMayExist(tile));
-	TrackBits trackbits = GetReservedWaterTracks(tile);
 
-	/* No track reserved: return */
-	if (trackbits == TRACK_BIT_NONE) return;
+	TrackBits trackbits = GetReservedWaterTracks(tile);
+	TrackBits available = TRACK_BIT_NONE;
+	TrackBits shallow   = TRACK_BIT_NONE;
+
+	if (IsWaterTile(tile) || IsCoastTile(tile)) {
+		available = GetWaterTracks(tile);
+		shallow = GetShallowTracks(tile);
+	} else {
+		available = TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0, DIAGDIR_BEGIN));
+		shallow = available;
+	}
 
 	static const byte autorail_offset[] = {0, 8, 16, 25, 34, 42};
 	static const byte slope_offset[] = {2, 2, 5, 5};
@@ -1095,7 +1103,20 @@ void DrawWaterTracks(TileIndex tile)
 		}
 	}
 
+	if (_settings_game.pf.coastal_water_tracks) shallow = TRACK_BIT_NONE;
+
 	Track track;
+
+	FOR_EACH_SET_TRACK(track, available) {
+		if ((TrackToTrackBits(track) & (shallow | trackbits)) != 0) continue;
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PALETTE_SEL_TILE_BLUE, 0, 0, TILE_HEIGHT);
+	}
+
+	FOR_EACH_SET_TRACK(track, shallow) {
+		if ((TrackToTrackBits(track) & trackbits) != 0) continue;
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PALETTE_SEL_TILE_RED, 0, 0, TILE_HEIGHT);
+	}
+
 	FOR_EACH_SET_TRACK(track, trackbits) {
 		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
 	}
