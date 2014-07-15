@@ -2762,23 +2762,6 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 	return true;
 }
 
-/**
- * Draw the tracks of a dock that can be used.
- */
-void DrawDockTracks(TileIndex tile)
-{
-	TrackBits trackbits = GetDockTracks(tile);
-
-	assert(trackbits != TRACK_BIT_NONE);
-
-	static const byte autorail_offset[] = {0, 8, 16, 25, 34, 42};
-
-	Track track;
-	FOR_EACH_SET_TRACK(track, trackbits) {
-		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track], PAL_NONE, 0, 0, TILE_HEIGHT);
-	}
-}
-
 static void DrawTile_Station(TileInfo *ti)
 {
 	const NewGRFSpriteLayout *layout = NULL;
@@ -2943,17 +2926,12 @@ draw_default_foundation:
 
 	if (IsBuoy(ti->tile)) {
 		DrawWaterClassGround(ti);
-		if (_settings_client.gui.show_water_tracks) DrawWaterTracks(ti->tile);
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
 	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
-			if (IsDock(ti->tile)) {
-				DrawDockTracks(ti->tile);
-				if (_settings_client.gui.show_water_tracks) DrawWaterTracks(ti->tile);
-				return;
-			}
+			return;
 		} else {
 			assert(IsDock(ti->tile));
 			TileIndex water_tile = TileAddByDiagDir(ti->tile,

@@ -206,7 +206,8 @@ static const SpriteID SPR_HALFTILE_BLOCK_SIZE      = 4;  // The half tile founda
 static const uint16 NORMAL_AND_HALFTILE_FOUNDATION_SPRITE_COUNT = 90;
 
 static const SpriteID SPR_AUTORAIL_BASE = SPR_HALFTILE_FOUNDATION_BASE + NORMAL_AND_HALFTILE_FOUNDATION_SPRITE_COUNT;
-static const uint16 AUTORAIL_SPRITE_COUNT = 55;
+static const SpriteID SPR_AUTORAIL_WATER = SPR_AUTORAIL_BASE + 55;
+static const uint16 AUTORAIL_SPRITE_COUNT = 65;
 
 static const SpriteID SPR_ELRAIL_BASE   = SPR_AUTORAIL_BASE + AUTORAIL_SPRITE_COUNT;
 static const uint16 ELRAIL_SPRITE_COUNT = 48;
@@ -299,7 +300,7 @@ static const uint16 EMPTY_BOUNDING_BOX_SPRITE_COUNT = 1;
 
 /* Black palette sprite, needed for painting (fictive) tiles outside map */
 static const SpriteID SPR_PALETTE_BASE = SPR_EMPTY_BOUNDING_BOX + EMPTY_BOUNDING_BOX_SPRITE_COUNT;
-static const uint16 PALETTE_SPRITE_COUNT = 1;
+static const uint16 PALETTE_SPRITE_COUNT = 2;
 
 /* From where can we start putting NewGRFs? */
 static const SpriteID SPR_NEWGRFS_BASE = SPR_PALETTE_BASE + PALETTE_SPRITE_COUNT;
@@ -1578,5 +1579,6 @@ static const PaletteID PALETTE_CHURCH_RED          = 1438; ///< Recolour sprite 
 static const PaletteID PALETTE_CHURCH_CREAM        = 1439; ///< Recolour sprite for white churches
 
 static const PaletteID PALETTE_ALL_BLACK           = SPR_PALETTE_BASE; ///< Exchange any color by black, needed for painting fictive tiles outside map
+static const PaletteID PALETTE_SEL_TILE_GREEN      = SPR_PALETTE_BASE + 1;
 
 #endif /* SPRITES_H */
