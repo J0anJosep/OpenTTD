@@ -13,6 +13,7 @@
 #include "train.h"
 #include "vehiclelist.h"
 #include "group.h"
+#include "depot_map.h"
 #include "filters/filter_active.h"
 
 #include "safeguards.h"
@@ -64,12 +65,12 @@ bool VehicleListIdentifier::UnpackIfValid(uint32 data)
 /**
  * Generate a list of vehicles inside a depot.
  * @param type    Type of vehicle
- * @param tile    The tile the depot is located on
+ * @param depotid The id of the depot
  * @param engines Pointer to list to add vehicles to
  * @param wagons  Pointer to list to add wagons to (can be NULL)
  * @param individual_wagons If true add every wagon to \a wagons which is not attached to an engine. If false only add the first wagon of every row.
  */
-void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engines, VehicleList *wagons, bool individual_wagons)
+void BuildDepotVehicleList(VehicleType type, DepotID depot_id, VehicleList *engines, VehicleList *wagons, bool individual_wagons)
 {
 	engines->Clear();
 	if (wagons != NULL && wagons != engines) wagons->Clear();
@@ -78,7 +79,8 @@ void BuildDepotVehicleList(VehicleType type, TileIndex tile, VehicleList *engine
 	FOR_ALL_VEHICLES(v) {
 		/* General tests for all vehicle types */
 		if (v->type != type) continue;
-		if (v->tile != tile) continue;
+		if (!IsDepotTypeTile(v->tile, (TransportType)type)) continue;
+		if (GetDepotIndex(v->tile) != depot_id) continue;
 
 		switch (type) {
 			case VEH_TRAIN: {
