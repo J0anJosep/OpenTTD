@@ -761,6 +761,11 @@ public:
 
 	bool HandleBreakdown();
 
+	bool IsServicing() const { return HasBit(this->vehicle_flags, VF_IS_SERVICING); }
+
+	void StartService();
+	bool ContinueServicing();
+
 	bool NeedsAutorenewing(const Company *c, bool use_renew_setting = true) const;
 
 	bool NeedsServicing() const;
