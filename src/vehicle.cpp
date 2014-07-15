@@ -111,6 +111,10 @@ void VehicleServiceInDepot(Vehicle *v)
 	} while (v != NULL && v->HasEngineType());
 }
 
+void VehicleServiceInBigDepot(Vehicle *v)
+{
+}
+
 /**
  * Check if the vehicle needs to go to a depot in near future (if a opportunity presents itself) for service or replacement.
  *
