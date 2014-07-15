@@ -928,6 +928,8 @@ static void DrawCanalWater(TileIndex tile)
 	}
 	DrawWaterSprite(image, 0, CF_WATERSLOPE, tile);
 
+	if (_settings_client.gui.show_water_tracks && WaterTrackMayExist(tile)) DrawWaterTracks(tile);
+
 	DrawWaterEdges(true, 0, tile);
 }
 
@@ -1057,6 +1059,8 @@ static void DrawRiverWater(const TileInfo *ti)
 
 	DrawGroundSprite(image + offset, PAL_NONE);
 
+	if (_settings_client.gui.show_water_tracks && WaterTrackMayExist(ti->tile)) DrawWaterTracks(ti->tile);
+
 	/* Draw river edges if available. */
 	DrawWaterEdges(false, edges_offset, ti->tile);
 }
@@ -1081,13 +1085,15 @@ void DrawShoreTile(Slope tileh)
 void DrawWaterClassGround(const TileInfo *ti)
 {
 	switch (GetWaterClass(ti->tile)) {
-		case WATER_CLASS_SEA:   DrawSeaWater(ti->tile); break;
+		case WATER_CLASS_SEA:
+			DrawSeaWater(ti->tile);
+			if (_settings_client.gui.show_water_tracks && WaterTrackMayExist(ti->tile)) DrawWaterTracks(ti->tile);
+			break;
 		case WATER_CLASS_CANAL: DrawCanalWater(ti->tile); break;
 		case WATER_CLASS_RIVER: DrawRiverWater(ti); break;
 		default: NOT_REACHED();
 	}
 
-	if (_settings_client.gui.show_water_tracks) DrawWaterTracks(ti->tile);
 }
 
 /**
@@ -1097,13 +1103,22 @@ void DrawWaterClassGround(const TileInfo *ti)
 void DrawWaterTracks(TileIndex tile)
 {
 	assert(WaterTrackMayExist(tile));
+
 	TrackBits trackbits = GetReservedWaterTracks(tile);
+	TrackBits available = TRACK_BIT_NONE;
+	TrackBits shallow   = TRACK_BIT_NONE;
 
-	/* No track reserved: return */
-	if (trackbits == TRACK_BIT_NONE) return;
+	if (IsWaterTile(tile) || IsCoastTile(tile)) {
+		available = GetWaterTracks(tile);
+		shallow = GetShallowTracks(tile);
+	} else if (IsDockTile(tile)) {
+		available = GetDockTracks(tile);
+	} else {
+		available = TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0, DIAGDIR_BEGIN));
+		shallow = available;
+	}
 
-	static const byte autorail_offset[] = {0, 8, 16, 25, 34, 42};
-	static const byte slope_offset[] = {2, 2, 5, 5};
+	static const byte slope_offset[] = {6, 7, 7, 8};
 	byte slope_off = 0;
 
 	if (IsLockTile(tile)) {
@@ -1113,9 +1128,22 @@ void DrawWaterTracks(TileIndex tile)
 		}
 	}
 
+	if (_settings_game.pf.coastal_water_tracks) shallow = TRACK_BIT_NONE;
+
 	Track track;
+	PaletteID pal = IsDockTile(tile) ? PALETTE_SEL_TILE_GREEN : PALETTE_SEL_TILE_BLUE;
+	FOR_EACH_SET_TRACK(track, available) {
+		if ((TrackToTrackBits(track) & (shallow | trackbits)) != 0) continue;
+		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, pal, 0, 0, TILE_HEIGHT);
+	}
+
+	FOR_EACH_SET_TRACK(track, shallow) {
+		if ((TrackToTrackBits(track) & trackbits) != 0) continue;
+		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PALETTE_SEL_TILE_RED, 0, 0, TILE_HEIGHT);
+	}
+
 	FOR_EACH_SET_TRACK(track, trackbits) {
-		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + autorail_offset[track] + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
+		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
 	}
 }
 
@@ -1129,7 +1157,7 @@ static void DrawTile_Water(TileInfo *ti)
 
 		case WATER_TILE_COAST: {
 			DrawShoreTile(ti->tileh);
-			if (_settings_client.gui.show_water_tracks) DrawWaterTracks(ti->tile);
+			if (_settings_client.gui.show_water_tracks && WaterTrackMayExist(ti->tile)) DrawWaterTracks(ti->tile);
 			DrawBridgeMiddle(ti);
 			break;
 		}
