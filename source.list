@@ -135,6 +135,7 @@ zoning.cpp
 	sound/allegro_s.h
 	video/allegro_v.h
 #end
+air_type.h
 aircraft.h
 airport.h
 animated_tile_func.h
