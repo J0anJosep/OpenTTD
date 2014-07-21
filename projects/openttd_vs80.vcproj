@@ -859,6 +859,10 @@
 			Name="Header Files"
 			>
 			<File
+				RelativePath=".\..\src\air_type.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\aircraft.h"
 				>
 			</File>

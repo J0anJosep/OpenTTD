@@ -425,6 +425,7 @@
     <ClCompile Include="..\src\widget.cpp" />
     <ClCompile Include="..\src\window.cpp" />
     <ClCompile Include="..\src\zoning.cpp" />
+    <ClInclude Include="..\src\air_type.h" />
     <ClInclude Include="..\src\aircraft.h" />
     <ClInclude Include="..\src\airport.h" />
     <ClInclude Include="..\src\animated_tile_func.h" />
