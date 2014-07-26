@@ -1005,6 +1005,7 @@ newgrf_townname.cpp
 
 # Map Accessors
 bridge_map.cpp
+air_map.h
 bridge_map.h
 clear_map.h
 industry_map.h

@@ -49,6 +49,20 @@ static inline StationType GetStationType(TileIndex t)
 }
 
 /**
+ * Get the station type of this tile
+ * @param t the tile to query
+ * @pre IsTileType(t, MP_STATION)
+ * @return the station type
+ */
+static inline void SetStationType(TileIndex t, StationType type)
+{
+	assert(IsTileType(t, MP_STATION));
+	SB(_me[t].m6, 3, 3, type);
+}
+
+#include "air_map.h"
+
+/**
  * Get the road stop type of this tile
  * @param t the tile to query
  * @pre GetStationType(t) == STATION_TRUCK || GetStationType(t) == STATION_BUS
@@ -69,6 +83,10 @@ static inline RoadStopType GetRoadStopType(TileIndex t)
 static inline StationGfx GetStationGfx(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
+
+	/* Tracks on airports are obtained differently. */
+	if (GetStationType(t) == STATION_AIRPORT) return GetAirportGfxTracks(t);
+
 	return _m[t].m5;
 }
 
@@ -148,29 +166,6 @@ static inline bool HasStationTileRail(TileIndex t)
 {
 	return IsTileType(t, MP_STATION) && HasStationRail(t);
 }
-
-/**
- * Is this station tile an airport?
- * @param t the tile to get the information from
- * @pre IsTileType(t, MP_STATION)
- * @return true if and only if the tile is an airport
- */
-static inline bool IsAirport(TileIndex t)
-{
-	return GetStationType(t) == STATION_AIRPORT;
-}
-
-/**
- * Is this tile a station tile and an airport tile?
- * @param t the tile to get the information from
- * @return true if and only if the tile is an airport
- */
-static inline bool IsAirportTile(TileIndex t)
-{
-	return IsTileType(t, MP_STATION) && IsAirport(t);
-}
-
-bool IsHangar(TileIndex t);
 
 /**
  * Is the station at \a t a truck stop?
@@ -267,17 +262,6 @@ static inline DiagDirection GetRoadStopDir(TileIndex t)
 }
 
 /**
- * Is tile \a t part of an oilrig?
- * @param t Tile to check
- * @pre IsTileType(t, MP_STATION)
- * @return \c true if the tile is an oilrig tile
- */
-static inline bool IsOilRig(TileIndex t)
-{
-	return GetStationType(t) == STATION_OILRIG;
-}
-
-/**
  * Is tile \a t a dock tile?
  * @param t Tile to check
  * @pre IsTileType(t, MP_STATION)
@@ -326,7 +310,7 @@ static inline bool IsBuoyTile(TileIndex t)
  */
 static inline bool IsHangarTile(TileIndex t)
 {
-	return IsTileType(t, MP_STATION) && IsHangar(t);
+	return IsTileType(t, MP_STATION) && IsAirport(t) && IsHangar(t);
 }
 
 /**
