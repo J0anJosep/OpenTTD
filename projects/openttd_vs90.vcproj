@@ -4224,6 +4224,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\air_map.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\bridge_map.h"
 				>
 			</File>

@@ -2782,6 +2782,7 @@ static void DrawTile_Station(TileInfo *ti)
 	BaseStation *st = NULL;
 	const StationSpec *statspec = NULL;
 	uint tile_layout = 0;
+	StationGfx gfx = GetStationGfx(ti->tile);
 
 	if (HasStationRail(ti->tile)) {
 		rti = GetRailTypeInfo(GetRailType(ti->tile));
@@ -2794,7 +2795,7 @@ static void DrawTile_Station(TileInfo *ti)
 			statspec = st->speclist[GetCustomStationSpecIndex(ti->tile)].spec;
 
 			if (statspec != NULL) {
-				tile_layout = GetStationGfx(ti->tile);
+				tile_layout = gfx;
 
 				if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
 					uint16 callback = GetStationCallback(CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
@@ -2816,10 +2817,9 @@ static void DrawTile_Station(TileInfo *ti)
 		total_offset = 0;
 	}
 
-	StationGfx gfx = GetStationGfx(ti->tile);
 	if (IsAirport(ti->tile)) {
-		gfx = GetAirportGfx(ti->tile);
 		if (gfx >= NEW_AIRPORTTILE_OFFSET) {
+			NOT_REACHED();
 			const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
 			if (ats->grf_prop.spritegroup[0] != NULL && DrawNewAirportTile(ti, Station::GetByTile(ti->tile), gfx, ats)) {
 				return;
@@ -3217,7 +3217,7 @@ static bool ClickTile_Station(TileIndex tile)
 
 	if (bst->facilities & FACIL_WAYPOINT) {
 		ShowWaypointWindow(Waypoint::From(bst));
-	} else if (IsHangar(tile)) {
+	} else if (IsHangarTile(tile)) {
 		const Station *st = Station::From(bst);
 		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
 	} else if (_ctrl_pressed && bst->HasFacilities(FACIL_DOCK) && IsDockTile(tile) && GetTileSlope(tile) == SLOPE_FLAT) {

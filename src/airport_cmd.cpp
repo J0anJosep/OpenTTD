@@ -2981,4 +2981,63 @@ extern const TileTypeProcs _tile_type_air_procs = {
 	TerraformTile_Track,      // terraform_tile_proc
 };
 
+/**
+ * Get the sprite for an airport tile.
+ * @param t Tile to get the sprite of.
+ * @return AirportTile ID.
+ */
+AirportTiles GetAirportGfx(TileIndex t)
+{
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+
+	AirType airport_type = GetAirportType(t);
+
+	static const AirportTiles airport_base_tiles[AIRTYPE_END] = {
+		APT_BASE_GRAVEL,
+		APT_BASE_ASPHALT,
+		APT_BASE_WATER,
+	};
+
+	AirportTileType att = GetAirportTileType(t);
+	switch (att) {
+		case ATT_INFRASTRUCTURE:
+			return GetAirportGfxFromTile(t);
+		case ATT_SIMPLE_TRACK:
+			return airport_base_tiles[airport_type];
+		case ATT_HANGAR: {
+			uint16 offset = AIRPORT_SPRITES_OFFSET_HANGARS;
+			return (AirportTiles)(airport_base_tiles[airport_type] + offset + GetHangarDirection(t));
+		}
+		case ATT_TERMINAL:
+			switch (GetTerminalType(t)) {
+				case HTT_TERMINAL:
+				case HTT_HELIPAD:
+					return (AirportTiles)(airport_base_tiles[airport_type] +
+							AIRPORT_TILES_OFFSET_TERMINALS + GetTerminalType(t) - HTT_TERMINAL);
+				case HTT_HELIPORT:
+					static const AirportTiles heliports[AIRTYPE_END] = {APT_HELIPORT, APT_HELIPORT, APT_HELIPORT};
+					return heliports[airport_type];
+				case HTT_BUILTIN_HELIPORT:
+					return (AirportTiles)0; // oil rig heliport
+				default: NOT_REACHED();
+			}
+		case ATT_RUNWAY: {
+			Direction dir = GetPlainRunwayDirections(t);
+			return (AirportTiles)(airport_base_tiles[airport_type] + AIRPORT_SPRITES_OFFSET_RUNWAYS + dir);
+		}
+
+		case ATT_RUNWAY_START:
+		case ATT_RUNWAY_END: {
+			uint16 offset = AIRPORT_SPRITES_OFFSET_RUNWAYS_START;
+			if (att == ATT_RUNWAY_END) offset += AIRPORT_SPRITES_OFFSET_RUNWAYS_END;
+			if (!IsLandingTypeTile(t)) offset += AIRPORT_SPRITES_OFFSET_RUNWAYS_DONT_ALLOW_LANDING;
+			return (AirportTiles)(airport_base_tiles[airport_type] + offset + GetRunwayExtremeDirection(t));
+		}
+
+		default: NOT_REACHED();
+	}
+}
+
 #endif // unfinished_air_cmd
+
