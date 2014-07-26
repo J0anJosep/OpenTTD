@@ -17,6 +17,7 @@
 #include "newgrf_airport.h"
 #include "cargopacket.h"
 #include "industry_type.h"
+#include "air_type.h"
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
 #include "depot_type.h"
@@ -318,6 +319,7 @@ struct Airport : public TileArea {
 	byte type;          ///< Type of this airport, @see AirportTypes
 	byte layout;        ///< Airport layout number.
 	DirectionByte rotation; ///< How this airport is rotated.
+	AirType air_type;       ///< NOSAVE: airport type.
 	DepotID depot_id;       ///< The corresponding depot ID for this airport.
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
