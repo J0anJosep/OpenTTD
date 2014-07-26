@@ -1231,6 +1231,7 @@
     <ClCompile Include="..\src\newgrf_town.cpp" />
     <ClCompile Include="..\src\newgrf_townname.cpp" />
     <ClCompile Include="..\src\bridge_map.cpp" />
+    <ClInclude Include="..\src\air_map.h" />
     <ClInclude Include="..\src\bridge_map.h" />
     <ClInclude Include="..\src\clear_map.h" />
     <ClInclude Include="..\src\industry_map.h" />

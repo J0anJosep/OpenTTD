@@ -49,6 +49,20 @@ static inline StationType GetStationType(TileIndex t)
 }
 
 /**
+ * Get the station type of this tile
+ * @param t the tile to query
+ * @pre IsTileType(t, MP_STATION)
+ * @return the station type
+ */
+static inline void SetStationType(TileIndex t, StationType type)
+{
+	assert(IsTileType(t, MP_STATION));
+	SB(_me[t].m6, 3, 3, type);
+}
+
+#include "air_map.h"
+
+/**
  * Get the road stop type of this tile
  * @param t the tile to query
  * @pre GetStationType(t) == STATION_TRUCK || GetStationType(t) == STATION_BUS
@@ -71,6 +85,7 @@ static inline StationGfx GetStationGfx(TileIndex t)
 	assert(IsTileType(t, MP_STATION));
 
 	switch (GetStationType(t)) {
+		case STATION_AIRPORT: return GetAirportGfx(t);
 		case STATION_BUOY: return (StationGfx)0;
 		default: return _m[t].m5;
 	}
@@ -154,29 +169,6 @@ static inline bool HasStationTileRail(TileIndex t)
 }
 
 /**
- * Is this station tile an airport?
- * @param t the tile to get the information from
- * @pre IsTileType(t, MP_STATION)
- * @return true if and only if the tile is an airport
- */
-static inline bool IsAirport(TileIndex t)
-{
-	return GetStationType(t) == STATION_AIRPORT;
-}
-
-/**
- * Is this tile a station tile and an airport tile?
- * @param t the tile to get the information from
- * @return true if and only if the tile is an airport
- */
-static inline bool IsAirportTile(TileIndex t)
-{
-	return IsTileType(t, MP_STATION) && IsAirport(t);
-}
-
-bool IsHangar(TileIndex t);
-
-/**
  * Is the station at \a t a truck stop?
  * @param t Tile to check
  * @pre IsTileType(t, MP_STATION)
@@ -241,19 +233,6 @@ static inline bool IsDriveThroughStopTile(TileIndex t)
 }
 
 /**
- * Get the station graphics of this airport tile
- * @param t the tile to query
- * @pre IsAirport(t)
- * @return the station graphics
- */
-static inline StationGfx GetAirportGfx(TileIndex t)
-{
-	assert(IsAirport(t));
-	extern StationGfx GetTranslatedAirportTileID(StationGfx gfx);
-	return GetTranslatedAirportTileID(GetStationGfx(t));
-}
-
-/**
  * Gets the direction the road stop entrance points towards.
  * @param t the tile of the road stop
  * @pre IsRoadStopTile(t)
@@ -268,17 +247,6 @@ static inline DiagDirection GetRoadStopDir(TileIndex t)
 	} else {
 		return (DiagDirection)(gfx - GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET);
 	}
-}
-
-/**
- * Is tile \a t part of an oilrig?
- * @param t Tile to check
- * @pre IsTileType(t, MP_STATION)
- * @return \c true if the tile is an oilrig tile
- */
-static inline bool IsOilRig(TileIndex t)
-{
-	return GetStationType(t) == STATION_OILRIG;
 }
 
 /**
@@ -330,7 +298,7 @@ static inline bool IsBuoyTile(TileIndex t)
  */
 static inline bool IsHangarTile(TileIndex t)
 {
-	return IsTileType(t, MP_STATION) && IsHangar(t);
+	return IsTileType(t, MP_STATION) && IsAirport(t) && IsHangar(t);
 }
 
 /**

@@ -2835,6 +2835,9 @@
     <ClCompile Include="..\src\bridge_map.cpp">
       <Filter>Map Accessors</Filter>
     </ClCompile>
+    <ClInclude Include="..\src\air_map.h">
+      <Filter>Map Accessors</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\bridge_map.h">
       <Filter>Map Accessors</Filter>
     </ClInclude>

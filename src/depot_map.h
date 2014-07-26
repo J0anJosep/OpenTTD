@@ -42,7 +42,7 @@ static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
 static inline bool IsDepotTile(TileIndex tile)
 {
 	TileType type = GetTileType(tile);
-	if (type == MP_STATION) return IsHangar(tile);
+	if (type == MP_STATION) return IsAirport(tile) && IsHangar(tile);
 	if (!HasBit(_m[tile].m5, 7)) return false;
 
 	return type == MP_RAILWAY || type == MP_ROAD || type == MP_WATER;
