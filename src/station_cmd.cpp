@@ -60,9 +60,11 @@
 #include "zoning.h"
 #include "platform_func.h"
 #include "depot_base.h"
+#include "tilehighlight_type.h"
 
 #include "table/strings.h"
 #include "table/airport_translation.h"
+#include "table/autorail.h"
 
 #include "safeguards.h"
 
@@ -2731,6 +2733,41 @@ void DrawDockTracks(TileIndex tile)
 	}
 }
 
+/**
+ * Draw the reserved water tracks of a tile if setting show reserved tracks is enabled
+ * @param t the tile
+ */
+void DrawAirportTracks(const TileInfo *ti)
+{
+	assert(IsAirportTile(ti->tile));
+	assert(MayHaveAirTracks(ti->tile));
+	TrackBits trackbits = GetAirportTileTracks(ti->tile);
+
+	TrackBits reserved = GetReservedAirportTracks(ti->tile);
+	TrackBits runway_tracks = (IsRunway(ti->tile) && GetReservationAsRunway(ti->tile)) ?
+			GetRunwayTracks(ti->tile) : TRACK_BIT_NONE;
+	Slope autorail_tileh = RemoveHalftileSlope(ti->tileh);
+
+	/* No tracks: return */
+	if ((trackbits | runway_tracks) == TRACK_BIT_NONE) return;
+
+	Track track;
+	FOR_EACH_SET_TRACK(track, trackbits | runway_tracks) {
+		PaletteID palette = PAL_NONE;
+		TrackBits tracks = TrackToTrackBits(track);
+
+		if ((runway_tracks & tracks) != 0) {
+			palette = PALETTE_SEL_TILE_RED;
+		} else if ((trackbits & tracks) != 0) {
+			palette = (reserved & tracks) != 0 ? PALETTE_SEL_TILE_BLUE : PALETTE_CRASH;
+		}
+
+		int offset = abs(_AutorailTilehSprite[autorail_tileh][track]);
+		if (palette != PAL_NONE) DrawGroundSpriteAt(SPR_AUTORAIL_BASE + offset,
+				   palette, 0, 0, TILE_HEIGHT);
+	}
+}
+
 static void DrawTile_Station(TileInfo *ti)
 {
 	const NewGRFSpriteLayout *layout = NULL;
@@ -2956,10 +2993,14 @@ draw_default_foundation:
 			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
 			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
 
-			/* PBS debugging, draw reserved tracks darker */
-			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
-				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite(GetRailStationAxis(ti->tile) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH);
+			if (IsAirportTile(ti->tile)) {
+				if (_settings_client.gui.show_airport_tracks && MayHaveAirTracks(ti->tile)) DrawAirportTracks(ti);
+			} else if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation) {
+				/* PBS debugging, draw reserved tracks darker. */
+				if (HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
+					const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
+					DrawGroundSprite(GetRailStationAxis(ti->tile) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH);
+				}
 			}
 		}
 	}
