@@ -20,6 +20,8 @@
 #include "viewport_func.h"
 #include "table/airporttile_ids.h"
 
+extern bool _show_airport_tracks;
+
 /**
  * Is this station tile an airport?
  * @param t the tile to get the information from
@@ -932,6 +934,7 @@ static inline bool SetAirportTracksReservation(TileIndex t, TrackBits tracks)
 	SB(_m[t].m5, 6, 2, tracks);
 	SB(_m[t].m4, 0, 4, tracks >> 2);
 
+	if (_show_airport_tracks) MarkTileDirtyByTile(t);
 	return true;
 }
 
@@ -970,6 +973,7 @@ static inline bool RemoveAirportTrackReservation(TileIndex t, Track track)
 	SB(_m[t].m5, 6, 2, already_set);
 	SB(_m[t].m4, 0, 4, already_set >> 2);
 
+	if (_show_airport_tracks) MarkTileDirtyByTile(t);
 	return true;
 }
 
