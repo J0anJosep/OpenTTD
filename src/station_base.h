@@ -21,6 +21,7 @@
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
 #include "depot_type.h"
+#include "tile_list.h"
 #include <map>
 
 typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
@@ -313,7 +314,9 @@ struct GoodsEntry {
 
 /** All airport-related information. Only valid if tile != INVALID_TILE. */
 struct Airport : public TileArea {
-	Airport() : TileArea(INVALID_TILE, 0, 0), depot_id(INVALID_DEPOT) {}
+	Airport() : TileArea(INVALID_TILE, 0, 0),
+		depot_id(INVALID_DEPOT),
+		footprint(NULL) {}
 
 	uint64 flags;       ///< stores which blocks on the airport are taken. was 16 bit earlier on, then 32
 	byte type;          ///< Type of this airport, @see AirportTypes
@@ -321,6 +324,12 @@ struct Airport : public TileArea {
 	DirectionByte rotation; ///< How this airport is rotated.
 	AirType air_type;       ///< NOSAVE: airport type.
 	DepotID depot_id;       ///< The corresponding depot ID for this airport.
+
+	BitMap *footprint;            ///< NOSAVE: mask that used with Airport::TileArea indicates which tiles belong to this station.
+	TileIDVector terminals;            ///< NOSAVE: terminals this airport has.
+	TileIDVector helipads;             ///< NOSAVE: helipads of this airport.
+	TileIDVector runways;              ///< NOSAVE: runways of this airport.
+	uint8 longest_landing;        ///< NOSAVE: longest landing runway.
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
@@ -433,8 +442,6 @@ struct Airport : public TileArea {
 		return num;
 	}
 
-	void SetDepot(bool adding);
-
 private:
 	/**
 	 * Retrieve hangar information of a hangar at a given tile.
@@ -480,6 +487,7 @@ public:
 	Dock *docks;            ///< All the docks
 	TileArea dock_station;  ///< Tile area dock 'station' part covers
 
+	void TranslateAirport();
 	Dock *GetPrimaryDock() const { return docks; }
 
 	IndustryType indtype;   ///< Industry type to get the name from
@@ -523,7 +531,8 @@ public:
 	static void RecomputeIndustriesNearArea(const TileArea ta, const BitMap *footprint);
 	static void RecomputeIndustriesNearForAll();
 
-
+	void ClearAirportDataInfrastructure();
+	void UpdateAirportDataStructure();
 
 	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
 	{

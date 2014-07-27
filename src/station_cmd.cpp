@@ -42,6 +42,7 @@
 #include "newgrf_railtype.h"
 #include "waypoint_base.h"
 #include "waypoint_func.h"
+#include "pbs_air.h"
 #include "pbs_rail.h"
 #include "pbs_water.h"
 #include "debug.h"
@@ -2319,7 +2320,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
 		}
 
-		if (_translation_airport_hangars[airport_type]) st->airport.SetDepot(true);
+		st->TranslateAirport();
 
 		UpdateAirplanesOnNewStation(st);
 
@@ -2362,7 +2363,6 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (flags & DC_EXEC) {
-		st->airport.SetDepot(false);
 		const AirportSpec *as = st->airport.GetSpec();
 		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
 		 * And as for construction, always remove it, even if the setting is not set, in order to avoid the

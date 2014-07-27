@@ -67,6 +67,7 @@ network/network_server.cpp
 network/network_udp.cpp
 openttd.cpp
 order_backup.cpp
+pbs_air.cpp
 pbs_rail.cpp
 pbs_water.cpp
 platform.cpp
@@ -312,6 +313,7 @@ order_base.h
 order_func.h
 order_type.h
 pbs.h
+pbs_air.h
 pbs_rail.h
 pbs_water.h
 platform_func.h

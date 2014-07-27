@@ -80,6 +80,7 @@ Station::Station(TileIndex tile) :
 Station::~Station()
 {
 	delete [] this->footprint;
+	delete [] this->airport.footprint;
 
 	if (CleaningPool()) {
 		for (CargoID c = 0; c < NUM_CARGO; c++) {
@@ -688,31 +689,6 @@ Money AirportMaintenanceCost(Owner owner)
 	}
 	/* 3 bits fraction for the maintenance cost factor. */
 	return total_cost >> 3;
-}
-
-void Airport::SetDepot(bool adding)
-{
-	if (adding) {
-		assert(this->depot_id == INVALID_DEPOT);
-		if (!Depot::CanAllocateItem()) NOT_REACHED();
-		assert(this->GetNumHangars() > 0);
-		Station *st = Station::GetByTile(this->GetHangarTile(0));
-		Depot *dep = new Depot(this->GetHangarTile(0));
-		this->depot_id = dep->index;
-		dep->build_date = st->build_date;
-		dep->town = st->town;
-		dep->company = GetTileOwner(dep->xy);
-		dep->veh_type = VEH_AIRCRAFT;
-		dep->ta.tile = st->airport.tile;
-		dep->ta.w = st->airport.w;
-		dep->ta.h = st->airport.h;
-		for (uint i = 0; i < this->GetNumHangars(); i++) {
-			*dep->depot_tiles.Append() = this->GetHangarTile(i);
-		}
-	} else {
-		delete Depot::GetIfValid(this->depot_id);
-		this->depot_id = INVALID_DEPOT;
-	}
 }
 
 DepotID GetHangarIndex(TileIndex t) {
