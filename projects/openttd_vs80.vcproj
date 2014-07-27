@@ -715,6 +715,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\pbs_air.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\pbs_rail.cpp"
 				>
 			</File>
@@ -1584,6 +1588,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\pbs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\pbs_air.h"
 				>
 			</File>
 			<File
