@@ -306,6 +306,9 @@
     <ClCompile Include="..\src\order_backup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\pbs_air.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\pbs_rail.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -946,6 +949,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pbs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pbs_air.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\pbs_rail.h">
