@@ -414,6 +414,7 @@
     <ClInclude Include="..\src\air_type.h" />
     <ClInclude Include="..\src\aircraft.h" />
     <ClInclude Include="..\src\airport.h" />
+    <ClInclude Include="..\src\airport_func.h" />
     <ClInclude Include="..\src\animated_tile_func.h" />
     <ClInclude Include="..\src\articulated_vehicles.h" />
     <ClInclude Include="..\src\autoreplace_base.h" />
