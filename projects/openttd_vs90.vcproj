@@ -888,6 +888,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\airport_func.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\animated_tile_func.h"
 				>
 			</File>
