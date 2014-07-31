@@ -141,6 +141,7 @@ air.h
 air_type.h
 aircraft.h
 airport.h
+airport_func.h
 animated_tile_func.h
 articulated_vehicles.h
 autoreplace_base.h
