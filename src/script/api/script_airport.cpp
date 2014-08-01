@@ -137,9 +137,7 @@
 
 	if (_settings_game.economy.station_noise_level) {
 		const AirportSpec *as = ::AirportSpec::Get(type);
-		AirportTileTableIterator it(as->table[0], tile);
-		const Town *t = AirportGetNearestTown(as, it);
-		return GetAirportNoiseLevelForTown(as, it, t->xy);
+		return as->noise_level;
 	}
 
 	return 1;
