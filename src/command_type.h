@@ -203,7 +203,11 @@ enum Commands {
 	CMD_BUILD_ROAD,                   ///< build a "half" road
 	CMD_BUILD_ROAD_DEPOT,             ///< build a road depot
 
-	CMD_BUILD_AIRPORT,                ///< build an airport
+	CMD_CHANGE_AIRPORT,               ///< change pieces of airport
+	CMD_ADD_REM_AIRPORT,              ///< build/remove tiles for airport tracks
+	CMD_ADD_REM_TRACKS,               ///< build/remove tracks
+	CMD_CONVERT_AIRPORT,              ///< change the aiport type (gravel, asphalt, etc.)
+	CMD_BUILD_AIRPORT,                ///< build an airport layout
 
 	CMD_BUILD_DOCK,                   ///< build a dock
 	CMD_ROTATE_DOCK_TRACKS,           ///< rotate the tracks of a dock
