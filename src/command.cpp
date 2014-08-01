@@ -70,6 +70,11 @@ CommandProc CmdBuildRoad;
 
 CommandProc CmdBuildRoadDepot;
 
+CommandProc CmdChangeAirportTiles;
+CommandProc CmdAddRemoveAirportTiles;
+CommandProc CmdAddRemoveTracksToAirport;
+CommandProc CmdChangeAirType;
+
 CommandProc CmdBuildAirport;
 
 CommandProc CmdBuildDock;
@@ -238,6 +243,11 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdRemoveLongRoad,            CMD_NO_TEST | CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_REMOVE_LONG_ROAD; towns may disallow removing road bits (as they are connected) in test, but in exec they're removed and thus removing is allowed.
 	DEF_CMD(CmdBuildRoad,    CMD_DEITY | CMD_NO_WATER | CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_ROAD
 	DEF_CMD(CmdBuildRoadDepot,           CMD_NO_WATER | CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_ROAD_DEPOT
+
+	DEF_CMD(CmdChangeAirportTiles,                      CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_CHANGE_AIRPORT
+	DEF_CMD(CmdAddRemoveAirportTiles,                   CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_ADD_REM_AIRPORT
+	DEF_CMD(CmdAddRemoveTracksToAirport,                CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_ADD_REM_TRACKS
+	DEF_CMD(CmdChangeAirType,                           CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_CONVERT_AIRPORT
 
 	DEF_CMD(CmdBuildAirport,             CMD_NO_WATER | CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_AIRPORT
 	DEF_CMD(CmdBuildDock,                               CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_DOCK
