@@ -116,6 +116,7 @@ struct Company : CompanyPool::PoolItem<&_company_pool>, CompanyProperties {
 	~Company();
 
 	Livery livery[LS_END];
+	AirTypes avail_airtypes;           ///< Air types available to the company.
 	RailTypes avail_railtypes;         ///< Rail types available to this company.
 	RoadTypes avail_roadtypes;         ///< Road types available to this company.
 
