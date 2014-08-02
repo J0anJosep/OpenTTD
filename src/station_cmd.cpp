@@ -1151,6 +1151,8 @@ CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_
 	return FindJoiningBaseStation<Waypoint, STR_ERROR_MUST_REMOVE_RAILWAYPOINT_FIRST>(existing_waypoint, waypoint_to_join, adjacent, ta, wp);
 }
 
+#include "airport_cmd.cpp"
+
 /**
  * Clear platform reservation during station building/removing.
  * @param v vehicle which holds reservation

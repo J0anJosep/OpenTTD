@@ -102,6 +102,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\air.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\airport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -417,6 +420,9 @@
     <ClCompile Include="..\src\zoning.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClInclude Include="..\src\air.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\air_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1924,6 +1930,9 @@
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\airporttiles.h">
+      <Filter>Tables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\table\airtypes.h">
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\animcursors.h">
