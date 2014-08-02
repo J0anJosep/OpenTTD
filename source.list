@@ -1,4 +1,5 @@
 # Source Files
+air.cpp
 airport.cpp
 animated_tile.cpp
 articulated_vehicles.cpp
@@ -135,6 +136,7 @@ zoning.cpp
 	sound/allegro_s.h
 	video/allegro_v.h
 #end
+air.h
 air_type.h
 aircraft.h
 airport.h
@@ -665,6 +667,7 @@ table/airport_movement.h
 table/airport_translation.h
 table/airporttile_ids.h
 table/airporttiles.h
+table/airtypes.h
 table/animcursors.h
 table/autorail.h
 table/bridge_land.h

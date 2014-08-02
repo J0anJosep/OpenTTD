@@ -68,6 +68,7 @@ struct CompanyProperties {
 	byte colour;                     ///< Company colour.
 
 	RailTypes avail_railtypes;       ///< Rail types available to the company.
+	AirTypes avail_airtypes;         ///< Air types available to the company.
 
 	byte block_preview;              ///< Number of quarters that the company is not allowed to get new exclusive engine previews (see CompaniesGenStatistics).
 

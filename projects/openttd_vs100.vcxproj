@@ -303,6 +303,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\air.cpp" />
     <ClCompile Include="..\src\airport.cpp" />
     <ClCompile Include="..\src\animated_tile.cpp" />
     <ClCompile Include="..\src\articulated_vehicles.cpp" />
@@ -408,6 +409,7 @@
     <ClCompile Include="..\src\widget.cpp" />
     <ClCompile Include="..\src\window.cpp" />
     <ClCompile Include="..\src\zoning.cpp" />
+    <ClInclude Include="..\src\air.h" />
     <ClInclude Include="..\src\air_type.h" />
     <ClInclude Include="..\src\aircraft.h" />
     <ClInclude Include="..\src\airport.h" />
@@ -911,6 +913,7 @@
     <ClInclude Include="..\src\table\airport_translation.h" />
     <ClInclude Include="..\src\table\airporttile_ids.h" />
     <ClInclude Include="..\src\table\airporttiles.h" />
+    <ClInclude Include="..\src\table\airtypes.h" />
     <ClInclude Include="..\src\table\animcursors.h" />
     <ClInclude Include="..\src\table\autorail.h" />
     <ClInclude Include="..\src\table\bridge_land.h" />

@@ -435,6 +435,10 @@
 			Name="Source Files"
 			>
 			<File
+				RelativePath=".\..\src\air.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\airport.cpp"
 				>
 			</File>
@@ -858,6 +862,10 @@
 		<Filter
 			Name="Header Files"
 			>
+			<File
+				RelativePath=".\..\src\air.h"
+				>
+			</File>
 			<File
 				RelativePath=".\..\src\air_type.h"
 				>
@@ -2892,6 +2900,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\table\airporttiles.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\table\airtypes.h"
 				>
 			</File>
 			<File
