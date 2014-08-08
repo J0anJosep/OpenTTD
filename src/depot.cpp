@@ -19,6 +19,7 @@
 #include "vehiclelist.h"
 #include "station_base.h" // revise: included for aircraft; this could change
 #include "pbs_water.h"
+#include "platform_func.h"
 
 #include "safeguards.h"
 
@@ -129,7 +130,8 @@ bool IsDepotDestTile(Depot *dep, TileIndex tile)
 {
 	switch (dep->veh_type) {
 		case VEH_TRAIN:
-			return true; // revise: only start and end of platform.
+			assert(IsRailDepotTile(tile));
+			return !IsRailDepotBig(tile) || IsStartPlatformTile(tile);
 		case VEH_ROAD:
 		case VEH_SHIP: // Both ends are considered.
 		case VEH_AIRCRAFT:
