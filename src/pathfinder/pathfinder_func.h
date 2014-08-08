@@ -13,6 +13,9 @@
 #define PATHFINDER_FUNC_H
 
 #include "../waypoint_base.h"
+#include "../depot_base.h"
+#include "../debug.h"
+
 
 /**
  * Calculates the tile of given station that is closest to a given tile
@@ -36,6 +39,41 @@ static inline TileIndex CalcClosestStationTile(StationID station, TileIndex tile
 	uint miny = TileY(ta.tile);
 	uint maxx = minx + ta.w - 1; // lowermost corner of station
 	uint maxy = miny + ta.h - 1;
+
+	/* we are going the aim for the x coordinate of the closest corner
+	 * but if we are between those coordinates, we will aim for our own x coordinate */
+	uint x = ClampU(TileX(tile), minx, maxx);
+
+	/* same for y coordinate, see above comment */
+	uint y = ClampU(TileY(tile), miny, maxy);
+
+	/* return the tile of our target coordinates */
+	return TileXY(x, y);
+}
+
+/**
+ * Calculates the tile of given depot that is closest to a given tile
+ * for this we assume the depot is a rectangle,
+ * as defined by its tile area
+ * @param depot The DepotID of the depot to calculate the distance to
+ * @param tile The tile from where to calculate the distance
+ * @return The closest depot tile to the given tile.
+ */
+static inline TileIndex CalcClosestDepotTile(DepotID depot_id, TileIndex tile)
+{
+	assert(Depot::IsValidID(depot_id));
+	const Depot *dep = Depot::Get(depot_id);
+
+	/* If tile area is empty, use the xy tile. */
+	if (dep->ta.tile == INVALID_TILE) {
+		assert(dep->xy != INVALID_TILE);
+		return dep->xy;
+	}
+
+	uint minx = TileX(dep->ta.tile);  // topmost corner of station
+	uint miny = TileY(dep->ta.tile);
+	uint maxx = minx + dep->ta.w - 1; // lowermost corner of station
+	uint maxy = miny + dep->ta.h - 1;
 
 	/* we are going the aim for the x coordinate of the closest corner
 	 * but if we are between those coordinates, we will aim for our own x coordinate */
