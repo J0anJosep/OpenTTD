@@ -452,7 +452,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				/* Waypoint is also a good reason to finish. */
 				end_segment_reason |= ESRB_WAYPOINT;
 
-			} else if (tf->m_is_station) {
+			} else if (tf->m_is_station || tf->m_is_big_depot) {
 				/* Station penalties. */
 				uint platform_length = tf->m_tiles_skipped + 1;
 				/* We don't know yet if the station is our target or not. Act like
