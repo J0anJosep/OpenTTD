@@ -329,7 +329,7 @@ protected:
 				return false;
 			}
 		}
-		if (IsRailTT() && IsDepotTypeTile(m_new_tile, TT())) {
+		if (IsRailTT() && IsDepotTypeTile(m_new_tile, TT()) && !IsRailDepotBig(m_new_tile)) {
 			DiagDirection exitdir = GetRailDepotDirection(m_new_tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
 				m_err = EC_NO_WAY;
@@ -396,7 +396,21 @@ protected:
 	{
 		/* rail and road depots cause reversing */
 		if (!IsWaterTT() && IsDepotTypeTile(m_old_tile, TT())) {
-			DiagDirection exitdir = IsRailTT() ? GetRailDepotDirection(m_old_tile) : GetRoadDepotDirection(m_old_tile);
+			DiagDirection exitdir;
+			switch (TT()) {
+				case TRANSPORT_AIR:
+					return false;
+					break;
+				case TRANSPORT_RAIL:
+					if (IsBigRailDepot(m_old_tile)) return false;
+					exitdir = GetRailDepotDirection(m_old_tile);
+					break;
+				case TRANSPORT_ROAD:
+					exitdir = GetRoadDepotDirection(m_old_tile);
+					break;
+				default: NOT_REACHED();
+			}
+
 			if (exitdir != m_exitdir) {
 				/* reverse */
 				m_new_tile = m_old_tile;
