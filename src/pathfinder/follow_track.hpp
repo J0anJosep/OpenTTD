@@ -50,7 +50,8 @@ struct CFollowTrackT
 	bool                m_is_tunnel;     ///< last turn passed tunnel
 	bool                m_is_bridge;     ///< last turn passed bridge ramp
 	bool                m_is_station;    ///< last turn passed station
-	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
+	bool                m_is_big_depot;  ///< last turn passed depot
+	int                 m_tiles_skipped; ///< number of skipped tunnel, depot or station tiles
 	ErrorCode           m_err;
 	CPerformanceTimer  *m_pPerf;
 	RailTypes           m_railtypes;
@@ -85,7 +86,7 @@ struct CFollowTrackT
 		m_new_tile = INVALID_TILE;
 		m_new_td_bits = TRACKDIR_BIT_NONE;
 		m_exitdir = INVALID_DIAGDIR;
-		m_is_station = m_is_bridge = m_is_tunnel = false;
+		m_is_station = m_is_bridge = m_is_tunnel = m_is_big_depot = false;
 		m_tiles_skipped = 0;
 		m_err = EC_NONE;
 		m_railtypes = railtype_override;
@@ -169,11 +170,11 @@ struct CFollowTrackT
 	{
 		if (!DoTrackMasking()) return true;
 
-		if (m_is_station) {
-			/* Check skipped station tiles as well. */
+		if (m_is_station || m_is_big_depot) {
+			/* Check skipped station and depot tiles as well. */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			for (TileIndex tile = m_new_tile - diff * m_tiles_skipped; tile != m_new_tile; tile += diff) {
-				if (HasStationReservation(tile)) {
+				if ((m_is_station && HasStationReservation(tile)) || (m_is_big_depot && HasDepotReservation(tile))) {
 					m_new_td_bits = TRACKDIR_BIT_NONE;
 					m_err = EC_RESERVED;
 					return false;
@@ -200,7 +201,7 @@ protected:
 	/** Follow the m_exitdir from m_old_tile and fill m_new_tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
-		m_is_station = m_is_bridge = m_is_tunnel = false;
+		m_is_station = m_is_bridge = m_is_tunnel = m_is_big_depot = false;
 		m_tiles_skipped = 0;
 
 		/* extra handling for tunnels and bridges in our direction */
@@ -226,8 +227,12 @@ protected:
 		m_new_tile = TILE_ADD(m_old_tile, diff);
 
 		/* special handling for stations */
-		if (IsRailTT() && IsRailStationTile(m_new_tile)) {
-			m_is_station = true;
+		if (IsRailTT()) {
+			if (IsRailStationTile(m_new_tile)) {
+				m_is_station = true;
+			} else if (IsBigRailDepotTile(m_new_tile)) {
+				m_is_big_depot = true;
+			}
 		} else if (IsRoadTT() && IsRoadStopTile(m_new_tile)) {
 			m_is_station = true;
 		}
@@ -376,12 +381,13 @@ protected:
 		}
 
 		/* special handling for rail stations - get to the end of platform */
-		if (IsRailTT() && m_is_station) {
+		if (IsRailTT() && (m_is_station || m_is_big_depot)) {
 			/* Entered railway station. */
-			assert(IsRailStationTile(m_new_tile));
+			assert(IsRailStationTile(m_new_tile) || IsBigRailDepotTile(m_new_tile));
 			/* How big step we must do to get to the last platform tile. */
 			m_tiles_skipped = GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td)) - 1;
 			/* Move to the platform end. */
+
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			diff *= m_tiles_skipped;
 			m_new_tile = TILE_ADD(m_new_tile, diff);
@@ -416,7 +422,7 @@ protected:
 				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
 				m_exitdir = exitdir;
 				m_tiles_skipped = 0;
-				m_is_tunnel = m_is_bridge = m_is_station = false;
+				m_is_tunnel = m_is_bridge = m_is_station = m_is_big_depot = false;
 				return true;
 			}
 		}
