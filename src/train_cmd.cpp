@@ -36,6 +36,7 @@
 #include "zoom_func.h"
 #include "newgrf_debug.h"
 #include "platform_func.h"
+#include "depot_map.h"
 
 #include "table/strings.h"
 #include "table/train_cmd.h"
@@ -2239,7 +2240,7 @@ static void ClearPathReservation(const Train *v, TileIndex tile, Trackdir track_
 				}
 			}
 		}
-	} else if (IsRailStationTile(tile)) {
+	} else if (IsRailStationTile(tile) || IsBigRailDepotTile(tile)) {
 		TileIndex new_tile = TileAddByDiagDir(tile, dir);
 		/* If the new tile is not a further tile of the same station, we
 		 * clear the reservation for the whole platform. */
@@ -2264,11 +2265,12 @@ void FreeTrainTrackReservation(const Train *v, TileIndex origin, Trackdir orig_t
 
 	TileIndex tile = origin != INVALID_TILE ? origin : v->tile;
 	Trackdir  td = orig_td != INVALID_TRACKDIR ? orig_td : v->GetVehicleTrackdir();
-	bool      free_tile = tile != v->tile || !(IsRailStationTile(v->tile) || IsTileType(v->tile, MP_TUNNELBRIDGE));
+	bool      free_tile = tile != v->tile || !(IsRailStationTile(v->tile) || IsBigRailDepotTile(v->tile) || IsTileType(v->tile, MP_TUNNELBRIDGE));
 	StationID station_id = IsRailStationTile(v->tile) ? GetStationIndex(v->tile) : INVALID_STATION;
+	DepotID   depot_id = IsBigRailDepotTile(v->tile) ? GetDepotIndex(v->tile) : INVALID_DEPOT;
 
 	/* Can't be holding a reservation if we enter a depot. */
-	if (IsRailDepotTile(tile) && TrackdirToExitdir(td) != GetRailDepotDirection(tile)) return;
+	if (IsSmallRailDepotTile(tile) && TrackdirToExitdir(td) != GetRailDepotDirection(tile)) return;
 	if (v->track == TRACK_BIT_DEPOT) {
 		/* Front engine is in a depot. We enter if some part is not in the depot. */
 		for (const Train *u = v; u != NULL; u = u->Next()) {
@@ -2308,7 +2310,7 @@ void FreeTrainTrackReservation(const Train *v, TileIndex origin, Trackdir orig_t
 		}
 
 		/* Don't free first station/bridge/tunnel if we are on it. */
-		if (free_tile || (!(ft.m_is_station && GetStationIndex(ft.m_new_tile) == station_id) && !ft.m_is_tunnel && !ft.m_is_bridge)) ClearPathReservation(v, tile, td);
+		if (free_tile || (!(ft.m_is_station && GetStationIndex(ft.m_new_tile) == station_id) && !(ft.m_is_big_depot && GetDepotIndex(ft.m_new_tile) == depot_id) && !ft.m_is_tunnel && !ft.m_is_bridge)) ClearPathReservation(v, tile, td);
 
 		free_tile = true;
 	}
@@ -2370,7 +2372,7 @@ static PBSTileInfo ExtendTrainReservation(const Train *v, TrackBits *new_tracks,
 		}
 
 		/* Station, depot or waypoint are a possible target. */
-		bool target_seen = ft.m_is_station || (IsTileType(ft.m_new_tile, MP_RAILWAY) && !IsPlainRail(ft.m_new_tile));
+		bool target_seen = ft.m_is_station || ft.m_is_big_depot || (IsTileType(ft.m_new_tile, MP_RAILWAY) && !IsPlainRail(ft.m_new_tile));
 		if (target_seen || KillFirstBit(ft.m_new_td_bits) != TRACKDIR_BIT_NONE) {
 			/* Choice found or possible target encountered.
 			 * On finding a possible target, we need to stop and let the pathfinder handle the
