@@ -16,6 +16,7 @@
 #include "pathfinder/follow_track.hpp"
 #include "pbs_rail.h"
 #include "platform_func.h"
+#include "depot_map.h"
 
 #include "safeguards.h"
 
@@ -185,12 +186,12 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 
 		/* No reservation --> path end found */
 		if (reserved == TRACKDIR_BIT_NONE) {
-			if (ft.m_is_station) {
+			if (ft.m_is_station || ft.m_is_big_depot) {
 				/* Check skipped station tiles as well, maybe our reservation ends inside the station. */
 				TileIndexDiff diff = TileOffsByDiagDir(ft.m_exitdir);
 				while (ft.m_tiles_skipped-- > 0) {
 					ft.m_new_tile -= diff;
-					if (HasStationReservation(ft.m_new_tile)) {
+					if ((ft.m_is_station && HasStationReservation(ft.m_new_tile)) || (ft.m_is_big_depot && HasDepotReservation(ft.m_new_tile))) {
 						tile = ft.m_new_tile;
 						trackdir = DiagDirToDiagTrackdir(ft.m_exitdir);
 						break;
@@ -223,7 +224,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 			if (tile == start_tile && trackdir == start_trackdir) break;
 		}
 		/* Depot tile? Can't continue. */
-		if (IsRailDepotTile(tile)) break;
+		if (IsSmallRailDepotTile(tile)) break;
 		/* Non-pbs signal? Reservation can't continue. */
 		if (IsTileType(tile, MP_RAILWAY) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, TrackdirToTrack(trackdir)))) break;
 	}
@@ -275,7 +276,7 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 	TileIndex tile = v->tile;
 	Trackdir  trackdir = v->GetVehicleTrackdir();
 
-	if (IsRailDepotTile(tile) && !GetDepotReservationTrackBits(tile)) return PBSTileInfo(tile, trackdir, false);
+	if (IsSmallRailDepotTile(tile) && !GetDepotReservationTrackBits(tile)) return PBSTileInfo(tile, trackdir, false);
 
 	FindTrainOnTrackInfo ftoti;
 	ftoti.res = FollowReservation(v->owner, GetRailTypeInfo(v->railtype)->compatible_railtypes, tile, trackdir);
@@ -290,6 +291,17 @@ PBSTileInfo FollowTrainReservation(const Train *v, Vehicle **train_on_res)
 			 * for a possible train. */
 			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti.res.trackdir)));
 			for (TileIndex st_tile = ftoti.res.tile + diff; *train_on_res == NULL && IsCompatibleTrainStationTile(st_tile, ftoti.res.tile); st_tile += diff) {
+				FindVehicleOnPos(st_tile, &ftoti, FindTrainOnTrackEnum);
+				if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
+			}
+		}
+		if (*train_on_res == NULL && IsBigRailDepotTile(ftoti.res.tile)) {
+			/* The target tile is a rail station. The track follower
+			 * has stopped on the last platform tile where we haven't
+			 * found a train. Also check all previous platform tiles
+			 * for a possible train. */
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti.res.trackdir)));
+			for (TileIndex st_tile = ftoti.res.tile + diff; *train_on_res == NULL && IsCompatibleTrainDepotTile(st_tile, ftoti.res.tile); st_tile += diff) {
 				FindVehicleOnPos(st_tile, &ftoti, FindTrainOnTrackEnum);
 				if (ftoti.best != NULL) *train_on_res = ftoti.best->First();
 			}
@@ -340,6 +352,15 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
 			}
 		}
 
+		/* Special case for stations: check the whole platform for a vehicle. */
+		if (IsBigRailDepotTile(ftoti.res.tile)) {
+			TileIndexDiff diff = TileOffsByDiagDir(TrackdirToExitdir(ReverseTrackdir(ftoti.res.trackdir)));
+			for (TileIndex st_tile = ftoti.res.tile + diff; IsCompatibleTrainDepotTile(st_tile, ftoti.res.tile); st_tile += diff) {
+				FindVehicleOnPos(st_tile, &ftoti, FindTrainOnTrackEnum);
+				if (ftoti.best != NULL) return ftoti.best;
+			}
+		}
+
 		/* Special case for bridges/tunnels: check the other end as well. */
 		if (IsTileType(ftoti.res.tile, MP_TUNNELBRIDGE)) {
 			FindVehicleOnPos(GetOtherTunnelBridgeEnd(ftoti.res.tile), &ftoti, FindTrainOnTrackEnum);
@@ -362,7 +383,7 @@ Train *GetTrainForReservation(TileIndex tile, Track track)
  */
 bool IsSafeWaitingPosition(const Train *v, TileIndex tile, Trackdir trackdir, bool include_line_end, bool forbid_90deg)
 {
-	if (IsRailDepotTile(tile)) return true;
+	if (IsSmallRailDepotTile(tile)) return true;
 
 	if (IsTileType(tile, MP_RAILWAY)) {
 		/* For non-pbs signals, stop on the signal tile. */
@@ -415,7 +436,7 @@ bool IsWaitingPositionFree(const Train *v, TileIndex tile, Trackdir trackdir, bo
 	if (TrackOverlapsTracks(reserved, track)) return false;
 
 	/* Not reserved and depot or not a pbs signal -> free. */
-	if (IsRailDepotTile(tile)) return true;
+	if (IsSmallRailDepotTile(tile)) return true;
 	if (IsTileType(tile, MP_RAILWAY) && HasSignalOnTrackdir(tile, trackdir) && !IsPbsSignal(GetSignalType(tile, track))) return true;
 
 	/* Check the next tile, if it's a PBS signal, it has to be free as well. */
