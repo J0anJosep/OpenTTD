@@ -2851,6 +2851,7 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 			break;
 		}
 
+		case RAIL_TILE_BIG_DEPOT:
 		case RAIL_TILE_DEPOT: {
 			DiagDirection dir = GetRailDepotDirection(tile);
 
@@ -3032,7 +3033,7 @@ int TicksToLeaveDepot(const Train *v)
 static VehicleEnterTileStatus VehicleEnter_Track(Vehicle *u, TileIndex tile, int x, int y)
 {
 	/* This routine applies only to trains in depot tiles. */
-	if (u->type != VEH_TRAIN || !IsRailDepotTile(tile)) return VETSB_CONTINUE;
+	if (u->type != VEH_TRAIN || !IsSmallRailDepotTile(tile)) return VETSB_CONTINUE;
 
 	Train *v = Train::From(u);
 
