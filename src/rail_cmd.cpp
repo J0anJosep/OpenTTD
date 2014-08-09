@@ -2822,7 +2822,12 @@ static TrackStatus GetTileTrackStatus_Track(TileIndex tile, TransportType mode, 
 			break;
 		}
 
-		case RAIL_TILE_BIG_DEPOT:
+		case RAIL_TILE_BIG_DEPOT: {
+			Track track = GetRailDepotTrack(tile);
+			trackbits = TrackToTrackBits(track);
+			break;
+		}
+
 		case RAIL_TILE_DEPOT: {
 			DiagDirection dir = GetRailDepotDirection(tile);
 
