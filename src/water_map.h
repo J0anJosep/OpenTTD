@@ -512,6 +512,34 @@ static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, WaterTileTyp
 }
 
 /**
+ * Does this depot have a ship strictly inside?
+ * @param tile tile of the depot.
+ * @return true iff a ship is inside the depot.
+ * @pre is a big ship depot tile
+ */
+static inline bool GetReservationAsDepot(TileIndex t)
+{
+	assert(IsShipDepotTile(t));
+	assert(GB(_m[t].m5, WBL_TYPE_BEGIN, WBL_TYPE_COUNT) == WBL_TYPE_BIG_DEPOT);
+	return HasBit(_m[t].m5, 2);
+}
+
+/**
+ * Mark whether this depot has a ship inside.
+ * @param tile of the depot.
+ * @param value true if it has a ship inside, false if the ship has left.
+ * @pre is a big ship depot tile.
+ */
+static inline void SetReservationAsDepot(TileIndex t, bool value)
+{
+	assert(IsShipDepotTile(t));
+	assert(GB(_m[t].m5, WBL_TYPE_BEGIN, WBL_TYPE_COUNT) == WBL_TYPE_BIG_DEPOT);
+	assert(GetReservationAsDepot(t) == GetReservationAsDepot(GetOtherShipDepotTile(t)));
+	SB(_m[t].m5, 2, 1, value);
+	SB(_m[GetOtherShipDepotTile(t)].m5, 2, 1, value);
+}
+
+/**
  * Make a lock section.
  * @param t Tile to place the water lock section.
  * @param o Owner of the lock.
