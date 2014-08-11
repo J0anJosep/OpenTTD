@@ -320,7 +320,12 @@ public:
 		/* additional penalty for curves */
 		c += CurveCost(n.m_parent->GetTrackdir(), n.GetTrackdir());
 
-		if (IsShipDepotTile(n.GetTile()) || IsDockTile(n.GetTile())) c += YAPF_TILE_LENGTH;
+		if (IsDockTile(n.GetTile())) c += YAPF_TILE_LENGTH;
+
+		if (IsShipDepotTile(n.GetTile())) {
+			c += YAPF_TILE_LENGTH;
+			if (IsBigDepot(n.GetTile()) && GetReservationAsDepot(n.GetTile())) c += YAPF_INFINITE_PENALTY;
+		}
 
 		/* Skipped tile cost for aqueducts. */
 		c += YAPF_TILE_LENGTH * tf->m_tiles_skipped;

@@ -280,6 +280,7 @@ Ship::~Ship()
 			HasWaterTracksReserved(this->tile, TrackToTrackBits(TrackdirToTrack(this->GetVehicleTrackdir())))) {
 		/* Lift reservation for that ship when going bankrupt. */
 		LiftReservedWaterPath(this->tile, this->GetVehicleTrackdir());
+		if ((this->state & TRACK_BIT_DEPOT) != 0) SetReservationAsDepot(this->tile, false);
 	}
 
 	this->PreDestructor();
@@ -436,6 +437,7 @@ void HandleShipEnterDepot(Ship *v)
 	assert(IsShipDepotTile(v->tile));
 
 	if (IsBigDepot(v->tile)) {
+		SetReservationAsDepot(v->tile, true);
 		v->state |= TRACK_BIT_DEPOT;
 		v->cur_speed = 0;
 		v->UpdateCache();
@@ -470,7 +472,9 @@ static bool CheckShipLeaveDepot(Ship *v)
 	/* This helps avoid CPU load if many ships are set to start at the same time */
 	if (HasVehicleOnPos(v->tile, NULL, &EnsureNoVisibleShipProc)) return true;
 
-	if (!IsBigDepot(v->tile)) {
+	if (IsBigDepot(v->tile)) {
+		SetReservationAsDepot(v->tile, false);
+	} else {
 		TileIndex tile = v->tile;
 		Axis axis = GetShipDepotAxis(tile);
 
@@ -480,7 +484,7 @@ static bool CheckShipLeaveDepot(Ship *v)
 		DiagDirection south_dir = AxisToDiagDir(axis);
 		DiagDirection north_dir = ReverseDiagDir(south_dir);
 
-		TileIndex north_neighbour = TILE_ADD(tile, TileOffsByDiagDir(north_dir));
+		TileIndex north_neighbour = TileAddByDiagDir(tile, north_dir);
 		TrackBits north_tracks = DiagdirReachesTracks(north_dir) & GetTileShipTrackStatus(north_neighbour);
 
 		if (!IsWaterPositionFree(tile, TrackExitdirToTrackdir(AxisToTrack(axis), south_dir))) return true;
