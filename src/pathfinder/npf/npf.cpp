@@ -317,7 +317,10 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 			break;
 
 		case MP_WATER:
-			if (IsShipDepotTile(current->tile)) cost += _settings_game.pf.npf.npf_water_depot_penalty;
+			if (IsShipDepotTile(current->tile)) {
+				cost += _settings_game.pf.npf.npf_water_depot_penalty;
+				if (IsBigDepot(current->tile) && GetReservationAsDepot(current->tile)) cost += NPF_INFINITE_PENALTY;
+			}
 			break;
 	}
 
