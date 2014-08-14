@@ -185,13 +185,13 @@ public:
 	/** Called by YAPF to detect if node ends in the desired destination */
 	inline bool PfDetectDestination(Node &n)
 	{
-		bool bDest = IsRoadDepotTile(n.m_segment_last_tile);
-		return bDest;
+		return IsRoadDepotTile(n.m_segment_last_tile) &&
+			!IsFullDepot(n.m_segment_last_tile);
 	}
 
 	inline bool PfDetectDestinationTile(TileIndex tile, Trackdir trackdir)
 	{
-		return IsRoadDepotTile(tile);
+		return IsRoadDepotTile(tile) && !IsFullDepot(tile);
 	}
 
 	/**
@@ -219,6 +219,7 @@ protected:
 	TileIndex    m_destTile;
 	TrackdirBits m_destTrackdirs;
 	StationID    m_dest_station;
+	DepotID      m_dest_depot;
 	bool         m_bus;
 	bool         m_non_artic;
 
@@ -231,8 +232,14 @@ public:
 			m_destTile      = CalcClosestStationTile(m_dest_station, v->tile, m_bus ? STATION_BUS : STATION_TRUCK);
 			m_non_artic     = !v->HasArticulatedPart();
 			m_destTrackdirs = INVALID_TRACKDIR_BIT;
+		} else if (v->current_order.IsType(OT_GOTO_DEPOT)) {
+			m_dest_station  = INVALID_STATION;
+			m_dest_depot    = v->current_order.GetDestination();
+			m_destTile      = CalcClosestDepotTile(m_dest_depot, v->tile);
+			m_destTrackdirs = INVALID_TRACKDIR_BIT;
 		} else {
 			m_dest_station  = INVALID_STATION;
+			m_dest_depot    = INVALID_DEPOT;
 			m_destTile      = v->dest_tile;
 			m_destTrackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_ROAD, v->compatible_roadtypes));
 		}
@@ -259,6 +266,12 @@ public:
 				GetStationIndex(tile) == m_dest_station &&
 				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
 				(m_non_artic || IsDriveThroughStopTile(tile));
+		}
+
+		if (m_dest_depot != INVALID_DEPOT) {
+			return IsRoadDepotTile(tile) &&
+				GetDepotIndex(tile) == m_dest_depot &&
+				!IsFullDepot(tile);
 		}
 
 		return tile == m_destTile && ((m_destTrackdirs & TrackdirToTrackdirBits(trackdir)) != TRACKDIR_BIT_NONE);
