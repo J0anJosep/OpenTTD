@@ -529,6 +529,22 @@ struct StationSettings {
 	byte   station_spread;                   ///< amount a station may spread
 };
 
+enum DepotTypes {
+	ONLY_SMALL_DEPOT_TYPE = 1,
+	ONLY_BIG_DEPOT_TYPE   = 2,
+	BOTH_DEPOT_TYPES      = 3,
+};
+
+/** Settings related to depots. */
+struct DepotSettings {
+	byte   rail_depot_types;        ///< allowed rail depot types for contruction
+	byte   road_depot_types;        ///< allowed road depot types for contruction
+	byte   water_depot_types;       ///< allowed water depot types for contruction
+
+	bool   cross_replace_rail_veh;  ///< allow cross-replacement of rail vehicles
+	bool   cross_replace_road_veh;  ///< allow cross-replacement of road <-> tram vehicles
+};
+
 /** Default settings for vehicles. */
 struct VehicleDefaultSettings {
 	bool   servint_ispercent;                ///< service intervals are in percents
@@ -563,6 +579,7 @@ struct GameSettings {
 	EconomySettings      economy;            ///< settings to change the economy
 	LinkGraphSettings    linkgraph;          ///< settings for link graph calculations
 	StationSettings      station;            ///< settings related to station management
+	DepotSettings        depot;              ///< settings related to depot management
 	LocaleSettings       locale;             ///< settings related to used currency/unit system in the current game
 };
 
