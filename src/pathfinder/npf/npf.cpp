@@ -600,7 +600,7 @@ static int32 NPFFindStationOrTile(AyStar *as, OpenListNode *current)
 			return AYSTAR_FOUND_END_NODE;
 	} else if (IsDepotTypeTile(tile, user->type) &&
 			GetDepotIndex(tile) == fstd->depot_index) {
-		return AYSTAR_FOUND_END_NODE;
+		if (fstd->v->type != VEH_ROAD || !IsFullDepot(tile)) return AYSTAR_FOUND_END_NODE;
 	}
 
 	return AYSTAR_DONE;
