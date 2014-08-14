@@ -104,6 +104,71 @@ static inline bool IsRoadDepotTile(TileIndex t)
 }
 
 /**
+ * Return whether a road depot tile is a big one.
+ * @param t Tile to query.
+ * @return True if big road depot tile.
+ */
+static inline bool IsBigRoadDepot(TileIndex t)
+{
+	assert(IsTileType(t, MP_ROAD));
+	assert(IsRoadDepot(t));
+	return HasBit(_m[t].m5, 6);
+}
+
+/**
+ * Return whether a tile is a big road depot tile.
+ * @param t Tile to query.
+ * @return True if big road depot tile.
+ */
+static inline bool IsBigRoadDepotTile(TileIndex t)
+{
+	return IsTileType(t, MP_ROAD) && IsRoadDepot(t) && IsBigRoadDepot(t);
+}
+
+const int ROAD_DEPOT_CAPACITY = 3;
+
+/**
+ * Get the number of vehicles inside this depot.
+ * @param t  The tile to query.
+ * @pre IsBigRoadDepotTile(t)
+ * @return The number of vehicles (at most 3 per tile).
+ */
+static inline int GetNumDepotVehicles(TileIndex t)
+{
+	assert(IsRoadDepotTile(t));
+	return GB(_m[t].m5, 2, 4);
+}
+
+/**
+ * Modify the number of vehicles inside this depot.
+ * @param t  The tile to query.
+ * @param delta 1 if add a vehicle, -1 if remove a vehicle
+ * @pre IsBigRoadDepotTile(t) && (delta == 1 || delta == -1)
+ */
+static inline void ChangeNumDepotVehicles(TileIndex t, int delta)
+{
+	assert(IsRoadDepotTile(t));
+	assert(delta == 1 || delta == -1);
+	if (!IsBigRoadDepot(t)) return;
+	int num = GetNumDepotVehicles(t) + delta;
+	assert(num >= 0);
+	assert(num <= ROAD_DEPOT_CAPACITY + 1); // autoreplace can add 1 extra vehicle
+	SB(_m[t].m5, 2, 4, num);
+}
+
+/**
+ * Check if depot has reached its maximum capacity.
+ * @param t  The tile to query.
+ * @return true if depot is full.
+ */
+static inline bool IsFullDepot(TileIndex t)
+{
+	assert(IsRoadDepotTile(t));
+	assert(GetNumDepotVehicles(t) <= ROAD_DEPOT_CAPACITY);
+	return GetNumDepotVehicles(t) == ROAD_DEPOT_CAPACITY;
+}
+
+/**
  * Get the present road bits for a specific road type.
  * @param t  The tile to query.
  * @param rt Road type.
