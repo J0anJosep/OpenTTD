@@ -1114,6 +1114,12 @@ static bool TouchscreenModeChanged(int32 p1)
 	return true;
 }
 
+static bool DeleteConstructionWindows(int32 p1)
+{
+	DeleteWindowByClass(WC_BUILD_TOOLBAR);
+	return true;
+}
+
 static bool ChangeCoastalTracks(int32 p1)
 {
 	/* In menu, settings can be changed and
