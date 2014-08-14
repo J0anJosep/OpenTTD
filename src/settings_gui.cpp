@@ -1864,6 +1864,15 @@ static SettingsContainer &GetSettingsTree()
 
 		SettingsPage *limitations = main->Add(new SettingsPage(STR_CONFIG_SETTING_LIMITATIONS));
 		{
+			SettingsPage *depots = limitations->Add(new SettingsPage(STR_CONFIG_SETTING_DEPOTS));
+			{
+				depots->Add(new SettingEntry("depot.rail_depot_types"));
+				depots->Add(new SettingEntry("depot.road_depot_types"));
+				depots->Add(new SettingEntry("depot.water_depot_types"));
+				depots->Add(new SettingEntry("depot.cross_replace_rail_veh"));
+				depots->Add(new SettingEntry("depot.cross_replace_road_veh"));
+			}
+
 			limitations->Add(new SettingEntry("construction.command_pause_level"));
 			limitations->Add(new SettingEntry("construction.autoslope"));
 			limitations->Add(new SettingEntry("construction.extra_dynamite"));
