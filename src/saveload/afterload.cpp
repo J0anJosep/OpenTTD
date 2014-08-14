@@ -3083,6 +3083,12 @@ bool AfterLoadGame()
 	}
 
 	if (IsSavegameVersionBefore(SL_USE_DEPOT_IDS)) {
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsRoadDepotTile(t)) {
+				SB(_m[t].m5, 2, 4, 0);
+			}
+		}
+
 		Station *st;
 		FOR_ALL_STATIONS(st) {
 			if (st->HasFacilities(FACIL_AIRPORT) && _translation_airport_hangars[st->airport.type]) {
