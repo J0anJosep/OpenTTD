@@ -766,6 +766,13 @@ bool AfterLoadGame()
 		_settings_game.pf.coastal_water_tracks = false;
 		_settings_game.pf.npf.npf_water_depot_penalty = 4 * NPF_TILE_LENGTH;
 	}
+	if (IsSavegameVersionBefore(SL_USE_DEPOT_IDS)) {
+		_settings_game.depot.rail_depot_types = 1;
+		_settings_game.depot.road_depot_types = 1;
+		_settings_game.depot.water_depot_types = 1;
+		_settings_game.depot.cross_replace_rail_veh = false;
+		_settings_game.depot.cross_replace_road_veh = false;
+	}
 
 	/* Load the sprites */
 	GfxLoadSprites();
