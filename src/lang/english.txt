@@ -1377,6 +1377,20 @@ STR_CONFIG_SETTING_SE_FLAT_WORLD_HEIGHT                         :The height leve
 STR_CONFIG_SETTING_EDGES_NOT_EMPTY                              :{WHITE}One or more tiles at the northern edge are not empty
 STR_CONFIG_SETTING_EDGES_NOT_WATER                              :{WHITE}One or more tiles at one of the edges is not water
 
+STR_CONFIG_SETTING_RAIL_DEPOT_TYPES                             :Rail depot types: {STRING2}
+STR_CONFIG_SETTING_RAIL_DEPOT_TYPES_HELPTEXT                    :Available rail depot types for construction for human players.
+STR_CONFIG_SETTING_ROAD_DEPOT_TYPES                             :Road depot types: {STRING2}
+STR_CONFIG_SETTING_ROAD_DEPOT_TYPES_HELPTEXT                    :Available road depot types for construction for human players.
+STR_CONFIG_SETTING_WATER_DEPOT_TYPES                            :Water depot types: {STRING2}
+STR_CONFIG_SETTING_WATER_DEPOT_TYPES_HELPTEXT                   :Available water depot types for construction for human players.
+STR_CONFIG_SETTING_ONLY_SMALL_DEPOT                             :small ones
+STR_CONFIG_SETTING_ONLY_BIG_DEPOT                               :big ones
+STR_CONFIG_SETTING_BOTH_DEPOT_TYPES                             :both depot types
+STR_CONFIG_SETTING_CROSS_REPLACE_RAIL                           :Allow cross-replace for rail engines: {STRING2}
+STR_CONFIG_SETTING_CROSS_REPLACE_RAIL_HELPTEXT                  :Allow replacing engines even if they are not compatible by rail type.
+STR_CONFIG_SETTING_CROSS_REPLACE_ROAD                           :Allow cross-replace for road engines: {STRING2}
+STR_CONFIG_SETTING_CROSS_REPLACE_ROAD_HELPTEXT                  :Allow replacing engines even if they are not compatible by road type.
+
 STR_CONFIG_SETTING_STATION_SPREAD                               :Maximum station spread: {STRING2}
 STR_CONFIG_SETTING_STATION_SPREAD_HELPTEXT                      :Maximum area the parts of a single station may be spread out on. Note that high values will slow the game
 STR_CONFIG_SETTING_SERVICEATHELIPAD                             :Service helicopters at helipads automatically: {STRING2}
@@ -1742,6 +1756,7 @@ STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}Industr
 STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST                        :{ORANGE}Cargo distribution
 STR_CONFIG_SETTING_AI                                           :{ORANGE}Competitors
 STR_CONFIG_SETTING_AI_NPC                                       :{ORANGE}Computer players
+STR_CONFIG_SETTING_DEPOTS                                       :{ORANGE}Depots
 
 STR_CONFIG_SETTING_PATHFINDER_OPF                               :Original
 STR_CONFIG_SETTING_PATHFINDER_NPF                               :NPF
@@ -4516,6 +4531,8 @@ STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT                               :{WHITE}Can't bu
 STR_ERROR_CAN_T_BUILD_ROAD_DEPOT                                :{WHITE}Can't build road vehicle depot here...
 STR_ERROR_CAN_T_BUILD_TRAM_DEPOT                                :{WHITE}Can't build tram vehicle depot here...
 STR_ERROR_CAN_T_BUILD_SHIP_DEPOT                                :{WHITE}Can't build ship depot here...
+
+STR_ERROR_DEPOT_TYPE_NOT_AVAILABLE                              :{WHITE}Depot type not available
 
 STR_ERROR_CAN_T_RENAME_DEPOT                                    :{WHITE}Can't rename depot...
 
