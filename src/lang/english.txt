@@ -5207,6 +5207,11 @@ STR_ICON_SHIFT                                                  :{BLACK}{BIG_ICO
 STR_ICON_CAPS                                                   :{BLACK}{BIG_ICONS}Q
 STR_ICON_ARROW_LEFT_OSK                                         :{BLACK}{BIG_ICONS}R
 STR_ICON_ARROW_RIGHT_OSK                                        :{BLACK}{BIG_ICONS}S
+STR_ICON_MUSIC_PLAY_LTR                                         :{BLACK}{BIG_ICONS}T
+STR_ICON_MUSIC_PLAY_RTL                                         :{BLACK}{BIG_ICONS}U
+STR_ICON_MUSIC_STOP                                             :{BLACK}{BIG_ICONS}V
+STR_ICON_MUSIC_PREV_LTR                                         :{BLACK}{BIG_ICONS}W
+STR_ICON_MUSIC_NEXT_LTR                                         :{BLACK}{BIG_ICONS}X
 STR_ICON_FILTER                                                 :{BLACK}{BIG_ICONS}<
 STR_ICON_FILTER_GROUPS                                          :{BLACK}{BIG_ICONS}=
 STR_WHITE_DATE_LONG                                             :{WHITE}{DATE_LONG}
