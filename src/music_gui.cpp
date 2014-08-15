@@ -603,9 +603,9 @@ struct MusicWindow : public Window {
 
 			/* Hack-ish: set the proper widget data; only needs to be done once
 			 * per (Re)Init as that's the only time the language changes. */
-			case WID_M_PREV: this->GetWidget<NWidgetCore>(WID_M_PREV)->widget_data = _current_text_dir == TD_RTL ? SPR_IMG_SKIP_TO_NEXT : SPR_IMG_SKIP_TO_PREV; break;
-			case WID_M_NEXT: this->GetWidget<NWidgetCore>(WID_M_NEXT)->widget_data = _current_text_dir == TD_RTL ? SPR_IMG_SKIP_TO_PREV : SPR_IMG_SKIP_TO_NEXT; break;
-			case WID_M_PLAY: this->GetWidget<NWidgetCore>(WID_M_PLAY)->widget_data = _current_text_dir == TD_RTL ? SPR_IMG_PLAY_MUSIC_RTL : SPR_IMG_PLAY_MUSIC; break;
+			case WID_M_PREV: this->GetWidget<NWidgetCore>(WID_M_PREV)->widget_data = _current_text_dir == TD_RTL ? STR_ICON_MUSIC_NEXT_LTR : STR_ICON_MUSIC_PREV_LTR; break;
+			case WID_M_NEXT: this->GetWidget<NWidgetCore>(WID_M_NEXT)->widget_data = _current_text_dir == TD_RTL ? STR_ICON_MUSIC_PREV_LTR : STR_ICON_MUSIC_NEXT_LTR; break;
+			case WID_M_PLAY: this->GetWidget<NWidgetCore>(WID_M_PLAY)->widget_data = _current_text_dir == TD_RTL ? STR_ICON_MUSIC_PLAY_RTL : STR_ICON_MUSIC_PLAY_LTR; break;
 		}
 	}
 
@@ -739,10 +739,10 @@ static const NWidgetPart _nested_music_window_widgets[] = {
 		NWidget(NWID_VERTICAL),
 			NWidget(WWT_PANEL, COLOUR_GREY, -1), SetFill(1, 1), EndContainer(),
 			NWidget(NWID_HORIZONTAL),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_M_PREV), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_SKIP_TO_PREV, STR_MUSIC_TOOLTIP_SKIP_TO_PREVIOUS_TRACK),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_M_NEXT), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_SKIP_TO_NEXT, STR_MUSIC_TOOLTIP_SKIP_TO_NEXT_TRACK_IN_SELECTION),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_M_STOP), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_STOP_MUSIC, STR_MUSIC_TOOLTIP_STOP_PLAYING_MUSIC),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_M_PLAY), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_PLAY_MUSIC, STR_MUSIC_TOOLTIP_START_PLAYING_MUSIC),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_M_PREV), SetMinimalSize(22, 22), SetDataTip(STR_ICON_MUSIC_PREV_LTR, STR_MUSIC_TOOLTIP_SKIP_TO_PREVIOUS_TRACK),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_M_NEXT), SetMinimalSize(22, 22), SetDataTip(STR_ICON_MUSIC_NEXT_LTR, STR_MUSIC_TOOLTIP_SKIP_TO_NEXT_TRACK_IN_SELECTION),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_M_STOP), SetMinimalSize(22, 22), SetDataTip(STR_ICON_MUSIC_STOP, STR_MUSIC_TOOLTIP_STOP_PLAYING_MUSIC),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_M_PLAY), SetMinimalSize(22, 22), SetDataTip(STR_ICON_MUSIC_PLAY_LTR, STR_MUSIC_TOOLTIP_START_PLAYING_MUSIC),
 			EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, -1), SetFill(1, 1), EndContainer(),
 		EndContainer(),
