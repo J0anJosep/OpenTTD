@@ -333,6 +333,12 @@ public:
 	Window *z_front;                 ///< The window in front of us in z-order.
 	Window *z_back;                  ///< The window behind us in z-order.
 
+	inline bool HasWidget(uint widnum) const
+	{
+		return widnum < this->nested_array_size &&
+				this->nested_array[widnum] != NULL;
+	}
+
 	template <class NWID>
 	inline const NWID *GetWidget(uint widnum) const;
 	template <class NWID>
