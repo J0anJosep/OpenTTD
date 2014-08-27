@@ -87,7 +87,7 @@ static const NWidgetPart _nested_normal_news_widgets[] = {
 				NWidget(NWID_SPACER), SetFill(0, 1),
 			EndContainer(),
 		EndContainer(),
-		NWidget(WWT_EMPTY, COLOUR_WHITE, WID_N_MESSAGE), SetMinimalSize(428, 154), SetPadding(0, 5, 1, 5),
+		NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_MESSAGE), SetSizingType(NWST_BIG_NEWS), SetMinimalSize(428, 154),  SetPadding(0, 5, 1, 5),
 	EndContainer(),
 };
 
@@ -106,7 +106,7 @@ static const NWidgetPart _nested_vehicle_news_widgets[] = {
 				NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(0, 0, 0, 1),
 				NWidget(NWID_SPACER), SetFill(0, 1),
 			EndContainer(),
-			NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_VEH_TITLE), SetFill(1, 1), SetMinimalSize(419, 55), SetDataTip(STR_EMPTY, STR_NULL),
+			NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_VEH_TITLE), SetSizingType(NWST_BIG_NEWS), SetFill(1, 1), SetMinimalSize(419, 55), SetDataTip(STR_EMPTY, STR_NULL),
 		EndContainer(),
 		NWidget(WWT_PANEL, COLOUR_WHITE, WID_N_VEH_BKGND), SetPadding(0, 25, 1, 25),
 			NWidget(NWID_VERTICAL),
@@ -133,7 +133,7 @@ static const NWidgetPart _nested_company_news_widgets[] = {
 				NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(0, 0, 0, 1),
 				NWidget(NWID_SPACER), SetFill(0, 1),
 			EndContainer(),
-			NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_TITLE), SetFill(1, 1), SetMinimalSize(410, 20), SetDataTip(STR_EMPTY, STR_NULL),
+			NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_TITLE), SetSizingType(NWST_BIG_NEWS), SetFill(1, 1), SetMinimalSize(410, 20), SetDataTip(STR_EMPTY, STR_NULL),
 		EndContainer(),
 		NWidget(NWID_HORIZONTAL), SetPadding(0, 1, 1, 1),
 			NWidget(NWID_VERTICAL),
@@ -164,7 +164,7 @@ static const NWidgetPart _nested_thin_news_widgets[] = {
 				NWidget(NWID_SPACER), SetFill(0, 1),
 			EndContainer(),
 		EndContainer(),
-		NWidget(WWT_EMPTY, COLOUR_WHITE, WID_N_MESSAGE), SetMinimalSize(428, 48), SetFill(1, 0), SetPadding(0, 5, 0, 5),
+		NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_MESSAGE), SetSizingType(NWST_BIG_NEWS), SetMinimalSize(428, 48), SetFill(1, 0), SetPadding(0, 5, 0, 5),
 		NWidget(NWID_VIEWPORT, INVALID_COLOUR, WID_N_VIEWPORT), SetMinimalSize(426, 70), SetPadding(1, 2, 2, 2),
 	EndContainer(),
 };
