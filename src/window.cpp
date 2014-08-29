@@ -40,6 +40,7 @@
 #include "fontcache.h"
 #include "signs_base.h"
 #include "gui.h"
+#include "command_func.h"
 
 #include "safeguards.h"
 
@@ -2865,8 +2866,13 @@ static void MouseLoop(MouseClick click, int mousewheel)
 	if (w == NULL) return;
 	ViewPort *vp = IsPtInWindowViewport(w, x, y);
 
-	HandlePlacePresize();
-	UpdateTileSelection();
+	/* On confirm mode, only update tile selection
+	 * when clicking and nothing is queued. */
+	if (_settings_client.gui.touchscreen_mode != TSC_CONFIRM ||
+			(!IsQueuedTouchCommand() && _left_button_down)) {
+		HandlePlacePresize();
+		UpdateTileSelection();
+	}
 
 	if (VpHandlePlaceSizingDrag()  == ES_HANDLED) return;
 	if (HandleMouseDragDrop()      == ES_HANDLED) return;
