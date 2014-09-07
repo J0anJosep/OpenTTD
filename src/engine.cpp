@@ -76,6 +76,7 @@ const uint EngineOverrideManager::NUM_DEFAULT_ENGINES = _engine_counts[VEH_TRAIN
 Engine::Engine() :
 	name(NULL),
 	company_hidden(0),
+	company_rights(0),
 	overrides_count(0),
 	overrides(NULL)
 {
