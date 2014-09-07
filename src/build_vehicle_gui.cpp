@@ -933,7 +933,14 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 		const Engine *e = Engine::Get(engine);
 		bool hidden = HasBit(e->company_hidden, _local_company);
 		StringID str = hidden ? STR_HIDDEN_ENGINE_NAME : STR_ENGINE_NAME;
-		TextColour tc = TC_NO_SHADE | (hidden ? TC_GREY : TC_BLACK);
+		TextColour tc;
+		if (!HasBit(e->company_avail, _local_company)) {
+			tc = TC_ORANGE;
+		} else {
+			tc = TC_NO_SHADE | (hidden ? TC_GREY : TC_BLACK);
+		}
+
+		bool palette_crash = (show_count && num_engines == 0) || hidden;
 
 		/* Highlight the vehicle if it is selected. */
 		if (engine == selected_id) {
@@ -943,7 +950,7 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 		SetDParam(0, engine);
 		DrawString(text_left, text_right, y + normal_text_y_offset, str, tc);
 
-		DrawVehicleEngine(l, r, sprite_x, y + sprite_y_offset, engine, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette(engine, _local_company), EIT_PURCHASE);
+		DrawVehicleEngine(l, r, sprite_x, y + sprite_y_offset, engine, palette_crash ? PALETTE_CRASH : GetEnginePalette(engine, _local_company), EIT_PURCHASE);
 		if (show_count) {
 			SetDParam(0, num_engines);
 			DrawString(count_left, count_right, y + small_text_y_offset, STR_TINY_BLACK_COMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
@@ -1133,7 +1140,15 @@ struct BuildVehicleWindow : Window {
 			const RailVehicleInfo *rvi = &e->u.rail;
 
 			if (this->filter.railtype != RAILTYPE_END && !HasPowerOnRail(rvi->railtype, this->filter.railtype)) continue;
-			if (!IsEngineBuildable(eid, VEH_TRAIN, _local_company)) continue;
+
+			/* Filtered/Complete. */
+			if (this->show_hidden_engines) {
+				/* If vehicle is available on climate. */
+				if (!HasBit(e->info.climates, _settings_game.game_creation.landscape)) continue;
+			} else {
+				/* If company can build engine. */
+				if (!IsEngineBuildable(eid, VEH_TRAIN, this->owner)) continue;
+			}
 
 			/* Filter now! So num_engines and num_wagons is valid */
 			if (!FilterSingleEngine(eid)) continue;
@@ -1170,8 +1185,14 @@ struct BuildVehicleWindow : Window {
 			if (!this->show_hidden_engines && e->IsHidden(_local_company)) continue;
 
 			EngineID eid = e->index;
-			/* If company can build engine */
-			if (!IsEngineBuildable(eid, this->vehicle_type, this->owner)) continue;
+			/* Filtered/Complete. */
+			if (this->show_hidden_engines) {
+				/* If vehicle is available on climate. */
+				if (!HasBit(e->info.climates, _settings_game.game_creation.landscape)) continue;
+			} else {
+				/* If company can build engine. */
+				if (!IsEngineBuildable(eid, this->vehicle_type, this->owner)) continue;
+			}
 
 			if (!FilterSingleEngine(eid)) continue;
 
