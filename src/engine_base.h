@@ -38,6 +38,7 @@ struct Engine : EnginePool::PoolItem<&_engine_pool> {
 	byte preview_wait;          ///< Daily countdown timer for timeout of offering the engine to the #preview_company company.
 	CompanyMask company_avail;  ///< Bit for each company whether the engine is available for that company.
 	CompanyMask company_hidden; ///< Bit for each company whether the engine is normally hidden in the build gui for that company.
+	CompanyMask company_rights; ///< Bit for each company whether company has bought the rights to use this engine
 	uint8 original_image_index; ///< Original vehicle image index, thus the image index of the overridden vehicle
 	VehicleType type;           ///< %Vehicle type, ie #VEH_ROAD, #VEH_TRAIN, etc.
 
