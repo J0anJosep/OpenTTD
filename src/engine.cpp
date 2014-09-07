@@ -75,6 +75,7 @@ const uint EngineOverrideManager::NUM_DEFAULT_ENGINES = _engine_counts[VEH_TRAIN
 
 Engine::Engine() :
 	name(NULL),
+	company_hidden(0),
 	overrides_count(0),
 	overrides(NULL)
 {
@@ -85,6 +86,7 @@ Engine::Engine(VehicleType type, EngineID base)
 	this->type = type;
 	this->grf_prop.local_id = base;
 	this->list_position = base;
+	this->company_hidden = 0;
 
 	/* Check if this base engine is within the original engine data range */
 	if (base >= _engine_counts[type]) {
@@ -655,7 +657,6 @@ void StartupOneEngine(Engine *e, Date aging_date)
 	e->age = 0;
 	e->flags = 0;
 	e->company_avail = 0;
-	e->company_hidden = 0;
 
 	/* Don't randomise the start-date in the first two years after gamestart to ensure availability
 	 * of engines in early starting games.
@@ -879,7 +880,6 @@ CommandCost CmdSetVehicleVisibility(TileIndex tile, DoCommandFlag flags, uint32 
 {
 	Engine *e = Engine::GetIfValid(GB(p2, 0, 31));
 	if (e == NULL || _current_company >= MAX_COMPANIES) return CMD_ERROR;
-	if ((e->flags & ENGINE_AVAILABLE) == 0 || !HasBit(e->company_avail, _current_company)) return CMD_ERROR;
 
 	if ((flags & DC_EXEC) != 0) {
 		SB(e->company_hidden, _current_company, 1, GB(p2, 31, 1));
