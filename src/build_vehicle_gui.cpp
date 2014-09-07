@@ -919,10 +919,16 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 		const Engine *e = Engine::Get(engine);
 		bool hidden = HasBit(e->company_hidden, _local_company);
 		StringID str = hidden ? STR_HIDDEN_ENGINE_NAME : STR_ENGINE_NAME;
-		TextColour tc = (engine == selected_id) ? TC_WHITE : (TC_NO_SHADE | (hidden ? TC_GREY : TC_BLACK));
+		TextColour tc = TC_NO_SHADE | (hidden ? TC_GREY : TC_BLACK);
+
+		/* Highlight the vehicle if it is selected. */
+		if (engine == selected_id) {
+			GfxFillRect(l, y + WD_FRAMERECT_TOP, r, y + step_size - WD_FRAMERECT_BOTTOM - 2, _colour_gradient[COLOUR_GREY][7]);
+		}
 
 		SetDParam(0, engine);
 		DrawString(text_left, text_right, y + normal_text_y_offset, str, tc);
+
 		DrawVehicleEngine(l, r, sprite_x, y + sprite_y_offset, engine, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette(engine, _local_company), EIT_PURCHASE);
 		if (show_count) {
 			SetDParam(0, num_engines);
