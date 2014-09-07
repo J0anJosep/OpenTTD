@@ -3025,6 +3025,11 @@ bool AfterLoadGame()
 		}
 	}
 
+	/* Init the buying rights setting. */
+	if (IsSavegameVersionBefore(SL_COMPANY_RIGHTS)) {
+		_settings_game.vehicle.buy_engine_rights = false;
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
