@@ -29,6 +29,7 @@
 #include "hotkeys.h"
 #include "road_gui.h"
 #include "zoom_func.h"
+#include "depot_func.h"
 
 #include "widgets/road_widget.h"
 
@@ -328,6 +329,7 @@ struct BuildRoadToolbarWindow : Window {
 		bool can_build = CanBuildVehicleInfrastructure(VEH_ROAD);
 		this->SetWidgetsDisabledState(!can_build,
 				WID_ROT_DEPOT,
+				WID_ROT_BIG_DEPOT,
 				WID_ROT_BUS_STATION,
 				WID_ROT_TRUCK_STATION,
 				WIDGET_LIST_END);
@@ -415,8 +417,9 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEPOT:
+			case WID_ROT_BIG_DEPOT:
 				if (_game_mode == GM_EDITOR || !CanBuildVehicleInfrastructure(VEH_ROAD)) return;
-				if (HandlePlacePushButton(this, WID_ROT_DEPOT, SPR_CURSOR_ROAD_DEPOT, HT_RECT)) {
+				if (HandlePlacePushButton(this, widget, SPR_CURSOR_ROAD_DEPOT, HT_RECT)) {
 					ShowRoadDepotPicker(this);
 					this->last_started_action = widget;
 				}
@@ -505,6 +508,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEPOT:
+			case WID_ROT_BIG_DEPOT:
 				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_SINGLE_TILE);
 				break;
 
@@ -651,9 +655,15 @@ struct BuildRoadToolbarWindow : Window {
 				case DDSP_SINGLE_TILE:
 					/* Build depot. */
 					assert(start_tile == end_tile);
-					assert(last_started_action == WID_ROT_DEPOT);
-					TouchCommandP(start_tile, _cur_roadtype << 2 | _road_depot_orientation, 0,
-						CMD_BUILD_ROAD_DEPOT | CMD_MSG(_road_type_infos[_cur_roadtype].err_depot), CcRoadDepot);
+					assert(last_started_action == WID_ROT_DEPOT || last_started_action == WID_ROT_BIG_DEPOT);
+
+					/* Tile is always the land tile, so need to evaluate _thd.pos. */
+					CommandContainer cmdcont = { start_tile, (uint32)(_cur_roadtype << 2 | _road_depot_orientation |
+					(last_started_action == WID_ROT_BIG_DEPOT ? 1 : 6) << 6 |
+					(last_started_action == WID_ROT_BIG_DEPOT ? INVALID_DEPOT : NEW_DEPOT) << 16),
+					end_tile, (uint32)(CMD_BUILD_ROAD_DEPOT | CMD_MSG(_road_type_infos[_cur_roadtype].err_depot)), CcRoadDepot, "" };
+
+					ShowSelectDepotIfNeeded(cmdcont, TileArea(start_tile), VEH_ROAD); //revise
 				break;
 			}
 		}
@@ -717,6 +727,29 @@ static Hotkey roadtoolbar_hotkeys[] = {
 };
 HotkeyList BuildRoadToolbarWindow::hotkeys("roadtoolbar", roadtoolbar_hotkeys, RoadToolbarGlobalHotkeys);
 
+/**
+ * Add the depot icons depending on availability of construction.
+ * @param biggest_index Storage for collecting the biggest index used in the returned tree.
+ * @return Panel with company buttons.
+ * @post \c *biggest_index contains the largest used index in the tree.
+ */
+static NWidgetBase *MakeNWidgetRoadDepot(int *biggest_index)
+{
+	NWidgetHorizontal *hor = new NWidgetHorizontal();
+
+	if (HasBit(_settings_game.depot.road_depot_types, 0)) {
+		// small depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEPOT, SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT));
+	}
+
+	if (HasBit(_settings_game.depot.road_depot_types, 1)) {
+		// big depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BIG_DEPOT, SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_BIG_DEPOT));
+	}
+
+	*biggest_index = WID_ROT_BIG_DEPOT;
+	return hor;
+}
 
 static const NWidgetPart _nested_build_road_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
@@ -733,8 +766,7 @@ static const NWidgetPart _nested_build_road_widgets[] = {
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_AUTOROAD, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOROAD),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEMOLISH),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEPOT),
-						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT),
+		NWidgetFunction(MakeNWidgetRoadDepot),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUS_STATION),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_BUS_STATION, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_BUS_STATION),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRUCK_STATION),
@@ -774,8 +806,7 @@ static const NWidgetPart _nested_build_tramway_widgets[] = {
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_AUTOTRAM, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOTRAM),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEMOLISH),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEPOT),
-						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT),
+		NWidgetFunction(MakeNWidgetRoadDepot),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUS_STATION),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_BUS_STATION, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_PASSENGER_TRAM_STATION),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRUCK_STATION),
