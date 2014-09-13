@@ -1033,6 +1033,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_AUTOROAD,                          "WID_ROT_AUTOROAD");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_DEMOLISH,                          "WID_ROT_DEMOLISH");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_DEPOT,                             "WID_ROT_DEPOT");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_BIG_DEPOT,                         "WID_ROT_BIG_DEPOT");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_BUS_STATION,                       "WID_ROT_BUS_STATION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_TRUCK_STATION,                     "WID_ROT_TRUCK_STATION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_ROT_ONE_WAY,                           "WID_ROT_ONE_WAY");
