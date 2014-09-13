@@ -35,6 +35,7 @@
 #include "core/backup_type.hpp"
 #include "newgrf.h"
 #include "zoom_func.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
 
@@ -255,6 +256,29 @@ void RoadVehUpdateCache(RoadVehicle *v, bool same_length)
 	v->vcache.cached_max_speed = (max_speed != 0) ? max_speed * 4 : RoadVehInfo(v->engine_type)->max_speed;
 }
 
+CommandCost FindDepotTileForPlacingEngine(TileIndex &tile, const Engine *e, DoCommandFlag flags)
+{
+	assert(IsRoadDepotTile(tile));
+
+	Depot *dep = Depot:: GetByTile(tile);
+
+	RoadTypes rt = HasBit(e->info.misc_flags, EF_ROAD_TRAM) ? ROADTYPES_TRAM : ROADTYPES_ROAD;
+	if ((dep->r_types.road_types & rt) == 0) return_cmd_error(STR_ERROR_DEPOT_WRONG_DEPOT_TYPE);
+
+	if (flags & DC_AUTOREPLACE) {
+		/* Use same tile if possible when replacing. */
+		if (HasTileRoadType(tile, ROADTYPE_TRAM) == HasBit(e->info.misc_flags, EF_ROAD_TRAM)) return CommandCost();
+	}
+
+	for (uint i = dep->depot_tiles.Length(); i--;) {
+		tile = dep->depot_tiles[i];
+		if (HasTileRoadType(tile, ROADTYPE_TRAM) != HasBit(e->info.misc_flags, EF_ROAD_TRAM)) continue;
+		if (!IsFullDepot(tile)) return CommandCost();
+	}
+
+	return_cmd_error(STR_ERROR_DEPOT_FULL_DEPOT);
+}
+
 /**
  * Build a road vehicle.
  * @param tile     tile of the depot where road vehicle is built.
@@ -266,7 +290,10 @@ void RoadVehUpdateCache(RoadVehicle *v, bool same_length)
  */
 CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engine *e, uint16 data, Vehicle **ret)
 {
-	if (HasTileRoadType(tile, ROADTYPE_TRAM) != HasBit(e->info.misc_flags, EF_ROAD_TRAM)) return_cmd_error(STR_ERROR_DEPOT_WRONG_DEPOT_TYPE);
+	assert(IsRoadDepotTile(tile));
+
+	CommandCost check = FindDepotTileForPlacingEngine(tile, e, flags);
+	if (check.Failed()) return check;
 
 	if (flags & DC_EXEC) {
 		const RoadVehicleInfo *rvi = &e->u.road;
@@ -319,6 +346,7 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 
 		AddArticulatedParts(v);
 		v->InvalidateNewGRFCacheOfChain();
+		ChangeNumDepotVehicles(v->tile, 1);
 
 		/* Call various callbacks after the whole consist has been constructed */
 		for (RoadVehicle *u = v; u != NULL; u = u->Next()) {
@@ -984,12 +1012,39 @@ struct RoadDriveEntry {
 
 #include "table/roadveh_movement.h"
 
+static const uint16 JUST_REVERSE_ON_DEPOT = UINT16_MAX - 2;
+
+void HandleRoadVehicleEnterDepot(RoadVehicle *v)
+{
+	assert(IsRoadDepotTile(v->tile));
+
+	if (IsBigRoadDepot(v->tile)) {
+		assert(GetNumDepotVehicles(v->tile) <= ROAD_DEPOT_CAPACITY);
+		v->cur_speed = 0;
+		v->UpdateViewport(true, true);
+		SetWindowClassesDirty(WC_ROADVEH_LIST);
+		SetWindowDirty(WC_VEHICLE_VIEW, v->index);
+
+		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
+		if (!IsFullDepot(v->tile)) {
+			ChangeNumDepotVehicles(v->tile, 1);
+			v->StartService();
+		} else {
+			v->wait_counter = JUST_REVERSE_ON_DEPOT;
+		}
+	} else {
+		VehicleEnterDepot(v);
+	}
+}
+
 static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 {
 	/* Don't leave unless v and following wagons are in the depot. */
 	for (const RoadVehicle *u = v; u != NULL; u = u->Next()) {
 		if (u->state != RVSB_IN_DEPOT || u->tile != v->tile) return false;
 	}
+
+	bool stop_here = (v->wait_counter != JUST_REVERSE_ON_DEPOT);
 
 	DiagDirection dir = GetRoadDepotDirection(v->tile);
 	v->direction = DiagDirToDir(dir);
@@ -1002,20 +1057,27 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 
 	if (first) {
 		/* We are leaving a depot, but have to go to the exact same one; re-enter */
-		if (v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
-			VehicleEnterDepot(v);
+		if (stop_here && v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
+			if (IsBigRoadDepot(v->tile)) {
+				v->StartService();
+			} else {
+				VehicleEnterDepot(v);
+			}
 			return true;
 		}
 
 		if (RoadVehFindCloseTo(v, x, y, v->direction, false) != NULL) return true;
 
-		VehicleServiceInDepot(v);
+		if (stop_here) {
+			VehicleServiceInDepot(v);
+			StartRoadVehSound(v);
+		}
 
-		StartRoadVehSound(v);
-
-		/* Vehicle is about to leave a depot */
+		/* Vehicle is about to leave a depot. */
 		v->cur_speed = 0;
 	}
+
+	if (v->IsPrimaryVehicle() && stop_here) ChangeNumDepotVehicles(v->tile, -1);
 
 	v->vehstatus &= ~VS_HIDDEN;
 	v->state = tdir;
@@ -1531,6 +1593,8 @@ static bool RoadVehController(RoadVehicle *v)
 	/* road vehicle has broken down? */
 	if (v->HandleBreakdown()) return true;
 	if (v->vehstatus & VS_STOPPED) return true;
+
+	if (v->ContinueServicing()) return true;
 
 	ProcessOrders(v);
 	v->HandleLoading();
