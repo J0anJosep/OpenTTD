@@ -397,7 +397,9 @@ static CommandCost RemoveRoad(TileIndex tile, DoCommandFlag flags, RoadBits piec
 			return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_ROAD] * 2);
 		}
 
-		default:
+		default: NOT_REACHED();
+
+		case ROAD_TILE_BIG_DEPOT:
 		case ROAD_TILE_DEPOT:
 			return CMD_ERROR;
 	}
@@ -586,6 +588,7 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 					if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 					break;
 
+				case ROAD_TILE_BIG_DEPOT:
 				case ROAD_TILE_DEPOT:
 					if ((GetAnyRoadBits(tile, rt) & pieces) == pieces) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 					goto do_clear;
@@ -1001,9 +1004,11 @@ CommandCost CmdRemoveLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 
  * Build a road depot.
  * @param tile tile where to build the depot
  * @param flags operation to perform
- * @param p1 bit 0..1 entrance direction (DiagDirection)
- *           bit 2..3 road type
- * @param p2 unused
+ * @param p1 bit  0..1 :entrance direction (DiagDirection)
+ *           bit  2..3 : road type
+ *           bit     6 : 0 for normal depots, 1 for big depots
+ *           bits 16-31: DepotID to join to
+ * @param p2 end tile
  * @param text unused
  * @return the cost of this operation or an error
  *
@@ -1014,6 +1019,15 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 {
 	DiagDirection dir = Extract<DiagDirection, 0, 2>(p1);
 	RoadType rt = Extract<RoadType, 2, 2>(p1);
+	bool build_big_depot = HasBit(p1, 6);
+
+	if (!HasBit(_settings_game.depot.road_depot_types, build_big_depot)) return_cmd_error(STR_ERROR_DEPOT_TYPE_NOT_AVAILABLE); 
+
+	TileArea ta(tile, p2);
+	DepotID join_to = GB(p1, 16, 16);
+	Depot *depot = NULL;
+
+	if (!build_big_depot) assert(tile == p2);
 
 	if (!IsValidRoadType(rt) || !ValParamRoadType(rt)) return CMD_ERROR;
 
@@ -1025,6 +1039,10 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
 	}
 
+	/* Create a new depot or find a depot to join to. */
+	CommandCost ret = FindJoiningBigDepot(ta, VEH_ROAD, join_to, depot, build_big_depot, flags);
+	if (ret.Failed()) return ret;
+
 	CommandCost cost = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (cost.Failed()) return cost;
 
@@ -1033,19 +1051,17 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	if (!Depot::CanAllocateItem()) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		Depot *dep = new Depot(tile);
-		dep->build_date = _date;
-		dep->company = _current_company;
-		dep->veh_type = VEH_ROAD;
-
 		/* A road depot has two road bits. */
 		Company::Get(_current_company)->infrastructure.road[rt] += 2;
 		DirtyCompanyInfrastructureWindows(_current_company);
 
-		MakeRoadDepot(tile, _current_company, dep->index, dir, rt);
+		MakeRoadDepot(tile, _current_company, depot->index, dir, rt);
+		SB(_m[tile].m5, 6, 1, build_big_depot);
 		MarkTileDirtyByTile(tile);
-		MakeDefaultName(dep);
+		depot->AfterAddRemove(ta, true);
+		if (join_to == NEW_DEPOT) MakeDefaultName(depot);
 	}
+
 	cost.AddCost(_price[PR_BUILD_DEPOT_ROAD]);
 	return cost;
 }
@@ -1061,15 +1077,16 @@ static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
-		Company *c = Company::GetIfValid(GetTileOwner(tile));
+		Depot *depot = Depot::GetByTile(tile);
+		Company *c = Company::GetIfValid(depot->company);
 		if (c != NULL) {
 			/* A road depot has two road bits. */
 			c->infrastructure.road[FIND_FIRST_BIT(GetRoadTypes(tile))] -= 2;
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
 
-		delete Depot::GetByTile(tile);
 		DoClearSquare(tile);
+		depot->AfterAddRemove(TileArea(tile), false);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_ROAD]);
@@ -1118,7 +1135,8 @@ static CommandCost ClearTile_Road(TileIndex tile, DoCommandFlag flags)
 			return ret;
 		}
 
-		default:
+		default: NOT_REACHED();
+		case ROAD_TILE_BIG_DEPOT:
 		case ROAD_TILE_DEPOT:
 			if (flags & DC_AUTO) {
 				return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
@@ -1396,7 +1414,9 @@ static void DrawTile_Road(TileInfo *ti)
 			break;
 		}
 
-		default:
+		default: NOT_REACHED();
+
+		case ROAD_TILE_BIG_DEPOT:
 		case ROAD_TILE_DEPOT: {
 			if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
@@ -1643,7 +1663,9 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 					break;
 				}
 
-				default:
+				default: NOT_REACHED();
+
+				case ROAD_TILE_BIG_DEPOT:
 				case ROAD_TILE_DEPOT: {
 					DiagDirection dir = GetRoadDepotDirection(tile);
 
@@ -1691,6 +1713,7 @@ static void GetTileDesc_Road(TileIndex tile, TileDesc *td)
 			break;
 		}
 
+		case ROAD_TILE_BIG_DEPOT:
 		case ROAD_TILE_DEPOT:
 			td->str = STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT;
 			road_owner = GetTileOwner(tile); // Tile has only one owner, roadtype does not matter
@@ -1739,6 +1762,7 @@ static const byte _roadveh_enter_depot_dir[4] = {
 static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int x, int y)
 {
 	switch (GetRoadTileType(tile)) {
+		case ROAD_TILE_BIG_DEPOT:
 		case ROAD_TILE_DEPOT: {
 			if (v->type != VEH_ROAD) break;
 
@@ -1748,7 +1772,7 @@ static VehicleEnterTileStatus VehicleEnter_Road(Vehicle *v, TileIndex tile, int 
 				rv->state = RVSB_IN_DEPOT;
 				rv->vehstatus |= VS_HIDDEN;
 				rv->direction = ReverseDir(rv->direction);
-				if (rv->Next() == NULL) VehicleEnterDepot(rv->First());
+				if (rv->Next() == NULL) HandleRoadVehicleEnterDepot(rv->First());
 				rv->tile = tile;
 
 				InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(rv->tile));
