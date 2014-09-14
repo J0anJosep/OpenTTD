@@ -1320,6 +1320,7 @@ static uint GetWindowZPriority(const Window *w)
 			++z_priority;
 
 		case WC_NEWS_WINDOW:
+		case WC_TABLET_BAR:
 			++z_priority;
 
 		default:
@@ -1522,8 +1523,9 @@ void Window::FindWindowPlacementAndResize(int def_width, int def_height)
 	if (nx + this->width > _screen.width) nx -= (nx + this->width - _screen.width);
 
 	const Window *wt = FindWindowById(WC_MAIN_TOOLBAR, 0);
+	const Window *wtab = FindWindowById(WC_TABLET_BAR, 0);
 	ny = max(ny, (wt == NULL || this == wt || this->top == 0) ? 0 : wt->height);
-	nx = max(nx, 0);
+	nx = max(nx, (wtab == NULL || this == wtab || this->top >= wtab->top + wtab->height) ? 0 : wtab->width);
 
 	if (this->viewport != NULL) {
 		this->viewport->left += nx - this->left;
@@ -3285,6 +3287,7 @@ restart_search:
 				w->window_class != WC_MAIN_TOOLBAR &&
 				w->window_class != WC_STATUS_BAR &&
 				w->window_class != WC_TOOLTIPS &&
+				w->window_class != WC_TABLET_BAR &&
 				(w->flags & WF_STICKY) == 0) { // do not delete windows which are 'pinned'
 
 			delete w;
