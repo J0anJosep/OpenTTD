@@ -2465,7 +2465,9 @@ static EventState HandleViewportScroll()
 	 * outside of the window and should not left-mouse scroll anymore. */
 	if (_last_scroll_window == NULL) _last_scroll_window = FindWindowFromPt(_cursor.pos.x, _cursor.pos.y);
 
-	if (_last_scroll_window == NULL || !(_right_button_down || scrollwheel_scrolling || (_settings_client.gui.left_mouse_btn_scrolling && _left_button_down))) {
+
+	if (_last_scroll_window == NULL || !(_right_button_down || scrollwheel_scrolling ||
+			(_left_button_down && (_move_pressed || _settings_client.gui.left_mouse_btn_scrolling)))) {
 		_cursor.fix_at = false;
 		_scrolling_viewport = false;
 		_last_scroll_window = NULL;
@@ -2902,7 +2904,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 			case MC_LEFT:
 				if (!HandleViewportClicked(vp, x, y) &&
 						!(w->flags & WF_DISABLE_VP_SCROLL) &&
-						_settings_client.gui.left_mouse_btn_scrolling) {
+						(_settings_client.gui.left_mouse_btn_scrolling || _move_pressed)) {
 					_scrolling_viewport = true;
 					_cursor.fix_at = false;
 				}
