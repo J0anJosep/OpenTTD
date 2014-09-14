@@ -2198,6 +2198,8 @@ static void PlaceObject()
 
 bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 {
+	if (_move_pressed) return false;
+
 	const Vehicle *v = CheckClickOnVehicle(vp, x, y);
 
 	if (_thd.place_mode & HT_VEHICLE) {
