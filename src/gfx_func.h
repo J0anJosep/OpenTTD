@@ -56,6 +56,8 @@ extern byte _support8bpp;
 extern CursorVars _cursor;
 extern bool _ctrl_pressed;   ///< Is Ctrl pressed?
 extern bool _shift_pressed;  ///< Is Shift pressed?
+extern bool _move_pressed;
+
 extern byte _fast_forward;
 
 extern bool _left_button_down;
