@@ -2249,6 +2249,7 @@ struct TabletToolbar : Window {
 
 	~TabletToolbar() {
 		_shift_pressed = false;
+		_move_pressed = false;
 
 		if (_ctrl_pressed) {
 			_ctrl_pressed = false;
@@ -2291,6 +2292,11 @@ struct TabletToolbar : Window {
 			case WID_TT_CONFIRM:
 				ScrollMainWindowToTile(GetQueuedCommandTile());
 				DoQueuedTouchCommand();
+				break;
+			case WID_TT_MOVE:
+				_move_pressed = !_move_pressed;
+				this->ToggleWidgetLoweredState(WID_TT_MOVE);
+				this->SetWidgetDirty(WID_TT_MOVE);
 				break;
 			default:
 				NOT_REACHED();
@@ -2343,6 +2349,7 @@ static const NWidgetPart _nested_tablet_widgets[] = {
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_TT_DELETE), SetDataTip(STR_TABLET_CLOSE, STR_TABLET_CLOSE_TOOLTIP),
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_TT_SHIFT), SetDataTip(STR_TABLET_SHIFT, STR_TABLET_SHIFT_TOOLTIP),
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_TT_CTRL), SetDataTip(STR_TABLET_CTRL, STR_TABLET_CTRL_TOOLTIP),
+		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_TT_MOVE), SetDataTip(STR_TABLET_MOVE, STR_TABLET_MOVE_TOOLTIP),
 		NWidgetFunction(OtherTabletButtons),
 		EndContainer(),
 };
