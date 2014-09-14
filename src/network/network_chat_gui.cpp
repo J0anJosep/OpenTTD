@@ -109,7 +109,7 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *m
 /** Initialize all font-dependent chat box sizes. */
 void NetworkReInitChatBoxSize()
 {
-	_chatmsg_box.y       = 3 * FONT_HEIGHT_NORMAL;
+	_chatmsg_box.y       = max<int>(3 * FONT_HEIGHT_NORMAL, GetMinSizing(NWST_BUTTON) + GetMinSizing(NWST_STEP) + NETWORK_CHAT_LINE_SPACING);
 	_chatmsg_box.height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
 	_chatmessage_backup  = ReallocT(_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * BlitterFactory::GetCurrentBlitter()->GetBytesPerPixel());
 }
@@ -468,15 +468,23 @@ struct NetworkChatWindow : public Window {
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
-		if (widget != WID_NC_DESTINATION) return;
+		switch (widget) {
+			case WID_NC_DESTINATION: {
+				if (this->dtype == DESTTYPE_CLIENT) {
+					SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
+				}
+				Dimension d = GetStringBoundingBox(this->dest_string);
+				d.width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				*size = maxdim(*size, d);
+				break;
+			}
 
-		if (this->dtype == DESTTYPE_CLIENT) {
-			SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
+			case WID_NC_TEXTBOX:
+				size->width = max<int>(11 * GetMinSizing(NWST_BUTTON), FONT_HEIGHT_NORMAL * 18);
+				break;
 		}
-		Dimension d = GetStringBoundingBox(this->dest_string);
-		d.width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
-		*size = maxdim(*size, d);
+
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
