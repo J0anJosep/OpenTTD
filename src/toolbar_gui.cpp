@@ -2296,6 +2296,10 @@ struct TabletToolbar : Window {
 			case WID_TT_CHAT:
 				ShowNetworkChatQueryWindow(DESTTYPE_BROADCAST, 0);
 				break;
+			case WID_TT_CONFIRM:
+				ScrollMainWindowToTile(GetQueuedCommandTile());
+				DoQueuedTouchCommand();
+				break;
 			default:
 				NOT_REACHED();
 		}
@@ -2314,7 +2318,10 @@ struct TabletToolbar : Window {
 		if (HasBit(data, 2)) { UpdateTileSelection(); }
 
 		/* This window is dirty. */
-		if (HasBit(data, 3)) { this->SetDirty(); }
+		if (HasBit(data, 3)) {
+			SetWidgetDisabledState(WID_TT_CONFIRM, !IsQueuedTouchCommand());
+			this->SetWidgetDirty(WID_TT_CONFIRM);
+		}
 	}
 };
 
@@ -2327,6 +2334,12 @@ static NWidgetBase *OtherTabletButtons(int *biggest_index)
 		NWidgetLeaf *nwi = new NWidgetLeaf(WWT_PUSHTXTBTN, COLOUR_GREY, WID_TT_CHAT, STR_TABLET_CHAT, STR_TABLET_CHAT_TOOLTIP);
 		ver->Add(nwi);
 		*biggest_index = WID_TT_CHAT;
+	}
+
+	if (_settings_client.gui.touchscreen_mode == TSC_CONFIRM) {
+		NWidgetLeaf *nwi = new NWidgetLeaf(WWT_PUSHTXTBTN, COLOUR_GREY, WID_TT_CONFIRM, STR_TABLET_CONFIRM, STR_TABLET_CONFIRM_TOOLTIP);
+		ver->Add(nwi);
+		*biggest_index = WID_TT_CONFIRM;
 	}
 
 	return ver;
@@ -2357,6 +2370,7 @@ void ResetTabletWindow()
 	}
 
 	DeleteWindowByClass(WC_TABLET_BAR);
+	EraseQueuedTouchCommand();
 
 	switch (_settings_client.gui.touchscreen_mode) {
 		case TSC_NONE:
@@ -2369,8 +2383,9 @@ void ResetTabletWindow()
 			InvalidateWindowData(WC_TABLET_BAR, 0, 1 << 3);
 			break;
 		default: NOT_REACHED();
-
 	}
+
+	MarkWholeScreenDirty();
 }
 
 /** Allocate the toolbar. */
@@ -2386,4 +2401,9 @@ void AllocateToolbar()
 	}
 
 	ResetTabletWindow();
+}
+
+void UpdateTouchscreenBar()
+{
+	InvalidateWindowData(WC_TABLET_BAR, 0, 1 << 3);
 }
