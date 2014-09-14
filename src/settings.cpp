@@ -1109,7 +1109,7 @@ static bool ZoomMinMaxChanged(int32 p1)
 
 static bool TouchscreenModeChanged(int32 p1)
 {
-	//ResetTabletWindow();
+	ResetTabletWindow();
 	return true;
 }
 
