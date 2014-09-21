@@ -265,6 +265,34 @@ Trackdir Ship::GetVehicleTrackdir() const
 	return TrackDirectionToTrackdir(FindFirstTrack(this->state), this->direction);
 }
 
+/**
+ * Mark the ship as stuck.
+ * @param stop Whether the velocity must be set to 0.
+ * @param ticks How many ticks the ship must be stopped.
+ */
+void Ship::MarkShipAsStuck(bool stop, uint ticks)
+{
+	assert(!this->stuck);
+
+	/* Set the ship stuck. */
+	this->stuck = true;
+	this->wait_counter = ticks;
+
+	/* Stop ship. */
+	if (stop) {
+		this->cur_speed = 0;
+		this->subspeed = 0;
+	}
+
+	SetWindowWidgetDirty(WC_VEHICLE_VIEW, this->index, WID_VV_START_STOP);
+}
+
+/** Unstuck the ship. */
+void Ship::Unstuck() {
+	this->stuck = false;
+	SetWindowWidgetDirty(WC_VEHICLE_VIEW, this->index, WID_VV_START_STOP);
+}
+
 void Ship::MarkDirty()
 {
 	this->colourmap = PAL_NONE;
@@ -543,6 +571,8 @@ static void ShipController(Ship *v)
 
 	if (v->vehstatus & VS_STOPPED) return;
 
+	if (v->IsStuck() && !v->TryUnblock()) return;
+
 	ProcessOrders(v);
 	v->HandleLoading();
 
@@ -626,12 +656,16 @@ static void ShipController(Ship *v)
 			} else {
 				/* Of the available tracks, get only those that can be reserved */
 				tracks = GetFreeWaterTrackReservation(gp.new_tile, TrackBitsToTrackdirBits(tracks) & DiagdirReachesTrackdirs(diagdir));
-				if (tracks == TRACK_BIT_NONE) goto reverse_direction;
+
+				/* There is a continuation to our path but it is currently occupied. */
+				if (tracks == TRACK_BIT_NONE) goto handle_stuck;
 
 				/* Choose a direction, and continue if we find one */
 				track = ChooseShipTrack(v, gp.new_tile, diagdir, tracks);
-				if (track == INVALID_TRACK) goto reverse_direction;
+				if (track == INVALID_TRACK) goto handle_stuck;
 			}
+
+			if (v->IsStuck()) v->Unstuck();
 
 			b = _ship_subcoord[diagdir][track];
 
@@ -680,6 +714,15 @@ reverse_direction:
 	dir = ReverseDir(v->direction);
 	v->direction = dir;
 	goto getout;
+
+handle_stuck:
+	if (v->IsStuck()) {
+		v->Unstuck();
+		goto reverse_direction;
+	} else {
+		v->MarkShipAsStuck(true, SHIP_BLOCKED_TICKS);
+		goto getout;
+	}
 }
 
 bool Ship::Tick()
