@@ -84,6 +84,8 @@
 #include "linkgraph/linkgraph_gui.h"
 #include "viewport_sprite_sorter.h"
 #include "bridge_map.h"
+#include "zoning.h"
+#include "filters/filter_active.h"
 
 #include <map>
 
@@ -1004,6 +1006,30 @@ static void DrawAutorailSelection(const TileInfo *ti, uint autorail_type)
 	DrawSelectionSprite(image, _thd.make_square_red ? PALETTE_SEL_TILE_RED : pal, ti, 7, foundation_part);
 }
 
+extern const byte _slope_to_sprite_offset[32];
+
+/**
+ * Draw the the zoning on the tile.
+ * @param TileInfo of the tile to draw on.
+ */
+void DrawTileZoning(const TileInfo *ti)
+{
+	if (ti->tile == INVALID_TILE) return;
+	if (IsTileType(ti->tile, MP_VOID)) return;
+
+	if (HasBitMapBit(_ca_layer, ti->tile)) {
+		/* Tile is zoned */
+		DrawSelectionSprite(SPR_SELECT_TILE + _slope_to_sprite_offset[ti->tileh], IsTileType(ti->tile, MP_STATION) ? PAL_NONE : PALETTE_SEL_TILE_BLUE, ti, 7, FOUNDATION_PART_NORMAL);
+	} else {
+		/* Tile is not zoned */
+		if (_ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_ALL_UNCAUGHT_TILES))
+				|| (GetTileType(ti->tile) == MP_HOUSE && _ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_UNCAUGHT_BUILDINGS)))
+				|| (GetTileType(ti->tile) == MP_INDUSTRY && _ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_UNCAUGHT_INDUSTRIES)))) {
+			DrawSelectionSprite(SPR_SELECT_TILE + _slope_to_sprite_offset[ti->tileh], PALETTE_SEL_TILE_RED, ti, 7, FOUNDATION_PART_NORMAL);
+		}
+	}
+}
+
 /**
  * Checks if the specified tile is selected and if so draws selection using correct selectionstyle.
  * @param *ti TileInfo Tile that is being drawn
@@ -1200,7 +1226,11 @@ static void ViewportAddLandscape()
 				_vd.last_foundation_child[1] = NULL;
 
 				_tile_type_procs[tile_type]->draw_tile_proc(&tile_info);
-				if (tile_info.tile != INVALID_TILE) DrawTileSelection(&tile_info);
+
+				if (tile_info.tile != INVALID_TILE) {
+					DrawTileZoning(&tile_info);
+					DrawTileSelection(&tile_info);
+				}
 			}
 		}
 	}
