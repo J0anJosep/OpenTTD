@@ -15,6 +15,8 @@
 #include "vehicle_base.h"
 #include "water_map.h"
 
+static const uint SHIP_BLOCKED_TICKS = 8;
+
 void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 WaterClass GetEffectiveWaterClass(TileIndex tile);
 
@@ -24,10 +26,27 @@ WaterClass GetEffectiveWaterClass(TileIndex tile);
 struct Ship FINAL : public SpecializedVehicle<Ship, VEH_SHIP> {
 	TrackBitsByte state; ///< The "track" the ship is following.
 
+	bool stuck;          ///< Is this ship waiting to reserve a track?
+
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
 	Ship() : SpecializedVehicleBase() {}
 	/** We want to 'destruct' the right class. */
 	virtual ~Ship() { this->PreDestructor(); }
+
+	bool IsStuck() const { return this->stuck; }
+
+	/** Decrease the wait counter and return if ship can try moving again. */
+	bool TryUnblock()
+	{
+		if (this->wait_counter > 0) {
+			this->wait_counter--;
+			return false;
+		}
+		return true;
+	}
+
+	void MarkShipAsStuck(bool stop, uint ticks);
+	void Unstuck();
 
 	void MarkDirty();
 	void UpdateDeltaXY(Direction direction);
