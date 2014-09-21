@@ -1877,7 +1877,7 @@ void ReverseTrainDirection(Train *v)
 			!IsPbsSignal(GetSignalType(v->tile, FindFirstTrack(v->track))));
 
 		/* If we are on a depot tile facing outwards, do not treat the current tile as safe. */
-		if (IsRailDepotTile(v->tile) && TrackdirToExitdir(v->GetVehicleTrackdir()) == GetRailDepotDirection(v->tile)) first_tile_okay = false;
+		if (IsSmallRailDepotTile(v->tile) && TrackdirToExitdir(v->GetVehicleTrackdir()) == GetRailDepotDirection(v->tile)) first_tile_okay = false;
 
 		if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
 		if (TryPathReserve(v, false, first_tile_okay)) {
@@ -2130,7 +2130,7 @@ static bool CheckTrainStayInDepot(Train *v)
 {
 	/* bail out if not all wagons are in the same depot or not in a depot at all */
 	for (const Train *u = v; u != NULL; u = u->Next()) {
-		if (u->track != TRACK_BIT_DEPOT || u->tile != v->tile) return false;
+		if (!u->IsInDepot() || u->tile != v->tile) return false;
 	}
 
 	/* if the train got no power, then keep it in the depot */
@@ -3650,8 +3650,13 @@ static bool TrainCanLeaveTile(const Train *v)
 
 	/* entering a depot? */
 	if (IsRailDepotTile(tile)) {
-		DiagDirection dir = ReverseDiagDir(GetRailDepotDirection(tile));
-		if (DiagDirToDir(dir) == v->direction) return false;
+		if (IsRailDepotBig(tile)) {
+			Direction dir = DiagDirToDir(GetRailDepotDirection(tile));
+			if (dir == v->direction || ReverseDir(dir) == v->direction) return false;
+		} else {
+			DiagDirection dir = ReverseDiagDir(GetRailDepotDirection(tile));
+			if (DiagDirToDir(dir) == v->direction) return false;
+		}
 	}
 
 	return true;
@@ -4024,9 +4029,13 @@ Trackdir Train::GetVehicleTrackdir() const
 {
 	if (this->vehstatus & VS_CRASHED) return INVALID_TRACKDIR;
 
-	if (this->track == TRACK_BIT_DEPOT) {
+	if (this->IsInDepot()) {
 		/* We'll assume the train is facing outwards */
-		return DiagDirToDiagTrackdir(GetRailDepotDirection(this->tile)); // Train in depot
+		if (this->track == TRACK_BIT_DEPOT)
+			return DiagDirToDiagTrackdir(GetRailDepotDirection(this->tile)); // Train in depot
+		Track track = FindFirstTrack(this->track & ~TRACK_BIT_DEPOT);
+		assert(IsValidTrack(track));
+		return TrackDirectionToTrackdir(track, this->direction);
 	}
 
 	if (this->track == TRACK_BIT_WORMHOLE) {
