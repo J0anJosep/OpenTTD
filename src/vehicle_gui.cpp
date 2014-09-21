@@ -22,6 +22,7 @@
 #include "roadveh.h"
 #include "train.h"
 #include "aircraft.h"
+#include "ship.h"
 #include "depot_map.h"
 #include "group_gui.h"
 #include "strings_func.h"
@@ -2586,7 +2587,7 @@ public:
 			} else { // no train
 				str = STR_VEHICLE_STATUS_STOPPED;
 			}
-		} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) {
+		} else if ((v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) || (v->type == VEH_SHIP && Ship::From(v)->IsStuck())) {
 			str = STR_VEHICLE_STATUS_TRAIN_STUCK;
 		} else if (v->type == VEH_AIRCRAFT && HasBit(Aircraft::From(v)->flags, VAF_DEST_TOO_FAR) && !v->current_order.IsType(OT_LOADING)) {
 			str = STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR;
