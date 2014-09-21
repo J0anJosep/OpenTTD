@@ -18,7 +18,7 @@
 FilterActive _ca_controller;
 CustomBitMap *_ca_layer = NULL;
 bool _stations_modified;
-
+extern byte _zoning_byte;
 /**
  * Reset the _ca_controller
  */
@@ -195,6 +195,8 @@ void RotateStationOnCALayer(StationID station)
 	}
 	object->Rotate();
 	if (!object->IsActive()) _ca_controller.lists[LT_STATIONS].Erase(object);
+
+	SB(_zoning_byte, 0, 1, _ca_controller.lists[LT_STATIONS].Length() != 0);
 	UpdateCALayer(LT_STATIONS, station);
 	InvalidateWindowClassesData(WC_CATCHMENT_AREA_WINDOW, 2);
 }
