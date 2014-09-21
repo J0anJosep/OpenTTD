@@ -3077,6 +3077,13 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SL_STUCK_SHIPS)) {
+		Ship *v;
+		FOR_ALL_SHIPS(v) {
+			v->stuck = false;
+		}
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
