@@ -29,6 +29,7 @@ enum GroupListWidgets {
 	WID_GL_STOP_ALL,                 ///< Stop all button.
 	WID_GL_START_ALL,                ///< Start all button.
 
+	WID_GL_EMPTY,                    ///< An empty panel for filling the window correctly.
 	WID_GL_ALL_VEHICLES,             ///< All vehicles entry.
 	WID_GL_DEFAULT_VEHICLES,         ///< Default vehicles entry.
 	WID_GL_LIST_GROUP,               ///< List of the groups.
