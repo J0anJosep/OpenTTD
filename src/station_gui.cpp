@@ -395,7 +395,7 @@ public:
 			}
 
 			case WID_STL_LIST:
-				resize->height = FONT_HEIGHT_NORMAL;
+				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
 				size->height = WD_FRAMERECT_TOP + 5 * resize->height + WD_FRAMERECT_BOTTOM;
 				break;
 		}
@@ -419,7 +419,8 @@ public:
 
 			case WID_STL_LIST: {
 				int max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->stations.Length());
-				int y = r.top + WD_FRAMERECT_TOP;
+				uint line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
+				int y = Center(r.top + WD_FRAMERECT_TOP, line_height);
 				for (int i = this->vscroll->GetPosition(); i < max; ++i) { // do until max number of stations of owner
 					const Station *st = this->stations[i];
 					assert(st->xy != INVALID_TILE);
@@ -432,9 +433,9 @@ public:
 					SetDParam(1, st->facilities);
 					int x = DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
 
-					StationsWndShowStationRating(st, r.left, r.right, x, FONT_HEIGHT_NORMAL + 2, y);
+					StationsWndShowStationRating(st, r.left, r.right, x, line_height + 2, y);
 
-					y += FONT_HEIGHT_NORMAL;
+					y += line_height;
 				}
 
 				if (this->vscroll->GetCount() == 0) { // company has no stations
@@ -464,7 +465,7 @@ public:
 				break;
 
 			case WID_STL_LIST: {
-				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_STL_LIST, 0, FONT_HEIGHT_NORMAL);
+				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_STL_LIST, 0, this->resize.step_height);
 				if (id_v >= this->stations.Length()) return; // click out of list bound
 
 				const Station *st = this->stations[id_v];
@@ -2125,8 +2126,8 @@ struct SelectStationWindow : Window {
 			d = maxdim(d, GetStringBoundingBox(T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION));
 		}
 
-		resize->height = d.height;
-		d.height *= 5;
+		resize->height = GetMinSizing(NWST_STEP, d.height);
+		d.height = 5 * resize->height;
 		d.width += WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT;
 		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 		*size = d;
