@@ -574,6 +574,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_MANAGE_GROUPS_DROPDOWN,             "WID_GL_MANAGE_GROUPS_DROPDOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_STOP_ALL,                           "WID_GL_STOP_ALL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_START_ALL,                          "WID_GL_START_ALL");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_EMPTY,                              "WID_GL_EMPTY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_ALL_VEHICLES,                       "WID_GL_ALL_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_DEFAULT_VEHICLES,                   "WID_GL_DEFAULT_VEHICLES");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_GL_LIST_GROUP,                         "WID_GL_LIST_GROUP");
