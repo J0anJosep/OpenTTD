@@ -28,4 +28,9 @@ bool HasWaterTracksReserved(TileIndex t, TrackBits tracks);
 bool DoWaterPathReservation(TileIndex t, Trackdir trackdir);
 bool IsWaterPositionFree(TileIndex tile, Trackdir trackdir);
 
+/* Routines related to reservation of water paths. */
+void LiftPathReservation(TileIndex tile, Trackdir trackdir);
+void LiftReservations(TileIndex tile, TrackdirBits trackdirs);
+bool LiftReservations(TileIndex tile);
+
 #endif /* PBS_WATER_H */
