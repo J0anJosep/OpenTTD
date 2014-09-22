@@ -584,7 +584,7 @@ public:
 			}
 
 			case WID_NCL_MATRIX:
-				resize->height = max(this->checkbox_size.height, (uint)FONT_HEIGHT_NORMAL) + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+				resize->height = GetMinSizing(NWST_STEP, max(this->checkbox_size.height, (uint)FONT_HEIGHT_NORMAL) + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
 				size->height = 10 * resize->height;
 				break;
 		}
