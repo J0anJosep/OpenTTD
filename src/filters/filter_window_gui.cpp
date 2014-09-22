@@ -52,7 +52,7 @@ struct FilterWindowBase : Window, FilterLists {
 	 * On new filterlists, set where the active filter is; if null, create a new active filter.
 	 * @param active If not null, set passed FilterActive as the active elements.
 	 */
-	FilterWindowBase(WindowDesc *desc, uint mask, FilterActive *active) : Window(desc), mask(mask), tiny_step(FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)
+	FilterWindowBase(WindowDesc *desc, uint mask, FilterActive *active) : Window(desc), mask(mask), tiny_step(GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM))
 	{
 		if (active == NULL) {
 			this->active = new FilterActive();
@@ -65,7 +65,8 @@ struct FilterWindowBase : Window, FilterLists {
 	{
 		if (widget == FW_LIST) {
 			resize->height = this->tiny_step;
-			size->height = 5 * this->tiny_step;
+			size->height = CeilDiv(9 * GetMinSizing(NWST_BUTTON), this->tiny_step) * this->tiny_step;
+			size->height = max(size->height, 6 * this->tiny_step);
 		}
 	}
 
