@@ -622,6 +622,110 @@ bool IsWateredTile(TileIndex tile, Direction from)
 	}
 }
 
+inline bool HasBanksStoredInMapArray(TileIndex t)
+{
+	return IsTileType(t, MP_WATER) ||
+			(IsTileType(t, MP_STATION) && (IsDock(t) || IsBuoy(t)));
+}
+
+/**
+ * Sets the edges and corners of a water tile (not a lock) or a dock or buoy.
+ * @param t Tile to set.
+ * @return an uint16 where the 4 lower bits represent the set edges, 4 next bits represent consecutive edges set, 4 next bits represent corners with no adjacent edges set.
+ * @pre HasTileWaterClass(tile).
+ */
+uint16 SetTileBanks(TileIndex tile)
+{
+	assert(HasTileWaterClass(tile));
+
+	if (!IsTileOnWater(tile)) return 0;
+
+	/* Bits  0,  1,  2,  3   -> Edges.
+	 * Bits  4,  5,  6,  7   -> Corners where two adjacent edges are set.
+	 * Bits  8,  9, 10, 11   -> Corners with no adjacent edge.
+	 * Bits 12, 13, 14, 15   -> Border on edge is a lock/depot (NO SAVE). */
+	uint wa = 0;
+
+	/* Determine the edges around with water. */
+	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir != DIAGDIR_END; diagdir++) {
+		TileIndex t = TileAddByDiagDir(tile, diagdir);
+
+		/* If outside the map, set no border. */
+		if (!IsValidTile(t)) continue;
+
+		/* Check edges. */
+		if (!IsWateredTile(t, ReverseDir(DiagDirToDir(diagdir))) ||
+				(IsShipDepotTile(tile) && GetShipDepotAxis(tile) != DiagDirToAxis(diagdir))) {
+			/* Mark the edge. */
+			SetBit(wa, diagdir);
+		}
+		/* Mark neighbour is a lock. */
+		if (IsLockTile(t) || IsShipDepotTile(t)) SetBit(wa, 12 + diagdir);
+	}
+
+	/* Determine adjacent edges. */
+	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir < DIAGDIR_END; diagdir++) {
+		if (HasBit(wa, diagdir) && HasBit(wa, (diagdir + 1) % 4)) {
+			/* Two adjacent edges: set corner. */
+			SetBit(wa, diagdir + 4);
+			continue;
+		}
+
+		/* If one of these edges exist, then don't bother about drawing a corner here. */
+		if (HasBit(wa, diagdir) || HasBit(wa, (diagdir + 1) % 4)) continue;
+
+		/* Rotate diagdir 45 degrees to get the direction of the corner. */
+		Direction direction = ChangeDir(DiagDirToDir(diagdir), DIRDIFF_45RIGHT);
+		TileIndex t = tile + TileOffsByDir(direction);
+		if (!IsValidTile(t)) continue;
+
+		/* If corner in front of a lock or non-watered
+		 * tile in the direction of the corner. */
+		if (HasBit(wa, diagdir + 12) ||
+				HasBit(wa, diagdir == 3 ? 12 : (diagdir + 13)) ||
+				!IsWateredTile(t, ReverseDir(direction)))
+			SetBit(wa, diagdir + 8);
+	}
+
+	if (HasBanksStoredInMapArray(tile)) {
+		SB(_m[tile].m3, 0, 8, wa);
+		SB(_m[tile].m4, 4, 4, wa >> 8);
+	}
+
+	return wa;
+}
+
+/**
+ * Get the bits representing edges and corners of water tiles.
+ * @param t Tile.
+ * @pre HasTileWaterClass(t).
+ */
+uint GetTileBanks(TileIndex t)
+{
+	assert(HasTileWaterClass(t));
+
+	if (!IsTileOnWater(t)) return 0;
+
+	if (HasBanksStoredInMapArray(t)) return (uint)(GB(_m[t].m4, 4, 4) << 8 | _m[t].m3);
+
+	return SetTileBanks(t);
+}
+
+/**
+ * Update all the water tiles in the map array, setting the edges, corners and available tracks.
+ * Only applies to those tiles which really store them in the map array.
+ */
+void UpdateWaterTiles()
+{
+	TileIndex map_size = MapSize();
+
+	for (TileIndex t = 0; t < map_size; t++) {
+		if (HasBanksStoredInMapArray(t)) {
+			SetTileBanks(t);
+		}
+	}
+}
+
 /**
  * Draw a water sprite, potentially with a NewGRF-modified sprite offset.
  * @param base    Sprite base.
@@ -646,6 +750,8 @@ static void DrawWaterSprite(SpriteID base, uint offset, CanalFeature feature, Ti
  */
 static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 {
+	assert(HasTileWaterClass(tile));
+
 	CanalFeature feature;
 	SpriteID base = 0;
 	if (canal) {
@@ -660,42 +766,8 @@ static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 
 	/* Bits  0,  1,  2,  3   -> Edges.
 	 * Bits  4,  5,  6,  7   -> Corners where two adjacent edges are set.
-	 * Bits  8,  9, 10, 11   -> Corners with no adjacent edge.
-	 * Bits 12, 13, 14, 15   -> Border on edge is a lock/depot (NO SAVE). */
-	uint wa = 0;
-
-	/* Determine the edges around with water. */
-	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir != DIAGDIR_END; diagdir++) {
-		TileIndex t = TileAddByDiagDir(tile, diagdir);
-		/* Check edges. */
-		if (!IsWateredTile(t, ReverseDir(DiagDirToDir(diagdir))) ||
-				(IsShipDepotTile(tile) && GetShipDepotAxis(tile) != DiagDirToAxis(diagdir))) {
-			/* Mark the edge. */
-			SetBit(wa, diagdir);
-		}
-		/* Mark neighbour is a lock. */
-		if (IsLockTile(t) || IsShipDepotTile(t)) SetBit(wa, 12 + diagdir);
-	}
-
-	/* Determine adjacent edges. */
-	for (DiagDirection diagdir = DIAGDIR_BEGIN; diagdir < DIAGDIR_END; diagdir++) {
-		if (HasBit(wa, diagdir) && HasBit(wa, (diagdir + 1) % 4)) {
-			/* Two adjacent edges: set corner. */
-			SetBit(wa, diagdir + 4);
-			continue;
-		}
-
-		/* If one of these edges exist, then don't bother about drawing a corner here. */
-		if (HasBit(wa, diagdir) || HasBit(wa, (diagdir + 1) % 4)) continue;
-
-		/* Rotate diagdir 45 degrees to get the direction of the corner. */
-		Direction direction = ChangeDir(DiagDirToDir(diagdir), DIRDIFF_45RIGHT);
-
-		/* If corner in front of a lock or non-watered tile in the direction of the corner. */
-		if (HasBit(wa, diagdir + 12) || HasBit(wa, diagdir == 3 ? 12 : (diagdir + 13)) ||
-				!IsWateredTile(tile + TileOffsByDir(direction), ReverseDir(direction)))
-			SetBit(wa, diagdir + 8);
-	}
+	 * Bits  8,  9, 10, 11   -> Corners with no adjacent edge. */
+	uint16 wa = GetTileBanks(tile);
 
 	for (uint bit = 0; bit < 12; bit++) {
 		if (HasBit(wa, bit)) DrawWaterSprite(base, offset + bit, feature, tile);
