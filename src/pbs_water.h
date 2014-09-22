@@ -28,4 +28,9 @@ bool HasWaterTracksReserved(TileIndex t, TrackBits tracks);
 bool DoWaterPathReservation(TileIndex t, Trackdir trackdir);
 bool IsWaterPositionFree(TileIndex tile, Trackdir trackdir);
 
+/* Routines related to lifting ship paths. */
+void LiftShipPathReservation(TileIndex tile, Trackdir trackdir);
+void LiftShipPathReservation(Ship *v, TileIndex tile, Track track, bool keep_pref_water_trackdirs);
+bool LiftShipPathsReservations(TileIndex tile, bool keep_pref_water_trackdirs = false);
+
 #endif /* PBS_WATER_H */
