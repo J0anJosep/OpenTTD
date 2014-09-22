@@ -28,4 +28,14 @@ bool HasWaterTracksReserved(TileIndex t, TrackBits tracks);
 bool DoWaterPathReservation(TileIndex t, Trackdir trackdir);
 bool IsWaterPositionFree(TileIndex tile, Trackdir trackdir);
 
+/* Routines related to lifting water paths. */
+/* Remove an existing reserved water path. */
+void LiftReservedWaterPath(TileIndex tile, Trackdir trackdir);
+/* Remove the reserved water path belonging to a ship. */
+void LiftShipReservedPath(Ship *v, TileIndex tile = INVALID_TILE, Track track = INVALID_TRACK, bool keep_pref_water_trackdirs = true);
+/* Remove all reserved water paths on a tile. */
+bool LiftReservedWaterPaths(TileIndex tile);
+/* Remove all reserved water paths colliding a given tile and some trackdirs. */
+void LiftCollidingReservedWaterPaths(TileIndex tile, TrackdirBits trackdirs);
+
 #endif /* PBS_WATER_H */
