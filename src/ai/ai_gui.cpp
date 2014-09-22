@@ -109,7 +109,7 @@ struct AIListWindow : public Window {
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget == WID_AIL_LIST) {
-			this->line_height = FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+			this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
 
 			resize->width = 1;
 			resize->height = this->line_height;
@@ -349,6 +349,7 @@ struct AISettingsWindow : public Window {
 	{
 		if (widget == WID_AIS_BACKGROUND) {
 			this->line_height = max(SETTING_BUTTON_HEIGHT, FONT_HEIGHT_NORMAL) + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+			this->line_height = GetMinSizing(NWST_STEP, this->line_height);
 
 			resize->width = 1;
 			resize->height = this->line_height;
@@ -767,7 +768,7 @@ struct AIConfigWindow : public Window {
 				break;
 
 			case WID_AIC_LIST:
-				this->line_height = FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
 				size->height = 8 * this->line_height;
 				break;
 
@@ -1093,7 +1094,7 @@ struct AIDebugWindow : public Window {
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget == WID_AID_LOG_PANEL) {
-			resize->height = FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+			resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL);
 			size->height = 14 * resize->height + this->top_offset + this->bottom_offset;
 		}
 	}
