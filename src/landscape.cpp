@@ -1376,6 +1376,7 @@ void GenerateLandscape(byte mode)
 	if (_settings_game.game_creation.landscape == LT_TROPIC) CreateDesertOrRainForest();
 
 	CreateRivers();
+	UpdateWaterTiles();
 }
 
 void OnTick_Town();
