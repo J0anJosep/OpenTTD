@@ -3072,6 +3072,11 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SL_STORE_WATER_TRACKS)) {
+		/* Store the edges and tracks of water tiles. */
+		UpdateWaterTiles();
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
