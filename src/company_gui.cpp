@@ -36,6 +36,7 @@
 #include "water.h"
 #include "station_func.h"
 #include "zoom_func.h"
+#include "widget_type.h"
 
 #include "widgets/company_widget.h"
 
@@ -529,7 +530,7 @@ public:
 
 	uint Height(uint width) const
 	{
-		return max(FONT_HEIGHT_NORMAL, ScaleGUITrad(12) + 2);
+		return GetMinSizing(NWST_STEP, max(FONT_HEIGHT_NORMAL, ScaleGUITrad(12) + 2));
 	}
 
 	bool Selectable() const
