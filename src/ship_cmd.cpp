@@ -37,6 +37,7 @@
 #include "zoom_func.h"
 #include "framerate_type.h"
 #include "pbs_water.h"
+#include "pathfinder/follow_track.hpp"
 
 #include "table/strings.h"
 
@@ -265,6 +266,19 @@ Trackdir Ship::GetVehicleTrackdir() const
 	}
 
 	return TrackDirectionToTrackdir(FindFirstTrack(this->state), this->direction);
+}
+
+Ship::~Ship()
+{
+	if (CleaningPool()) return;
+
+	if (this->state != TRACK_BIT_DEPOT &&
+			HasWaterTracksReserved(this->tile, TrackToTrackBits(TrackdirToTrack(this->GetVehicleTrackdir())))) {
+		/* Lift reservation for that ship when going bankrupt. */
+		LiftShipPathReservation(this->tile, this->GetVehicleTrackdir());
+	}
+
+	this->PreDestructor();
 }
 
 /**
