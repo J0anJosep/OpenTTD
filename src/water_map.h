@@ -410,6 +410,7 @@ static inline bool HasTileWaterGround(TileIndex t)
 	return HasTileWaterClass(t) && IsTileOnWater(t) && !IsCoastTile(t);
 }
 
+void UpdateWaterTiles();
 
 /**
  * Helper function to make a coast tile.
