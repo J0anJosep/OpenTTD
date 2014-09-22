@@ -79,13 +79,13 @@ static const NWidgetPart _nested_group_details_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidgetFunction(GroupDetailsLateralWidgets),
 		NWidget(NWID_VERTICAL),
-			NWidget(WWT_PANEL, COLOUR_GREY, GIW_WIDGET_DETAILS), SetMinimalTextLines(1, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM), SetResize(1, 0), SetFill(1, 0), EndContainer(),
+			NWidget(WWT_PANEL, COLOUR_GREY, GIW_WIDGET_DETAILS), SetResize(1, 0), SetFill(1, 0), EndContainer(),
 			NWidget(NWID_HORIZONTAL),
 				NWidget(WWT_MATRIX, COLOUR_GREY, GIW_WIDGET_LIST), SetMatrixDataTip(1, 0, 0), SetFill(1, 0), SetResize(1, 0), SetScrollbar(GIW_WIDGET_LIST_SCROLLBAR),
 				NWidget(NWID_VSCROLLBAR, COLOUR_GREY, GIW_WIDGET_LIST_SCROLLBAR),
 			EndContainer(),
 			NWidget(NWID_HORIZONTAL),
-				NWidget(WWT_PANEL, COLOUR_GREY), SetMinimalTextLines(1, WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM), SetFill(1, 1), SetResize(1,1), EndContainer(),
+				NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetResize(1,1), EndContainer(),
 				NWidget(WWT_DROPDOWN, COLOUR_GREY, GIW_WIDGET_ORDERLISTS_SORTER_DROPDOWN), SetResize(1, 0), SetMinimalSize(50, 12), SetDataTip(0x0, STR_GROUP_DETAILS_ORDERLISTS_SORTER_DROPDOWN_TOOLTIP),
 				NWidget(WWT_DROPDOWN, COLOUR_GREY, GIW_WIDGET_DETAILS_DROPDOWN), SetResize(1, 0), SetMinimalSize(50, 12), SetDataTip(0x0, STR_GROUP_DETAILS_MANAGE_GROUP_TOOLTIP),
 				NWidget(WWT_RESIZEBOX, COLOUR_GREY),
@@ -135,7 +135,7 @@ struct GroupDetailsWindow : Window {
 		bool valid_vli = vli.UnpackIfValid(index);
 		assert(valid_vli);
 		Dimension dim = GetStringBoundingBox(STR_JUST_NOTHING);
-		this->tiny_step_height = dim.height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		this->tiny_step_height = GetMinSizing(NWST_STEP, dim.height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		stat = &GroupStatistics::Get(this->vli.company, this->vli.index, this->vli.vtype);
 		this->CreateNestedTree(desc);
 		this->tab = GI_TAB_GENERAL;
@@ -173,10 +173,12 @@ struct GroupDetailsWindow : Window {
 				for (uint i = 0; i < 2; i++) SetDParam(i, UINT32_MAX);
 				Dimension dim = GetStringBoundingBox(STR_GROUP_DETAILS_GENERAL_PROFIT);
 				size->width = dim.width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				size->height = this->tiny_step_height;
 				break;
 			}
 			case GIW_WIDGET_LIST: {
-				resize->height = tiny_step_height;
+				size->height =  Ceil(5 * GetMinSizing(NWST_BUTTON, this->tiny_step_height), this->tiny_step_height);
+				resize->height = this->tiny_step_height;
 				break;
 			}
 		}
