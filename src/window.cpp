@@ -36,6 +36,10 @@
 #include "error.h"
 #include "game/game.hpp"
 #include "video/video_driver.hpp"
+#include "settings_gui.h"
+#include "fontcache.h"
+#include "signs_base.h"
+#include "gui.h"
 
 #include "safeguards.h"
 
@@ -1822,6 +1826,61 @@ Window *FindWindowFromPt(int x, int y)
 	}
 
 	return NULL;
+}
+
+/**
+ * Set button size of settings. If automatic sizing is also enabled, it also sets
+ * the sizing of buttons, scrollbars and font size (recommend restart).
+ * @param close Whether to close windows.
+ * @todo Check if it can be moved to another file, so we do not need to include error, string and fontcache headers.
+ */
+void CheckWindowMinSizings(bool close)
+{
+	if (_settings_client.gui.manage_min_sizing) {
+		close = true;
+		/* Fill the min sizing values for the current resolution. */
+		uint swap_x = 32; // in longest border, let main toolbar to have 30 buttons.
+		uint swap_y = 20; // if short border, let main toolbar have 18 buttons..)
+		if (_cur_resolution.width < _cur_resolution.height) Swap(swap_x, swap_y);
+
+		_settings_client.gui.min_button = min(_cur_resolution.width / swap_x, _cur_resolution.height / swap_y);
+		_settings_client.gui.min_step = _settings_client.gui.min_button * 3 / 4;
+
+		_freetype.large.size = max(10u, _settings_client.gui.min_button);
+		_freetype.medium.size = max(6u, _settings_client.gui.min_step * 2 / 3);
+		_freetype.mono.size = _freetype.medium.size;
+		_freetype.small.size = max(4u, _freetype.medium.size * 2 / 3);
+	}
+
+	InitFreeType(false);
+	InitFreeType(true);
+
+	extern uint _tooltip_width;
+	_tooltip_width = 10 * _settings_client.gui.min_button;
+
+	if (_z_front_window == NULL || !close) return;
+
+	DeleteAllNonVitalWindows();
+	ReInitAllWindows();
+
+	switch (_game_mode) {
+		default: break;
+
+		case GM_MENU:
+			DeleteWindowById(WC_SELECT_GAME, 0);
+			extern void ShowSelectGameWindow();
+			ShowSelectGameWindow();
+			break;
+
+		case GM_NORMAL:
+		case GM_EDITOR: {
+			UpdateAllVirtCoords();
+			HideVitalWindows();
+			ShowVitalWindows();
+			break;
+		}
+	}
+
 }
 
 /**
