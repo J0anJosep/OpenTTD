@@ -29,6 +29,7 @@ int PositionNetworkChatWindow(Window *w);
 int GetMainViewTop();
 int GetMainViewBottom();
 
+void CheckWindowMinSizings(bool close);
 void InitWindowSystem();
 void UnInitWindowSystem();
 void ResetWindowSystem();
