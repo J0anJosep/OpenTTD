@@ -234,22 +234,22 @@ struct CheatWindow : Window {
 		uint button_left = rtl ? r.right - this->box_width - 10 - SETTING_BUTTON_WIDTH : r.left + this->box_width + 10;
 		uint text_left   = r.left + (rtl ? WD_FRAMERECT_LEFT : 20 + this->box_width + SETTING_BUTTON_WIDTH);
 		uint text_right  = r.right - (rtl ? 20 + this->box_width + SETTING_BUTTON_WIDTH : WD_FRAMERECT_RIGHT);
-		uint box_height = GetSpriteSize(SPR_BOX_EMPTY).height;
+		int box_offset = Center(0, this->line_height, GetSpriteSize(SPR_BOX_EMPTY).height);
+		int button_offset = Center(0, this->line_height, SETTING_BUTTON_HEIGHT);
+		int text_offset = Center(0, this->line_height);
 
-		int text_y_offset = Center(0, this->line_height);
 		int icon_y_offset = Center(0, this->line_height, SETTING_BUTTON_HEIGHT);
 
 		for (int i = 0; i != lengthof(_cheats_ui); i++) {
 			const CheatEntry *ce = &_cheats_ui[i];
 
-			DrawSprite((*ce->been_used) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, box_left, y + icon_y_offset + 2);
-			DrawSprite((*ce->been_used) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, box_left, Center(y, SETTING_BUTTON_HEIGHT, box_height));
+			DrawSprite((*ce->been_used) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, box_left, y + box_offset);
 
 			switch (ce->type) {
 				case SLE_BOOL: {
 					bool on = (*(bool*)ce->variable);
 
-					DrawBoolButton(button_left, y + icon_y_offset, on, true);
+					DrawBoolButton(button_left, y + button_offset, on, true);
 					SetDParam(0, on ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
 					break;
 				}
@@ -259,7 +259,7 @@ struct CheatWindow : Window {
 					char buf[512];
 
 					/* Draw [<][>] boxes for settings of an integer-type */
-					DrawArrowButtons(button_left, y + icon_y_offset, COLOUR_YELLOW, clicked - (i * 2), true, true);
+					DrawArrowButtons(button_left, y + button_offset, COLOUR_YELLOW, clicked - (i * 2), true, true);
 
 					switch (ce->str) {
 						/* Display date for change date cheat */
@@ -280,7 +280,7 @@ struct CheatWindow : Window {
 				}
 			}
 
-			DrawString(text_left, text_right, y + text_y_offset, ce->str);
+			DrawString(text_left, text_right, y + text_offset, ce->str);
 
 			y += this->line_height;
 		}
@@ -337,8 +337,10 @@ struct CheatWindow : Window {
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_C_PANEL);
+		uint button_offset = Center(0, this->line_height, SETTING_BUTTON_HEIGHT);
 
-		if ((pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height) % this->line_height > SETTING_BUTTON_HEIGHT) return;
+		if ((pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height - button_offset) % this->line_height > (uint)SETTING_BUTTON_HEIGHT) return;
+		if ((pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height) % this->line_height < button_offset) return;
 
 		uint btn = (pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height) / this->line_height;
 		uint x = pt.x - wid->pos_x;
@@ -351,13 +353,13 @@ struct CheatWindow : Window {
 		int value = (int32)ReadValue(ce->variable, ce->type);
 		int oldvalue = value;
 
-		if (btn == CHT_CHANGE_DATE && x >= 20 + this->box_width + SETTING_BUTTON_WIDTH) {
+		if (btn == CHT_CHANGE_DATE && x >= (20 + (uint)SETTING_BUTTON_WIDTH)) {
 			/* Click at the date text directly. */
 			clicked_widget = CHT_CHANGE_DATE;
 			SetDParam(0, value);
 			ShowQueryString(STR_JUST_INT, STR_CHEAT_CHANGE_DATE_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
 			return;
-		} else if (btn == CHT_EDIT_MAX_HL && x >= 20 + this->box_width + SETTING_BUTTON_WIDTH) {
+		} else if (btn == CHT_EDIT_MAX_HL && (int)x >= 20 + SETTING_BUTTON_WIDTH) {
 			clicked_widget = CHT_EDIT_MAX_HL;
 			SetDParam(0, value);
 			ShowQueryString(STR_JUST_INT, STR_CHEAT_EDIT_MAX_HL_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
@@ -377,10 +379,11 @@ struct CheatWindow : Window {
 
 			default:
 				/* Take whatever the function returns */
-				value = ce->proc(value + ((x >= 20 + SETTING_BUTTON_WIDTH / 2) ? 1 : -1), (x >= 10 + this->box_width + SETTING_BUTTON_WIDTH / 2) ? 1 : -1);
+				bool clicked_right = x >= 20 + (uint)(SETTING_BUTTON_WIDTH / 2);
+				value = ce->proc(value + (clicked_right ? 1 : -1), clicked_right ? 1 : -1);
 
 				/* The first cheat (money), doesn't return a different value. */
-				if (value != oldvalue || btn == CHT_MONEY) this->clicked = btn * 2 + 1 + ((x >= 10 + this->box_width + SETTING_BUTTON_WIDTH / 2) != rtl ? 1 : 0);
+				if (value != oldvalue || btn == CHT_MONEY) this->clicked = btn * 2 + 1 + (clicked_right != rtl ? 1 : 0);
 				break;
 		}
 
