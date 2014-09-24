@@ -1198,6 +1198,8 @@ void ScreenSizeChanged()
 
 	/* screen size changed and the old bitmap is invalid now, so we don't want to undraw it */
 	_cursor.visible = false;
+
+	CheckWindowMinSizings(false);
 }
 
 void UndrawMouseCursor()
