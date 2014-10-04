@@ -2168,27 +2168,29 @@ static bool CheckTrainStayInDepot(Train *v)
 	/* bail out if not all wagons are in the same depot or not in a depot at all */
 	if (!v->IsInDepot()) return false;
 	assert(IsRailDepotTile(v->tile));
-	for (const Train *u = v; u != NULL; u = u->Next()) {
-		if (!u->IsInDepot() || u->tile != v->tile) return false;
-	}
 
 	DepotID depot_id = GetDepotIndex(v->tile);
-	/* if the train got no power, then keep it in the depot */
-	if (v->gcache.cached_power == 0) {
-		v->vehstatus |= VS_STOPPED;
-		SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
-		return true;
-	}
-
-	if (IsBigDepot(v->tile)) {
+	if (IsRailDepotBig(v->tile)) {
 		for (Train *u = v; u != NULL; u = u->Next()) u->track &= ~TRACK_BIT_DEPOT;
 		v->cur_speed = 0;
 
 		v->UpdatePosition();
 		v->UpdateViewport(true, true);
 		v->UpdateAcceleration();
+		assert((v->track & TRACK_BIT_DEPOT) == 0);
 		InvalidateWindowData(WC_VEHICLE_DEPOT, depot_id);
 		return false;
+	} else {
+		for (const Train *u = v; u != NULL; u = u->Next()) {
+			if (!u->IsInDepot() || u->tile != v->tile) return false;
+		}
+
+		/* if the train got no power, then keep it in the depot */
+		if (v->gcache.cached_power == 0) {
+			v->vehstatus |= VS_STOPPED;
+			SetWindowDirty(WC_VEHICLE_DEPOT, depot_id);
+			return true;
+		}
 	}
 
 	SigSegState seg_state;
