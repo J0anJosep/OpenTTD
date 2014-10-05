@@ -1208,6 +1208,11 @@ Vehicle *CheckClickOnVehicle(const ViewPort *vp, int x, int y)
 		}
 	}
 
+	if (found != NULL) {
+		found = found->First();
+		if (!found->IsPrimaryVehicle()) return NULL;
+	}
+
 	return found;
 }
 
