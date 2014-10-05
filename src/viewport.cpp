@@ -2220,7 +2220,6 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (v != NULL) {
 		DEBUG(misc, 2, "Vehicle %d (index %d) at %p", v->unitnumber, v->index, v);
 		if (IsCompanyBuildableVehicleType(v)) {
-			v = v->First();
 			if (_ctrl_pressed && v->owner == _local_company) {
 				StartStopVehicle(v, true);
 			} else {
