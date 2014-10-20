@@ -2496,9 +2496,6 @@ void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
 	SpriteID image = rti->UsesOverlay() ? SPR_FLAT_GRASS_TILE : dts->ground.sprite;
 	uint32 offset = rti->GetRailtypeSpriteOffset();
 
-	x += 32;
-	y += 17;
-
 	if (image != SPR_FLAT_GRASS_TILE) image += offset;
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 
