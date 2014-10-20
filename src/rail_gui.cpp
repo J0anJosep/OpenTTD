@@ -1714,7 +1714,11 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 	{
 		if (!IsInsideMM(widget, WID_BRAD_DEPOT_NE, WID_BRAD_DEPOT_NW + 1)) return;
 
-		DrawTrainDepotSprite(r.left + ScaleGUITrad(31), r.top + ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
+		int x = Center(r.left + ScaleGUITrad(TILE_PIXELS / 2), r.right - r.left, ScaleGUITrad(TILE_PIXELS));
+		/* Height of depot sprite in OpenGFX is TILE_PIXELS + 11. */
+		int y = Center(r.top + IsWidgetLowered(widget) + ScaleGUITrad(11), r.bottom - r.top, ScaleGUITrad(TILE_PIXELS));
+
+		DrawTrainDepotSprite(x, y, widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
