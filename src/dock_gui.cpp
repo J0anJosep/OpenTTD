@@ -510,25 +510,27 @@ public:
 		switch (widget) {
 			case WID_BDD_X:
 			case WID_BDD_Y:
-				size->width  = ScaleGUITrad(96) + 2;
-				size->height = ScaleGUITrad(64) + 2;
+				size->width  = ScaleGUITrad(3 * TILE_PIXELS + 2);
+				size->height = ScaleGUITrad(3 * TILE_PIXELS / 2 + 22 + 2);
 				break;
 		}
 	}
 
-	virtual void OnPaint()
-	{
-		this->DrawWidgets();
+	virtual void DrawWidget(const Rect &r, int widget) const {
+		if (widget != WID_BDD_X && widget != WID_BDD_Y) return;
 
-		int x1 = ScaleGUITrad(63) + 1;
-		int x2 = ScaleGUITrad(31) + 1;
-		int y1 = ScaleGUITrad(17) + 1;
-		int y2 = ScaleGUITrad(33) + 1;
+		Axis axis = widget == WID_BDD_X ? AXIS_X : AXIS_Y;
 
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_x + x1, this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_y + y1, AXIS_X, DEPOT_PART_NORTH);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_x + x2, this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_y + y2, AXIS_X, DEPOT_PART_SOUTH);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_x + x2, this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_y + y1, AXIS_Y, DEPOT_PART_NORTH);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_x + x1, this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_y + y2, AXIS_Y, DEPOT_PART_SOUTH);
+		int x = Center(r.left, r.right - r.left, ScaleGUITrad(3 * TILE_PIXELS));
+		/* Height of ship depot is 18 pixels, 70 = 16 + 16 + 16 + 22. */
+		int y = Center(r.top + ScaleGUITrad(22),
+				r.bottom - r.top, ScaleGUITrad(3 * TILE_PIXELS / 2 + 22)) + IsWidgetLowered(widget);
+
+		for (uint part = DEPOT_PART_NORTH; part < DEPOT_PART_END; part++) {
+			DrawShipDepotSprite(x + ScaleGUITrad(TILE_PIXELS * (part == axis ? 2 : 1)),
+					y + ScaleGUITrad(part == DEPOT_PART_SOUTH ? TILE_PIXELS / 2 : 0),
+					axis, (DepotPart)part);
+		}
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -556,10 +558,10 @@ static const NWidgetPart _nested_build_docks_depot_widgets[] = {
 		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
 		NWidget(NWID_HORIZONTAL_LTR),
 			NWidget(NWID_SPACER), SetMinimalSize(3, 0),
-			NWidget(WWT_PANEL, COLOUR_GREY, WID_BDD_X), SetSizingType(NWST_BUTTON), SetMinimalSize(98, 66), SetDataTip(0x0, STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP),
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_BDD_X), SetSizingType(NWST_BUTTON), SetMinimalSize(100, 76), SetDataTip(0x0, STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP),
 			EndContainer(),
 			NWidget(NWID_SPACER), SetMinimalSize(2, 0),
-			NWidget(WWT_PANEL, COLOUR_GREY, WID_BDD_Y), SetSizingType(NWST_BUTTON), SetMinimalSize(98, 66), SetDataTip(0x0, STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP),
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_BDD_Y), SetSizingType(NWST_BUTTON), SetMinimalSize(100, 76), SetDataTip(0x0, STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP),
 			EndContainer(),
 			NWidget(NWID_SPACER), SetMinimalSize(3, 0),
 		EndContainer(),
