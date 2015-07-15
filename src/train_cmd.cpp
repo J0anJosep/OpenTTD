@@ -1935,6 +1935,7 @@ CommandCost CmdReverseTrainDirection(TileIndex tile, DoCommandFlag flags, uint32
 		}
 	} else {
 		/* turn the whole train around */
+		if (v->IsInDepot()) return CMD_ERROR;
 		if ((v->vehstatus & VS_CRASHED) || v->breakdown_ctr != 0) return CMD_ERROR;
 
 		if (flags & DC_EXEC) {
@@ -1984,7 +1985,6 @@ CommandCost CmdForceTrainProceed(TileIndex tile, DoCommandFlag flags, uint32 p1,
 
 	CommandCost ret = CheckOwnership(t->owner);
 	if (ret.Failed()) return ret;
-
 
 	if (flags & DC_EXEC) {
 		/* If we are forced to proceed, cancel that order.
@@ -2736,6 +2736,7 @@ bool TryPathReserve(Train *v, bool mark_as_stuck, bool first_tile_okay)
 			if (mark_as_stuck) MarkTrainAsStuck(v);
 			return false;
 		} else {
+			assert(IsSmallRailDepotTile(v->tile));
 			/* Depot not reserved, but the next tile might be. */
 			TileIndex next_tile = TileAddByDiagDir(v->tile, GetRailDepotDirection(v->tile));
 			if (HasReservedTracks(next_tile, DiagdirReachesTracks(GetRailDepotDirection(v->tile)))) return false;
@@ -3545,7 +3546,7 @@ static void DeleteLastWagon(Train *v)
 	if (IsLevelCrossingTile(tile)) UpdateLevelCrossing(tile);
 
 	/* Update signals */
-	if (IsTileType(tile, MP_TUNNELBRIDGE) || IsRailDepotTile(tile)) {
+	if (IsTileType(tile, MP_TUNNELBRIDGE) || IsSmallRailDepotTile(tile)) {
 		UpdateSignalsOnSegment(tile, INVALID_DIAGDIR, owner);
 	} else {
 		SetSignalsOnBothDir(tile, track, owner);
