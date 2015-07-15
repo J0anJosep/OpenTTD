@@ -3004,6 +3004,14 @@ uint Train::Crash(bool flooded)
 		/* Remove the reserved path in front of the train if it is not stuck.
 		 * Also clear all reserved tracks the train is currently on. */
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
+
+		if (IsBigRailDepotTile(this->tile) && (this->track & TRACK_BIT_DEPOT) != 0) {
+			for (Train *v = this; v != NULL; v = v->Next()) {
+				v->track &= ~TRACK_BIT_DEPOT;
+			}
+			InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(this->tile));
+		}
+
 		for (const Train *v = this; v != NULL; v = v->Next()) {
 			ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
 			if (IsTileType(v->tile, MP_TUNNELBRIDGE)) {
@@ -3044,10 +3052,6 @@ static uint TrainCrashed(Train *v)
 		AI::NewEvent(v->owner, new ScriptEventVehicleCrashed(v->index, v->tile, ScriptEventVehicleCrashed::CRASH_TRAIN));
 		Game::NewEvent(new ScriptEventVehicleCrashed(v->index, v->tile, ScriptEventVehicleCrashed::CRASH_TRAIN));
 	}
-
-	/* Try to re-reserve track under already crashed train too.
-	 * Crash() clears the reservation! */
-	v->ReserveTrackUnderConsist();
 
 	return num;
 }
@@ -3100,6 +3104,11 @@ static Vehicle *FindTrainCollideEnum(Vehicle *v, void *data)
 	/* crash both trains */
 	tcc->num += TrainCrashed(tcc->v);
 	tcc->num += TrainCrashed(coll);
+
+	/* Try to re-reserve track under already crashed trains too.
+	 * Crash() clears the reservation! */
+	tcc->v->ReserveTrackUnderConsist();
+	coll->ReserveTrackUnderConsist();
 
 	return NULL; // continue searching
 }
