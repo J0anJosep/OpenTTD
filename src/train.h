@@ -334,6 +334,8 @@ protected: // These functions should not be called outside acceleration code.
 };
 
 bool HandleTrainEnterDepot(Train *v);
+bool CheckReverseTrain(const Train *t);
+void ReverseTrainDirection(Train *t);
 
 #define FOR_ALL_TRAINS(var) FOR_ALL_VEHICLES_OF_TYPE(Train, var)
 
