@@ -37,6 +37,7 @@
 #include "newgrf_debug.h"
 #include "platform_func.h"
 #include "depot_map.h"
+#include "train_pos_backup.h"
 
 #include "table/strings.h"
 #include "table/train_cmd.h"
@@ -589,6 +590,42 @@ void GetTrainSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, 
 	}
 }
 
+TileIndex FindCompatibleRailTile(Train *train, TileIndex tile)
+{
+	assert(IsRailDepotTile(tile));
+	Depot *depot = Depot::GetByTile(tile);
+
+	for (uint i = depot->depot_tiles.Length(); i--;) {
+		for (Train *t = train; t != NULL; t = t->Next()) {
+			if (t == train && t->IsEngine()) {
+				if (!HasPowerOnRail(t->railtype, GetRailType(depot->depot_tiles[i]))) goto next_depot_tile;
+			} else {
+				if (!IsCompatibleRail(t->railtype, GetRailType(depot->depot_tiles[i]))) goto next_depot_tile;
+			}
+		}
+		return depot->depot_tiles[i];
+next_depot_tile:;
+	}
+
+	return INVALID_TILE;
+}
+
+TileIndex FindCompatibleRailTile(RailType rail_type, TileIndex tile, bool is_engine)
+{
+	assert(IsRailDepotTile(tile));
+	Depot *depot = Depot::GetByTile(tile);
+
+	for (uint i = depot->depot_tiles.Length(); i--;) {
+		if (is_engine) {
+			if (HasPowerOnRail(rail_type, GetRailType(depot->depot_tiles[i]))) return depot->depot_tiles[i];
+		} else {
+			if (IsCompatibleRail(rail_type, GetRailType(depot->depot_tiles[i]))) return depot->depot_tiles[i];
+		}
+	}
+
+	return INVALID_TILE;
+}
+
 /**
  * Build a railroad wagon.
  * @param tile     tile of the depot where rail-vehicle is built.
@@ -603,8 +640,9 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 	assert(IsRailDepotTile(tile));
 	DepotID depot_id = GetDepotIndex(tile);
 
-	/* Check that the wagon can drive on the track in question */
-	if (!IsCompatibleRail(rvi->railtype, GetRailType(tile))) return CMD_ERROR;
+	/* Find a good tile to place the wagon. */
+	tile = FindCompatibleRailTile(rvi->railtype, tile, false);
+	if (tile == INVALID_TILE) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
 		Train *v = new Train();
@@ -659,7 +697,8 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 		/* Try to connect the vehicle to one of free chains of wagons. */
 		Train *w;
 		FOR_ALL_TRAINS(w) {
-			if (w->tile == tile &&              ///< Same depot
+			if (!IsRailDepotTile(w->tile)) continue;
+			if (GetDepotIndex(w->tile) == depot_id &&       ///< Same depot
 					w->IsFreeWagon() &&             ///< A free wagon chain
 					w->engine_type == e->index &&   ///< Same type
 					w->First() != v &&              ///< Don't connect to ourself
@@ -676,14 +715,12 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 /** Move all free vehicles in the depot to the train */
 static void NormalizeTrainVehInDepot(const Train *u)
 {
+	DepotID dep_id = GetDepotIndex(u->tile);
 	const Train *v;
 	FOR_ALL_TRAINS(v) {
-		if (v->IsFreeWagon() && v->tile == u->tile &&
-				v->track == TRACK_BIT_DEPOT) {
-			if (DoCommand(0, v->index | 1 << 20, u->index, DC_EXEC,
-					CMD_MOVE_RAIL_VEHICLE).Failed())
-				break;
-		}
+		if (!v->IsFreeWagon() || (v->track & TRACK_BIT_DEPOT) == 0 || GetDepotIndex(v->tile) != dep_id) continue;
+		if (DoCommand(0, v->index | 1 << 20, u->index, DC_EXEC, CMD_MOVE_RAIL_VEHICLE).Failed())
+			break;
 	}
 }
 
@@ -735,9 +772,9 @@ CommandCost CmdBuildRailVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 
 	if (rvi->railveh_type == RAILVEH_WAGON) return CmdBuildRailWagon(tile, flags, e, ret);
 
-	/* Check if depot and new engine uses the same kind of tracks *
-	 * We need to see if the engine got power on the tile to avoid electric engines in non-electric depots */
-	if (!HasPowerOnRail(rvi->railtype, GetRailType(tile))) return CMD_ERROR;
+	/* Find a good tile to place the engine and get power on it. */
+	tile = FindCompatibleRailTile(rvi->railtype, tile, true);
+	if (tile == INVALID_TILE) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
 		DiagDirection dir = GetRailDepotDirection(tile);
@@ -809,11 +846,11 @@ CommandCost CmdBuildRailVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 static Train *FindGoodVehiclePos(const Train *src)
 {
 	EngineID eng = src->engine_type;
-	TileIndex tile = src->tile;
+	DepotID dep_id = GetDepotIndex(src->tile);
 
 	Train *dst;
 	FOR_ALL_TRAINS(dst) {
-		if (dst->IsFreeWagon() && dst->tile == tile && !(dst->vehstatus & VS_CRASHED)) {
+		if (dst->IsFreeWagon() && !(dst->vehstatus & VS_CRASHED) && GetDepotIndex(dst->tile) == dep_id) {
 			/* check so all vehicles in the line have the same engine. */
 			Train *t = dst;
 			while (t->engine_type == eng) {
