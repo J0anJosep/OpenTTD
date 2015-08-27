@@ -816,6 +816,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\train_pos_backup.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\vehicle.cpp"
 				>
 			</File>
@@ -1877,6 +1881,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\train.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\train_pos_backup.h"
 				>
 			</File>
 			<File
