@@ -97,6 +97,7 @@ tgp.cpp
 tile_map.cpp
 tilearea.cpp
 townname.cpp
+train_pos_backup.cpp
 #if WIN32
 #else
 	#if WINCE
@@ -391,6 +392,7 @@ townname_type.h
 track_func.h
 track_type.h
 train.h
+train_pos_backup.h
 transparency.h
 transparency_gui.h
 transport_type.h
