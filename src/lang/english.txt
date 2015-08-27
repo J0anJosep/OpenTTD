@@ -4552,10 +4552,16 @@ STR_ERROR_CAN_T_MOVE_VEHICLE                                    :{WHITE}Can't mo
 STR_ERROR_REAR_ENGINE_FOLLOW_FRONT                              :{WHITE}The rear engine will always follow its front counterpart
 STR_ERROR_UNABLE_TO_FIND_ROUTE_TO                               :{WHITE}Unable to find route to local depot
 STR_ERROR_UNABLE_TO_FIND_LOCAL_DEPOT                            :{WHITE}Unable to find local depot
+STR_ERROR_UNABLE_TO_FIND_PLATFORM                               :{WHITE}Unable to find appropriate platform (railtype?)
 
 STR_ERROR_DEPOT_WRONG_DEPOT_TYPE                                :Wrong depot type
 STR_ERROR_DEPOT_NO_PLATFORM                                     :There is no compatible platform long enough
 STR_ERROR_DEPOT_NO_PLATFORM_FREE                                :There is no compatible platform free and long enough
+STR_ADVICE_PLATFORM_TYPE                                        :{WHITE}{VEHICLE} cannot leave depot because there is no compatible platform for this type of train
+STR_ADVICE_PLATFORM_LONG                                        :{WHITE}{VEHICLE} cannot leave depot because compatible platforms are not long enough
+
+STR_ERROR_CANT_START_PLATFORM_TYPE                              :{WHITE}{VEHICLE} cannot be started because there is no compatible platform in the depot for this type of train
+STR_ERROR_CANT_START_PLATFORM_LONG                              :{WHITE}{VEHICLE} cannot be started because compatible platforms are not long enough
 
 # Autoreplace related errors
 STR_ERROR_TRAIN_TOO_LONG_AFTER_REPLACEMENT                      :{WHITE}{VEHICLE} is too long after replacement
