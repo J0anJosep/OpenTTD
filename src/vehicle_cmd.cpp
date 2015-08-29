@@ -32,6 +32,7 @@
 #include "newgrf.h"
 #include "company_base.h"
 #include "depot_base.h"
+#include "train_pos_backup.h"
 
 #include "table/strings.h"
 
@@ -468,6 +469,11 @@ CommandCost CmdRefitVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	bool only_this = HasBit(p2, 7) || front->type == VEH_SHIP || front->type == VEH_AIRCRAFT;
 	uint8 num_vehicles = GB(p2, 16, 8);
 
+	/* If it is a train, lift it. New length of the vehicle won't be checked. */
+	Train *train = v->type == VEH_TRAIN ? Train::From(front) : NULL;
+	TrainPosBackup tpb;
+	tpb.LiftTrainInBigDepot(train, flags);
+
 	CommandCost cost = RefitVehicle(v, only_this, num_vehicles, new_cid, new_subtype, flags, auto_refit);
 
 	if (flags & DC_EXEC) {
@@ -505,6 +511,9 @@ CommandCost CmdRefitVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		v->InvalidateNewGRFCacheOfChain();
 	}
 
+	/* If a train, try placing it. */
+	tpb.TryPlaceTrainInBigDepot(train, flags);
+
 	return cost;
 }
 
@@ -533,6 +542,18 @@ CommandCost CmdStartStopVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	switch (v->type) {
 		case VEH_TRAIN:
 			if ((v->vehstatus & VS_STOPPED) && Train::From(v)->gcache.cached_power == 0) return_cmd_error(STR_ERROR_TRAIN_START_NO_POWER);
+			/* Train cannot leave until changing the depot. Stop the train and send a message. */
+			if ((flags & DC_AUTOREPLACE) == 0 && v->IsStoppedInDepot() && IsBigRailDepotTile(v->tile)) {
+				TrainPosBackup tpb;
+				PlacementInfo info;
+				tpb.LiftTrainInBigDepot(Train::From(v), flags);
+				tpb.LookForPlaceInBigDepot(Train::From(v), &info);
+				tpb.RestoreBackup(Train::From(v), flags);
+				if (info < PI_WONT_LEAVE) {
+					SetDParam(0, v->index);
+					return_cmd_error(STR_ERROR_CANT_START_PLATFORM_TYPE + info - PI_BEGIN);
+				}
+			}
 			break;
 
 		case VEH_SHIP:
@@ -625,7 +646,17 @@ CommandCost CmdMassStartStopVehicle(TileIndex tile, DoCommandFlag flags, uint32 
 		if (!vehicle_list_window && !v->IsChainInDepot()) continue;
 
 		/* Just try and don't care if some vehicle's can't be stopped. */
-		DoCommand(tile, v->index, 0, flags, CMD_START_STOP_VEHICLE);
+		CommandCost ret = DoCommand(tile, v->index, 0, flags, CMD_START_STOP_VEHICLE);
+		if (ret.Failed()) {
+			switch (ret.GetErrorMessage()) {
+				case STR_ERROR_CANT_START_PLATFORM_TYPE:
+				case STR_ERROR_CANT_START_PLATFORM_LONG:
+					SetDParam(0, v->index);
+					return ret;
+				default:
+					break;
+			}
+		}
 	}
 
 	return CommandCost();
