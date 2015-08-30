@@ -1291,10 +1291,46 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	bool original_src_head_front_engine = original_src_head->IsFrontEngine();
 	bool original_dst_head_front_engine = original_dst_head != NULL && original_dst_head->IsFrontEngine();
 
+	TrainPosBackup tpb_src;
+	TrainPosBackup tpb_dst;
+	tpb_src.LiftTrainInBigDepot(src_head, flags);
+	tpb_dst.LiftTrainInBigDepot(dst_head, flags);
+
+	/* Allow moving train elements when a train originally
+	 * "wasn't ok", meaning there wasn't a compatible
+	 * platform long enough. */
+	bool src_was_ok = false;
+	bool dst_was_ok = false;
+
+	if ((flags & DC_AUTOREPLACE) == 0 && IsBigRailDepot(src_head->tile)) {
+		/* src_head is not NULL. */
+		src_was_ok = tpb_src.CanFindAppropriatePlatform(src_head);
+		dst_was_ok = dst_head != NULL && tpb_dst.CanFindAppropriatePlatform(dst_head);
+	}
+
+	if (dst_head == NULL) { // If null, copy origin from source.
+		tpb_dst.orig_tile = tpb_src.orig_tile;
+		tpb_dst.orig_track = tpb_src.orig_track;
+		tpb_dst.orig_dir = tpb_src.orig_dir;
+	}
+
 	/* (Re)arrange the trains in the wanted arrangement. */
 	ArrangeTrains(&dst_head, dst, &src_head, src, move_chain);
 
 	if ((flags & DC_AUTOREPLACE) == 0) {
+		/* Check we can place the train in a correct platform.
+		 * When autoreplacing, this can't be checked now.
+		 * In that case, it will be checked in CmdAutoreplaceVehicle. */
+		if ((src_was_ok && src_head != NULL && !tpb_src.CanFindAppropriatePlatform(src_head)) ||
+				(dst_was_ok && dst_head != NULL && !tpb_dst.CanFindAppropriatePlatform(dst_head))) {
+			/* Restore the train we had. */
+			RestoreTrainBackup(original_src);
+			RestoreTrainBackup(original_dst);
+			tpb_src.RestoreBackup(src_head, flags);
+			tpb_dst.RestoreBackup(dst_head, flags);
+			return_cmd_error(STR_ERROR_UNABLE_TO_FIND_PLATFORM);
+		}
+
 		/* If the autoreplace flag is set we do not need to test for the validity
 		 * because we are going to revert the train to its original state. As we
 		 * assume the original state was correct autoreplace can skip this. */
@@ -1303,6 +1339,8 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			/* Restore the train we had. */
 			RestoreTrainBackup(original_src);
 			RestoreTrainBackup(original_dst);
+			tpb_src.RestoreBackup(src_head, flags);
+			tpb_dst.RestoreBackup(dst_head, flags);
 			return ret;
 		}
 	}
@@ -1377,6 +1415,9 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		if (src_head != NULL) src_head->First()->MarkDirty();
 		if (dst_head != NULL) dst_head->First()->MarkDirty();
 
+		tpb_src.TryPlaceTrainInBigDepot(src_head, flags);
+		if (src_head != dst_head) tpb_dst.TryPlaceTrainInBigDepot(dst_head, flags);
+
 		/* We are undoubtedly changing something in the depot and train list. */
 		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(src->tile));
 		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
@@ -1384,6 +1425,8 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		/* We don't want to execute what we're just tried. */
 		RestoreTrainBackup(original_src);
 		RestoreTrainBackup(original_dst);
+		tpb_src.RestoreBackup(original_src_head, flags);
+		tpb_dst.RestoreBackup(original_dst_head, flags);
 	}
 
 	return CommandCost();
