@@ -2217,11 +2217,48 @@ static bool CheckTrainStayInDepot(Train *v)
 
 	DepotID depot_id = GetDepotIndex(v->tile);
 	if (IsRailDepotBig(v->tile)) {
-		for (Train *u = v; u != NULL; u = u->Next()) u->track &= ~TRACK_BIT_DEPOT;
-		v->cur_speed = 0;
+		/* If not placed, try it. If not possible, exit. */
+		if (CheckIfTrainNeedsPlacement(v)) {
+			/* If stucked, wait a little bit, so we can avoid
+			 * trying placing it as much as we can. */
+			bool already_stucked = false;
+			bool send_message = false;
+			if (HasBit(v->flags, VRF_TRAIN_STUCK)) {
+				already_stucked = true;
+				v->wait_counter++;
+				if (v->wait_counter % (1 << 7) != 0) {
+					return true;
+				} else if (v->wait_counter % (1 << 11) == 0) {
+					send_message = true;
+				}
+				ClrBit(v->flags, VRF_TRAIN_STUCK);
+			}
 
-		v->UpdatePosition();
-		v->UpdateViewport(true, true);
+			TrainPosBackup tpb;
+			tpb.LiftTrainInBigDepot(v, DC_EXEC);
+			PlacementInfo info;
+			tpb.LookForPlaceInBigDepot(v, &info);
+			if (!tpb.TryPlaceTrainInBigDepot(v, info < PI_WONT_LEAVE ? DC_NONE : DC_EXEC)) {
+				if (send_message) {
+					ClrBit(v->flags, VRF_TRAIN_STUCK);
+					/* Show message to player. */
+					if (_settings_client.gui.lost_vehicle_warn && v->owner == _local_company) {
+						SetDParam(0, v->index);
+						AddVehicleAdviceNewsItem(STR_NEWS_TRAIN_IS_STUCK, v->index);
+					}
+				}
+				if (already_stucked) {
+					SetBit(v->flags, VRF_TRAIN_STUCK);
+				} else {
+					MarkTrainAsStuck(v);
+				}
+				return true;
+			}
+		}
+
+		for (Train *u = v; u != NULL; u = u->Next()) u->track &= ~TRACK_BIT_DEPOT;
+
+		v->cur_speed = 0;
 		v->UpdateAcceleration();
 		assert((v->track & TRACK_BIT_DEPOT) == 0);
 		if(CheckReverseTrain(v)) ReverseTrainDirection(v);
