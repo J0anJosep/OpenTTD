@@ -1244,12 +1244,19 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	/* don't move the same vehicle.. */
 	if (src == dst) return CommandCost();
 
-	/* locate the head of the two chains */
+	/* Locate the head of the two chains and check all vehicles are stopped inside a depot. */
 	Train *src_head = src->First();
+	if (!src_head->IsStoppedInDepot()) return_cmd_error(STR_ERROR_TRAINS_CAN_ONLY_BE_ALTERED_INSIDE_A_DEPOT);
+
 	Train *dst_head;
 	if (dst != NULL) {
 		dst_head = dst->First();
-		if (dst_head->tile != src_head->tile) return CMD_ERROR;
+
+		/* Check if all vehicles in the destination train are stopped inside a depot. */
+		if (!dst_head->IsStoppedInDepot()) return_cmd_error(STR_ERROR_TRAINS_CAN_ONLY_BE_ALTERED_INSIDE_A_DEPOT);
+
+		if (GetDepotIndex(dst_head->tile) != GetDepotIndex(src_head->tile)) return CMD_ERROR;
+
 		/* Now deal with articulated part of destination wagon */
 		dst = dst->GetLastEnginePart();
 	} else {
@@ -1263,12 +1270,6 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 
 	/* When moving a multiheaded part to be place after itself, bail out. */
 	if (!move_chain && dst != NULL && dst->IsRearDualheaded() && src == dst->other_multiheaded_part) return CommandCost();
-
-	/* Check if all vehicles in the source train are stopped inside a depot. */
-	if (!src_head->IsStoppedInDepot()) return_cmd_error(STR_ERROR_TRAINS_CAN_ONLY_BE_ALTERED_INSIDE_A_DEPOT);
-
-	/* Check if all vehicles in the destination train are stopped inside a depot. */
-	if (dst_head != NULL && !dst_head->IsStoppedInDepot()) return_cmd_error(STR_ERROR_TRAINS_CAN_ONLY_BE_ALTERED_INSIDE_A_DEPOT);
 
 	/* First make a backup of the order of the trains. That way we can do
 	 * whatever we want with the order and later on easily revert. */
