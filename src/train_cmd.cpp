@@ -723,13 +723,14 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 }
 
 /** Move all free vehicles in the depot to the train */
-static void NormalizeTrainVehInDepot(const Train *u)
+static void NormalizeTrainVehInDepot(const Train *u, DoCommandFlag flags)
 {
+	assert(flags & DC_EXEC);
 	DepotID dep_id = GetDepotIndex(u->tile);
 	const Train *v;
 	FOR_ALL_TRAINS(v) {
 		if (!v->IsFreeWagon() || (v->track & TRACK_BIT_DEPOT) == 0 || GetDepotIndex(v->tile) != dep_id) continue;
-		if (DoCommand(0, v->index | 1 << 20, u->index, DC_EXEC, CMD_MOVE_RAIL_VEHICLE).Failed())
+		if (DoCommand(0, v->index | 1 << 20, u->index, flags, CMD_MOVE_RAIL_VEHICLE).Failed())
 			break;
 	}
 }
@@ -845,10 +846,16 @@ CommandCost CmdBuildRailVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 		UpdateTrainGroupID(v);
 
 		if (!HasBit(data, 0) && !(flags & DC_AUTOREPLACE)) { // check if the cars should be added to the new vehicle
-			NormalizeTrainVehInDepot(v);
+			NormalizeTrainVehInDepot(v, flags);
 		}
 
 		CheckConsistencyOfArticulatedVehicle(v);
+
+		if ((flags & DC_AUTOREPLACE) == 0) {
+			TrainPosBackup tpb;
+			tpb.LiftTrainInBigDepot(v, flags);
+			tpb.TryPlaceTrainInBigDepot(v, flags);
+		}
 	}
 
 	return CommandCost();
@@ -1462,6 +1469,9 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 
 	if (v->IsRearDualheaded()) return_cmd_error(STR_ERROR_REAR_ENGINE_FOLLOW_FRONT);
 
+	TrainPosBackup tpb_head;
+	tpb_head.LiftTrainInBigDepot(first, flags);
+
 	/* First make a backup of the order of the train. That way we can do
 	 * whatever we want with the order and later on easily revert. */
 	TrainList original;
@@ -1479,12 +1489,14 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 	if (ret.Failed()) {
 		/* Restore the train we had. */
 		RestoreTrainBackup(original);
+		tpb_head.RestoreBackup(first, flags);
 		return ret;
 	}
 
 	if (first->orders.list == NULL && !OrderList::CanAllocateItem()) {
 		/* Restore the train we had. */
 		RestoreTrainBackup(original);
+		tpb_head.RestoreBackup(first, flags);
 		return_cmd_error(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
 	}
 
@@ -1512,6 +1524,7 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 
 		/* We need to update the information about the train. */
 		NormaliseTrainHead(new_head);
+		tpb_head.TryPlaceTrainInBigDepot(new_head, flags);
 
 		/* We are undoubtedly changing something in the depot and train list. */
 		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
@@ -1520,8 +1533,9 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 		/* Actually delete the sold 'goods' */
 		delete sell_head;
 	} else {
-		/* We don't want to execute what we're just tried. */
+		/* We don't want to execute what we have just tried. */
 		RestoreTrainBackup(original);
+		tpb_head.RestoreBackup(first, flags);
 	}
 
 	return cost;
