@@ -1178,7 +1178,7 @@ void CallVehicleTicks()
 			v->vehstatus &= ~VS_STOPPED;
 		} else if (IsExtendedDepotTile(v->tile)){
 			if (v->type == VEH_TRAIN) FreeTrainTrackReservation(Train::From(v));
-			SetExtendedDepotReservation(v, true);
+			UpdateExtendedDepotReservation(v, true);
 		}
 
 		/* Store the position of the effect as the vehicle pointer will become invalid later */
