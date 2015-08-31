@@ -21,6 +21,9 @@
 #include "core/random_func.hpp"
 #include "depot_map.h"
 #include "depot_func.h"
+#include "train_pos_backup.h"
+#include "strings_func.h"
+#include "news_func.h"
 
 #include "table/strings.h"
 
@@ -406,6 +409,9 @@ static CommandCost ReplaceFreeUnit(Vehicle **single_unit, DoCommandFlag flags, b
 	if (cost.Succeeded() && new_v != NULL) {
 		*nothing_to_do = false;
 
+		/* Allow free train units to be replaced, not checking compatible rail types.
+		 * When building a new train, it will fail then. */
+
 		if ((flags & DC_EXEC) != 0) {
 			/* Move the new vehicle behind the old */
 			CmdMoveVehicle(new_v, old_v, DC_EXEC | DC_AUTOREPLACE, false);
@@ -659,6 +665,7 @@ static CommandCost ReplaceChain(Vehicle **chain, DoCommandFlag flags, bool wagon
 		}
 	}
 
+	assert(!(cost.Failed() && (DC_EXEC & flags) != 0))
 	return cost;
 }
 
@@ -719,7 +726,14 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 	assert(free_wagon || v->IsStoppedInDepot());
 
 	/* Amend reservations for big depots. */
-	if (IsBigDepotTile(v->tile)) SetBigDepotReservation(v, false);
+	TrainPosBackup tpb;
+	if (IsBigDepotTile(v->tile)) {
+		if (v->type == VEH_TRAIN && v != NULL) {
+			tpb.LiftTrainInBigDepot(Train::From(v), flags);
+		} else {
+			SetBigDepotReservation(v, false);
+		}
+	}
 
 	/* We have to construct the new vehicle chain to test whether it is valid.
 	 * Vehicle construction needs random bits, so we have to save the random seeds
@@ -741,11 +755,30 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 		RestoreRandomSeeds(saved_seeds);
 	}
 
-	/* Amend reservations for big depots. */
-	if (IsBigDepotTile(v->tile)) SetBigDepotReservation(v, true);
+	// See if the train can be placed...
+	bool platform_error = false;
+	PlacementInfo info;
 
-	/* Restart the vehicle */
-	if (!was_stopped) cost.AddCost(CmdStartStopVehicle(v, false));
+	/* Amend reservations for big depots. */
+	if (IsBigDepotTile(v->tile)) {
+		if (v->type == VEH_TRAIN) {
+			if (flags & DC_EXEC) {
+				tpb.LookForPlaceInBigDepot(Train::From(v), &info);
+				if (info < PI_WONT_LEAVE) {
+					platform_error = true;
+					if (v->owner == _local_company && (flags & DC_EXEC) && v->IsFrontEngine()) {
+						SetDParam(0, v->index);
+						AddVehicleAdviceNewsItem(STR_ADVICE_PLATFORM_TYPE + info - PI_BEGIN, v->index);
+					}
+				}
+				tpb.TryPlaceTrainInBigDepot(Train::From(v), flags);
+			}
+		} else {
+			SetBigDepotReservation(v, true);
+		}
+	}
+
+	if (!platform_error && !was_stopped) cost.AddCost(CmdStartStopVehicle(v, false));
 
 	assert(cost.Failed() || !nothing_to_do);
 	return cost;
