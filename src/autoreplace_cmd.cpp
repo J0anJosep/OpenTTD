@@ -724,24 +724,18 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 	SavedRandomSeeds saved_seeds;
 	SaveRandomSeeds(&saved_seeds);
 	if (free_wagon) {
-		cost.AddCost(ReplaceFreeUnit(&v, flags & ~DC_EXEC, &nothing_to_do));
+		cost.AddCost(ReplaceFreeUnit(&v, flags, &nothing_to_do));
 	} else {
-		cost.AddCost(ReplaceChain(&v, flags & ~DC_EXEC, wagon_removal, &nothing_to_do));
+		cost.AddCost(ReplaceChain(&v, flags, wagon_removal, &nothing_to_do));
 	}
-	RestoreRandomSeeds(saved_seeds);
 
-	if (cost.Succeeded() && (flags & DC_EXEC) != 0) {
-		CommandCost ret;
-		if (free_wagon) {
-			ret = ReplaceFreeUnit(&v, flags, &nothing_to_do);
-		} else {
-			ret = ReplaceChain(&v, flags, wagon_removal, &nothing_to_do);
-		}
-		assert(ret.Succeeded() && ret.GetCost() == cost.GetCost());
+	if (flags & DC_EXEC) {
 		if (v->age == 0) {
 			GroupStatistics::Get(v->owner, ALL_GROUP, v->type).UpdateMinProfit(v, ALL_GROUP);
 			GroupStatistics::Get(v->owner, v->group_id, v->type).UpdateMinProfit(v, v->group_id);
 		}
+	} else {
+		RestoreRandomSeeds(saved_seeds);
 	}
 
 	/* Amend reservations for big depots. */
