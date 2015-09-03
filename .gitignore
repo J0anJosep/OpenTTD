@@ -16,6 +16,7 @@ bin/baseset/*
 bin/scripts/*
 !bin/scripts/*.example
 !bin/scripts/readme.txt
+!bin/fonts
 
 bundle/*
 bundles/*
