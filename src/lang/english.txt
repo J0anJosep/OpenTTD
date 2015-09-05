@@ -4571,6 +4571,7 @@ STR_ERROR_CANT_START_PLATFORM_LONG                              :{WHITE}{VEHICLE
 STR_ERROR_TRAIN_TOO_LONG_AFTER_REPLACEMENT                      :{WHITE}{VEHICLE} is too long after replacement
 STR_ERROR_AUTOREPLACE_NOTHING_TO_DO                             :{WHITE}No autoreplace/renew rules applied
 STR_ERROR_AUTOREPLACE_MONEY_LIMIT                               :(money limit)
+STR_ERROR_BIG_ROAD_DEPOT_NEEDS_MORE_PARTS                       :{WHITE}It is not possible to replace all vehicles. Expand it with road or tram depots.
 
 # Rail construction errors
 STR_ERROR_IMPOSSIBLE_TRACK_COMBINATION                          :{WHITE}Impossible track combination
