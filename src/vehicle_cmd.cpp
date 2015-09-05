@@ -712,6 +712,81 @@ CommandCost CmdDepotSellAllVehicles(TileIndex tile, DoCommandFlag flags, uint32 
 	return had_success ? cost : last_error;
 }
 
+CommandCost GetNewEngineType(const Vehicle *v, const Company *c, bool always_replace, EngineID &e);
+
+/**
+ * Mass replacement of road vehicles in big depots is troublesome.
+ * Get a correct order for vehicles to replace or an error if no good order is possible.
+ * @param tile The tile of the depot.
+ * @param list The vehicle list of the vehicles to replace.
+ * @note Maybe it is better to only allow one replacement per call and forget about this function.
+ */
+CommandCost CheckRoadReplacementArrangement(TileIndex tile, VehicleList *list)
+{
+	if (!IsBigRoadDepotTile(tile)) return CommandCost();
+
+	VehicleList unsorted(*list); // A copy of the original list.
+	list->Clear();               // Clear original list. Add vehicles in the correct order.
+
+	const Company *c = Company::Get(_current_company);
+
+	for (uint i = unsorted.Length(); i--;) {
+		const Vehicle *v = unsorted[i];
+		const RoadVehicle *rv = RoadVehicle::From(v);
+		EngineID engine_id;
+		CommandCost ret = GetNewEngineType(v, c, false, engine_id);
+		if (ret.Failed() || engine_id == INVALID_ENGINE) {
+			// We can delete element, as it doesn't need auto-repl-renew.
+			unsorted.ErasePreservingOrder(i);
+		} else {
+			Engine *e = Engine::Get(engine_id);
+			if (HasBit(rv->compatible_roadtypes, ROADTYPE_TRAM) == HasBit(e->info.misc_flags, EF_ROAD_TRAM)) {
+				// The element doesn't not change the road type. No problem.
+				*list->Append() = unsorted[i];
+				unsorted.ErasePreservingOrder(i);
+			}
+			// At this point, element hasn't been added or deleted to any list.
+			// The element changes road type. Must be appended later.
+		}
+	}
+
+	// If all elements are ordered, just return.
+	if (unsorted.Length() == 0) return CommandCost();
+
+	// Calculate how many road vehicles or tram vehicles we can create.
+	uint available_space[ROADTYPE_END] = {};
+	Depot *depot = Depot::GetByTile(tile);
+	for (uint i = depot->depot_tiles.Length(); i--;) {
+		if (ROAD_DEPOT_CAPACITY <= GetNumDepotVehicles(depot->depot_tiles[i])) continue;
+		available_space[HasBit(GetRoadTypes(depot->depot_tiles[i]), ROADTYPE_TRAM)] += ROAD_DEPOT_CAPACITY - GetNumDepotVehicles(depot->depot_tiles[i]);
+	}
+
+	for (uint i = unsorted.Length(); i--;) {
+		const Vehicle *v = unsorted[i];
+		const RoadVehicle *rv = RoadVehicle::From(v);
+		if (HasBit(rv->compatible_roadtypes, ROADTYPE_TRAM)) {
+			/* Check there is space; if not, continue. */
+			if (available_space[ROADTYPE_ROAD] == 0) continue;
+			available_space[ROADTYPE_ROAD]--;
+			available_space[ROADTYPE_TRAM]++;
+		} else {
+			if (available_space[ROADTYPE_TRAM] == 0) continue;
+			available_space[ROADTYPE_ROAD]++;
+			available_space[ROADTYPE_TRAM]--;
+		}
+
+		/* The vehicle can be auto-renewed-replaced now. */
+		*list->Append() = v;
+		unsorted.ErasePreservingOrder(i);
+		/* Start again, as some previous unsorted vehicles could be placed now. */
+		i = unsorted.Length();
+	}
+
+	if (unsorted.Length() != 0) return_cmd_error(STR_ERROR_BIG_ROAD_DEPOT_NEEDS_MORE_PARTS);
+
+	return CommandCost();
+}
+
 /**
  * Autoreplace all vehicles in the depot
  * @param tile Tile of the depot where the vehicles are
@@ -733,10 +808,15 @@ CommandCost CmdDepotMassAutoReplace(TileIndex tile, DoCommandFlag flags, uint32 
 	/* Get the list of vehicles in the depot */
 	BuildDepotVehicleList(vehicle_type, GetDepotIndex(tile), &list, &list, true);
 
+	if (vehicle_type == VEH_ROAD) {
+		CommandCost ret = CheckRoadReplacementArrangement(tile, &list);
+		if (ret.Failed()) return ret;
+	}
+
 	for (uint i = 0; i < list.Length(); i++) {
 		const Vehicle *v = list[i];
 
-		/* Ensure that the vehicle completely in the depot */
+		/* Ensure that the vehicle is completely in the depot. */
 		if (!v->IsChainInDepot()) continue;
 
 		CommandCost ret = DoCommand(0, v->index, 0, flags, CMD_AUTOREPLACE_VEHICLE);
