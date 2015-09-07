@@ -12,9 +12,11 @@
 #ifndef  FOLLOW_TRACK_HPP
 #define  FOLLOW_TRACK_HPP
 
+#include "../pbs_air.h"
 #include "../pbs_rail.h"
 #include "../pbs_water.h"
 #include "../roadveh.h"
+#include "../aircraft.h"
 #include "../station_base.h"
 #include "../train.h"
 #include "../tunnelbridge.h"
@@ -95,6 +97,7 @@ struct CFollowTrackT
 	inline static TransportType TT() { return Ttr_type_; }
 	inline static bool IsWaterTT() { return TT() == TRANSPORT_WATER; }
 	inline static bool IsRailTT() { return TT() == TRANSPORT_RAIL; }
+	inline static bool IsAirTT() { return TT() == TRANSPORT_AIR; }
 	inline bool IsTram() { return IsRoadTT() && HasBit(RoadVehicle::From(m_veh)->compatible_roadtypes, ROADTYPE_TRAM); }
 	inline static bool IsRoadTT() { return TT() == TRANSPORT_ROAD; }
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed_; }
@@ -127,15 +130,22 @@ struct CFollowTrackT
 		m_old_tile = old_tile;
 		m_old_td = old_td;
 		m_err = EC_NONE;
-		assert(((TrackStatusToTrackdirBits(GetTileTrackStatus(m_old_tile, TT(), IsRoadTT() ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0)) & TrackdirToTrackdirBits(m_old_td)) != 0) ||
+		assert(IsAirTT() || ((TrackStatusToTrackdirBits(GetTileTrackStatus(m_old_tile, TT(), IsRoadTT() ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0)) & TrackdirToTrackdirBits(m_old_td)) != 0) ||
 		       (IsTram() && GetSingleTramBit(m_old_tile) != INVALID_DIAGDIR)); // Disable the assertion for single tram bits
+		assert(!IsAirTT() || (GetTileTrackStatus(m_old_tile, TT(), 0) != 0));
 		m_exitdir = TrackdirToExitdir(m_old_td);
 		if (ForcedReverse()) return true;
+
 		if (!CanExitOldTile()) return false;
+
 		FollowTileExit();
+
 		if (!QueryNewTileTrackStatus()) return TryReverse();
+
+		if (!CanEnterNewTile()) return false;
+
 		m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir);
-		if (m_new_td_bits == TRACKDIR_BIT_NONE || !CanEnterNewTile()) {
+		if (m_new_td_bits == TRACKDIR_BIT_NONE) {
 			/* In case we can't enter the next tile, but are
 			 * a normal road vehicle, then we can actually
 			 * try to reverse as this is the end of the road.
@@ -156,6 +166,7 @@ struct CFollowTrackT
 
 			return false;
 		}
+
 		if (!Allow90degTurns()) {
 			m_new_td_bits &= (TrackdirBits)~(int)TrackdirCrossesTrackdirs(m_old_td);
 			if (m_new_td_bits == TRACKDIR_BIT_NONE) {
@@ -241,9 +252,15 @@ protected:
 	/** stores track status (available trackdirs) for the new tile into m_new_td_bits */
 	inline bool QueryNewTileTrackStatus()
 	{
+		if (IsAirTT()) {
+			if (!IsAirportTile(m_new_tile) ||
+					!MayHaveAirTracks(m_new_tile)) return false;
+			m_new_td_bits = TrackBitsToTrackdirBits(GetAirportTileTracks(m_new_tile));
+			return m_new_td_bits != TRACKDIR_BIT_NONE;
+		}
 		CPerfStart perf(*m_pPerf);
 		if (IsRailTT() && IsPlainRailTile(m_new_tile)) {
-			m_new_td_bits = (TrackdirBits)(GetTrackBits(m_new_tile) * 0x101);
+			m_new_td_bits = TrackBitsToTrackdirBits(GetTrackBits(m_new_tile));
 		} else {
 			m_new_td_bits = TrackStatusToTrackdirBits(GetTileTrackStatus(m_new_tile, TT(), IsRoadTT() ? RoadVehicle::From(m_veh)->compatible_roadtypes : 0));
 
@@ -303,6 +320,10 @@ protected:
 	/** return true if we can enter m_new_tile from m_exitdir */
 	inline bool CanEnterNewTile()
 	{
+		if (IsAirTT()) {
+			return GetStationIndex(m_old_tile) == GetStationIndex(m_new_tile);
+		}
+
 		if (IsRoadTT() && IsStandardRoadStopTile(m_new_tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
 			DiagDirection exitdir = GetRoadStopDir(m_new_tile);
@@ -421,7 +442,7 @@ protected:
 				/* reverse */
 				m_new_tile = m_old_tile;
 				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
-				m_exitdir = exitdir;
+				m_exitdir = IsAirTT() ? ReverseDiagDir(m_exitdir) : exitdir;
 				m_tiles_skipped = 0;
 				m_is_tunnel = m_is_bridge = m_is_station = m_is_big_depot = false;
 				return true;
@@ -490,6 +511,7 @@ public:
 typedef CFollowTrackT<TRANSPORT_WATER, Ship,        true > CFollowTrackWater;
 typedef CFollowTrackT<TRANSPORT_ROAD,  RoadVehicle, true > CFollowTrackRoad;
 typedef CFollowTrackT<TRANSPORT_RAIL,  Train,       true > CFollowTrackRail;
+typedef CFollowTrackT<TRANSPORT_AIR,   Aircraft,    true > CFollowTrackAirport;
 
 typedef CFollowTrackT<TRANSPORT_WATER, Ship,        false> CFollowTrackWaterNo90;
 typedef CFollowTrackT<TRANSPORT_ROAD,  RoadVehicle, false> CFollowTrackRoadNo90;
