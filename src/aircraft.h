@@ -176,6 +176,38 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 	{
 		return this->acache.cached_max_range;
 	}
+
+	bool IsAircraftMoving() const
+	{
+		return this->cur_state >= AM_MOVING;
+	}
+
+	/**
+	 * Check whether the vehicle is flying.
+	 * @return True if the vehicle is currently flying: from taking off until landing.
+	 */
+	bool IsAircraftFlying() const
+	{
+		return this->cur_state >= AM_TAKEOFF && this->cur_state <= AM_HELICOPTER_LANDING;
+	}
+
+	/**
+	 * Check whether the vehicle is landing.
+	 * @return True if the vehicle is currently landing.
+	 */
+	bool IsAircraftLanding() const
+	{
+		return this->cur_state == AM_LANDING || this->cur_state == AM_HELICOPTER_LANDING;
+	}
+
+	/**
+	 * Check whether the vehicle is taking off.
+	 * @return True if the vehicle is currently taking off.
+	 */
+	bool IsAircraftTakingOff() const
+	{
+		return this->cur_state == AM_TAKEOFF || this->cur_state == AM_HELICOPTER_TAKEOFF;
+	}
 };
 
 /**
