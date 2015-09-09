@@ -543,6 +543,7 @@ struct DepotSettings {
 	byte   rail_depot_types;        ///< allowed rail depot types for contruction
 	byte   road_depot_types;        ///< allowed road depot types for contruction
 	byte   water_depot_types;       ///< allowed water depot types for contruction
+	byte   hangar_types;            ///< allowed hangar types for contruction
 
 	bool   cross_replace_rail_veh;  ///< allow cross-replacement of rail vehicles
 	bool   cross_replace_road_veh;  ///< allow cross-replacement of road <-> tram vehicles
