@@ -152,6 +152,24 @@ uint GetRailDepotPlatformLength(TileIndex tile, DiagDirection dir)
 	return length;
 }
 
+uint GetRunwayLength(TileIndex tile)
+{
+	TileIndex start_tile = tile;
+	uint length = 0;
+	assert(IsAirport(tile) && IsRunwayStart(tile));
+	DiagDirection dir = GetRunwayDirection(tile);
+	assert(dir < DIAGDIR_END);
+
+	do {
+		length++;
+		tile += TileOffsByDiagDir(dir);
+	} while (IsCompatibleRunwayTile(tile, start_tile) && !IsRunwayEnd(tile));
+
+	assert(IsRunwayEnd(tile));
+
+	return length;
+}
+
 uint GetPlatformLength(TileIndex tile)
 {
 	switch (GetPlatformType(tile)) {
@@ -161,6 +179,8 @@ uint GetPlatformLength(TileIndex tile)
 			return 1;
 		case PT_RAIL_DEPOT:
 			return GetRailDepotPlatformLength(tile);
+		case PT_RUNWAY:
+			return GetRunwayLength(tile);
 		default: NOT_REACHED();
 	}
 }
@@ -193,6 +213,42 @@ TileIndex GetRailDepotExtreme(TileIndex tile, bool start)
 	return t + delta;
 }
 
+bool IsWestern(TileIndex tile, DiagDirection *dir)
+{
+	assert(IsRunwayExtreme(tile));
+	*dir = GetRunwayDirection(tile);
+	if (IsRunwayEnd(tile))
+		return *dir == DIAGDIR_NW || *dir == DIAGDIR_SW;
+	return *dir == DIAGDIR_NE || *dir == DIAGDIR_SE;
+}
+
+/**
+ * Get the start or end of a runway.
+ * @param tile Tile belonging a runway.
+ * @param western If true, it will return the western tile of the runway.
+ *                 If false, it will return the western tile of the runway.
+ */
+TileIndex GetRunwayExtreme(TileIndex tile, bool western)
+{
+	assert(IsAirportTile(tile) && IsRunway(tile));
+	DiagDirection dir;
+	if (IsRunwayExtreme(tile)) {
+		bool is_western = IsWestern(tile, &dir);
+		if (western == is_western) return tile;
+		if (IsRunwayEnd(tile)) dir = ReverseDiagDir(dir);
+	} else {
+		assert(IsPlainRunway(tile));
+		dir = ((GetRunwayTracks(tile) & TRACK_X) != 0 ? DIAGDIR_SE : DIAGDIR_NE);
+		if (western) dir = ReverseDiagDir(dir);
+	}
+
+	for (;;) {
+		tile = TileAddByDiagDir(tile, dir);
+		assert(IsRunway(tile));
+		if (IsRunwayExtreme(tile)) return tile;
+	}
+}
+
 TileIndex GetStartPlatformTile(TileIndex tile)
 {
 	switch (GetPlatformType(tile)) {
@@ -202,6 +258,8 @@ TileIndex GetStartPlatformTile(TileIndex tile)
 			NOT_REACHED();
 		case PT_RAIL_DEPOT:
 			return GetRailDepotExtreme(tile, true);
+		case PT_RUNWAY:
+			return GetRunwayExtreme(tile, false);
 		default: NOT_REACHED();
 	}
 }
@@ -215,6 +273,8 @@ TileIndex GetOtherStartPlatformTile(TileIndex tile)
 			NOT_REACHED();
 		case PT_RAIL_DEPOT:
 			return GetRailDepotExtreme(tile, false);
+		case PT_RUNWAY:
+			return GetRunwayExtreme(tile, true);
 		default: NOT_REACHED();
 	}
 }

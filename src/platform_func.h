@@ -59,12 +59,32 @@ static inline bool IsCompatibleTrainDepotTile(TileIndex test_tile, TileIndex dep
 			GetDepotIndex(test_tile) == GetDepotIndex(depot_tile);
 }
 
+/**
+ * Check if a tile is a valid continuation of a runway.
+ * The tile \a test_tile is a valid continuation to \a runway, if all of the following are true:
+ * \li \a test_tile is an airport tile
+ * \li \a test_tile and \a start_tile are in the same station
+ * \li the tracks on \a test_tile and \a start_tile are in the same direction
+ * @param test_tile Tile to test
+ * @param start_tile Depot tile to compare with
+ * @pre IsAirport && IsRunwayStart(start_tile)
+ * @return true if the two tiles are compatible
+ */
+static inline bool IsCompatibleRunwayTile(TileIndex test_tile, TileIndex start_tile)
+{
+	assert(IsAirportTile(start_tile) && IsRunwayStart(start_tile));
+	return IsAirportTile(test_tile) &&
+			GetStationIndex(test_tile) == GetStationIndex(start_tile) &&
+			(GetRunwayTracks(start_tile) & GetRunwayTracks(test_tile)) != TRACK_BIT_NONE;
+}
+
 static inline PlatformType GetPlatformType(TileIndex tile)
 {
 	switch (GetTileType(tile)) {
 		case MP_STATION:
 			if (IsRailStation(tile)) return PT_RAIL_STATION;
 			if (IsRailWaypoint(tile)) return PT_RAIL_WAYPOINT;
+			if (IsAirport(tile) && IsRunway(tile)) return PT_RUNWAY;
 			break;
 		case MP_RAILWAY:
 			if (IsBigRailDepotTile(tile)) return PT_RAIL_DEPOT;
@@ -110,6 +130,8 @@ uint GetPlatformLength(TileIndex tile);
 uint GetPlatformLength(TileIndex tile, DiagDirection dir);
 
 TileIndex GetStartPlatformTile(TileIndex tile);
+TileIndex GetOtherStartPlatformTile(TileIndex tile);
+
 bool IsStartPlatformTile(TileIndex tile);
 
 DiagDirection GetPlatformDirection(TileIndex tile);
