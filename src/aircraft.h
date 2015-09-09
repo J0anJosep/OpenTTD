@@ -68,16 +68,56 @@ struct AircraftCache {
 	uint16 cached_max_range;       ///< Cached maximum range.
 };
 
+/** Movements types an aircraft can do. */
+enum AircraftMovement {
+	AM_BEGIN = 0,
+	AM_IDLE = 0,
+	AM_HANGAR,
+	AM_TERMINAL,
+	AM_HELIPAD,
+	AM_MOVING,
+	AM_MOVE = AM_MOVING,
+
+	AM_TAKEOFF,
+	AM_HELIPAD_TAKEOFF,
+	AM_HELIPORT_TAKEOFF,
+	AM_FLYING,
+	AM_LANDING,
+	AM_HELIPAD_LANDING,
+	AM_HELIPORT_LANDING,
+	AM_ROTATE,
+
+	AM_END,
+	INVALID_AM = 0xFF,
+
+	HRS_ROTOR_STOPPED  = 0,
+	HRS_ROTOR_MOVING_1 = 1,
+	HRS_ROTOR_MOVING_2 = 2,
+	HRS_ROTOR_MOVING_3 = 3,
+};
+
+/** Define basic enum properties */
+template <> struct EnumPropsT<AircraftMovement> : MakeEnumPropsT<AircraftMovement, byte, AM_BEGIN, AM_END, INVALID_AM> {};
+typedef TinyEnumT<AircraftMovement> AircraftMovementByte;
+
 /**
  * Aircraft, helicopters, rotors and their shadows belong to this class.
  */
 struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
-	uint16 crashed_counter;        ///< Timer for handling crash animations.
-	StationID targetairport;       ///< Airport to go to next.
+	TrackdirByte trackdir;             ///< The track direction the aircraft is following.
+	AircraftMovementByte cur_state;    ///< The type of movement the aircraft is doing. @see AircraftMovement revise replace state
+
+	TileIndex next_tile;               ///< The tile that must be reached while the aircraft is moving.
+	TrackdirByte next_trackdir;        ///< The track direction the aircraft must follow when reaching next destination.
+	AircraftMovementByte next_state;   ///< The type of movement the aircraft is trying to get when reaching next destination.
+
+	StationID targetairport;           ///< Airport to go to next.
+	AircraftMovementByte target_state; ///< What to do when reaching the station.
+	uint16 crashed_counter;            ///< Timer for handling crash animations.
 	DirectionByte last_direction;
-	byte number_consecutive_turns; ///< Protection to prevent the aircraft of making a lot of turns in order to reach a specific point.
-	byte turn_counter;             ///< Ticks between each turn to prevent > 45 degree turns.
-	byte flags;                    ///< Aircraft flags. @see AirVehicleFlags
+	byte number_consecutive_turns;     ///< Protection to prevent the aircraft of making a lot of turns in order to reach a specific point.
+	byte turn_counter;                 ///< Ticks between each turn to prevent > 45 degree turns.
+	byte flags;                        ///< Aircraft flags. @see AirVehicleFlags
 
 	AircraftCache acache;
 

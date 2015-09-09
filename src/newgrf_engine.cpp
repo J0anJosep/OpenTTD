@@ -825,7 +825,7 @@ void GetRotorOverrideSprite(EngineID engine, const struct Aircraft *v, bool info
 
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_SELF, info_view, CBID_NO_CALLBACK);
 	result->Clear();
-	uint rotor_pos = v == NULL || info_view ? 0 : v->Next()->Next()->state;
+	uint rotor_pos = v == NULL || info_view ? 0 : v->Next()->Next()->cur_state;
 
 	bool sprite_stack = HasBit(e->info.misc_flags, EF_SPRITE_STACK);
 	uint max_stack = sprite_stack ? lengthof(result->seq) : 1;

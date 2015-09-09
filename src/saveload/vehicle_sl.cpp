@@ -723,12 +723,19 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 	static const SaveLoad _aircraft_desc[] = {
 		SLE_WRITEBYTE(Vehicle, type, VEH_AIRCRAFT),
 		SLE_VEH_INCLUDE(),
+		 SLE_CONDVAR(Aircraft, trackdir,              SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, cur_state,             SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_tile,             SLE_UINT32,     SL_RESET_AIRCRAFT, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_trackdir,         SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_state,            SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
+
 		 SLE_CONDVAR(Aircraft, wait_counter,          SLE_UINT16,        SL_STUCK_SHIPS, SL_MAX_VERSION),
 		     SLE_VAR(Aircraft, crashed_counter,       SLE_UINT16),
 		     SLE_CONDNULL(1, 1, SL_RESET_AIRCRAFT - 1), // Old pos
 
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_FILE_U8  | SLE_VAR_U16,   0, 4),
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_UINT16,                   5, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, target_state,          SLE_UINT8,      SL_RESET_AIRCRAFT, SL_MAX_VERSION),
 
 		     SLE_CONDNULL(1, 1, SL_RESET_AIRCRAFT - 1), // Old state
 		     SLE_CONDNULL(1, 2, SL_RESET_AIRCRAFT - 1), // Old previous pos
