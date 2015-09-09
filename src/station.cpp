@@ -29,6 +29,7 @@
 #include "linkgraph/linkgraphschedule.h"
 #include "filters/filter_window_gui.h"
 #include "depot_base.h"
+#include "air.h"
 
 #include "table/strings.h"
 
@@ -288,7 +289,7 @@ uint Station::GetCatchmentRadius() const
 		if (this->truck_stops        != NULL)         ret = max<uint>(ret, CA_TRUCK);
 		if (this->train_station.tile != INVALID_TILE) ret = max<uint>(ret, CA_TRAIN);
 		if (this->docks              != NULL)         ret = max<uint>(ret, CA_DOCK);
-		if (this->airport.tile       != INVALID_TILE) ret = max<uint>(ret, this->airport.GetSpec()->catchment);
+		if (this->airport.tile       != INVALID_TILE) ret = max<uint>(ret, this->airport.AirportCatchmentRadius());
 	} else {
 		if (this->bus_stops != NULL || this->truck_stops != NULL || this->train_station.tile != INVALID_TILE || this->docks != NULL || this->airport.tile != INVALID_TILE) {
 			ret = CA_UNMODIFIED;
@@ -335,7 +336,10 @@ SmallVector<TileIndex, 32>  Station::GetStationTiles() const
 		*list_of_tiles.Append() = road_stop->xy;
 	}
 
-	if (this->airport.tile != INVALID_TILE) *list_of_tiles.Append() = this->airport.tile;
+	MASKED_TILE_AREA_LOOP(tile, this->airport, this->airport.footprint) {
+		if (!HasAirportCatchment(tile)) continue;
+		*list_of_tiles.Append() = tile;
+	}
 
 	for (Dock *dock = this->docks; dock != NULL; dock = dock->next) {
 		*list_of_tiles.Append() = dock->sloped;
@@ -373,17 +377,11 @@ void Station::UpdateCatchment()
  */
 /* static */ TileArea Station::GetStationCatchmentAreaByTile(TileIndex tile)
 {
-	CatchmentArea rad;
-	Station *st = GetByTile(tile);
+	CatchmentArea rad = Station::GetCatchmentRadius(GetStationType(tile));
 
 	if (GetStationType(tile) == STATION_AIRPORT) {
-		rad = _settings_game.station.modified_catchment ? (CatchmentArea)st->airport.GetSpec()->catchment : CA_UNMODIFIED;
-		return TileArea(st->airport.tile, st->airport.w, st->airport.h, rad);
-	}
-
-	rad = Station::GetCatchmentRadius(GetStationType(tile));
-
-	if (GetStationType(tile) == STATION_DOCK) {
+		rad = Airport::AirportCatchmentRadiusByTile(tile);
+	} else if (GetStationType(tile) == STATION_DOCK) {
 		Dock *dock = Dock::GetByTile(tile);
 		TileArea tile_area(dock->sloped, dock->flat);
 		tile_area.AddRadius(rad);
@@ -691,4 +689,28 @@ Money AirportMaintenanceCost(Owner owner)
 DepotID GetHangarIndex(TileIndex t) {
 	assert(IsAirportTile(t));
 	return Station::GetByTile(t)->airport.depot_id;
+}
+
+/**
+ * Get the corresponent catchment radius for each infrastructure tile of this airport.
+ * @return the catchment radius.
+ */
+CatchmentArea Airport::AirportCatchmentRadius() const
+{
+	const AirTypeInfo *ati = GetAirTypeInfo(this->air_type);
+	assert(ati->catchment_radius <= MAX_CATCHMENT);
+	return (CatchmentArea)ati->catchment_radius;
+}
+
+/* static */ CatchmentArea Airport::AirportCatchmentRadiusByTile(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+
+	if (!HasAirportCatchment(tile)) return CA_NONE;
+
+	if (IsBuiltInHeliportTile(tile)) return CA_BUILTIN_HELIPORT;
+
+	const AirTypeInfo *ati = GetAirTypeInfo(GetAirportType(tile));
+	assert(ati->catchment_radius <= MAX_CATCHMENT);
+	return (CatchmentArea)ati->catchment_radius;
 }
