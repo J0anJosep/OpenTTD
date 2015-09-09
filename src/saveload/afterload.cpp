@@ -781,6 +781,7 @@ bool AfterLoadGame()
 	}
 	if (IsSavegameVersionBefore(SL_RESET_AIRCRAFT)) {
 		_settings_game.station.allow_modify_airports = false;
+		_settings_game.depot.hangar_types = 1;
 	}
 
 	/* Load the sprites */
