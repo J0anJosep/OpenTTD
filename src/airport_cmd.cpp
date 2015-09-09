@@ -131,6 +131,17 @@ AirType AllocateAirType(AirTypeLabel label)
 	return INVALID_AIRTYPE;
 }
 
+
+bool Airport::HasLanding() const
+{
+	for (const TileIndex *tile = this->runways.Begin(); tile < this->runways.End(); tile++) {
+		if (IsLandingTypeTile(*tile)) return true;
+	}
+
+	return false;
+}
+
+
 static const byte _track_sloped_sprites[14] = {
 	14, 15, 22, 13,
 	 0, 21, 17, 12,

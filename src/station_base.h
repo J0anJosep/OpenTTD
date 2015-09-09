@@ -333,6 +333,8 @@ struct Airport : public TileArea {
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
+	bool HasLanding() const;
+
 	CatchmentArea AirportCatchmentRadius() const;
 
 	static CatchmentArea AirportCatchmentRadiusByTile(TileIndex tile);
