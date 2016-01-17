@@ -1724,6 +1724,7 @@ static SettingsContainer &GetSettingsTree()
 			}
 
 			environment->Add(new SettingEntry("station.modified_catchment"));
+			environment->Add(new SettingEntry("station.precise_catchment"));
 			environment->Add(new SettingEntry("construction.extra_tree_placement"));
 		}
 
