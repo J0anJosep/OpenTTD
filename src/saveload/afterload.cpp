@@ -754,6 +754,7 @@ bool AfterLoadGame()
 		}
 	}
 	if (IsSavegameVersionBefore(SLV_STUCK_SHIPS)) _settings_game.pf.ship_path_reservation = false;
+	if (IsSavegameVersionBefore(SLV_CATCHMENT_AREAS)) _settings_game.station.precise_catchment = false;
 
 	/* Load the sprites */
 	GfxLoadSprites();
