@@ -739,6 +739,8 @@ bool AfterLoadGame()
 		_settings_game.linkgraph.distribution_default = DT_MANUAL;
 	}
 
+	if (IsSavegameVersionBefore(SLV_CATCHMENT_AREAS)) _settings_game.station.precise_catchment = false;
+
 	/* Load the sprites */
 	GfxLoadSprites();
 	LoadStringWidthTable();
