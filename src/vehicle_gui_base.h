@@ -14,10 +14,12 @@
 
 #include "sortlist_type.h"
 #include "vehiclelist.h"
+#include "group.h"
 #include "window_gui.h"
 #include "widgets/dropdown_type.h"
 
 typedef GUIList<const Vehicle*> GUIVehicleList;
+typedef GUIList<const Group*> GUIGroupList;
 
 struct BaseVehicleListWindow : public Window {
 	GUIVehicleList vehicles;  ///< The list of vehicles
@@ -35,8 +37,11 @@ struct BaseVehicleListWindow : public Window {
 	};
 
 	static const StringID vehicle_depot_name[];
+
 	static const StringID vehicle_sorter_names[];
 	static GUIVehicleList::SortFunction * const vehicle_sorter_funcs[];
+	static const StringID group_sorter_names[];
+	static GUIGroupList::SortFunction * const group_sorter_funcs[];
 
 	BaseVehicleListWindow(WindowDesc *desc, WindowNumber wno) : Window(desc), vli(VehicleListIdentifier::UnPack(wno))
 	{
