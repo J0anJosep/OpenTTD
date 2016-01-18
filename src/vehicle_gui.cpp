@@ -92,6 +92,20 @@ const StringID BaseVehicleListWindow::vehicle_sorter_names[] = {
 	INVALID_STRING_ID
 };
 
+const StringID BaseVehicleListWindow::group_sorter_names[] =  {
+	STR_SORT_BY_NAME,
+	STR_SORT_BY_NUMBER_OF_VEHICLES,
+	INVALID_STRING_ID
+};
+
+static GUIGroupList::SortFunction GroupNameSorter;
+static GUIGroupList::SortFunction GroupNumberVehicleSorter;
+
+GUIGroupList::SortFunction * const BaseVehicleListWindow::group_sorter_funcs[] = {
+	&GroupNameSorter,
+	&GroupNumberVehicleSorter,
+};
+
 const StringID BaseVehicleListWindow::vehicle_depot_name[] = {
 	STR_VEHICLE_LIST_SEND_TRAIN_TO_DEPOT,
 	STR_VEHICLE_LIST_SEND_ROAD_VEHICLE_TO_DEPOT,
@@ -1205,6 +1219,35 @@ static int CDECL VehicleTimetableDelaySorter(const Vehicle * const *a, const Veh
 {
 	int r = (*a)->lateness_counter - (*b)->lateness_counter;
 	return (r != 0) ? r : VehicleNumberSorter(a, b);
+}
+
+/** Sort the groups by their name */
+static int CDECL GroupNameSorter(const Group * const *a, const Group * const *b)
+{
+	static const Group *last_group[2] = { NULL, NULL };
+	static char         last_name[2][64] = { "", "" };
+
+	if (*a != last_group[0]) {
+		last_group[0] = *a;
+		SetDParam(0, (*a)->index);
+		GetString(last_name[0], STR_GROUP_NAME, lastof(last_name[0]));
+	}
+
+	if (*b != last_group[1]) {
+		last_group[1] = *b;
+		SetDParam(0, (*b)->index);
+		GetString(last_name[1], STR_GROUP_NAME, lastof(last_name[1]));
+	}
+
+	int r = strnatcmp(last_name[0], last_name[1]); // Sort by name (natural sorting).
+	if (r == 0) return (*a)->index - (*b)->index;
+	return r;
+}
+
+/** Sort groups by the number of vehicles*/
+static int CDECL GroupNumberVehicleSorter(const Group * const *a, const Group * const *b)
+{
+	return (*a)->statistics.num_vehicle - (*b)->statistics.num_vehicle;
 }
 
 void InitializeGUI()

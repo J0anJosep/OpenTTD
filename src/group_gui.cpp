@@ -37,8 +37,6 @@
 
 static const int LEVEL_WIDTH = 10; ///< Indenting width of a sub-group in pixels
 
-typedef GUIList<const Group*> GUIGroupList;
-
 static const NWidgetPart _nested_group_widgets[] = {
 	NWidget(NWID_HORIZONTAL), // Window header
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
@@ -142,29 +140,6 @@ private:
 		}
 	}
 
-	/** Sort the groups by their name */
-	static int CDECL GroupNameSorter(const Group * const *a, const Group * const *b)
-	{
-		static const Group *last_group[2] = { NULL, NULL };
-		static char         last_name[2][64] = { "", "" };
-
-		if (*a != last_group[0]) {
-			last_group[0] = *a;
-			SetDParam(0, (*a)->index);
-			GetString(last_name[0], STR_GROUP_NAME, lastof(last_name[0]));
-		}
-
-		if (*b != last_group[1]) {
-			last_group[1] = *b;
-			SetDParam(0, (*b)->index);
-			GetString(last_name[1], STR_GROUP_NAME, lastof(last_name[1]));
-		}
-
-		int r = strnatcmp(last_name[0], last_name[1]); // Sort by name (natural sorting).
-		if (r == 0) return (*a)->index - (*b)->index;
-		return r;
-	}
-
 	/**
 	 * (Re)Build the group list.
 	 *
@@ -187,7 +162,6 @@ private:
 		}
 
 		list.ForceResort();
-		list.Sort(&GroupNameSorter);
 
 		AddChildren(&list, INVALID_GROUP, 0);
 
@@ -369,6 +343,7 @@ public:
 		this->groups.ForceRebuild();
 		this->groups.NeedResort();
 		this->BuildGroupList(vli.company);
+		this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
 
 		this->GetWidget<NWidgetCore>(WID_GL_CAPTION)->widget_data = STR_VEHICLE_LIST_TRAIN_CAPTION + this->vli.vtype;
 		this->GetWidget<NWidgetCore>(WID_GL_LIST_VEHICLE)->tool_tip = STR_VEHICLE_LIST_TRAIN_LIST_TOOLTIP + this->vli.vtype;
@@ -511,6 +486,7 @@ public:
 		this->SortVehicleList();
 
 		this->BuildGroupList(this->owner);
+		this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
 
 		this->group_sb->SetCount(this->groups.Length());
 		this->vscroll->SetCount(this->vehicles.Length());
