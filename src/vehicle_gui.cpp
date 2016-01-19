@@ -1441,6 +1441,11 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		const Vehicle *v = this->vehicles[i];
 		StringID str;
 
+		/* Mark vehicles in subgroups in group/vehicles window. */
+		if (this->vli.type == VL_GROUPS_WINDOW && this->vli.index != ALL_GROUP && v->group_id != this->vli.index) {
+			GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
+		}
+
 		/* Highlight the vehicle if it is selected. */
 		if (selected_vehicle == v->index || (_ctrl_pressed && v->orders.list == order_list)) {
 			GfxFillRect(left, y + WD_FRAMERECT_TOP, right, y + line_height - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
