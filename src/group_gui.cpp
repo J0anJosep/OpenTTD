@@ -607,19 +607,6 @@ public:
 				break;
 
 			case WID_GL_LIST_VEHICLE:
-				if (this->vli.index != ALL_GROUP) {
-					/* Mark vehicles which are in sub-groups */
-					int y = r.top;
-					uint max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->vehicles.Length());
-					for (uint i = this->vscroll->GetPosition(); i < max; ++i) {
-						const Vehicle *v = this->vehicles[i];
-						if (v->group_id != this->vli.index) {
-							GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
-						}
-						y += this->resize.step_height;
-					}
-				}
-
 				this->DrawVehicleListItems(this->vehicle_sel, this->resize.step_height, r);
 				break;
 		}
