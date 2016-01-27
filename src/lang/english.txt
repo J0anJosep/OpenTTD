@@ -1226,6 +1226,8 @@ STR_CONFIG_SETTING_AUTOSCROLL_DISABLED                          :Disabled
 STR_CONFIG_SETTING_AUTOSCROLL_MAIN_VIEWPORT_FULLSCREEN          :Main viewport, full-screen only
 STR_CONFIG_SETTING_AUTOSCROLL_MAIN_VIEWPORT                     :Main viewport
 STR_CONFIG_SETTING_AUTOSCROLL_EVERY_VIEWPORT                    :Every viewport
+STR_CONFIG_SETTING_GROUP_HIERARCHY                              :Group properties are inherited
+STR_CONFIG_SETTING_GROUP_HIERARCHY_HELPTEXT                     :Parent groups inherit statistics of descendants, and descendant groups inherit autoreplace rules from parents.
 STR_CONFIG_SETTING_BRIBE                                        :Allow bribing of the local authority: {STRING2}
 STR_CONFIG_SETTING_BRIBE_HELPTEXT                               :Allow companies to try bribing the local town authority. If the bribe is noticed by an inspector, the company will not be able to act in the town for six months
 STR_CONFIG_SETTING_ALLOW_EXCLUSIVE                              :Allow buying exclusive transport rights: {STRING2}
