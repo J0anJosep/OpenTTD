@@ -301,6 +301,7 @@ static const SaveLoad _company_settings_desc[] = {
 	/* Engine renewal settings */
 	SLE_CONDNULL(512, SLV_16, SLV_19),
 	SLE_CONDREF(Company, engine_renew_list,            REF_ENGINE_RENEWS,   SLV_19, SL_MAX_VERSION),
+	SLE_CONDVAR(Company, settings.group_hierarchy,     SLE_BOOL,           SLV_MOD_GROUP_HIERARCHY, SL_MAX_VERSION),
 	SLE_CONDVAR(Company, settings.engine_renew,        SLE_BOOL,            SLV_16, SL_MAX_VERSION),
 	SLE_CONDVAR(Company, settings.engine_renew_months, SLE_INT16,           SLV_16, SL_MAX_VERSION),
 	SLE_CONDVAR(Company, settings.engine_renew_money,  SLE_UINT32,          SLV_16, SL_MAX_VERSION),
@@ -323,6 +324,7 @@ static const SaveLoad _company_settings_skip_desc[] = {
 	SLE_CONDNULL(512, SLV_16, SLV_19),
 	SLE_CONDNULL(2, SLV_19, SLV_69),                 // engine_renew_list
 	SLE_CONDNULL(4, SLV_69, SL_MAX_VERSION),     // engine_renew_list
+	SLE_CONDNULL(1, SLV_MOD_GROUP_HIERARCHY, SL_MAX_VERSION), // settings.group_hierarchy
 	SLE_CONDNULL(1, SLV_16, SL_MAX_VERSION),     // settings.engine_renew
 	SLE_CONDNULL(2, SLV_16, SL_MAX_VERSION),     // settings.engine_renew_months
 	SLE_CONDNULL(4, SLV_16, SL_MAX_VERSION),     // settings.engine_renew_money
