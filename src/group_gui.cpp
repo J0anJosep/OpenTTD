@@ -138,20 +138,7 @@ private:
 	uint tiny_step_height; ///< Step height for the group list
 	Scrollbar *group_sb;
 
-	SmallVector<int, 16> indents; ///< Indentation levels
-
 	Dimension column_size[VGC_END]; ///< Size of the columns in the group list.
-
-	void AddParents(GUIGroupList *source, GroupID parent, int indent)
-	{
-		for (const Group **g = source->Begin(); g != source->End(); g++) {
-			if ((*g)->parent == parent) {
-				*this->groups.Append() = *g;
-				*this->indents.Append() = indent;
-				AddParents(source, (*g)->index, indent + 1);
-			}
-		}
-	}
 
 	/**
 	 * Compute tiny_step_height and column_size
@@ -206,7 +193,7 @@ private:
 	 * @param indent Indentation level.
 	 * @param protection Whether autoreplace protection is set.
 	 */
-	void DrawGroupInfo(int y, int left, int right, GroupID g_id, int indent = 0, bool protection = false) const
+	void DrawGroupInfo(int y, int left, int right, GroupID g_id, int indent = 0, bool is_active = true, bool protection = false) const
 	{
 		/* Highlight the group if a vehicle is dragged over it */
 		if (g_id == this->group_over) {
@@ -219,7 +206,13 @@ private:
 		bool is_veh_selected = !IsAllGroupID(g_id) && this->vehicle_sel != INVALID_VEHICLE && group_highlight == g_id;
 
 		/* draw the selected group in white, else we draw it in black */
-		TextColour colour = this->vli.index == g_id || is_veh_selected ? TC_WHITE : TC_BLACK;
+		TextColour colour = TC_BLACK;
+		if (this->vli.index == g_id || is_veh_selected) {
+			colour = TC_WHITE;
+		} else if (!is_active) {
+			colour = TC_GREY;
+		}
+
 		const GroupStatistics &stats = GroupStatistics::Get(this->vli.company, g_id, this->vli.vtype);
 		bool rtl = _current_text_dir == TD_RTL;
 
@@ -255,7 +248,7 @@ private:
 
 		/* draw a timetable state indicator */
 		x = rtl ? x - 2 - this->column_size[VGC_TIMETABLE].width : x + 2 + this->column_size[VGC_PROFIT].width;
-		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, y + (this->tiny_step_height - this->column_size[VGC_TIMETABLE].height) / 2, STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, TC_BLACK);
+		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, y + (this->tiny_step_height - this->column_size[VGC_TIMETABLE].height) / 2, STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, colour);
 
 		/* draw the number of vehicles of the group */
 		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_TIMETABLE].width;
@@ -286,7 +279,7 @@ private:
 	uint FindGroupListPosition() const
 	{
 		for (uint gli = groups.Length(); gli--;)
-			if (this->vli.index == this->groups[gli]->index) return gli;
+			if (this->vli.index == this->groups[gli].g->index) return gli;
 		return groups.Length();
 	}
 
@@ -353,8 +346,8 @@ public:
 
 		this->groups.ForceRebuild();
 		this->groups.NeedResort();
-		this->BuildGroupList();
-		this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
+		this->BuildGroupList(true);
+		this->SortGroupList();
 
 		this->GetWidget<NWidgetCore>(WID_GL_CAPTION)->widget_data = STR_VEHICLE_LIST_TRAIN_CAPTION + this->vli.vtype;
 		this->GetWidget<NWidgetCore>(WID_GL_LIST_VEHICLE)->tool_tip = STR_VEHICLE_LIST_TRAIN_LIST_TOOLTIP + this->vli.vtype;
@@ -489,8 +482,8 @@ public:
 		this->BuildVehicleList();
 		this->SortVehicleList();
 
-		this->BuildGroupList();
-		this->groups.Sort(group_sorter_funcs[this->groups.SortType()]);
+		this->BuildGroupList(true);
+		this->SortGroupList();
 
 		this->group_sb->SetCount(this->groups.Length());
 		this->vscroll->SetCount(this->vehicles.Length());
@@ -559,11 +552,11 @@ public:
 				int y1 = r.top + WD_FRAMERECT_TOP;
 				int max = min(this->group_sb->GetPosition() + this->group_sb->GetCapacity(), this->groups.Length());
 				for (int i = this->group_sb->GetPosition(); i < max; ++i) {
-					const Group *g = this->groups[i];
+					const Group *g = this->groups[i].g;
 
 					assert(g->owner == this->owner);
 
-					DrawGroupInfo(y1, r.left, r.right, g->index, this->indents[i], g->replace_protection);
+					DrawGroupInfo(y1, r.left, r.right, g->index, this->groups[i].indent, this->groups[i].active, g->replace_protection);
 
 					y1 += this->tiny_step_height;
 				}
@@ -599,9 +592,9 @@ public:
 		/* If a group is deleted, select closest group */
 		if (w->groups.Length() > 1) {
 			if (gli_index != w->groups.Length() - 1) { //next if possible
-				w->vli.index = w->groups[gli_index + 1]->index;
+				w->vli.index = w->groups[gli_index + 1].g->index;
 			} else { //previous if possible
-				w->vli.index = w->groups[gli_index - 1]->index;
+				w->vli.index = w->groups[gli_index - 1].g->index;
 			}
 		} else	{ //select ALL_GROUP otherwise
 			w->vli.index = ALL_GROUP;
@@ -655,7 +648,7 @@ public:
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
 				if (id_g >= this->groups.Length()) return;
 
-				this->group_sel = this->vli.index = this->groups[id_g]->index;
+				this->group_sel = this->vli.index = this->groups[id_g].g->index;
 
 				SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
 
@@ -779,7 +772,7 @@ public:
 
 			case WID_GL_LIST_GROUP: { // Matrix group
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
-				GroupID new_g = id_g >= this->groups.Length() ? INVALID_GROUP : this->groups[id_g]->index;
+				GroupID new_g = id_g >= this->groups.Length() ? INVALID_GROUP : this->groups[id_g].g->index;
 
 				if (this->group_sel != new_g && g->parent != new_g) {
 					DoCommandP(0, this->group_sel | (new_g << 16), 2, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
@@ -812,7 +805,7 @@ public:
 				this->SetDirty();
 
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
-				GroupID new_g = id_g >= this->groups.Length() ? NEW_GROUP : this->groups[id_g]->index;
+				GroupID new_g = id_g >= this->groups.Length() ? NEW_GROUP : this->groups[id_g].g->index;
 
 				DoCommandP(0, new_g, vindex | (_ctrl_pressed ? 1 << 31 : 0), CMD_ADD_VEHICLE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_ADD_VEHICLE), new_g == NEW_GROUP ? CcAddVehicleNewGroup : NULL);
 				break;
@@ -998,7 +991,7 @@ public:
 
 			case WID_GL_LIST_GROUP: { // ... the list of custom groups.
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
-				new_group_over = id_g >= this->groups.Length() ? NEW_GROUP : this->groups[id_g]->index;
+				new_group_over = id_g >= this->groups.Length() ? NEW_GROUP : this->groups[id_g].g->index;
 				break;
 			}
 		}
@@ -1052,7 +1045,7 @@ public:
 
 			case WID_GL_LIST_GROUP: { // ... the list of custom groups.
 				uint id_g = this->group_sb->GetScrolledRowFromWidget(pt.y, this, WID_GL_LIST_GROUP, 0, this->tiny_step_height);
-				if (id_g < this->groups.Length()) new_group_over = this->groups[id_g]->index;
+				if (id_g < this->groups.Length()) new_group_over = this->groups[id_g].g->index;
 				break;
 			}
 		}
