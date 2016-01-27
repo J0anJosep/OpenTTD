@@ -23,8 +23,17 @@ enum ShowingList {
 	VLS_GROUPS,
 };
 
+struct GroupAndIndent {
+	const Group* g;
+	int indent;
+	bool active;
+	bool has_active_descendant;
+
+	GroupAndIndent(Group *g, bool active);
+};
+
 typedef GUIList<const Vehicle*> GUIVehicleList;
-typedef GUIList<const Group*> GUIGroupList;
+typedef GUIList<GroupAndIndent> GUIGroupList;
 
 struct BaseVehicleListWindow : public Window {
 	GUIVehicleList vehicles;  ///< The list of vehicles
@@ -74,7 +83,8 @@ struct BaseVehicleListWindow : public Window {
 	void DrawVehicleListItems(VehicleID selected_vehicle, int line_height, const Rect &r) const;
 	void DrawGroupListItems(int line_height, const Rect &r) const;
 	void SortVehicleList();
-	bool BuildGroupList();
+	void SortGroupList();
+	bool BuildGroupList(bool group_window = 0);
 	void BuildVehicleList();
 	Dimension GetActionDropdownSize(bool show_autoreplace, bool show_group);
 	DropDownList *BuildActionDropdownList(const bool show_autoreplace, const bool groups = false) const;
