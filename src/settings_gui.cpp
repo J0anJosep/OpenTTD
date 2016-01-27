@@ -1544,6 +1544,7 @@ static SettingsContainer &GetSettingsTree()
 			interface->Add(new SettingEntry("gui.timetable_in_ticks"));
 			interface->Add(new SettingEntry("gui.timetable_arrival_departure"));
 			interface->Add(new SettingEntry("gui.expenses_layout"));
+			interface->Add(new SettingEntry("gui.show_compact_groups_when_filtering"));
 		}
 
 		SettingsPage *advisors = main->Add(new SettingsPage(STR_CONFIG_SETTING_ADVISORS));
