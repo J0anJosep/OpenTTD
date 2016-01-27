@@ -739,6 +739,12 @@ bool AfterLoadGame()
 		_settings_game.linkgraph.distribution_armoured = DT_MANUAL;
 		_settings_game.linkgraph.distribution_default = DT_MANUAL;
 	}
+	if (IsSavegameVersionBefore(SL_MOD_GROUP_HIERARCHY)) {
+		Company *c;
+		FOR_ALL_COMPANIES(c) {
+			c->settings.group_hierarchy = false;
+		}
+	}
 
 	/* Load the sprites */
 	GfxLoadSprites();
