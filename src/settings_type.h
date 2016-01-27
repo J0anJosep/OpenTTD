@@ -530,6 +530,7 @@ struct VehicleDefaultSettings {
 
 /** Settings that can be set per company. */
 struct CompanySettings {
+	bool group_hierarchy;                    ///< whether group statistics must be calculated with hierarchy or not
 	bool engine_renew;                       ///< is autorenew enabled
 	int16 engine_renew_months;               ///< months before/after the maximum vehicle age a vehicle should be renewed
 	uint32 engine_renew_money;               ///< minimum amount of money before autorenew is used
