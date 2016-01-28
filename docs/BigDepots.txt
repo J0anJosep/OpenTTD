@@ -1,0 +1,23 @@
+How are trains managed at big rail depots:
+
+Lift: collapse a train in a certain depot tile and hide all vehicles of the train.
+This way, all functions for dealing with trains in a small depot will work as expected.
+
+Replacing Trains:
+If train needs replacement, lift it and proceed.
+Then, if possible, place the train again on track. If not, keep it lifted.
+
+Moving wagons/engines, except when replacing:
+If needed, lift it and proceed.
+Then, if possible, place the train again on track. If not, keep it lifted.
+
+Buying Trains, except when replacing:
+Do nothing.
+Then, if possible, place the train again on track. If not, keep it lifted.
+
+Selling trains, except when replacing:
+If needed, lift it and proceed.
+Then, if possible, place the train again on track. If not, keep it lifted.
+
+Leaving depot, except when replacing:
+If possible, place the train again on track. If not, keep it lifted.
