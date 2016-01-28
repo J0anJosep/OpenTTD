@@ -311,6 +311,17 @@ private:
 		}
 	}
 
+	/**
+	 * Returns the current selected group position on groups list, or groups.Length() if not found
+	 * Used when deleting groups to select a close group
+	 */
+	uint FindGroupListPosition() const
+	{
+		for (uint gli = groups.Length(); gli--;)
+			if (this->vli.index == this->groups[gli]->index) return gli;
+		return groups.Length();
+	}
+
 public:
 	VehicleGroupWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
 	{
@@ -576,10 +587,22 @@ public:
 
 	static void DeleteGroupCallback(Window *win, bool confirmed)
 	{
-		if (confirmed) {
-			VehicleGroupWindow *w = (VehicleGroupWindow*)win;
+		if (!confirmed) return;
+
+		VehicleGroupWindow *w = (VehicleGroupWindow*)win;
+
+		uint gli_index = w->FindGroupListPosition();
+		if (!DoCommandP(0, w->group_confirm, 0, CMD_DELETE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_DELETE))) return;
+
+		/* If a group is deleted, select closest group */
+		if (w->groups.Length() > 1) {
+			if (gli_index != w->groups.Length() - 1) { //next if possible
+				w->vli.index = w->groups[gli_index + 1]->index;
+			} else { //previous if possible
+				w->vli.index = w->groups[gli_index - 1]->index;
+			}
+		} else	{ //select ALL_GROUP otherwise
 			w->vli.index = ALL_GROUP;
-			DoCommandP(0, w->group_confirm, 0, CMD_DELETE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_DELETE));
 		}
 	}
 
@@ -642,7 +665,9 @@ public:
 			}
 
 			case WID_GL_CREATE_GROUP: { // Create a new group
-				DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_CREATE), CcCreateGroup);
+				/* If a new group is created, select it */
+				if (DoCommandP(0, this->vli.vtype, 0, CMD_CREATE_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_CREATE), CcCreateGroup))
+					this->vli.index = _new_group_id;
 				break;
 			}
 
@@ -829,6 +854,7 @@ public:
 	{
 		/* abort drag & drop */
 		this->vehicle_sel = INVALID_VEHICLE;
+		this->group_sel = INVALID_GROUP;
 		this->DirtyHighlightedGroupWidget();
 		this->group_over = INVALID_GROUP;
 		this->SetWidgetDirty(WID_GL_LIST_VEHICLE);
