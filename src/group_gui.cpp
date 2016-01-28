@@ -731,7 +731,7 @@ public:
 			case WID_GL_ALL_VEHICLES: // All vehicles
 			case WID_GL_DEFAULT_VEHICLES: // Ungroupd vehicles
 				if (g->parent != INVALID_GROUP) {
-					DoCommandP(0, this->group_sel | (1 << 16), INVALID_GROUP, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
+					DoCommandP(0, this->group_sel | (INVALID_GROUP << 16), 2, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
 				}
 
 				this->group_sel = INVALID_GROUP;
@@ -744,7 +744,7 @@ public:
 				GroupID new_g = id_g >= this->groups.Length() ? INVALID_GROUP : this->groups[id_g]->index;
 
 				if (this->group_sel != new_g && g->parent != new_g) {
-					DoCommandP(0, this->group_sel | (1 << 16), new_g, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
+					DoCommandP(0, this->group_sel | (new_g << 16), 2, CMD_ALTER_GROUP | CMD_MSG(STR_ERROR_GROUP_CAN_T_SET_PARENT));
 				}
 
 				this->group_sel = INVALID_GROUP;
@@ -897,7 +897,7 @@ public:
 		if (this->vehicle_sel != INVALID_VEHICLE) {
 			if (Vehicle::Get(vehicle_sel)->group_id == new_group_over) new_group_over = INVALID_GROUP;
 		} else if (this->group_sel != INVALID_GROUP) {
-			if (this->group_sel == new_group_over || Group::Get(this->group_sel)->parent == new_group_over) new_group_over = INVALID_GROUP;
+			if (this->group_sel == new_group_over) new_group_over = INVALID_GROUP;
 		}
 
 		/* Mark widgets as dirty if the group changed. */
