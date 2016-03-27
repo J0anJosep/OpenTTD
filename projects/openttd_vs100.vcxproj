@@ -1296,9 +1296,11 @@
     <ClInclude Include="..\src\pathfinder\yapf\yapf_costrail.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_destrail.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node.hpp" />
+    <ClInclude Include="..\src\pathfinder\yapf\yapf_node_air.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_rail.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_road.hpp" />
     <ClInclude Include="..\src\pathfinder\yapf\yapf_node_ship.hpp" />
+    <ClCompile Include="..\src\pathfinder\yapf\yapf_air.cpp" />
     <ClCompile Include="..\src\pathfinder\yapf\yapf_rail.cpp" />
     <ClCompile Include="..\src\pathfinder\yapf\yapf_road.cpp" />
     <ClCompile Include="..\src\pathfinder\yapf\yapf_ship.cpp" />
