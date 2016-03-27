@@ -17,6 +17,7 @@
 #include "../pbs_water.h"
 #include "../roadveh.h"
 #include "../aircraft.h"
+#include "../air.h"
 #include "../station_base.h"
 #include "../train.h"
 #include "../tunnelbridge.h"
@@ -79,6 +80,7 @@ struct CFollowTrackT
 	inline void Init(Owner o, RailTypes railtype_override, CPerformanceTimer *pPerf)
 	{
 		assert(!IsRoadTT() || m_veh != NULL);
+		assert(!IsAirTT() || m_veh != NULL);
 		assert(!IsRailTT() || railtype_override != INVALID_RAILTYPES);
 		m_veh_owner = o;
 		m_pPerf = pPerf;
@@ -193,7 +195,21 @@ struct CFollowTrackT
 			}
 		}
 
-		TrackBits reserved = IsWaterTT() ? GetReservedWaterTracks(m_new_tile) : GetReservedTrackbits(m_new_tile);
+		TrackBits reserved = TRACK_BIT_NONE;
+		switch (this->TT()) {
+			case TRANSPORT_WATER:
+				reserved = GetReservedWaterTracks(m_new_tile);
+				break;
+			case TRANSPORT_RAIL:
+				reserved = GetReservedTrackbits(m_new_tile);
+				break;
+			case TRANSPORT_AIR:
+				reserved = GetReservedAirportTracks(m_new_tile);
+				break;
+			default:
+				break;
+		}
+
 		/* Mask already reserved trackdirs. */
 		m_new_td_bits &= ~TrackBitsToTrackdirBits(reserved);
 		/* Mask out all trackdirs that conflict with the reservation. */
@@ -288,6 +304,15 @@ protected:
 	/** return true if we can leave m_old_tile in m_exitdir */
 	inline bool CanExitOldTile()
 	{
+		/* hangar can be left at one direction */
+		if (IsAirTT() && IsHangarTile(m_old_tile)) {
+			DiagDirection exitdir = GetHangarDirection(m_old_tile);
+			if (exitdir != m_exitdir) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+		}
+
 		/* road stop can be left at one direction only unless it's a drive-through stop */
 		if (IsRoadTT() && IsStandardRoadStopTile(m_old_tile)) {
 			DiagDirection exitdir = GetRoadStopDir(m_old_tile);
@@ -321,7 +346,14 @@ protected:
 	inline bool CanEnterNewTile()
 	{
 		if (IsAirTT()) {
-			return GetStationIndex(m_old_tile) == GetStationIndex(m_new_tile);
+			if (GetStationIndex(m_old_tile) != GetStationIndex(m_new_tile)) return false;
+			if (IsHangarTile(m_new_tile)) {
+				DiagDirection exitdir = GetHangarDirection(m_new_tile);
+				if (ReverseDiagDir(exitdir) != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			}
 		}
 
 		if (IsRoadTT() && IsStandardRoadStopTile(m_new_tile)) {
@@ -500,6 +532,10 @@ public:
 		if (IsRailTT()) {
 			uint16 rail_speed = GetRailTypeInfo(GetRailType(m_old_tile))->max_speed;
 			if (rail_speed > 0) max_speed = min(max_speed, rail_speed);
+		}
+		if (IsAirTT()) {
+			uint16 air_speed = GetAirTypeInfo(GetAirportType(m_old_tile))->max_speed;
+			if (air_speed > 0) max_speed = min(max_speed, air_speed);
 		}
 
 		/* if min speed was requested, return it */
