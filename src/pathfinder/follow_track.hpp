@@ -20,6 +20,7 @@
 #include "pathfinder_func.h"
 #include "../platform_func.h"
 #include "../air_map.h"
+#include "../air.h"
 
 /**
  * Track follower helper template class (can serve pathfinders and vehicle
@@ -266,6 +267,20 @@ protected:
 	/** return true if we can leave m_old_tile in m_exitdir */
 	inline bool CanExitOldTile()
 	{
+		/* hangar can be left at one direction */
+		if (IsAirTT()) {
+			if (IsHangarTile(m_old_tile)) {
+				DiagDirection exitdir = GetHangarDirection(m_old_tile);
+				if (exitdir != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			} else if (IsHeliportTile(m_old_tile)) {
+					m_err = EC_NO_WAY;
+					return false;
+			}
+		}
+
 		/* road stop can be left at one direction only unless it's a drive-through stop */
 		if (IsRoadTT() && IsBayRoadStopTile(m_old_tile)) {
 			DiagDirection exitdir = GetRoadStopDir(m_old_tile);
@@ -301,7 +316,17 @@ protected:
 	inline bool CanEnterNewTile()
 	{
 		if (IsAirTT()) {
-			return GetStationIndex(m_old_tile) == GetStationIndex(m_new_tile);
+			if (GetStationIndex(m_old_tile) != GetStationIndex(m_new_tile)) return false;
+			if (IsHangarTile(m_new_tile)) {
+				DiagDirection exitdir = GetHangarDirection(m_new_tile);
+				if (ReverseDiagDir(exitdir) != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			} else if (IsHeliportTile(m_new_tile)) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
 		}
 
 		if (IsRoadTT() && IsBayRoadStopTile(m_new_tile)) {
@@ -499,6 +524,10 @@ public:
 			/* max_speed is already in roadvehicle units, no need to further modify (divide by 2) */
 			uint16_t road_speed = GetRoadTypeInfo(GetRoadType(m_old_tile, GetRoadTramType(RoadVehicle::From(m_veh)->roadtype)))->max_speed;
 			if (road_speed > 0) max_speed = std::min<int>(max_speed, road_speed);
+		}
+		if (IsAirTT()) {
+			uint16_t air_speed = GetAirTypeInfo(GetAirType(m_old_tile))->max_speed;
+			if (air_speed > 0) max_speed = std::min(max_speed, (int)air_speed);
 		}
 
 		/* if min speed was requested, return it */

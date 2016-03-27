@@ -15,14 +15,26 @@
 #include "../../vehicle_type.h"
 #include "../../ship.h"
 #include "../../roadveh.h"
+#include "../../aircraft.h"
 #include "../pathfinder_type.h"
 
 /**
+ * Finds the best path for given aircraft using YAPF.
+ * @param v                 the aircraft that is looking for a path
+ * @param best_dest         [out] struct containing best dest tile and best trackdir
+ * @param path_found        [out] whether a path has been found (true) or has been guessed (false)
+ * @param dest_state        the state that the aircraft is trying to get
+ * @param path_cache        [out] cache for the newly found path
+ * @return first trackdir on starting tile of the best path found, or INVALID_TRACKDIR if none found.
+ */
+Trackdir YapfAircraftFindPath(const Aircraft *v, struct PBSTileInfo &best_dest, bool &path_found, AircraftState dest_state, AircraftPathChoice &path_cache);
+
+/**
  * Finds the best path for given ship using YAPF.
- * @param v        the ship that needs to find a path
- * @param tile     the tile to find the path from (should be next tile the ship is about to enter)
- * @param path_found [out] Whether a path has been found (true) or has been guessed (false)
- * @return         the best trackdir for next turn or INVALID_TRACK if the path could not be found
+ * @param v          the ship that needs to find a path
+ * @param tile       the tile to find the path from (should be next tile the ship is about to enter)
+ * @param path_found [out] whether a path has been found (true) or has been guessed (false)
+ * @return           the best trackdir for next turn or INVALID_TRACK if the path could not be found
  */
 Track YapfShipChooseTrack(const Ship *v, TileIndex tile, bool &path_found, ShipPathCache &path_cache);
 
@@ -36,26 +48,25 @@ bool YapfShipCheckReverse(const Ship *v, Trackdir *trackdir);
 
 /**
  * Finds the best path for given road vehicle using YAPF.
- * @param v         the RV that needs to find a path
- * @param tile      the tile to find the path from (should be next tile the RV is about to enter)
- * @param enterdir  diagonal direction which the RV will enter this new tile from
- * @param trackdirs available trackdirs on the new tile (to choose from)
- * @param path_found [out] Whether a path has been found (true) or has been guessed (false)
- * @return          the best trackdir for next turn or INVALID_TRACKDIR if the path could not be found
+ * @param v          the RV that needs to find a path
+ * @param tile       the tile to find the path from (should be next tile the RV is about to enter)
+ * @param enterdir   diagonal direction which the RV will enter this new tile from
+ * @param trackdirs  available trackdirs on the new tile (to choose from)
+ * @param path_found [out] whether a path has been found (true) or has been guessed (false)
+ * @return           the best trackdir for next turn or INVALID_TRACKDIR if the path could not be found
  */
 Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDirection enterdir, TrackdirBits trackdirs, bool &path_found, RoadVehPathCache &path_cache);
 
 /**
  * Finds the best path for given train using YAPF.
- * @param v        the train that needs to find a path
- * @param tile     the tile to find the path from (should be next tile the train is about to enter)
- * @param enterdir diagonal direction which the RV will enter this new tile from
- * @param tracks   available trackdirs on the new tile (to choose from)
- * @param path_found [out] Whether a path has been found (true) or has been guessed (false)
+ * @param v             the train that needs to find a path
+ * @param tile          the tile to find the path from (should be next tile the train is about to enter)
+ * @param enterdir      diagonal direction which the RV will enter this new tile from
+ * @param tracks        available trackdirs on the new tile (to choose from)
+ * @param path_found    [out] whether a path has been found (true) or has been guessed (false)
  * @param reserve_track indicates whether YAPF should try to reserve the found path
- * @param target   [out] the target tile of the reservation, free is set to true if path was reserved
- * @param dest     [out] the final tile of the best path found
- * @return         the best track for next turn
+ * @param target        [out] the target tile of the reservation, free is set to true if path was reserved
+ * @param dest          the best track for next turn
  */
 Track YapfTrainChooseTrack(const Train *v, TileIndex tile, DiagDirection enterdir, TrackBits tracks, bool &path_found, bool reserve_track, struct PBSTileInfo *target, TileIndex *dest);
 
