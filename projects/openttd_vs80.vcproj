@@ -4575,6 +4575,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\pathfinder\yapf\yapf_node_air.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\pathfinder\yapf\yapf_node_rail.hpp"
 				>
 			</File>
@@ -4584,6 +4588,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\pathfinder\yapf\yapf_node_ship.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\pathfinder\yapf\yapf_air.cpp"
 				>
 			</File>
 			<File
