@@ -50,9 +50,6 @@ void UpdateTracks(TileIndex tile)
 	assert(IsAirportTile(tile));
 	if (!MayHaveAirTracks(tile) || IsHangar(tile)) return;
 	TrackBits tracks = GetAllowedTracks(tile) & GetAirportTileTracks(tile);
-	if (tracks != GetAirportTileTracks(tile)) {
-		DEBUG(misc, 0, "Removing invalid track on tile %d", tile);
-	}
 
 	SetAirportTileTracks(tile, tracks);
 }

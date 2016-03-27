@@ -18,6 +18,25 @@
 #include "../pathfinder_type.h"
 
 /**
+ * Finds the best path for given aircraft using YAPF.
+ * @param v                 the aircraft that is looking for a path
+ * @param best_dest         [out] struct containing best dest tile and best trackdir
+ * @param skip_reservation  do not consider already done reservations and,
+ *                          if path found, do no reservation at all
+ * @return trackdir         for the already occupied tile
+ */
+Trackdir YapfAircraftFindPath(const Aircraft *v, struct PBSTileInfo *best_dest, bool skip_reservation);
+
+/**
+ * Checks whether a path between two tiles exists.
+ * Both tiles are suitable for being the begining
+ * and end of a path.
+ * @param tile_1
+ * @param tile_2
+ */
+bool YapfDoesPathExist(TileIndex tile_1, TileIndex tile_2);
+
+/**
  * Finds the best path for given ship using YAPF.
  * @param v        the ship that needs to find a path
  * @param tile     the tile to find the path from (should be next tile the ship is about to enter)
