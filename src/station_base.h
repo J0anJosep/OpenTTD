@@ -361,35 +361,11 @@ struct Airport : public TileArea {
 		return this->GetSpec()->fsm;
 	}
 
+	/** Get the number of hangars on this airport. */
+	inline uint GetNumHangars() const { return this->hangars.Length(); }
+
 	/** Check if this airport has at least one hangar. */
-	inline bool HasHangar() const
-	{
-		return this->GetSpec()->nof_depots > 0;
-	}
-
-	/**
-	 * Add the tileoffset to the base tile of this airport but rotate it first.
-	 * The base tile is the northernmost tile of this airport. This function
-	 * helps to make sure that getting the tile of a hangar works even for
-	 * rotated airport layouts without requiring a rotated array of hangar tiles.
-	 * @param tidc The tilediff to add to the airport tile.
-	 * @return The tile of this airport plus the rotated offset.
-	 */
-	inline TileIndex GetRotatedTileFromOffset(TileIndexDiffC tidc) const
-	{
-		const AirportSpec *as = this->GetSpec();
-		switch (this->rotation) {
-			case DIR_N: return this->tile + ToTileIndexDiff(tidc);
-
-			case DIR_E: return this->tile + TileDiffXY(tidc.y, as->size_x - 1 - tidc.x);
-
-			case DIR_S: return this->tile + TileDiffXY(as->size_x - 1 - tidc.x, as->size_y - 1 - tidc.y);
-
-			case DIR_W: return this->tile + TileDiffXY(as->size_y - 1 - tidc.y, tidc.x);
-
-			default: NOT_REACHED();
-		}
-	}
+	inline bool HasHangar() const { return this->GetNumHangars() > 0; }
 
 	/**
 	 * Get the first tile of the given hangar.
@@ -399,26 +375,8 @@ struct Airport : public TileArea {
 	 */
 	inline TileIndex GetHangarTile(uint hangar_num) const
 	{
-		const AirportSpec *as = this->GetSpec();
-		for (uint i = 0; i < as->nof_depots; i++) {
-			if (as->depot_table[i].hangar_num == hangar_num) {
-				return this->GetRotatedTileFromOffset(as->depot_table[i].ti);
-			}
-		}
-		NOT_REACHED();
-	}
-
-	/**
-	 * Get the exit direction of the hangar at a specific tile.
-	 * @param tile The tile to query.
-	 * @pre IsHangarTile(tile).
-	 * @return The exit direction of the hangar, taking airport rotation into account.
-	 */
-	inline Direction GetHangarExitDirection(TileIndex tile) const
-	{
-		const AirportSpec *as = this->GetSpec();
-		const HangarTileTable *htt = GetHangarDataByTile(tile);
-		return ChangeDir(htt->dir, DirDifference(this->rotation, as->rotation[0]));
+		assert(hangar_num < this->GetNumHangars());
+		return this->hangars[hangar_num];
 	}
 
 	/**
@@ -427,43 +385,10 @@ struct Airport : public TileArea {
 	 * @pre IsHangarTile(tile).
 	 * @return The hangar number of the hangar at the given tile.
 	 */
-	inline uint GetHangarNum(TileIndex tile) const
-	{
-		const HangarTileTable *htt = GetHangarDataByTile(tile);
-		return htt->hangar_num;
-	}
-
-	/** Get the number of hangars on this airport. */
-	inline uint GetNumHangars() const
-	{
-		uint num = 0;
-		uint counted = 0;
-		const AirportSpec *as = this->GetSpec();
-		for (uint i = 0; i < as->nof_depots; i++) {
-			if (!HasBit(counted, as->depot_table[i].hangar_num)) {
-				num++;
-				SetBit(counted, as->depot_table[i].hangar_num);
-			}
-		}
-		return num;
-	}
-
-private:
-	/**
-	 * Retrieve hangar information of a hangar at a given tile.
-	 * @param tile %Tile containing the hangar.
-	 * @return The requested hangar information.
-	 * @pre The \a tile must be at a hangar tile at an airport.
-	 */
-	inline const HangarTileTable *GetHangarDataByTile(TileIndex tile) const
-	{
-		const AirportSpec *as = this->GetSpec();
-		for (uint i = 0; i < as->nof_depots; i++) {
-			if (this->GetRotatedTileFromOffset(as->depot_table[i].ti) == tile) {
-				return as->depot_table + i;
-			}
-		}
-		NOT_REACHED();
+	inline uint GetHangarNum(TileIndex tile) const {
+		int hangar_num = this->hangars.FindIndex(tile);
+		assert(hangar_num != -1);
+		return hangar_num;
 	}
 };
 

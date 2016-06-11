@@ -222,7 +222,8 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 	if (!CanVehicleUseStation(e->index, st)) return CMD_ERROR;
 
 	/* Make sure all aircraft end up in the first tile of the hangar. */
-	tile = st->airport.GetHangarTile(st->airport.GetHangarNum(tile));
+	/* Revise!!! */
+	//tile = st->airport.GetHangarTile(st->airport.GetHangarNum(tile));
 
 	if (flags & DC_EXEC) {
 		Aircraft *v = new Aircraft(); // aircraft
@@ -230,7 +231,7 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 		*ret = v;
 
 		v->owner = u->owner = _current_company;
-
+		v->cur_state = AM_HANGAR;
 		v->tile = tile;
 
 		uint x = TileX(tile) * TILE_SIZE + 5;

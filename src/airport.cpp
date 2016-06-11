@@ -211,25 +211,3 @@ const AirportFTAClass *GetAirport(const byte airport_type)
 	if (airport_type == AT_DUMMY) return &_airportfta_dummy;
 	return AirportSpec::Get(airport_type)->fsm;
 }
-
-/**
- * Get the vehicle position when an aircraft is build at the given tile
- * @param hangar_tile The tile on which the vehicle is build
- * @return The position (index in airport node array) where the aircraft ends up
- */
-byte GetVehiclePosOnBuild(TileIndex hangar_tile)
-{
-	const Station *st = Station::GetByTile(hangar_tile);
-	const AirportFTAClass *apc = st->airport.GetFTA();
-	/* When we click on hangar we know the tile it is on. By that we know
-	 * its position in the array of depots the airport has.....we can search
-	 * layout for #th position of depot. Since layout must start with a listing
-	 * of all depots, it is simple */
-	for (uint i = 0;; i++) {
-		if (st->airport.GetHangarTile(i) == hangar_tile) {
-			assert(apc->layout[i].heading == HANGAR);
-			return apc->layout[i].position;
-		}
-	}
-	NOT_REACHED();
-}

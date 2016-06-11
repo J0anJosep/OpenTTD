@@ -141,7 +141,7 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 	bool IsInDepot() const
 	{
 		assert(this->IsPrimaryVehicle());
-		return (this->vehstatus & VS_HIDDEN) != 0 && IsHangarTile(this->tile);
+		return this->cur_state == AM_HANGAR;
 	}
 
 	bool Tick();

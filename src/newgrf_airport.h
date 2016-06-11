@@ -87,13 +87,6 @@ enum TTDPAirportType {
 	ATP_TTDP_OILRIG,   ///< Same as AT_OILRIG
 };
 
-/** A list of all hangar tiles in an airport */
-struct HangarTileTable {
-	TileIndexDiffC ti; ///< Tile offset from the top-most airport tile.
-	Direction dir;     ///< Direction of the exit.
-	byte hangar_num;   ///< The hangar to which this tile belongs.
-};
-
 /**
  * Defines the data structure for an airport.
  */
@@ -102,8 +95,6 @@ struct AirportSpec {
 	const AirportTileTable * const *table; ///< list of the tiles composing the airport
 	Direction *rotation;                   ///< the rotation of each tiletable
 	byte num_table;                        ///< number of elements in the table
-	const HangarTileTable *depot_table;    ///< gives the position of the depots on the airports
-	byte nof_depots;                       ///< the number of hangar tiles in this airport
 	byte size_x;                           ///< size of airport in x direction
 	byte size_y;                           ///< size of airport in y direction
 	byte noise_level;                      ///< noise that this airport generates

@@ -2918,8 +2918,7 @@ static bool ClickTile_Station(TileIndex tile)
 	if (bst->facilities & FACIL_WAYPOINT) {
 		ShowWaypointWindow(Waypoint::From(bst));
 	} else if (IsHangarTile(tile)) {
-		const Station *st = Station::From(bst);
-		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
+		ShowDepotWindow(tile, VEH_AIRCRAFT);
 	} else if (_ctrl_pressed && bst->HasFacilities(FACIL_DOCK) && IsDockTile(tile) && GetTileSlope(tile) == SLOPE_FLAT) {
 		DoCommandP(tile, 0, 0, CMD_ROTATE_DOCK_TRACKS | CMD_MSG(STR_ERROR_CAN_T_DO_THIS));
 	} else {
