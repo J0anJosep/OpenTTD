@@ -914,7 +914,6 @@
     <ClCompile Include="..\src\saveload\vehicle_sl.cpp" />
     <ClCompile Include="..\src\saveload\waypoint_sl.cpp" />
     <ClInclude Include="..\src\table\airport_defaults.h" />
-    <ClInclude Include="..\src\table\airport_movement.h" />
     <ClInclude Include="..\src\table\airport_translation.h" />
     <ClInclude Include="..\src\table\airporttile_ids.h" />
     <ClInclude Include="..\src\table\airporttiles.h" />

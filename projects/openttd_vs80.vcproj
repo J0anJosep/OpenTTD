@@ -2907,10 +2907,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\table\airport_movement.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\table\airport_translation.h"
 				>
 			</File>
