@@ -118,6 +118,7 @@ void Station::TranslateAirport()
 void Station::UpdateAirportDataStructure()
 {
 	this->ClearAirportDataInfrastructure();
+	this->airport.flags &= ~AF_STRUCTURE_MASK;
 
 	/* Recover the airport area tile rescanning the rect of the station */
 	TileArea ta(TileXY(this->rect.left, this->rect.top), TileXY(this->rect.right, this->rect.bottom));
@@ -186,13 +187,22 @@ void Station::UpdateAirportDataStructure()
 						break;
 					default:
 						*this->airport.helipads.Append() = t;
+						this->airport.flags |= IsHelipad(t) ? AF_HELIPADS : AF_HELIPORTS;
 						break;
 				}
 				break;
 
-			case ATT_RUNWAY_START:
+			case ATT_RUNWAY_START: {
 				*this->airport.runways.Append() = t;
+				bool is_short = GetPlatformLength(t) < LONG_RUNWAY_LENGTH;
+
+				/* Landing runway. */
+				if (IsLandingTypeTile(t)) this->airport.flags |= is_short ? AF_SHORT_LANDING : AF_LONG_LANDING;
+
+				/* Takeoff runway. */
+				if ((GetAirportTileTracks(t) & TRACK_BIT_CROSS) != 0) this->airport.flags |= is_short ? AF_SHORT_TAKEOFF : AF_LONG_TAKEOFF;
 				break;
+			}
 
 			default: break;
 		}
