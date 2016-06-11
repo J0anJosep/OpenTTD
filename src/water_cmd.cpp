@@ -1204,9 +1204,7 @@ static Vehicle *FloodVehicleProc(Vehicle *v, void *data)
 
 			/* We compare v->z_pos against delta_z + 1 because the shadow
 			 * is at delta_z and the actual aircraft at delta_z + 1. */
-			const Station *st = Station::GetByTile(v->tile);
-			const AirportFTAClass *airport = st->airport.GetFTA();
-			if (v->z_pos != airport->delta_z + 1) break;
+			if (v->z_pos != GetLandingHeight(v->tile) + 1) break;
 
 			FloodVehicle(v);
 			break;
