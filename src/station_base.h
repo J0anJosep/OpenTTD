@@ -319,10 +319,10 @@ struct Airport : public TileArea {
 		depot_id(INVALID_DEPOT),
 		footprint(NULL) {}
 
-	uint64 flags;       ///< stores which blocks on the airport are taken. was 16 bit earlier on, then 32
-	byte type;          ///< Type of this airport, @see AirportTypes
-	byte layout;        ///< Airport layout number.
-	DirectionByte rotation; ///< How this airport is rotated.
+	uint64 flags;       ///< Stores the status of the airport, @see AirportFlags.
+	byte type;          ///< Type of this airport, @see AirportTypes.
+	byte layout;        ///< Airport layout number. @todo revise should be deprecated
+	DirectionByte rotation; ///< How this airport is rotated. @todo revise deprecated
 	AirType air_type;       ///< NOSAVE: airport type.
 	DepotID depot_id;       ///< The corresponding depot ID for this airport.
 

@@ -3737,7 +3737,7 @@ void DeleteOilRig(TileIndex tile)
 	}
 	st->airport.Clear();
 	st->facilities &= ~(FACIL_AIRPORT | FACIL_DOCK);
-	st->airport.flags = 0;
+	st->airport.flags = AF_NONE;
 
 	st->rect.AfterRemoveTile(st, tile);
 

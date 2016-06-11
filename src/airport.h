@@ -41,4 +41,19 @@ enum AirportTypes {
 	AT_DUMMY           = 255, ///< Dummy airport.
 };
 
+enum AirportFlags {
+	AF_NONE             =  0,       ///< No flag.
+	AF_CLOSED_MANUAL    =  1 <<  0, ///< The airport is closed manually.
+	AF_CLOSED_ZEP_CRASH =  1 <<  1, ///< The airport is closed due to a zeppelin crash.
+	AF_CLOSED_REG_CRASH =  1 <<  2, ///< The airport is closed due to a regular aircraft crash.
+	AF_CLOSED_DESIGN    =  1 <<  3, ///< The airport is closed due to a design error.
+	AF_CLOSED           =  AF_CLOSED_MANUAL | AF_CLOSED_ZEP_CRASH | AF_CLOSED_REG_CRASH | AF_CLOSED_DESIGN,
+	AF_AIRPLANES        =  1 <<  8, ///< Planes can land on this airport.
+	AF_HELICOPTERS      =  1 <<  9, ///< Helicopters can land on this airport.
+	AF_ALL_AIRCRAFT     =  AF_AIRPLANES | AF_HELICOPTERS, ///< Mask for generic aircraft.
+	AF_ALL_SHORT        =  1 << 20, ///< All runways are short and dangerous for fast aircraft.
+	AF_SOME_SHORT       =  1 << 21, ///< Some runways are short and dangerous for fast aircraft.
+	AF_NONE_SHORT       =  1 << 22, ///< All runways are long enough for fast aircraft.
+};
+
 #endif /* AIRPORT_H */
