@@ -3761,7 +3761,7 @@ void BuildOilRig(TileIndex tile)
 	_m[tile].m5 = 0;
 	SetAirportTileTracks(tile, translation->trackbits);
 	SetTerminalType(tile, translation->terminal_type);
-	st->airport.flags = 0;
+	st->airport.flags = AF_NONE;
 
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
@@ -3801,7 +3801,7 @@ void DeleteOilRig(TileIndex tile)
 	}
 	st->airport.Clear();
 	st->facilities &= ~(FACIL_AIRPORT | FACIL_DOCK);
-	st->airport.flags = 0;
+	st->airport.flags = AF_NONE;
 
 	st->rect.AfterRemoveTile(st, tile);
 
