@@ -3673,9 +3673,6 @@ static void DuplicateTileTable(AirportSpec *as)
 		MemCpyT(table_list[i], as->table[i], num_tiles);
 	}
 	as->table = table_list;
-	HangarTileTable *depot_table = MallocT<HangarTileTable>(as->nof_depots);
-	MemCpyT(depot_table, as->depot_table, as->nof_depots);
-	as->depot_table = depot_table;
 	Direction *rotation = MallocT<Direction>(as->num_table);
 	MemCpyT(rotation, as->rotation, as->num_table);
 	as->rotation = rotation;
@@ -7969,7 +7966,6 @@ static void ResetCustomAirports()
 						free(as->table[j]);
 					}
 					free(as->table);
-					free(as->depot_table);
 					free(as->rotation);
 
 					free(as);

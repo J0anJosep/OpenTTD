@@ -197,6 +197,5 @@ struct AirportFTA {
 };
 
 const AirportFTAClass *GetAirport(const byte airport_type);
-byte GetVehiclePosOnBuild(TileIndex hangar_tile);
 
 #endif /* AIRPORT_H */
