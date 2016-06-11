@@ -668,7 +668,6 @@ saveload/waypoint_sl.cpp
 
 # Tables
 table/airport_defaults.h
-table/airport_movement.h
 table/airport_translation.h
 table/airporttile_ids.h
 table/airporttiles.h

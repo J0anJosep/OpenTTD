@@ -1935,9 +1935,6 @@
     <ClInclude Include="..\src\table\airport_defaults.h">
       <Filter>Tables</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\table\airport_movement.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\table\airport_translation.h">
       <Filter>Tables</Filter>
     </ClInclude>

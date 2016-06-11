@@ -351,17 +351,6 @@ struct Airport : public TileArea {
 		return AirportSpec::Get(this->type);
 	}
 
-	/**
-	 * Get the finite-state machine for this airport or the finite-state machine
-	 * for the dummy airport in case this isn't an airport.
-	 * @pre this->type < NEW_AIRPORT_OFFSET.
-	 * @return The state machine for this airport.
-	 */
-	const AirportFTAClass *GetFTA() const
-	{
-		return this->GetSpec()->fsm;
-	}
-
 	/** Check if this airport has at least one hangar. */
 	inline bool HasHangar() const { return this->depot_id != INVALID_DEPOT; }
 

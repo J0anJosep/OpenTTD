@@ -381,17 +381,17 @@ static Direction _default_airports_rotation[] = {
 #undef MKEND
 
 /** General AirportSpec definition. */
-#define AS_GENERIC(fsm, att, rot, att_len, size_x, size_y, noise, catchment, min_year, max_year, maint_cost, ttdpatch_type, class_id, name, preview, enabled) \
-	{fsm, att, rot, att_len, size_x, size_y, noise, catchment, min_year, max_year, name, ttdpatch_type, class_id, preview, maint_cost, enabled, GRFFileProps(AT_INVALID)}
+#define AS_GENERIC(att, rot, att_len, size_x, size_y, noise, catchment, min_year, max_year, maint_cost, ttdpatch_type, class_id, name, preview, enabled) \
+	{att, rot, att_len, size_x, size_y, noise, catchment, min_year, max_year, name, ttdpatch_type, class_id, preview, maint_cost, enabled, GRFFileProps(AT_INVALID)}
 
 /** AirportSpec definition for airports without any depot. */
 #define AS_ND(ap_name, size_x, size_y, min_year, max_year, catchment, noise, maint_cost, ttdpatch_type, class_id, name, preview) \
-	AS_GENERIC(&_airportfta_##ap_name, _tile_table_##ap_name, _default_airports_rotation, lengthof(_tile_table_##ap_name), \
+	AS_GENERIC(_tile_table_##ap_name, _default_airports_rotation, lengthof(_tile_table_##ap_name), \
 		size_x, size_y, noise, catchment, min_year, max_year, maint_cost, ttdpatch_type, class_id, name, preview, true)
 
 /** AirportSpec definition for airports with at least one depot. */
 #define AS(ap_name, size_x, size_y, min_year, max_year, catchment, noise, maint_cost, ttdpatch_type, class_id, name, preview) \
-	AS_GENERIC(&_airportfta_##ap_name, _tile_table_##ap_name, _default_airports_rotation, \
+	AS_GENERIC(_tile_table_##ap_name, _default_airports_rotation, \
 			lengthof(_tile_table_##ap_name), size_x, size_y, noise, catchment, \
 			min_year, max_year, maint_cost, ttdpatch_type, class_id, name, preview, true)
 
@@ -406,12 +406,12 @@ extern const AirportSpec _origin_airport_specs[] = {
 	AS(helidepot,        2, 2,  1976, MAX_YEAR,  4,  2,  7, ATP_TTDP_SMALL,    APC_HELIPORT, STR_AIRPORT_HELIDEPOT,        SPR_AIRPORT_PREVIEW_HELIDEPOT),
 	AS(intercontinental, 9, 11, 2002, MAX_YEAR, 10, 23, 72, ATP_TTDP_LARGE,    APC_HUB,      STR_AIRPORT_INTERCONTINENTAL, SPR_AIRPORT_PREVIEW_INTERCONTINENTAL),
 	AS(helistation,      4, 2,  1980, MAX_YEAR,  4,  4, 14, ATP_TTDP_SMALL,    APC_HELIPORT, STR_AIRPORT_HELISTATION,      SPR_AIRPORT_PREVIEW_HELISTATION),
-	AS_GENERIC(&_airportfta_oilrig, NULL, _default_airports_rotation, 0, 1, 1, 0, 4, 0, 0, 0, ATP_TTDP_OILRIG, APC_HELIPORT, STR_NULL, 0, false),
+	AS_GENERIC(NULL, _default_airports_rotation, 0, 1, 1, 0, 4, 0, 0, 0, ATP_TTDP_OILRIG, APC_HELIPORT, STR_NULL, 0, false),
 };
 
 assert_compile(NEW_AIRPORT_OFFSET == lengthof(_origin_airport_specs));
 
-AirportSpec AirportSpec::dummy = AS_GENERIC(&_airportfta_dummy, NULL, _default_airports_rotation, 0, 0, 0, 0, 0, MIN_YEAR, MIN_YEAR, 0, ATP_TTDP_LARGE, APC_BEGIN, STR_NULL, 0, false);
+AirportSpec AirportSpec::dummy = AS_GENERIC(NULL, _default_airports_rotation, 0, 0, 0, 0, 0, MIN_YEAR, MIN_YEAR, 0, ATP_TTDP_LARGE, APC_BEGIN, STR_NULL, 0, false);
 
 #undef AS
 #undef AS_ND
