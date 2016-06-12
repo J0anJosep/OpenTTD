@@ -217,30 +217,33 @@ void DisasterVehicle::UpdatePosition(int x, int y, int z)
  * 0: Zeppeliner initialization has found a small airport, go there and crash
  * 1: Create crash and animate falling down for extra dramatic effect
  * 2: Create more smoke and leave debris on ground
- * 2: Clear the runway after some time and remove crashed zeppeliner
+ * 3: Clear the runway after some time and remove crashed zeppeliner
  * If not airport was found, only state 0 is reached until zeppeliner leaves map
  */
 static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 {
 	v->tick_counter++;
 
-	if (v->current_order.GetDestination() < 2) {
-		if (HasBit(v->tick_counter, 0)) return true;
+	switch (v->current_order.GetDestination()) {
+		case 0:
+		case 1: {
+			if (HasBit(v->tick_counter, 0)) return true;
 
-		GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+			GetNewVehiclePosResult gp = GetNewVehiclePos(v);
+			v->UpdatePosition(gp.x, gp.y, GetAircraftFlightLevel(v));
 
-		v->UpdatePosition(gp.x, gp.y, GetAircraftFlightLevel(v));
+			if (v->current_order.GetDestination() == 1) {
+				if (++v->age == 38) {
+					v->current_order.SetDestination(2);
+					v->age = 0;
+				}
 
-		if (v->current_order.GetDestination() == 1) {
-			if (++v->age == 38) {
-				v->current_order.SetDestination(2);
-				v->age = 0;
-			}
+				if (GB(v->tick_counter, 0, 3) == 0) CreateEffectVehicleRel(v, 0, -17, 2, EV_CRASH_SMOKE);
 
-			if (GB(v->tick_counter, 0, 3) == 0) CreateEffectVehicleRel(v, 0, -17, 2, EV_CRASH_SMOKE);
-
-		} else if (v->current_order.GetDestination() == 0) {
-			if (IsValidTile(v->tile) && IsAirportTile(v->tile)) {
+			} else if (IsValidTile(v->tile) && IsAirportTile(v->tile) &&
+					(IsRunway(v->tile) || IsHelipadTile(v->tile) || IsPlaneTerminalTile(v->tile)) &&
+					!HasAirportTrackReserved(v->tile) && //revise neighbour tiles
+					(Station::GetByTile(v->tile)->airport.flags & AF_CLOSED_ZEP_CRASH) != 0) {
 				v->current_order.SetDestination(1);
 				v->age = 0;
 
@@ -248,62 +251,65 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 				AddVehicleNewsItem(STR_NEWS_DISASTER_ZEPPELIN, NT_ACCIDENT, v->index); // Delete the news, when the zeppelin is gone
 				AI::NewEvent(GetTileOwner(v->tile), new ScriptEventDisasterZeppelinerCrashed(GetStationIndex(v->tile)));
 			}
+
+			if (v->y_pos >= (int)((MapSizeY() + 9) * TILE_SIZE - 1)) {
+				delete v;
+				return false;
+			}
+
+			return true;
 		}
 
-		if (v->y_pos >= (int)((MapSizeY() + 9) * TILE_SIZE - 1)) {
+		case 2: {
+			int x = v->x_pos;
+			int y = v->y_pos;
+			int z = GetSlopePixelZ(x, y);
+			if (z < v->z_pos) z = v->z_pos - 1;
+			v->UpdatePosition(x, y, z);
+
+			if (++v->age == 1) {
+				CreateEffectVehicleRel(v, 0, 7, 8, EV_EXPLOSION_LARGE);
+				if (_settings_client.sound.disaster) SndPlayVehicleFx(SND_12_EXPLOSION, v);
+				v->image_override = SPR_BLIMP_CRASHING;
+			} else if (v->age == 70) {
+				v->image_override = SPR_BLIMP_CRASHED;
+			} else if (v->age <= 300) {
+				if (GB(v->tick_counter, 0, 3) == 0) {
+					uint32 r = Random();
+
+					CreateEffectVehicleRel(v,
+						GB(r, 0, 4) - 7,
+						GB(r, 4, 4) - 7,
+						GB(r, 8, 3) + 5,
+						EV_EXPLOSION_SMALL);
+				}
+			} else if (v->age == 350) {
+				v->current_order.SetDestination(3);
+				v->age = 0;
+			}
+
+			if (IsValidTile(v->tile) && IsAirportTile(v->tile)) {
+				Station::GetByTile(v->tile)->airport.flags |= AF_CLOSED_ZEP_CRASH;
+			}
+
+			return true;
+		}
+
+		case 3:
+			if (++v->age <= 13320) return true;
+
+			if (IsValidTile(v->tile) && IsAirportTile(v->tile)) {
+				Station *st = Station::GetByTile(v->tile);
+				st->airport.flags &= ~AF_CLOSED_ZEP_CRASH;
+				AI::NewEvent(GetTileOwner(v->tile), new ScriptEventDisasterZeppelinerCleared(st->index));
+			}
+
+			v->UpdatePosition(v->x_pos, v->y_pos, GetAircraftFlightLevel(v));
 			delete v;
 			return false;
-		}
 
-		return true;
+		default: NOT_REACHED();
 	}
-
-	if (v->current_order.GetDestination() > 2) {
-		if (++v->age <= 13320) return true;
-
-		if (IsValidTile(v->tile) && IsAirportTile(v->tile)) {
-			Station *st = Station::GetByTile(v->tile);
-			CLRBITS(st->airport.flags, RUNWAY_IN_block);
-			AI::NewEvent(GetTileOwner(v->tile), new ScriptEventDisasterZeppelinerCleared(st->index));
-		}
-
-		v->UpdatePosition(v->x_pos, v->y_pos, GetAircraftFlightLevel(v));
-		delete v;
-		return false;
-	}
-
-	int x = v->x_pos;
-	int y = v->y_pos;
-	int z = GetSlopePixelZ(x, y);
-	if (z < v->z_pos) z = v->z_pos - 1;
-	v->UpdatePosition(x, y, z);
-
-	if (++v->age == 1) {
-		CreateEffectVehicleRel(v, 0, 7, 8, EV_EXPLOSION_LARGE);
-		if (_settings_client.sound.disaster) SndPlayVehicleFx(SND_12_EXPLOSION, v);
-		v->image_override = SPR_BLIMP_CRASHING;
-	} else if (v->age == 70) {
-		v->image_override = SPR_BLIMP_CRASHED;
-	} else if (v->age <= 300) {
-		if (GB(v->tick_counter, 0, 3) == 0) {
-			uint32 r = Random();
-
-			CreateEffectVehicleRel(v,
-				GB(r, 0, 4) - 7,
-				GB(r, 4, 4) - 7,
-				GB(r, 8, 3) + 5,
-				EV_EXPLOSION_SMALL);
-		}
-	} else if (v->age == 350) {
-		v->current_order.SetDestination(3);
-		v->age = 0;
-	}
-
-	if (IsValidTile(v->tile) && IsAirportTile(v->tile)) {
-		SETBITS(Station::GetByTile(v->tile)->airport.flags, RUNWAY_IN_block);
-	}
-
-	return true;
 }
 
 /**
@@ -709,12 +715,24 @@ static void Disaster_Zeppeliner_Init()
 
 	/* Pick a random place, unless we find a small airport */
 	int x = TileX(Random()) * TILE_SIZE + TILE_SIZE / 2;
+	bool found = false;
 
 	Station *st;
 	FOR_ALL_STATIONS(st) {
 		if (st->airport.tile != INVALID_TILE && (st->airport.type == AT_SMALL || st->airport.type == AT_LARGE)) {
 			x = (TileX(st->airport.tile) + 2) * TILE_SIZE;
+			found = true;
 			break;
+		}
+	}
+
+	if (!found) {
+		Station *st;
+		FOR_ALL_STATIONS(st) {
+			if (st->airport.tile != INVALID_TILE && st->airport.runways.Length() > 0) {
+				x = (TileX(st->airport.tile) + 2) * TILE_SIZE;
+				break;
+			}
 		}
 	}
 
