@@ -37,7 +37,8 @@ enum AirportTypes {
 	NEW_AIRPORT_OFFSET =  10, ///< Number of the first newgrf airport.
 	NUM_AIRPORTS_PER_GRF = 128, ///< Maximal number of airports per NewGRF.
 	NUM_AIRPORTS       = 128, ///< Maximal number of airports in total.
-	AT_INVALID         = 254, ///< Invalid airport.
+	AT_INVALID         = 253, ///< Invalid airport.
+	AT_CUSTOM          = 254, ///< Customized airport.
 	AT_DUMMY           = 255, ///< Dummy airport.
 };
 
