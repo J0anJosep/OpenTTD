@@ -686,6 +686,7 @@ class BuildAirportWindow : public PickerWindowBase {
 		DropDownList list;
 
 		for (uint i = 0; i < AirportClass::GetClassCount(); i++) {
+			if (i == APC_CUSTOM) continue;
 			bool unavailable = true;
 			AirportClass *apclass = AirportClass::Get((AirportClassID)i);
 			for (uint j = 0; j < apclass->GetSpecCount() && unavailable; j++) {
