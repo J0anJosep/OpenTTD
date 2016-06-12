@@ -322,7 +322,6 @@ struct Airport : public TileArea {
 	uint64 flags;       ///< Stores the status of the airport, @see AirportFlags.
 	byte type;          ///< Type of this airport, @see AirportTypes.
 	byte layout;        ///< Airport layout number. @todo revise should be deprecated
-	DirectionByte rotation; ///< How this airport is rotated. @todo revise deprecated
 	AirType air_type;       ///< NOSAVE: airport type.
 	DepotID depot_id;       ///< The corresponding depot ID for this airport.
 
