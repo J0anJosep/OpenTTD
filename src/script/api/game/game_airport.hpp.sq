@@ -30,6 +30,7 @@ void SQGSAirport_Register(Squirrel *engine)
 	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_HELIPORT,      "AT_HELIPORT");
 	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_HELISTATION,   "AT_HELISTATION");
 	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_HELIDEPOT,     "AT_HELIDEPOT");
+	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_CUSTOM,        "AT_CUSTOM");
 	SQGSAirport.DefSQConst(engine, ScriptAirport::AT_INVALID,       "AT_INVALID");
 	SQGSAirport.DefSQConst(engine, ScriptAirport::PT_HELICOPTER,    "PT_HELICOPTER");
 	SQGSAirport.DefSQConst(engine, ScriptAirport::PT_SMALL_PLANE,   "PT_SMALL_PLANE");
