@@ -670,6 +670,7 @@ class BuildAirportWindow : public PickerWindowBase {
 		DropDownList list;
 
 		for (const auto &cls : AirportClass::Classes()) {
+			if (cls.Index() == APC_CUSTOM) continue;
 			bool unavailable = true;
 			for (const auto &as : cls.Specs()) {
 				if (!as->IsAvailable(_cur_airtype)) continue;

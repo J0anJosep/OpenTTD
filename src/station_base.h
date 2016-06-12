@@ -316,6 +316,7 @@ struct Airport : public TileArea {
 	const AirportSpec *GetSpec() const
 	{
 		if (this->tile == INVALID_TILE) return &AirportSpec::dummy;
+		if (this->type == AT_CUSTOM) return &AirportSpec::custom;
 		return AirportSpec::Get(this->type);
 	}
 

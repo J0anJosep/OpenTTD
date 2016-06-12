@@ -3043,11 +3043,13 @@ STR_AIRPORT_INTERCONTINENTAL                                    :Intercontinenta
 STR_AIRPORT_HELIPORT                                            :Heliport
 STR_AIRPORT_HELIDEPOT                                           :Helidepot
 STR_AIRPORT_HELISTATION                                         :Helistation
+STR_AIRPORT_CUSTOM                                              :Customized
 
 STR_AIRPORT_CLASS_SMALL                                         :Small airports
 STR_AIRPORT_CLASS_LARGE                                         :Large airports
 STR_AIRPORT_CLASS_HUB                                           :Hub airports
 STR_AIRPORT_CLASS_HELIPORTS                                     :Helicopter airports
+STR_AIRPORT_CLASS_CUSTOMIZED                                    :Customized airports
 
 ###length 4
 STR_AIRPORT_ROTATION_0                                          :Default orientation
