@@ -1373,7 +1373,7 @@ CommandCost CmdOpenCloseAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
-		st->airport.flags ^= AIRPORT_CLOSED_block;
+		st->airport.flags ^= AF_CLOSED_MANUAL;
 		SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_CLOSE_AIRPORT);
 	}
 	return CommandCost();

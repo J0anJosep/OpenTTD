@@ -547,6 +547,11 @@ static void Load_STNN()
 		if (!waypoint) {
 			Station *st = Station::From(bst);
 
+			/* Convert old flags to new flags. */
+			if (IsSavegameVersionBefore(SL_RESET_AIRCRAFT) && st->facilities & FACIL_AIRPORT) {
+				st->airport.flags = ((st->airport.flags & (1ULL << 63)) != 0) ? AF_CLOSED_MANUAL : 0;
+			}
+
 			/* Before savegame version 161, persistent storages were not stored in a pool. */
 			if (IsSavegameVersionBefore(161) && !IsSavegameVersionBefore(145) && st->facilities & FACIL_AIRPORT) {
 				/* Store the old persistent storage. The GRFID will be added later. */
