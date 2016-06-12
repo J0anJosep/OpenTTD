@@ -73,6 +73,7 @@ enum AirportClassID {
 	APC_LARGE,          ///< id for large airports class
 	APC_HUB,            ///< id for hub airports class
 	APC_HELIPORT,       ///< id for heliports
+	APC_CUSTOM,         ///< customized airport class
 	APC_MAX       = 16, ///< maximum number of airport classes
 };
 
@@ -123,7 +124,8 @@ struct AirportSpec {
 		return (byte)(this - specs);
 	}
 
-	static const AirportSpec dummy; ///< The dummy airport.
+	static const AirportSpec custom; ///< The customized airports specs.
+	static const AirportSpec dummy;  ///< The dummy airport.
 
 private:
 	static AirportSpec specs[NUM_AIRPORTS]; ///< Specs of the airports.
