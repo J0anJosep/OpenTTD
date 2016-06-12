@@ -679,6 +679,8 @@ static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildu
 
 const AirportSpec AirportSpec::dummy = {&_airportfta_dummy, {}, _default_airports_rotation, 0, nullptr, 0, 0, 0, 0, 0, CalendarTime::MIN_YEAR, CalendarTime::MIN_YEAR, STR_NULL, ATP_TTDP_LARGE, APC_BEGIN, 0, 0, false, GRFFileProps(AT_INVALID)};
 
+const AirportSpec AirportSpec::custom = {&_airportfta_dummy, nullptr, _default_airports_rotation, 0, nullptr, 0, 0, 0, 0, 0, MIN_YEAR, MIN_YEAR, STR_NULL, ATP_TTDP_LARGE, APC_BEGIN, 0, 0, false, GRFFileProps(AT_INVALID)};
+
 /**
  * Rotate the airport moving data to another rotation.
  * @param orig Pointer to the moving data to rotate.

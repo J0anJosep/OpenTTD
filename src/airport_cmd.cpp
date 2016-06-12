@@ -461,6 +461,7 @@ CommandCost CmdAddRemoveTracksToAirport(DoCommandFlag flags, TileIndex start_til
 		/* Do all station specific functions here. */
 		for (Station *st : affected_stations) {
 			assert(st != nullptr);
+			st->airport.type = AT_CUSTOM;
 			st->UpdateAirportDataStructure();
 			UpdateAircraftOnUpdatedAirport(st);
 		}
@@ -562,6 +563,7 @@ CommandCost AddRunway(DoCommandFlag flags, TileIndex start_tile, TileIndex end_t
 			SetReservationAsRunway(tile_iter, reserved_runway);
 		}
 
+		st->airport.type = AT_CUSTOM;
 		st->UpdateAirportDataStructure();
 		UpdateAircraftOnUpdatedAirport(st);
 	}
@@ -632,6 +634,7 @@ CommandCost RemoveRunway(DoCommandFlag flags, TileIndex start_tile, TileIndex en
 			MarkTileDirtyByTile(tile_iter);
 		}
 
+		st->airport.type = AT_CUSTOM;
 		st->UpdateAirportDataStructure();
 
 		noise_level = CalculateAirportNoiseLevel(st->airport);
@@ -921,6 +924,8 @@ CommandCost CmdChangeAirportTiles(DoCommandFlag flags, TileIndex start_tile, Til
 	if (st == nullptr) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
+		st->airport.type = AT_CUSTOM;
+
 		st->UpdateAirportDataStructure();
 		st->AfterStationTileSetChange(true, STATION_AIRPORT);
 
@@ -1135,6 +1140,7 @@ CommandCost RemoveAirportTiles(DoCommandFlag flags, TileIndex start_tile, TileIn
 				if (IsAirportTile(tile) && st->index == GetStationIndex(tile)) st->airport.Add(tile);
 			}
 
+			st->airport.type = AT_CUSTOM;
 			st->UpdateAirportDataStructure();
 			if (st->airport.tile == INVALID_TILE) {
 				st->facilities &= ~FACIL_AIRPORT;
@@ -1388,6 +1394,7 @@ CommandCost CmdAddRemoveAirportTiles(DoCommandFlag flags, TileIndex start_tile, 
 		assert(st != nullptr);
 		st->UpdateAirportDataStructure();
 		st->AfterStationTileSetChange(true, STATION_AIRPORT);
+		st->airport.type = AT_CUSTOM;
 
 		UpdateNoiseForTowns(pre_town, post_town, pre_noise, post_noise);
 		UpdateAircraftOnUpdatedAirport(st);
@@ -1481,11 +1488,15 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport
 	if (st != nullptr && (st->facilities & FACIL_AIRPORT)) total_runways += (uint)st->airport.runways.size();
 	if (total_runways > GetAirTypeInfo(air_type)->max_num_runways) return_cmd_error(STR_ERROR_AIRPORT_TOO_MUCH_RUNWAYS);
 
+	bool custom_airport = (st != nullptr && (st->facilities & FACIL_AIRPORT) != FACIL_NONE);
+
 	ret = BuildStationPart(&st, flags, reuse, airport_area,
 			as->has_heliport ? STATIONNAMING_HELIPORT : STATIONNAMING_AIRPORT);
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
+		assert(st != nullptr);
+
 		/* Always update the noise, so there will be no need to recalculate when option toggles. */
 		UpdateNoiseForTowns(pre_town, post_town, pre_noise, post_noise);
 
@@ -1508,6 +1519,8 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport
 		}
 
 		st->LoadAirportTilesFromSpec(airport_area, rotation, air_type);
+
+		if (custom_airport) st->airport.type = AT_CUSTOM;
 
 		/* Replace all hangars with hangars the human user can build. */
 		bool allow_standard_hangars = HasBit(_settings_game.depot.hangar_types, 0);
