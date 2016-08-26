@@ -26,12 +26,14 @@ endif
 # An OSX application bundle needs the data files, lang files and openttd executable in a different location.
 ifdef OSXAPP
 AI_DIR      = $(BUNDLE_DIR)/$(OSXAPP)/Contents/Resources/ai
+FONTS_DIR   = $(BUNDLE_DIR)/$(OSXAPP)/Contents/Resources/fonts
 GAME_DIR    = $(BUNDLE_DIR)/$(OSXAPP)/Contents/Resources/game
 BASESET_DIR = $(BUNDLE_DIR)/$(OSXAPP)/Contents/Resources/baseset
 LANG_DIR    = $(BUNDLE_DIR)/$(OSXAPP)/Contents/Resources/lang
 TTD_DIR     = $(BUNDLE_DIR)/$(OSXAPP)/Contents/MacOS
 else
 AI_DIR      = $(BUNDLE_DIR)/ai
+FONTS_DIR   = $(BUNDLE_DIR)/fonts
 GAME_DIR    = $(BUNDLE_DIR)/game
 BASESET_DIR = $(BUNDLE_DIR)/baseset
 LANG_DIR    = $(BUNDLE_DIR)/lang
@@ -47,6 +49,7 @@ bundle: all
 	$(Q)mkdir -p "$(BUNDLE_DIR)/scripts"
 	$(Q)mkdir -p "$(TTD_DIR)"
 	$(Q)mkdir -p "$(AI_DIR)"
+	$(Q)mkdir -p "$(FONTS_DIR)"
 	$(Q)mkdir -p "$(GAME_DIR)"
 	$(Q)mkdir -p "$(BASESET_DIR)"
 	$(Q)mkdir -p "$(LANG_DIR)"
@@ -62,10 +65,12 @@ ifeq ($(OS),UNIX)
 endif
 	$(Q)cp "$(BIN_DIR)/$(TTD)"                "$(TTD_DIR)/"
 	$(Q)cp "$(BIN_DIR)/ai/"compat_*.nut       "$(AI_DIR)/"
+	$(Q)cp "$(BIN_DIR)/fonts/"*.ttf           "$(FONTS_DIR)/"
 	$(Q)cp "$(BIN_DIR)/game/"compat_*.nut     "$(GAME_DIR)/"
 	$(Q)cp "$(BIN_DIR)/baseset/"*.grf         "$(BASESET_DIR)/"
 	$(Q)cp "$(BIN_DIR)/baseset/"*.obg         "$(BASESET_DIR)/"
 	$(Q)cp "$(BIN_DIR)/baseset/"*.obs         "$(BASESET_DIR)/"
+	$(Q)cp "$(BIN_DIR)/baseset/"*.tar         "$(BASESET_DIR)/"
 	$(Q)cp "$(BIN_DIR)/baseset/opntitle.dat"  "$(BASESET_DIR)/"
 	$(Q)cp "$(BIN_DIR)/baseset/"*.obm         "$(BASESET_DIR)/"
 	$(Q)cp "$(BIN_DIR)/lang/"*.lng            "$(LANG_DIR)/"
@@ -172,6 +177,7 @@ install: bundle
 	$(Q)install -d "$(INSTALL_BINARY_DIR)"
 	$(Q)install -d "$(INSTALL_ICON_DIR)"
 	$(Q)install -d "$(INSTALL_DATA_DIR)/ai"
+	$(Q)install -d "$(INSTALL_DATA_DIR)/fonts"
 	$(Q)install -d "$(INSTALL_DATA_DIR)/game"
 	$(Q)install -d "$(INSTALL_DATA_DIR)/baseset"
 	$(Q)install -d "$(INSTALL_DATA_DIR)/lang"
@@ -183,6 +189,7 @@ else
 endif
 	$(Q)install -m 644 "$(BUNDLE_DIR)/lang/"* "$(INSTALL_DATA_DIR)/lang"
 	$(Q)install -m 644 "$(BUNDLE_DIR)/ai/"* "$(INSTALL_DATA_DIR)/ai"
+	$(Q)install -m 644 "$(BUNDLE_DIR)/fonts/"* "$(INSTALL_DATA_DIR)/fonts"
 	$(Q)install -m 644 "$(BUNDLE_DIR)/game/"* "$(INSTALL_DATA_DIR)/game"
 	$(Q)install -m 644 "$(BUNDLE_DIR)/baseset/"* "$(INSTALL_DATA_DIR)/baseset"
 	$(Q)install -m 644 "$(BUNDLE_DIR)/scripts/"* "$(INSTALL_DATA_DIR)/scripts"
