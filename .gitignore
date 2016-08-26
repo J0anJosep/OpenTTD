@@ -5,6 +5,7 @@ bin/ai/*
 !bin/ai/regression
 !bin/data
 bin/baseset/*
+!bin/baseset/jj-gfx.tar
 !bin/baseset/openttd.grf
 !bin/baseset/opntitle.dat
 !bin/baseset/orig_extra.grf
@@ -17,6 +18,7 @@ bin/baseset/*
 bin/scripts/*
 !bin/scripts/*.example
 !bin/scripts/readme.txt
+!bin/fonts
 
 bundle/*
 bundles/*
