@@ -1355,6 +1355,7 @@ public:
 		WID_SL_NEWGRF_INFO                           = ::WID_SL_NEWGRF_INFO,                           ///< Button to open NewGgrf configuration.
 		WID_SL_LOAD_BUTTON                           = ::WID_SL_LOAD_BUTTON,                           ///< Button to load game/scenario.
 		WID_SL_MISSING_NEWGRFS                       = ::WID_SL_MISSING_NEWGRFS,                       ///< Button to find missing NewGRFs online.
+		WID_SL_SELECT_FONT                           = ::WID_SL_SELECT_FONT,                           ///< Button to select a font.
 	};
 
 	/* automatically generated from ../../widgets/genworld_widget.h */
@@ -2233,6 +2234,7 @@ public:
 	/* automatically generated from ../../widgets/settings_widget.h */
 	/** Widgets of the #GameOptionsWindow class. */
 	enum GameOptionsWidgets {
+		WID_GO_FONTS                                 = ::WID_GO_FONTS,                                 ///< Number of fonts to show in the window.
 		WID_GO_BACKGROUND                            = ::WID_GO_BACKGROUND,                            ///< Background of the window.
 
 		WID_GO_TAB_BEGIN                             = ::WID_GO_TAB_BEGIN,                             ///< Tabs.
@@ -2247,6 +2249,8 @@ public:
 		WID_GO_SEL_GENERAL                           = ::WID_GO_SEL_GENERAL,
 		WID_GO_SEL_GRAPHICS                          = ::WID_GO_SEL_GRAPHICS,
 		WID_GO_SEL_SOUND                             = ::WID_GO_SEL_SOUND,
+		WID_GO_SEL_MUSIC                             = ::WID_GO_SEL_MUSIC,
+		WID_GO_SEL_FONTS                             = ::WID_GO_SEL_FONTS,
 		WID_GO_SEL_PANEL_END                         = ::WID_GO_SEL_PANEL_END,
 
 		WID_GO_CURRENCY_DROPDOWN                     = ::WID_GO_CURRENCY_DROPDOWN,                     ///< Currency dropdown.
@@ -2273,6 +2277,46 @@ public:
 		WID_GO_BASE_AUTOSIZING                       = ::WID_GO_BASE_AUTOSIZING,                       ///< Automatically set sizing of fonts and some window parts.
 		WID_GO_BASE_MIN_BUTTON_BUTTON                = ::WID_GO_BASE_MIN_BUTTON_BUTTON,                ///< Min size of buttons.
 		WID_GO_BASE_MIN_STEP_BUTTON                  = ::WID_GO_BASE_MIN_STEP_BUTTON,                  ///< Min size of small steps on lists.
+
+		WID_GO_BASE_FONTS_CUSTOM_MEDIUM              = ::WID_GO_BASE_FONTS_CUSTOM_MEDIUM,              ///< Button for allowing custom TrueType fonts for medium font.
+		WID_GO_BASE_FONTS_CUSTOM_SMALL               = ::WID_GO_BASE_FONTS_CUSTOM_SMALL,               ///< Button for allowing custom TrueType fonts for small font.
+		WID_GO_BASE_FONTS_CUSTOM_LARGE               = ::WID_GO_BASE_FONTS_CUSTOM_LARGE,               ///< Button for allowing custom TrueType fonts for large font.
+		WID_GO_BASE_FONTS_CUSTOM_MONO                = ::WID_GO_BASE_FONTS_CUSTOM_MONO,                ///< Button for allowing custom TrueType fonts for monospaced font.
+		WID_GO_BASE_FONTS_CUSTOM_SYMBOL_BIG          = ::WID_GO_BASE_FONTS_CUSTOM_SYMBOL_BIG,          ///< Button for allowing custom TrueType fonts for big symbols in OpenTTD.
+		WID_GO_BASE_FONTS_CUSTOM_SYMBOL              = ::WID_GO_BASE_FONTS_CUSTOM_SYMBOL,              ///< Button for allowing custom TrueType fonts for symbols in OpenTTD.
+		WID_GO_BASE_FONTS_CUSTOM_SYMBOL_SMALL        = ::WID_GO_BASE_FONTS_CUSTOM_SYMBOL_SMALL,        ///< Button for allowing custom TrueType fonts for symbols in OpenTTD.
+		WID_GO_BASE_FONTS_CUSTOM_BEGIN               = ::WID_GO_BASE_FONTS_CUSTOM_BEGIN,
+		WID_GO_BASE_FONTS_CUSTOM_END                 = ::WID_GO_BASE_FONTS_CUSTOM_END,
+
+		WID_GO_BASE_FONTS_FONT_MEDIUM                = ::WID_GO_BASE_FONTS_FONT_MEDIUM,                ///< Button for selecting a TrueType font for medium font.
+		WID_GO_BASE_FONTS_FONT_SMALL                 = ::WID_GO_BASE_FONTS_FONT_SMALL,                 ///< Button for selecting a TrueType font for small font.
+		WID_GO_BASE_FONTS_FONT_LARGE                 = ::WID_GO_BASE_FONTS_FONT_LARGE,                 ///< Button for selecting a TrueType font for large font.
+		WID_GO_BASE_FONTS_FONT_MONO                  = ::WID_GO_BASE_FONTS_FONT_MONO,                  ///< Button for selecting a TrueType font for monospaced font.
+		WID_GO_BASE_FONTS_FONT_SYMBOL_BIG            = ::WID_GO_BASE_FONTS_FONT_SYMBOL_BIG,            ///< Button for selecting a TrueType font for big symbols in OpenTTD.
+		WID_GO_BASE_FONTS_FONT_SYMBOL                = ::WID_GO_BASE_FONTS_FONT_SYMBOL,                ///< Button for selecting a TrueType font for symbols in OpenTTD.
+		WID_GO_BASE_FONTS_FONT_SYMBOL_SMALL          = ::WID_GO_BASE_FONTS_FONT_SYMBOL_SMALL,          ///< Button for selecting a TrueType font for small symbols in OpenTTD.
+		WID_GO_BASE_FONTS_FONT_BEGIN                 = ::WID_GO_BASE_FONTS_FONT_BEGIN,
+		WID_GO_BASE_FONTS_FONT_END                   = ::WID_GO_BASE_FONTS_FONT_END,
+
+		WID_GO_BASE_FONTS_SIZE_MEDIUM                = ::WID_GO_BASE_FONTS_SIZE_MEDIUM,                ///< Button for selecting the size for medium font.
+		WID_GO_BASE_FONTS_SIZE_SMALL                 = ::WID_GO_BASE_FONTS_SIZE_SMALL,                 ///< Button for selecting the size for small font.
+		WID_GO_BASE_FONTS_SIZE_LARGE                 = ::WID_GO_BASE_FONTS_SIZE_LARGE,                 ///< Button for selecting the size for large font.
+		WID_GO_BASE_FONTS_SIZE_MONO                  = ::WID_GO_BASE_FONTS_SIZE_MONO,                  ///< Button for selecting the size for monospaced font.
+		WID_GO_BASE_FONTS_SIZE_SYMBOL_BIG            = ::WID_GO_BASE_FONTS_SIZE_SYMBOL_BIG,            ///< Button for selecting the size for big symbols in OpenTTD.
+		WID_GO_BASE_FONTS_SIZE_SYMBOL                = ::WID_GO_BASE_FONTS_SIZE_SYMBOL,                ///< Button for selecting the size for symbols in OpenTTD.
+		WID_GO_BASE_FONTS_SIZE_SYMBOL_SMALL          = ::WID_GO_BASE_FONTS_SIZE_SYMBOL_SMALL,          ///< Button for selecting the size for small symbols in OpenTTD.
+		WID_GO_BASE_FONTS_SIZE_BEGIN                 = ::WID_GO_BASE_FONTS_SIZE_BEGIN,
+		WID_GO_BASE_FONTS_SIZE_END                   = ::WID_GO_BASE_FONTS_SIZE_END,
+
+		WID_GO_BASE_FONTS_AA_MEDIUM                  = ::WID_GO_BASE_FONTS_AA_MEDIUM,                  ///< Button for enable/disable antialiasing for medium font.
+		WID_GO_BASE_FONTS_AA_SMALL                   = ::WID_GO_BASE_FONTS_AA_SMALL,                   ///< Button for enable/disable antialiasing for small font.
+		WID_GO_BASE_FONTS_AA_LARGE                   = ::WID_GO_BASE_FONTS_AA_LARGE,                   ///< Button for enable/disable antialiasing for large font.
+		WID_GO_BASE_FONTS_AA_MONO                    = ::WID_GO_BASE_FONTS_AA_MONO,                    ///< Button for enable/disable antialiasing for monospaced font.
+		WID_GO_BASE_FONTS_AA_SYMBOL_BIG              = ::WID_GO_BASE_FONTS_AA_SYMBOL_BIG,              ///< Button for enable/disable antialiasing for big symbols in OpenTTD.
+		WID_GO_BASE_FONTS_AA_SYMBOL                  = ::WID_GO_BASE_FONTS_AA_SYMBOL,                  ///< Button for enable/disable antialiasing for symbols in OpenTTD.
+		WID_GO_BASE_FONTS_AA_SYMBOL_SMALL            = ::WID_GO_BASE_FONTS_AA_SYMBOL_SMALL,            ///< Button for enable/disable antialiasing for small symbols in OpenTTD.
+		WID_GO_BASE_FONTS_AA_BEGIN                   = ::WID_GO_BASE_FONTS_AA_BEGIN,
+		WID_GO_BASE_FONTS_AA_END                     = ::WID_GO_BASE_FONTS_AA_END,
 	};
 
 	/** Widgets of the #GameSettingsWindow class. */
