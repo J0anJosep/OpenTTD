@@ -36,6 +36,8 @@
 #include "textfile_gui.h"
 #include "stringfilter_type.h"
 #include "querystring_gui.h"
+#include "fontcache.h"
+#include "fios.h"
 
 #include <vector>
 
@@ -215,6 +217,19 @@ struct GameOptionsWindow : Window {
 			WID_GO_BASE_MIN_BUTTON_BUTTON,
 			WID_GO_BASE_MIN_STEP_BUTTON,
 			WIDGET_LIST_END);
+
+		for (uint i = FS_BEGIN; i < FS_END; i++) {
+			bool is_empty = StrEmpty(_freetype.fonts[i].font);
+			this->SetWidgetsDisabledState(is_empty,
+					WID_GO_BASE_FONTS_FONT_BEGIN + i,
+					WID_GO_BASE_FONTS_AA_BEGIN + i,
+					WIDGET_LIST_END);
+			this->SetWidgetDisabledState(WID_GO_BASE_FONTS_SIZE_BEGIN + i,
+					is_empty || _settings_client.gui.manage_min_sizing);
+
+			this->SetWidgetLoweredState(WID_GO_BASE_FONTS_CUSTOM_BEGIN + i, !is_empty);
+			this->SetWidgetLoweredState(WID_GO_BASE_FONTS_AA_BEGIN + i, _freetype.fonts[i].aa);
+		}
 	}
 
 	/**
@@ -354,6 +369,15 @@ struct GameOptionsWindow : Window {
 
 	virtual void SetStringParameters(int widget) const
 	{
+		if (IsInsideMM(widget, WID_GO_BASE_FONTS_FONT_BEGIN, WID_GO_BASE_FONTS_FONT_END)) {
+			SetDParamStr(0, _freetype.fonts[widget - WID_GO_BASE_FONTS_FONT_BEGIN].font);
+			return;
+		}
+		if (IsInsideMM(widget, WID_GO_BASE_FONTS_SIZE_BEGIN, WID_GO_BASE_FONTS_SIZE_END)) {
+			SetDParam(0, _freetype.fonts[widget - WID_GO_BASE_FONTS_SIZE_BEGIN].size);
+			return;
+		}
+
 		switch (widget) {
 			case WID_GO_CURRENCY_DROPDOWN:   SetDParam(0, _currency_specs[this->opt->locale.currency].name); break;
 			case WID_GO_ROADSIDE_DROPDOWN:   SetDParam(0, STR_GAME_OPTIONS_ROAD_VEHICLES_DROPDOWN_LEFT + this->opt->vehicle.road_side); break;
@@ -465,6 +489,32 @@ struct GameOptionsWindow : Window {
 			this->SetupPanels(widget, true);
 			return;
 		}
+		if (IsInsideMM(widget, WID_GO_BASE_FONTS_CUSTOM_BEGIN, WID_GO_BASE_FONTS_CUSTOM_END)) {
+			bool is_empty = StrEmpty(_freetype.fonts[widget - WID_GO_BASE_FONTS_CUSTOM_BEGIN].font);
+			if (!is_empty) {
+				memset(_freetype.fonts[widget - WID_GO_BASE_FONTS_CUSTOM_BEGIN].font, 0, sizeof(_freetype.fonts[widget - WID_GO_BASE_FONTS_CUSTOM_BEGIN].font));
+				CheckWindowMinSizings(true);
+				return;
+			}
+			widget = widget - WID_GO_BASE_FONTS_CUSTOM_BEGIN + WID_GO_BASE_FONTS_FONT_BEGIN;
+		}
+		if (IsInsideMM(widget, WID_GO_BASE_FONTS_FONT_BEGIN, WID_GO_BASE_FONTS_FONT_END)) {
+			this->query_widget = widget;
+			ShowSaveLoadDialog(FT_FONT, SLO_LOAD, this);
+			return;
+		}
+		if (IsInsideMM(widget, WID_GO_BASE_FONTS_SIZE_BEGIN, WID_GO_BASE_FONTS_SIZE_END)) {
+			this->query_widget = widget;
+			SetDParam(0, _freetype.fonts[widget - WID_GO_BASE_FONTS_SIZE_BEGIN].size);
+			ShowQueryString(STR_JUST_INT, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP, 3, this, CS_NUMERAL, QSF_NONE);
+			return;
+		}
+		if (IsInsideMM(widget, WID_GO_BASE_FONTS_AA_BEGIN, WID_GO_BASE_FONTS_AA_END)) {
+			_freetype.fonts[widget - WID_GO_BASE_FONTS_AA_BEGIN].aa = !_freetype.fonts[widget - WID_GO_BASE_FONTS_AA_BEGIN].aa;
+			CheckWindowMinSizings(true);
+			return;
+		}
+
 		if (widget >= WID_GO_BASE_GRF_TEXTFILE && widget < WID_GO_BASE_GRF_TEXTFILE + TFT_END) {
 			if (BaseGraphics::GetUsedSet() == NULL) return;
 
@@ -487,7 +537,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_BASE_AUTOSIZING:
 				_settings_client.gui.manage_min_sizing = !_settings_client.gui.manage_min_sizing;
 				if (_settings_client.gui.manage_min_sizing) {
-					return CheckWindowMinSizings();
+					return CheckWindowMinSizings(true);
 				} else {
 					this->EnableDisableWidgets();
 					this->SetDirty();
@@ -506,7 +556,7 @@ struct GameOptionsWindow : Window {
 				if (!ToggleFullScreen(!_fullscreen)) {
 					ShowErrorMessage(STR_ERROR_FULLSCREEN_FAILED, INVALID_STRING_ID, WL_ERROR);
 				}
-				return CheckWindowMinSizings();
+				return CheckWindowMinSizings(true);
 
 			default: {
 				int selected;
@@ -616,7 +666,7 @@ struct GameOptionsWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (data == 444) return CheckWindowMinSizings();
+		if (data == 444) return CheckWindowMinSizings(true);
 
 		this->SetWidgetLoweredState(WID_GO_FULLSCREEN_BUTTON, _fullscreen);
 
@@ -637,6 +687,19 @@ struct GameOptionsWindow : Window {
 	{
 		/* Cancel. */
 		if (str == NULL) return;
+
+		if (IsInsideMM(this->query_widget, WID_GO_BASE_FONTS_SIZE_BEGIN, WID_GO_BASE_FONTS_SIZE_END)) {
+			_freetype.fonts[this->query_widget - WID_GO_BASE_FONTS_SIZE_BEGIN].size = atoi(str);
+
+			this->InvalidateData(444, false);
+			return;
+		}
+		if (IsInsideMM(this->query_widget, WID_GO_BASE_FONTS_FONT_BEGIN, WID_GO_BASE_FONTS_FONT_END)) {
+			strecpy(_freetype.fonts[this->query_widget - WID_GO_BASE_FONTS_FONT_BEGIN].font, str, lastof(_freetype.fonts[this->query_widget - WID_GO_BASE_FONTS_FONT_BEGIN].font));
+
+			this->InvalidateData(444, false);
+			return;
+		}
 
 		uint value;
 		if (StrEmpty(str)) {
@@ -669,6 +732,7 @@ static const NWidgetPart _nested_game_options_widgets[] = {
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_TAB_GRAPHICS), SetMinimalSize(106, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_TAB_GRAPHICS, STR_GAME_OPTIONS_TAB_GRAPHICS_TOOLTIP),
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_TAB_SOUND), SetMinimalSize(106, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_TAB_SOUND, STR_GAME_OPTIONS_TAB_SOUND_TOOLTIP),
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_TAB_MUSIC), SetMinimalSize(106, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_TAB_MUSIC, STR_GAME_OPTIONS_TAB_MUSIC_TOOLTIP),
+		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_TAB_FONTS), SetMinimalSize(106, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_GAME_OPTIONS_TAB_FONTS_TOOLTIP),
 	EndContainer(),
 
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_GO_BACKGROUND), SetPIP(10, 0, 10),
@@ -751,8 +815,68 @@ static const NWidgetPart _nested_game_options_widgets[] = {
 			EndContainer(),
 		EndContainer(),
 
+		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_GO_SEL_FONTS),
+			NWidget(NWID_VERTICAL), SetPIP(0, 6, 0),
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_MEDIUM, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_MEDIUM), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_MEDIUM), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_MEDIUM), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_MEDIUM), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
 					EndContainer(),
+				EndContainer(),
 
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_SMALL, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
+					EndContainer(),
+				EndContainer(),
+
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_LARGE, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_LARGE), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_LARGE), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_LARGE), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_LARGE), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
+					EndContainer(),
+				EndContainer(),
+
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_MONO, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_MONO), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_MONO), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_MONO), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_MONO), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
+					EndContainer(),
+				EndContainer(),
+
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_SYMBOL_BIG, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_SYMBOL_BIG), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_SYMBOL_BIG), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_SYMBOL_BIG), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_SYMBOL_BIG), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
+					EndContainer(),
+				EndContainer(),
+
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_SYMBOL, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_SYMBOL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_SYMBOL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_SYMBOL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_SYMBOL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
+					EndContainer(),
+				EndContainer(),
+
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONTS_SYMBOL_SMALL, STR_NULL), SetPadding(0, 10, 0, 10),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_CUSTOM_SYMBOL_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_CUSTOM, STR_GAME_OPTIONS_FONTS_CUSTOM_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_FONT_SYMBOL_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_RAW_STRING, STR_GAME_OPTIONS_FONTS_SELECT_FONT_TOOLTIP), SetFill(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_SIZE_SYMBOL_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_BLACK_COMMA, STR_GAME_OPTIONS_FONTS_SELECT_SIZE_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_BASE_FONTS_AA_SYMBOL_SMALL), SetSizingType(NWST_STEP), SetMinimalSize(21, 9), SetDataTip(STR_GAME_OPTIONS_FONTS_AA, STR_GAME_OPTIONS_FONTS_AA_TOOLTIP),
 					EndContainer(),
 				EndContainer(),
 			EndContainer(),

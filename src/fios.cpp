@@ -94,6 +94,10 @@ void FileList::BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperati
 			FiosGetHeightmapList(fop, *this);
 			break;
 
+		case FT_FONT:
+			FiosGetFontList(fop, *this);
+			break;
+
 		default:
 			NOT_REACHED();
 	}
@@ -195,6 +199,8 @@ const char *FiosBrowseTo(const FiosItem *item)
 		case FIOS_TYPE_OLD_SCENARIO:
 		case FIOS_TYPE_PNG:
 		case FIOS_TYPE_BMP:
+		case FIOS_TYPE_TTF:
+		case FIOS_TYPE_OTF:
 			return item->name;
 	}
 
@@ -634,6 +640,51 @@ void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list)
 
 	Subdirectory subdir = strcmp(base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
 	FiosGetFileList(fop, &FiosGetHeightmapListCallback, subdir, file_list);
+}
+
+static FiosType FiosGetFontListCallback(SaveLoadOperation fop, const char *file, const char *ext, char *title, const char *last)
+{
+	/* Show font files.
+	 * *.ttf files.
+	 */
+
+	/* Don't crash if we supply no extension */
+	if (ext == NULL) return FIOS_TYPE_INVALID;
+
+	FiosType type = FIOS_TYPE_INVALID;
+
+	if (strcasecmp(ext, ".ttf") == 0) type = FIOS_TYPE_TTF;
+	if (strcasecmp(ext, ".otf") == 0) type = FIOS_TYPE_OTF;
+
+	if (type == FIOS_TYPE_INVALID) return FIOS_TYPE_INVALID;
+
+	GetFileTitle(file, title, last, FONTS_DIR);
+	return type;
+}
+
+/**
+ * Get a list of fonts.
+ */
+void FiosGetFontList(SaveLoadOperation fop, FileList &file_list)
+{
+	assert(fop == SLO_LOAD);
+
+	static char *fios_hmap_path = NULL;
+	static char *fios_hmap_path_last = NULL;
+
+	if (fios_hmap_path == NULL) {
+		fios_hmap_path = MallocT<char>(MAX_PATH);
+		fios_hmap_path_last = fios_hmap_path + MAX_PATH - 1;
+		FioGetDirectory(fios_hmap_path, fios_hmap_path_last, FONTS_DIR);
+	}
+
+	_fios_path = fios_hmap_path;
+	_fios_path_last = fios_hmap_path_last;
+
+	char base_path[MAX_PATH];
+	FioGetDirectory(base_path, lastof(base_path), FONTS_DIR);
+
+	FiosGetFileList(fop, &FiosGetFontListCallback, strcmp(base_path, _fios_path) == 0 ? FONTS_DIR : NO_DIRECTORY, file_list);
 }
 
 /**
