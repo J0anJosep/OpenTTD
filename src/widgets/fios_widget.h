@@ -31,6 +31,7 @@ enum SaveLoadWidgets {
 	WID_SL_NEWGRF_INFO,             ///< Button to open NewGgrf configuration.
 	WID_SL_LOAD_BUTTON,             ///< Button to load game/scenario.
 	WID_SL_MISSING_NEWGRFS,         ///< Button to find missing NewGRFs online.
+	WID_SL_SELECT_FONT,             ///< Button to select a font.
 };
 
 #endif /* WIDGETS_FIOS_WIDGET_H */
