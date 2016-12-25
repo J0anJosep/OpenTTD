@@ -94,6 +94,7 @@ enum FileSlots {
 	MAX_FILE_SLOTS = 128,
 };
 
+
 /** Deals with finding savegames */
 struct FiosItem {
 	FiosType type;
@@ -204,11 +205,14 @@ DECLARE_ENUM_AS_BIT_SET(SortingBits)
 /* Variables to display file lists */
 extern SortingBits _savegame_sort_order;
 
-void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop);
+struct Window;
+
+void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop, Window *w = NULL);
 
 void FiosGetSavegameList(SaveLoadOperation fop, FileList &file_list);
 void FiosGetScenarioList(SaveLoadOperation fop, FileList &file_list);
 void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list);
+void FiosGetFontList(SaveLoadOperation fop, FileList &file_list);
 
 const char *FiosBrowseTo(const FiosItem *item);
 
