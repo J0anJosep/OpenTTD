@@ -84,8 +84,8 @@ static const NWidgetPart _nested_load_dialog_widgets[] = {
 		/* Left side : filter box and available files */
 		NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetResize(1, 1),
 			/* Filter box with label */
-			NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP, 0, WD_FRAMERECT_BOTTOM, 0),
-				SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 0),
+			NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP + 1, 0, WD_FRAMERECT_BOTTOM, 0),
+				SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 2),
 					NWidget(WWT_TEXT, COLOUR_GREY), SetFill(0, 1), SetDataTip(STR_SAVELOAD_FILTER_TITLE , STR_NULL),
 					NWidget(WWT_EDITBOX, COLOUR_GREY, WID_SL_FILTER), SetFill(1, 0), SetMinimalSize(50, 12), SetResize(1, 0),
 						SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
@@ -139,8 +139,8 @@ static const NWidgetPart _nested_load_heightmap_dialog_widgets[] = {
 
 	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetResize(1, 1),
 		/* Filter box with label */
-		NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP, 0, WD_FRAMERECT_BOTTOM, 0),
-			SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 0),
+		NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP + 1, 0, WD_FRAMERECT_BOTTOM, 0),
+			SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 2),
 				NWidget(WWT_TEXT, COLOUR_GREY), SetFill(0, 1), SetDataTip(STR_SAVELOAD_FILTER_TITLE , STR_NULL),
 				NWidget(WWT_EDITBOX, COLOUR_GREY, WID_SL_FILTER), SetFill(1, 0), SetMinimalSize(50, 12), SetResize(1, 0),
 					SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
@@ -184,8 +184,8 @@ static const NWidgetPart _nested_save_dialog_widgets[] = {
 		/* Left side : filter box and available files */
 		NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetResize(1, 1),
 			/* Filter box with label */
-			NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP, 0, WD_FRAMERECT_BOTTOM, 0),
-				SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 0),
+			NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP + 1, 0, WD_FRAMERECT_BOTTOM, 0),
+				SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 2),
 				NWidget(WWT_TEXT, COLOUR_GREY), SetFill(0, 1), SetDataTip(STR_SAVELOAD_FILTER_TITLE , STR_NULL),
 				NWidget(WWT_EDITBOX, COLOUR_GREY, WID_SL_FILTER), SetFill(1, 0), SetMinimalSize(50, 12), SetResize(1, 0),
 					SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
@@ -226,12 +226,56 @@ static const NWidgetPart _nested_save_dialog_widgets[] = {
 	EndContainer(),
 };
 
+/** Select font. */
+static const NWidgetPart _nested_select_font_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
+		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SL_CAPTION),
+		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_BACKGROUND), SetFill(1, 0), SetResize(1, 0), EndContainer(),
+	NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+		/* Left side : filter box and available files */
+		NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetResize(1, 1),
+			/* Filter box with label */
+			NWidget(NWID_HORIZONTAL), SetPadding(WD_FRAMERECT_TOP + 1, 0, WD_FRAMERECT_BOTTOM, 0),
+				SetPIP(WD_FRAMETEXT_LEFT, WD_FRAMETEXT_RIGHT, 2),
+				NWidget(WWT_TEXT, COLOUR_GREY), SetFill(0, 1), SetDataTip(STR_SAVELOAD_FILTER_TITLE , STR_NULL),
+				NWidget(WWT_EDITBOX, COLOUR_GREY, WID_SL_FILTER), SetFill(1, 0), SetMinimalSize(50, 12), SetResize(1, 0),
+					SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_VERTICAL),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYNAME), SetDataTip(STR_SORT_BY_CAPTION_NAME, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYDATE), SetDataTip(STR_SORT_BY_CAPTION_DATE, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
+					EndContainer(),
+					NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(SPR_HOUSE_ICON, STR_SAVELOAD_HOME_BUTTON),
+				EndContainer(),
+				NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_FILE_BACKGROUND),
+					NWidget(NWID_HORIZONTAL),
+						NWidget(WWT_INSET, COLOUR_GREY, WID_SL_DRIVES_DIRECTORIES_LIST), SetPadding(2, 1, 2, 2),
+								SetDataTip(0x0, STR_SAVELOAD_LIST_TOOLTIP), SetResize(1, 10), SetScrollbar(WID_SL_SCROLLBAR), EndContainer(),
+						NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_SL_SCROLLBAR),
+					EndContainer(),
+				EndContainer(),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SELECT_FONT), SetDataTip(STR_SAVELOAD_SELECT_FONT_BUTTON, STR_SAVELOAD_SELECT_FONT_TOOLTIP), SetFill(1, 0), SetResize(1, 0),
+					NWidget(WWT_RESIZEBOX, COLOUR_GREY),
+				EndContainer(),
+			EndContainer(),
+		EndContainer(),
+	EndContainer(),
+};
+
 /** Text colours of #DetailedFileType fios entries in the window. */
 static const TextColour _fios_colours[] = {
 	TC_LIGHT_BROWN,  // DFT_OLD_GAME_FILE
 	TC_ORANGE,       // DFT_GAME_FILE
 	TC_YELLOW,       // DFT_HEIGHTMAP_BMP
 	TC_ORANGE,       // DFT_HEIGHTMAP_PNG
+	TC_GREEN,        // DFT_FONT_TTF
+	TC_GREEN,        // DFT_FONT_OTF
 	TC_LIGHT_BLUE,   // DFT_FIOS_DRIVE
 	TC_DARK_GREEN,   // DFT_FIOS_PARENT
 	TC_DARK_GREEN,   // DFT_FIOS_DIR
@@ -316,6 +360,7 @@ public:
 
 				case FT_SCENARIO:
 				case FT_HEIGHTMAP:
+				case FT_FONT:
 					this->filename_editbox.text.Assign("UNNAMED");
 					break;
 
@@ -346,6 +391,10 @@ public:
 				caption_string = (this->fop == SLO_SAVE) ? STR_SAVELOAD_SAVE_HEIGHTMAP : STR_SAVELOAD_LOAD_HEIGHTMAP;
 				break;
 
+			case FT_FONT:
+				caption_string = STR_SAVELOAD_SELECT_FONT;
+				break;
+
 			default:
 				NOT_REACHED();
 		}
@@ -360,7 +409,8 @@ public:
 
 		/* pause is only used in single-player, non-editor mode, non-menu mode. It
 		 * will be unpaused in the WE_DESTROY event handler. */
-		if (_game_mode != GM_MENU && !_networking && _game_mode != GM_EDITOR) {
+		if (_game_mode != GM_MENU && !_networking && _game_mode != GM_EDITOR &&
+				this->abstract_filetype != FT_FONT) {
 			DoCommandP(0, PM_PAUSED_SAVELOAD, 1, CMD_PAUSE);
 		}
 		SetObjectToPlace(SPR_CURSOR_ZZZ, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
@@ -586,6 +636,13 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
+			case WID_SL_SELECT_FONT:
+				assert(this->parent != NULL);
+				if (this->selected != NULL) {
+					char *name = const_cast<char*>(FiosBrowseTo(this->selected));
+					this->parent->OnQueryTextFinished(name);
+				}
+				return;
 			case WID_SL_SORT_BYNAME: // Sort save names by name
 				_savegame_sort_order = (_savegame_sort_order == SORT_BY_NAME) ?
 					SORT_BY_NAME | SORT_DESCENDING : SORT_BY_NAME;
@@ -671,6 +728,9 @@ public:
 							this->filename_editbox.text.Assign(file->title);
 							this->SetWidgetDirty(WID_SL_SAVE_OSK_TITLE);
 						}
+					} else if (this->parent != NULL) {
+						this->selected = file;
+						this->OnClick(pt, WID_SL_SELECT_FONT, 1);
 					} else if (!_load_check_data.HasErrors()) {
 						this->selected = file;
 						if (this->fop == SLO_LOAD) {
@@ -818,6 +878,9 @@ public:
 						break;
 					}
 
+					case FT_FONT:
+						break; // revise
+
 					default:
 						NOT_REACHED();
 				}
@@ -885,12 +948,20 @@ static WindowDesc _save_dialog_desc(
 	_nested_save_dialog_widgets, lengthof(_nested_save_dialog_widgets)
 );
 
+/** Select a font */
+static WindowDesc _select_font_dialog_desc(
+	WDP_CENTER, "select_font", 500, 294,
+	WC_SAVELOAD, WC_NONE,
+	0,
+	_nested_select_font_widgets, lengthof(_nested_select_font_widgets)
+);
+
 /**
  * Launch save/load dialog in the given mode.
  * @param abstract_filetype Kind of file to handle.
  * @param fop File operation to perform (load or save).
  */
-void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop)
+void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop, Window *w)
 {
 	DeleteWindowById(WC_SAVELOAD, 0);
 
@@ -899,10 +970,18 @@ void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fo
 		sld = &_save_dialog_desc;
 	} else {
 		/* Dialogue for loading a file. */
-		sld = (abstract_filetype == FT_HEIGHTMAP) ? &_load_heightmap_dialog_desc : &_load_dialog_desc;
+		switch (abstract_filetype) {
+			case FT_HEIGHTMAP:
+				sld = &_load_heightmap_dialog_desc; break;
+			case FT_FONT:
+				sld = &_select_font_dialog_desc; break;
+			default:
+				sld = &_load_dialog_desc; break;
+		}
 	}
 
 	_file_to_saveload.abstract_ftype = abstract_filetype;
 
-	new SaveLoadWindow(sld, abstract_filetype, fop);
+	Window *new_window = new SaveLoadWindow(sld, abstract_filetype, fop);
+	new_window->parent = w;
 }

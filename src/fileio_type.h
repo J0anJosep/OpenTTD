@@ -20,6 +20,7 @@ enum AbstractFileType {
 	FT_SAVEGAME,  ///< old or new savegame
 	FT_SCENARIO,  ///< old or new scenario
 	FT_HEIGHTMAP, ///< heightmap file
+	FT_FONT,      ///< font
 
 	FT_INVALID = 7, ///< Invalid or unknown file type.
 	FT_NUMBITS = 3, ///< Number of bits required for storing a #AbstractFileType value.
@@ -35,6 +36,10 @@ enum DetailedFileType {
 	/* Heightmap files. */
 	DFT_HEIGHTMAP_BMP, ///< BMP file.
 	DFT_HEIGHTMAP_PNG, ///< PNG file.
+
+	/* Font files. */
+	DFT_FONT_TTF,      ///< TrueType font file.
+	DFT_FONT_OTF,      ///< OpenType font file.
 
 	/* fios 'files' */
 	DFT_FIOS_DRIVE,  ///< A drive (letter) entry.
@@ -78,6 +83,8 @@ enum FiosType {
 	FIOS_TYPE_OLD_SCENARIO = MAKE_FIOS_TYPE(FT_SCENARIO, DFT_OLD_GAME_FILE),
 	FIOS_TYPE_PNG          = MAKE_FIOS_TYPE(FT_HEIGHTMAP, DFT_HEIGHTMAP_PNG),
 	FIOS_TYPE_BMP          = MAKE_FIOS_TYPE(FT_HEIGHTMAP, DFT_HEIGHTMAP_BMP),
+	FIOS_TYPE_TTF          = MAKE_FIOS_TYPE(FT_FONT, DFT_FONT_TTF),
+	FIOS_TYPE_OTF          = MAKE_FIOS_TYPE(FT_FONT, DFT_FONT_OTF),
 
 	FIOS_TYPE_INVALID = MAKE_FIOS_TYPE(FT_INVALID, DFT_INVALID),
 };
