@@ -59,6 +59,7 @@ struct TileDesc {
 	TimerGameCalendar::Date build_date; ///< Date of construction of tile contents
 	StringID station_class;     ///< Class of station
 	StringID station_name;      ///< Type of station within the class
+	StringID airtype;           ///< Type of airport on the tile.
 	StringID airport_class;     ///< Name of the airport class
 	StringID airport_name;      ///< Name of the airport
 	StringID airport_tile_name; ///< Name of the airport tile

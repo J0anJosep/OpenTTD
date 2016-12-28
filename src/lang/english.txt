@@ -3187,6 +3187,7 @@ STR_LAND_AREA_INFORMATION_LANDINFO_INDEX                        :{BLACK}Tile ind
 STR_LAND_AREA_INFORMATION_BUILD_DATE                            :{BLACK}Built/renovated: {LTBLUE}{DATE_LONG}
 STR_LAND_AREA_INFORMATION_STATION_CLASS                         :{BLACK}Station class: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_STATION_TYPE                          :{BLACK}Station type: {LTBLUE}{STRING}
+STR_LANG_AREA_INFORMATION_AIR_TYPE                              :{BLACK}Air type: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORT_CLASS                         :{BLACK}Airport class: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORT_NAME                          :{BLACK}Airport name: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORTTILE_NAME                      :{BLACK}Airport tile name: {LTBLUE}{STRING}
@@ -3250,13 +3251,28 @@ STR_LAI_TREE_NAME_RAINFOREST                                    :Rainforest
 STR_LAI_TREE_NAME_CACTUS_PLANTS                                 :Cactus plants
 
 STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION                    :Railway station
-STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Aircraft hangar
-STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Airport
 STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA                  :Lorry station
 STR_LAI_STATION_DESCRIPTION_BUS_STATION                         :Bus station
 STR_LAI_STATION_DESCRIPTION_SHIP_DOCK                           :Ship dock
 STR_LAI_STATION_DESCRIPTION_BUOY                                :Buoy
 STR_LAI_STATION_DESCRIPTION_WAYPOINT                            :Waypoint
+STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Airport
+STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITH_CATCHMENT   :Airport infrastructure with cargo catchment
+STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITHOUT_CATCHMENT:Airport infrastructure with no cargo catchment
+STR_LAI_STATION_DESCRIPTION_AIR_PLAIN                           :Airport tile for tracks
+STR_LAI_STATION_DESCRIPTION_AIR_WAITING_POINT                   :Airport waiting point
+###length 4
+STR_LAI_STATION_DESCRIPTION_AIR_TERMINAL                        :Terminal
+STR_LAI_STATION_DESCRIPTION_AIR_HELIPAD                         :Helipad
+STR_LAI_STATION_DESCRIPTION_AIR_HELIPORT                        :Heliport
+STR_LAI_STATION_DESCRIPTION_AIR_BUILTIN_HELIPORT                :Built-in heliport
+###next-name-looks-similar
+STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Standard aircraft hangar
+STR_LAI_STATION_DESCRIPTION_AIRCRAFT_EXTENDED_HANGAR            :Extended aircraft hangar
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_MIDDLE                   :Middle runway tile
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_END                      :Runway end
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_NO_LANDING         :Runway start only for takeoffs
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_LANDING            :Runway start for landing
 
 STR_LAI_WATER_DESCRIPTION_WATER                                 :Water
 STR_LAI_WATER_DESCRIPTION_CANAL                                 :Canal

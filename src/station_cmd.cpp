@@ -3358,7 +3358,6 @@ void FillTileDescAirport(TileIndex tile, TileDesc *td)
 	td->airport_name = as->name;
 
 	const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
-	td->airport_tile_name = ats->name;
 
 	if (as->grf_prop.grffile != nullptr) {
 		const GRFConfig *gc = GetGRFConfig(as->grf_prop.grffile->grfid);
@@ -3366,6 +3365,51 @@ void FillTileDescAirport(TileIndex tile, TileDesc *td)
 	} else if (ats->grf_prop.grffile != nullptr) {
 		const GRFConfig *gc = GetGRFConfig(ats->grf_prop.grffile->grfid);
 		td->grf = gc->GetName();
+	}
+
+	const AirTypeInfo *ati = GetAirTypeInfo(GetAirType(tile));
+	td->airtype = ati->strings.name;
+
+	AirportTileType att = GetAirportTileType(tile);
+	switch (att) {
+		case ATT_INFRASTRUCTURE_WITH_CATCH:
+			td->airport_tile_name =  STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITH_CATCHMENT;
+			break;
+		case ATT_INFRASTRUCTURE_NO_CATCH:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITHOUT_CATCHMENT;
+			break;
+		case ATT_SIMPLE_TRACK:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_PLAIN;
+			break;
+		case ATT_APRON_NORMAL:
+		case ATT_APRON_HELIPAD:
+		case ATT_APRON_HELIPORT:
+		case ATT_APRON_BUILTIN_HELIPORT:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_TERMINAL + att - ATT_APRON_NORMAL;
+			break;
+		case ATT_HANGAR_STANDARD:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR;
+			break;
+		case ATT_HANGAR_EXTENDED:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIRCRAFT_EXTENDED_HANGAR;
+			break;
+		case ATT_RUNWAY_MIDDLE:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_MIDDLE;
+			break;
+		case ATT_RUNWAY_END:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_END;
+			break;
+		case ATT_RUNWAY_START_ALLOW_LANDING:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_LANDING;
+			break;
+		case ATT_RUNWAY_START_NO_LANDING:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_NO_LANDING;
+			break;
+		case ATT_WAITING_POINT:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_WAITING_POINT;
+			break;
+
+		default: NOT_REACHED();
 	}
 }
 

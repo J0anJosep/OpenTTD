@@ -159,6 +159,7 @@ public:
 
 		td.station_class = STR_NULL;
 		td.station_name = STR_NULL;
+		td.airtype = STR_NULL;
 		td.airport_class = STR_NULL;
 		td.airport_name = STR_NULL;
 		td.airport_tile_name = STR_NULL;
@@ -244,6 +245,12 @@ public:
 		if (td.station_name != STR_NULL) {
 			SetDParam(0, td.station_name);
 			this->landinfo_data.push_back(GetString(STR_LAND_AREA_INFORMATION_STATION_TYPE));
+		}
+
+		/* Airport type */
+		if (td.airtype != STR_NULL) {
+			SetDParam(0, td.airtype);
+			this->landinfo_data.push_back(GetString(STR_LANG_AREA_INFORMATION_AIR_TYPE));
 		}
 
 		/* Airport class */
