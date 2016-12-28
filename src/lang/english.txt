@@ -2730,6 +2730,7 @@ STR_LAND_AREA_INFORMATION_LANDINFO_COORDS                       :{BLACK}Coordina
 STR_LAND_AREA_INFORMATION_BUILD_DATE                            :{BLACK}Built: {LTBLUE}{DATE_LONG}
 STR_LAND_AREA_INFORMATION_STATION_CLASS                         :{BLACK}Station class: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_STATION_TYPE                          :{BLACK}Station type: {LTBLUE}{STRING}
+STR_LANG_AREA_INFORMATION_AIR_TYPE                              :{BLACK}Air type: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORT_CLASS                         :{BLACK}Airport class: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORT_NAME                          :{BLACK}Airport name: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORTTILE_NAME                      :{BLACK}Airport tile name: {LTBLUE}{STRING}
@@ -2779,6 +2780,20 @@ STR_LAI_ROAD_DESCRIPTION_TREE_LINED_ROAD                        :Tree-lined road
 STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT                     :Road vehicle depot
 STR_LAI_ROAD_DESCRIPTION_ROAD_RAIL_LEVEL_CROSSING               :Road/rail level crossing
 STR_LAI_ROAD_DESCRIPTION_TRAMWAY                                :Tramway
+
+STR_LAI_AIRPORT_PLAIN_EMPTY                                     :Empty tile aircraft cannot cross
+STR_LAI_AIRPORT_PLAIN_TRACKS                                    :Tile with tracks for aircraft
+STR_LAI_AIRPORT_INFRASTRUCTURE_WITH_CATCHMENT                   :Airport infrastructure involved in cargo catchment
+STR_LAI_AIRPORT_INFRASTRUCTURE_WITHOUT_CATCHMENT                :Airport infrastrucutre not involved in cargo catchment
+STR_LAI_AIRPORT_RUNWAY_START_NO_LANDING                         :Runway start only for takeoffs
+STR_LAI_AIRPORT_RUNWAY_START_LANDING                            :Runway start allowing landing
+STR_LAI_AIRPORT_RUNWAY_MIDDLE                                   :Middle runway tile
+STR_LAI_AIRPORT_RUNWAY_END                                      :Runway end
+STR_LAI_AIRPORT_HANGAR                                          :Aircraft hangar
+STR_LAI_AIRPORT_TERMINAL                                        :Terminal
+STR_LAI_AIRPORT_HELIPAD                                         :Helipad
+STR_LAI_AIRPORT_HELIPORT                                        :Heliport
+STR_LAI_AIRPORT_BUILTIN_HELIPORT                                :Built-in heliport
 
 # Houses come directly from their building names
 STR_LAI_TOWN_INDUSTRY_DESCRIPTION_UNDER_CONSTRUCTION            :{STRING} (under construction)

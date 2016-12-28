@@ -2798,14 +2798,50 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 		td->airport_name = as->name;
 
 		const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
-		td->airport_tile_name = ats->name;
-
 		if (as->grf_prop.grffile != NULL) {
 			const GRFConfig *gc = GetGRFConfig(as->grf_prop.grffile->grfid);
 			td->grf = gc->GetName();
 		} else if (ats->grf_prop.grffile != NULL) {
 			const GRFConfig *gc = GetGRFConfig(ats->grf_prop.grffile->grfid);
 			td->grf = gc->GetName();
+		}
+
+		const AirTypeInfo *ati = GetAirTypeInfo(GetAirportType(tile));
+		td->airtype = ati->strings.name;
+
+		switch (GetAirportTileType(tile)) {
+			case ATT_INFRASTRUCTURE:
+				td->airport_tile_name = GetCatchmentAirportType(tile) ? STR_LAI_AIRPORT_INFRASTRUCTURE_WITH_CATCHMENT :
+						STR_LAI_AIRPORT_INFRASTRUCTURE_WITHOUT_CATCHMENT;
+				break;
+			case ATT_SIMPLE_TRACK:
+				td->airport_tile_name = HasAirportTileSomeTrack(tile) ? STR_LAI_AIRPORT_PLAIN_TRACKS :
+						STR_LAI_AIRPORT_PLAIN_EMPTY;
+				break;
+			case ATT_TERMINAL:
+				switch (GetTerminalType(tile)) {
+					case HTT_TERMINAL: td->airport_tile_name = STR_LAI_AIRPORT_TERMINAL; break;
+					case HTT_HELIPAD: td->airport_tile_name = STR_LAI_AIRPORT_HELIPAD; break;
+					case HTT_HELIPORT: td->airport_tile_name = STR_LAI_AIRPORT_HELIPORT; break;
+					case HTT_BUILTIN_HELIPORT: td->airport_tile_name = STR_LAI_AIRPORT_BUILTIN_HELIPORT; break;
+					default: NOT_REACHED();
+				}
+				break;
+			case ATT_HANGAR:
+				td->airport_tile_name = STR_LAI_AIRPORT_HANGAR;
+				break;
+			case ATT_RUNWAY:
+				td->airport_tile_name = STR_LAI_AIRPORT_RUNWAY_MIDDLE;
+				break;
+			case ATT_RUNWAY_END:
+				td->airport_tile_name = STR_LAI_AIRPORT_RUNWAY_END;
+				break;
+			case ATT_RUNWAY_START:
+				td->airport_tile_name = IsLandingTypeTile(tile) ? STR_LAI_AIRPORT_RUNWAY_START_LANDING :
+						STR_LAI_AIRPORT_RUNWAY_START_NO_LANDING;
+				break;
+
+			default: NOT_REACHED();
 		}
 	}
 
