@@ -344,6 +344,7 @@ fill_next_track:
 		for (Station **stp = affected_stations.Begin(); stp != affected_stations.End(); stp++) {
 			Station *st = *stp;
 			assert(st != NULL);
+			st->airport.type = AT_CUSTOM;
 			st->UpdateAirportDataStructure();
 		}
 	}
@@ -424,6 +425,7 @@ CommandCost AddRunway(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2,
 			}
 		}
 
+		st->airport.type = AT_CUSTOM;
 		st->UpdateAirportDataStructure();
 	}
 
@@ -471,6 +473,7 @@ CommandCost RemoveRunway(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			}
 		}
 
+		st->airport.type = AT_CUSTOM;
 		st->UpdateAirportDataStructure();
 	}
 
@@ -604,6 +607,8 @@ CommandCost CmdChangeAirportTiles(TileIndex tile, DoCommandFlag flags, uint32 p1
 	for (StationID *stp = affected_stations_id.Begin(); stp != affected_stations_id.End(); stp++) {
 		Station *st = Station::Get(*stp);
 		assert(st != NULL);
+
+		st->airport.type = AT_CUSTOM;
 
 		if (flags & DC_EXEC) {
 			st->UpdateAirportDataStructure();
@@ -787,6 +792,7 @@ static CommandCost RemoveAirportTiles(TileIndex org_tile, DoCommandFlag flags, u
 				if (IsAirportTile(tile) && st->index == GetStationIndex(tile)) st->airport.Add(tile);
 			}
 
+			st->airport.type = AT_CUSTOM;
 			AirType air_type = st->airport.air_type;
 			st->UpdateAirportDataStructure();
 			if (st->airport.tile == INVALID_TILE) {
@@ -1056,6 +1062,7 @@ CommandCost CmdAddRemoveAirportTiles(TileIndex org_tile, DoCommandFlag flags, ui
 		}
 		st->UpdateAirportDataStructure();
 		st->AfterStationTileSetChange(true, new_location, STATION_AIRPORT);
+		st->airport.type = AT_CUSTOM;
 	}
 
 	return cost;
