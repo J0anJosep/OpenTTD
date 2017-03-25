@@ -226,6 +226,25 @@ static inline void DrawImageButtons(const Rect &r, WidgetType type, Colours colo
 }
 
 /**
+ * Draw a text button.
+ * @param r       Rectangle of the button.
+ * @param type    Widget type (#WWT_IMGBTN or #WWT_IMGBTN_2).
+ * @param colour  Colour of the button.
+ * @param clicked Button is lowered.
+ * @param img     Sprite to draw.
+ */
+static inline void DrawTextButtons(const Rect &r, WidgetType type, Colours colour, StringID str, bool clicked, bool different_text, FontSize fs = FS_ICONS_BIG)
+{
+	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, clicked ? FR_LOWERED : FR_NONE);
+
+	uint click_offset = clicked ? 1 : 0;
+
+	if (different_text && clicked) str++; // Show different text when active.
+	DrawString(r.left + click_offset, r.right, Center(r.top + click_offset, r.bottom - r.top, GetCharacterHeight(fs)), str, TC_FROMSTRING, SA_HOR_CENTER);
+}
+
+
+/**
  * Draw the label-part of a widget.
  * @param r       Rectangle of the label background.
  * @param type    Widget type (#WWT_TEXTBTN, #WWT_TEXTBTN_2, or #WWT_LABEL).
@@ -247,11 +266,11 @@ static inline void DrawLabel(const Rect &r, WidgetType type, bool clicked, Strin
  * @param colour Colour of the text.
  * @param str    Text to draw.
  */
-static inline void DrawText(const Rect &r, TextColour colour, StringID str)
+static inline void DrawText(const Rect &r, TextColour colour, StringID str, StringAlignment align = SA_LEFT)
 {
 	Dimension d = GetStringBoundingBox(str);
 	int offset = max(0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-	if (str != STR_NULL) DrawString(r.left, r.right, r.top + offset, str, colour);
+	if (str != STR_NULL) DrawString(r.left, r.right, r.top + offset, str, colour, align);
 }
 
 /**
@@ -342,10 +361,14 @@ static inline void DrawVerticalScrollbar(const Rect &r, Colours colour, bool up_
 
 	/* draw up/down buttons */
 	DrawFrameRect(r.left, r.top, r.right, r.top + height - 1, colour, (up_clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_UP, PAL_NONE, r.left + 1 + up_clicked, r.top + 1 + up_clicked);
+	DrawString(r.left + up_clicked, r.right + up_clicked,
+			Center(r.top + up_clicked, height, FONT_HEIGHT_ICONS_NORMAL),
+			STR_UPARROW, TC_BLACK, SA_HOR_CENTER);
 
 	DrawFrameRect(r.left, r.bottom - (height - 1), r.right, r.bottom, colour, (down_clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.left + 1 + down_clicked, r.bottom - (height - 2) + down_clicked);
+	DrawString(r.left + down_clicked, r.right + down_clicked,
+			Center(r.bottom - 1 - height, height, FONT_HEIGHT_ICONS_NORMAL),
+			STR_DOWNARROW, TC_BLACK, SA_HOR_CENTER);
 
 	int c1 = _colour_gradient[colour & 0xF][3];
 	int c2 = _colour_gradient[colour & 0xF][7];
@@ -375,14 +398,19 @@ static inline void DrawVerticalScrollbar(const Rect &r, Colours colour, bool up_
  */
 static inline void DrawHorizontalScrollbar(const Rect &r, Colours colour, bool left_clicked, bool bar_dragged, bool right_clicked, const Scrollbar *scrollbar)
 {
-	int centre = (r.bottom - r.top) / 2;
+	int height = r.bottom - r.top;
+	int centre = height / 2;
 	int width = NWidgetScrollbar::GetHorizontalDimension().width;
 
 	DrawFrameRect(r.left, r.top, r.left + width - 1, r.bottom, colour, left_clicked ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_LEFT, PAL_NONE, r.left + 1 + left_clicked, r.top + 1 + left_clicked);
+	DrawString(r.left + left_clicked, r.left + width + left_clicked,
+			Center(r.top + left_clicked, height, FONT_HEIGHT_ICONS_NORMAL),
+			STR_LEFTARROW, TC_BLACK, SA_HOR_CENTER);
 
 	DrawFrameRect(r.right - (width - 1), r.top, r.right, r.bottom, colour, right_clicked ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, r.right - (width - 2) + right_clicked, r.top + 1 + right_clicked);
+	DrawString(r.right - width + right_clicked, r.right + right_clicked,
+			Center(r.top + right_clicked, height, FONT_HEIGHT_ICONS_NORMAL),
+			STR_RIGHTARROW, TC_BLACK, SA_HOR_CENTER);
 
 	int c1 = _colour_gradient[colour & 0xF][3];
 	int c2 = _colour_gradient[colour & 0xF][7];
@@ -459,29 +487,12 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
  * @param at_left Resize box is at left-side of the window,
  * @param clicked Box is lowered.
  */
-static inline void DrawResizeBox(const Rect &r, Colours colour, bool at_left, bool clicked)
+static inline void DrawResizeBox(const Rect &r, Colours colour, bool clicked)
 {
 	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	if (at_left) {
-		DrawSprite(SPR_WINDOW_RESIZE_LEFT, PAL_NONE, r.left + WD_RESIZEBOX_RIGHT + clicked,
-				 r.bottom - WD_RESIZEBOX_BOTTOM - GetSpriteSize(SPR_WINDOW_RESIZE_LEFT).height + clicked);
-	} else {
-		DrawSprite(SPR_WINDOW_RESIZE_RIGHT, PAL_NONE, r.left + WD_RESIZEBOX_LEFT + clicked,
-				 r.bottom - WD_RESIZEBOX_BOTTOM - GetSpriteSize(SPR_WINDOW_RESIZE_RIGHT).height + clicked);
-	}
-}
-
-/**
- * Draw a close box.
- * @param r      Rectangle of the box.
- * @param colour Colour of the close box.
- */
-static inline void DrawCloseBox(const Rect &r, Colours colour)
-{
-	if (colour != COLOUR_WHITE) DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, FR_NONE);
-	Dimension d = GetSpriteSize(SPR_CLOSEBOX);
-	int s = UnScaleGUI(1); /* Offset to account for shadow of SPR_CLOSEBOX */
-	DrawSprite(SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), CenterBounds(r.left, r.right, d.width - s), CenterBounds(r.top, r.bottom, d.height - s));
+	bool rtl = (_current_text_dir == TD_RTL);
+	StringID str = STR_ICON_RESIZE_WINDOW_LTR + rtl;
+	DrawString(r.left + WD_RESIZEBOX_LEFT, r.right - WD_RESIZEBOX_RIGHT, r.bottom + clicked - FONT_HEIGHT_ICONS_BIG - WD_RESIZEBOX_BOTTOM, str, TC_BLACK, SA_RIGHT);
 }
 
 /**
@@ -524,18 +535,17 @@ static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicke
 	int text_offset = max(0, ((int)(r.bottom - r.top + 1) - FONT_HEIGHT_NORMAL) / 2); // Offset for rendering the text vertically centered
 
 	int dd_width  = GetMinSizing(NWST_STEP, NWidgetLeaf::dropdown_dimension.width);
-	int dd_height = GetMinSizing(NWST_STEP, NWidgetLeaf::dropdown_dimension.height);
-	int image_offset = max(0, ((int)(r.bottom - r.top + 1) - dd_height) / 2);
+	int top_centered = Center(r.top + (clicked_dropdown ? 2 : 1), r.bottom - r.top, FONT_HEIGHT_ICONS_NORMAL);
 
 	if (_current_text_dir == TD_LTR) {
 		DrawFrameRect(r.left, r.top, r.right - dd_width, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
 		DrawFrameRect(r.right + 1 - dd_width, r.top, r.right, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
-		DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.right - (dd_width - 2) + clicked_dropdown, r.top + image_offset + clicked_dropdown);
+		DrawString(r.right - dd_width + (clicked_dropdown ? 2 : 1), r.right, top_centered, STR_DOWNARROW, TC_BLACK, SA_HOR_CENTER);
 		if (str != STR_NULL) DrawString(r.left + WD_DROPDOWNTEXT_LEFT + clicked_button, r.right - dd_width - WD_DROPDOWNTEXT_RIGHT + clicked_button, r.top + text_offset + clicked_button, str, TC_BLACK);
 	} else {
 		DrawFrameRect(r.left + dd_width, r.top, r.right, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
 		DrawFrameRect(r.left, r.top, r.left + dd_width - 1, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
-		DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.left + 1 + clicked_dropdown, r.top + image_offset + clicked_dropdown);
+		DrawString(r.left + (clicked_dropdown ? 2 : 1), r.left + dd_width, top_centered, STR_DOWNARROW, TC_BLACK, SA_HOR_CENTER);
 		if (str != STR_NULL) DrawString(r.left + dd_width + WD_DROPDOWNTEXT_LEFT + clicked_button, r.right - WD_DROPDOWNTEXT_RIGHT + clicked_button, r.top + text_offset + clicked_button, str, TC_BLACK);
 	}
 }
@@ -583,37 +593,6 @@ void Window::DrawWidgets() const
 		}
 	}
 }
-
-/**
- * Draw a sort button's up or down arrow symbol.
- * @param widget Sort button widget
- * @param state State of sort button
- */
-void Window::DrawSortButtonState(int widget, SortButtonState state) const
-{
-	if (state == SBS_OFF) return;
-
-	assert(this->nested_array != NULL);
-	const NWidgetBase *nwid = this->GetWidget<NWidgetBase>(widget);
-
-	/* Sort button uses the same sprites as vertical scrollbar */
-	Dimension dim = NWidgetScrollbar::GetVerticalDimension();
-	int offset = this->IsWidgetLowered(widget) ? 1 : 0;
-	int x = offset + nwid->pos_x + (_current_text_dir == TD_LTR ? nwid->current_x - dim.width : 0);
-	int y = offset + nwid->pos_y + (nwid->current_y - dim.height) / 2;
-
-	DrawSprite(state == SBS_DOWN ? SPR_ARROW_DOWN : SPR_ARROW_UP, PAL_NONE, x, y);
-}
-
-/**
- * Get width of up/down arrow of sort button state.
- * @return Width of space required by sort button arrow.
- */
-int Window::SortButtonWidth()
-{
-	return NWidgetScrollbar::GetVerticalDimension().width + 1;
-}
-
 
 /**
  * @defgroup NestedWidgets Hierarchical widgets
@@ -2054,7 +2033,7 @@ void NWidgetScrollbar::Draw(const Window *w)
 {
 	static const Dimension extra = {WD_SCROLLBAR_LEFT + WD_SCROLLBAR_RIGHT, WD_SCROLLBAR_TOP + WD_SCROLLBAR_BOTTOM};
 	if (vertical_dimension.width == 0) {
-		vertical_dimension = maxdim(GetSpriteSize(SPR_ARROW_UP), GetSpriteSize(SPR_ARROW_DOWN));
+		vertical_dimension = maxdim(GetStringBoundingBox(STR_UPARROW), GetStringBoundingBox(STR_DOWNARROW));
 		vertical_dimension.width += extra.width;
 		vertical_dimension.width = GetMinSizing(NWST_STEP, vertical_dimension.width);
 		vertical_dimension.height += extra.height;
@@ -2067,7 +2046,7 @@ void NWidgetScrollbar::Draw(const Window *w)
 {
 	static const Dimension extra = {WD_SCROLLBAR_LEFT + WD_SCROLLBAR_RIGHT, WD_SCROLLBAR_TOP + WD_SCROLLBAR_BOTTOM};
 	if (horizontal_dimension.width == 0) {
-		horizontal_dimension = maxdim(GetSpriteSize(SPR_ARROW_LEFT), GetSpriteSize(SPR_ARROW_RIGHT));
+		horizontal_dimension = maxdim(GetStringBoundingBox(STR_LEFTARROW), GetStringBoundingBox(STR_RIGHTARROW));
 		horizontal_dimension.width += extra.width;
 		horizontal_dimension.width = GetMinSizing(NWST_STEP, horizontal_dimension.width);
 		horizontal_dimension.height += extra.height;
@@ -2168,7 +2147,7 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 			break;
 
 		case WWT_EDITBOX: {
-			Dimension sprite_size = GetSpriteSize(_current_text_dir == TD_RTL ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT);
+			Dimension sprite_size = GetStringBoundingBox(_current_text_dir == TD_RTL ? STR_ICON_DELETE_STRING_RTL : STR_ICON_DELETE_STRING_LTR);
 			this->SetMinimalSize(30 + GetMinSizing(this->sizing_type, sprite_size.width), sprite_size.height);
 			this->SetFill(0, 0);
 			break;
@@ -2184,25 +2163,25 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 		case WWT_STICKYBOX:
 			this->SetFill(0, 0);
 			this->SetMinimalSize(WD_STICKYBOX_WIDTH, WD_CAPTION_HEIGHT);
-			this->SetDataTip(STR_NULL, STR_TOOLTIP_STICKY);
+			this->SetDataTip(STR_ICON_PIN_WINDOW, STR_TOOLTIP_STICKY);
 			break;
 
 		case WWT_SHADEBOX:
 			this->SetFill(0, 0);
 			this->SetMinimalSize(WD_SHADEBOX_TOP, WD_CAPTION_HEIGHT);
-			this->SetDataTip(STR_NULL, STR_TOOLTIP_SHADE);
+			this->SetDataTip(STR_ICON_COLLAPSE_WINDOW, STR_TOOLTIP_SHADE);
 			break;
 
 		case WWT_DEBUGBOX:
 			this->SetFill(0, 0);
 			this->SetMinimalSize(WD_DEBUGBOX_TOP, WD_CAPTION_HEIGHT);
-			this->SetDataTip(STR_NULL, STR_TOOLTIP_DEBUG);
+			this->SetDataTip(STR_ICON_DEBUG, STR_TOOLTIP_DEBUG);
 			break;
 
 		case WWT_DEFSIZEBOX:
 			this->SetFill(0, 0);
 			this->SetMinimalSize(WD_DEFSIZEBOX_TOP, WD_CAPTION_HEIGHT);
-			this->SetDataTip(STR_NULL, STR_TOOLTIP_DEFSIZE);
+			this->SetDataTip(STR_ICON_DEFAULT_SIZE, STR_TOOLTIP_DEFSIZE);
 			break;
 
 		case WWT_RESIZEBOX:
@@ -2214,7 +2193,7 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 		case WWT_CLOSEBOX:
 			this->SetFill(0, 0);
 			this->SetMinimalSize(WD_CLOSEBOX_WIDTH, WD_CAPTION_HEIGHT);
-			this->SetDataTip(STR_NULL, STR_TOOLTIP_CLOSE_WINDOW);
+			this->SetDataTip(STR_BLACK_CROSS, STR_TOOLTIP_CLOSE_WINDOW);
 			break;
 
 		case WWT_DROPDOWN:
@@ -2254,7 +2233,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			static const Dimension extra = {WD_SHADEBOX_LEFT + WD_SHADEBOX_RIGHT, WD_SHADEBOX_TOP + WD_SHADEBOX_BOTTOM};
 			padding = &extra;
 			if (NWidgetLeaf::shadebox_dimension.width == 0) {
-				NWidgetLeaf::shadebox_dimension = maxdim(GetSpriteSize(SPR_WINDOW_SHADE), GetSpriteSize(SPR_WINDOW_UNSHADE));
+				NWidgetLeaf::shadebox_dimension = maxdim(GetStringBoundingBox(STR_ICON_COLLAPSE_WINDOW), GetStringBoundingBox(STR_ICON_EXPAND_WINDOW));
 				NWidgetLeaf::shadebox_dimension.width += extra.width;
 				NWidgetLeaf::shadebox_dimension.height += extra.height;
 			}
@@ -2266,7 +2245,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 				static const Dimension extra = {WD_DEBUGBOX_LEFT + WD_DEBUGBOX_RIGHT, WD_DEBUGBOX_TOP + WD_DEBUGBOX_BOTTOM};
 				padding = &extra;
 				if (NWidgetLeaf::debugbox_dimension.width == 0) {
-					NWidgetLeaf::debugbox_dimension = GetSpriteSize(SPR_WINDOW_DEBUG);
+					NWidgetLeaf::debugbox_dimension = GetStringBoundingBox(STR_ICON_DEBUG);
 					NWidgetLeaf::debugbox_dimension.width += extra.width;
 					NWidgetLeaf::debugbox_dimension.height += extra.height;
 				}
@@ -2283,7 +2262,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			static const Dimension extra = {WD_STICKYBOX_LEFT + WD_STICKYBOX_RIGHT, WD_STICKYBOX_TOP + WD_STICKYBOX_BOTTOM};
 			padding = &extra;
 			if (NWidgetLeaf::stickybox_dimension.width == 0) {
-				NWidgetLeaf::stickybox_dimension = maxdim(GetSpriteSize(SPR_PIN_UP), GetSpriteSize(SPR_PIN_DOWN));
+				NWidgetLeaf::stickybox_dimension = maxdim(GetStringBoundingBox(STR_ICON_PIN_WINDOW), GetStringBoundingBox(STR_ICON_UNPIN_WINDOW));
 				NWidgetLeaf::stickybox_dimension.width += extra.width;
 				NWidgetLeaf::stickybox_dimension.height += extra.height;
 			}
@@ -2295,7 +2274,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			static const Dimension extra = {WD_DEFSIZEBOX_LEFT + WD_DEFSIZEBOX_RIGHT, WD_DEFSIZEBOX_TOP + WD_DEFSIZEBOX_BOTTOM};
 			padding = &extra;
 			if (NWidgetLeaf::defsizebox_dimension.width == 0) {
-				NWidgetLeaf::defsizebox_dimension = GetSpriteSize(SPR_WINDOW_DEFSIZE);
+				NWidgetLeaf::defsizebox_dimension = GetStringBoundingBox(STR_ICON_DEFAULT_SIZE);
 				NWidgetLeaf::defsizebox_dimension.width += extra.width;
 				NWidgetLeaf::defsizebox_dimension.height += extra.height;
 			}
@@ -2307,7 +2286,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			static const Dimension extra = {WD_RESIZEBOX_LEFT + WD_RESIZEBOX_RIGHT, WD_RESIZEBOX_TOP + WD_RESIZEBOX_BOTTOM};
 			padding = &extra;
 			if (NWidgetLeaf::resizebox_dimension.width == 0) {
-				NWidgetLeaf::resizebox_dimension = maxdim(GetSpriteSize(SPR_WINDOW_RESIZE_LEFT), GetSpriteSize(SPR_WINDOW_RESIZE_RIGHT));
+				NWidgetLeaf::resizebox_dimension = maxdim(GetStringBoundingBox(STR_ICON_RESIZE_WINDOW_LTR), GetStringBoundingBox(STR_ICON_RESIZE_WINDOW_RTL));
 				NWidgetLeaf::resizebox_dimension.width += extra.width;
 				NWidgetLeaf::resizebox_dimension.height += extra.height;
 			}
@@ -2315,9 +2294,9 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			break;
 		}
 		case WWT_EDITBOX: {
-			Dimension sprite_size = GetSpriteSize(_current_text_dir == TD_RTL ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT);
-			size.width = max(size.width, 30 + sprite_size.width);
-			size.height = max(sprite_size.height, GetStringBoundingBox("_").height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+			Dimension sprite_size = GetStringBoundingBox(_current_text_dir == TD_RTL ? STR_ICON_DELETE_STRING_RTL : STR_ICON_DELETE_STRING_LTR);
+			size.width = max(size.width, 10 * GetStringBoundingBox("_").width + sprite_size.width);
+			size.height = max(GetMinSizing(this->sizing_type, sprite_size.height), GetStringBoundingBox("_").height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 			/* FALL THROUGH */
 		}
 		case WWT_PUSHBTN: {
@@ -2341,7 +2320,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 		case WWT_PUSHARROWBTN: {
 			static const Dimension extra = {WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT,  WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM};
 			padding = &extra;
-			Dimension d2 = maxdim(GetSpriteSize(SPR_ARROW_LEFT), GetSpriteSize(SPR_ARROW_RIGHT));
+			Dimension d2 = maxdim(GetStringBoundingBox(STR_LEFTARROW), GetStringBoundingBox(STR_RIGHTARROW));
 			d2.width += extra.width;
 			d2.height += extra.height;
 			size = maxdim(size, d2);
@@ -2352,7 +2331,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			static const Dimension extra = {WD_CLOSEBOX_LEFT + WD_CLOSEBOX_RIGHT, WD_CLOSEBOX_TOP + WD_CLOSEBOX_BOTTOM};
 			padding = &extra;
 			if (NWidgetLeaf::closebox_dimension.width == 0) {
-				NWidgetLeaf::closebox_dimension = GetSpriteSize(SPR_CLOSEBOX);
+				NWidgetLeaf::closebox_dimension = GetStringBoundingBox(STR_BLACK_CROSS);
 				NWidgetLeaf::closebox_dimension.width += extra.width;
 				NWidgetLeaf::closebox_dimension.height += extra.height;
 			}
@@ -2395,7 +2374,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			static Dimension extra = {WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT, WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM};
 			padding = &extra;
 			if (NWidgetLeaf::dropdown_dimension.width == 0) {
-				NWidgetLeaf::dropdown_dimension = GetSpriteSize(SPR_ARROW_DOWN);
+				NWidgetLeaf::dropdown_dimension = GetStringBoundingBox(STR_DOWNARROW);
 				NWidgetLeaf::dropdown_dimension.width += WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT;
 				NWidgetLeaf::dropdown_dimension.width = GetMinSizing(NWST_STEP, NWidgetLeaf::dropdown_dimension.width);
 				NWidgetLeaf::dropdown_dimension.height += WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM;
@@ -2468,15 +2447,15 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_ARROWBTN:
 		case WWT_PUSHARROWBTN: {
-			SpriteID sprite;
+			StringID str;
 			switch (this->widget_data) {
-				case AWV_DECREASE: sprite = _current_text_dir != TD_RTL ? SPR_ARROW_LEFT : SPR_ARROW_RIGHT; break;
-				case AWV_INCREASE: sprite = _current_text_dir == TD_RTL ? SPR_ARROW_LEFT : SPR_ARROW_RIGHT; break;
-				case AWV_LEFT:     sprite = SPR_ARROW_LEFT;  break;
-				case AWV_RIGHT:    sprite = SPR_ARROW_RIGHT; break;
+				case AWV_DECREASE: str = _current_text_dir != TD_RTL ? STR_LEFTARROW : STR_RIGHTARROW; break;
+				case AWV_INCREASE: str = _current_text_dir == TD_RTL ? STR_LEFTARROW : STR_RIGHTARROW; break;
+				case AWV_LEFT:     str = STR_LEFTARROW;  break;
+				case AWV_RIGHT:    str = STR_RIGHTARROW; break;
 				default: NOT_REACHED();
 			}
-			DrawImageButtons(r, WWT_PUSHIMGBTN, this->colour, clicked, sprite);
+			DrawTextButtons(r, this->type, this->colour, str, clicked, false, FS_ICONS_NORMAL);
 			break;
 		}
 
@@ -2505,34 +2484,23 @@ void NWidgetLeaf::Draw(const Window *w)
 			DrawCaption(r, this->colour, w->owner, this->widget_data);
 			break;
 
+		case WWT_RESIZEBOX:
+			DrawResizeBox(r, this->colour, !!(w->flags & WF_SIZING));
+			break;
+
+		case WWT_STICKYBOX:
+			clicked = !!(w->flags & WF_STICKY);
+			DrawTextButtons(r, this->type, this->colour, this->widget_data, clicked, true);
+			break;
+
 		case WWT_SHADEBOX:
-			assert(this->widget_data == 0);
-			DrawImageButtons(r, WWT_SHADEBOX, this->colour, w->IsShaded(), w->IsShaded() ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE);
+			DrawTextButtons(r, this->type, this->colour, this->widget_data, w->IsShaded(), true);
 			break;
 
 		case WWT_DEBUGBOX:
-			DrawImageButtons(r, WWT_DEBUGBOX, this->colour, clicked, SPR_WINDOW_DEBUG);
-			break;
-
-		case WWT_STICKYBOX: {
-			assert(this->widget_data == 0);
-			bool clicked = !!(w->flags & WF_STICKY);
-			DrawImageButtons(r, WWT_STICKYBOX, this->colour, clicked, clicked ? SPR_PIN_DOWN : SPR_PIN_UP);
-			break;
-		}
-
 		case WWT_DEFSIZEBOX:
-			assert(this->widget_data == 0);
-			DrawImageButtons(r, WWT_DEFSIZEBOX, this->colour, clicked, SPR_WINDOW_DEFSIZE);
-			break;
-
-		case WWT_RESIZEBOX:
-			assert(this->widget_data == 0);
-			DrawResizeBox(r, this->colour, this->pos_x < (uint)(w->width / 2), !!(w->flags & WF_SIZING));
-			break;
-
 		case WWT_CLOSEBOX:
-			DrawCloseBox(r, this->colour);
+			DrawTextButtons(r, this->type, this->colour, this->widget_data, clicked, false);
 			break;
 
 		case WWT_DROPDOWN:
