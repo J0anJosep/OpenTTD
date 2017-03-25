@@ -107,7 +107,7 @@ public:
 		this->Add(new NWidgetLeaf(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NG_DATE, STR_NETWORK_SERVER_LIST_DATE_CAPTION, STR_NETWORK_SERVER_LIST_DATE_CAPTION_TOOLTIP));
 		this->Add(new NWidgetLeaf(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NG_YEARS, STR_NETWORK_SERVER_LIST_YEARS_CAPTION, STR_NETWORK_SERVER_LIST_YEARS_CAPTION_TOOLTIP));
 
-		leaf = new NWidgetLeaf(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NG_INFO, STR_EMPTY, STR_NETWORK_SERVER_LIST_INFO_ICONS_TOOLTIP);
+		leaf = new NWidgetLeaf(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NG_INFO, STR_BLACK_STRING, STR_NETWORK_SERVER_LIST_INFO_ICONS_TOOLTIP);
 		leaf->SetMinimalSize(14 + GetSpriteSize(SPR_LOCK).width + GetSpriteSize(SPR_BLOT).width + GetSpriteSize(SPR_FLAGS_BASE).width, 12);
 		leaf->SetFill(0, 1);
 		this->Add(leaf);
@@ -497,6 +497,20 @@ public:
 			case WID_NG_CONN_BTN:
 				SetDParam(0, _lan_internet_types_dropdown[_settings_client.network.lan_internet]);
 				break;
+
+			case WID_NG_NAME:
+			case WID_NG_CLIENTS:
+			case WID_NG_MAPSIZE:
+			case WID_NG_DATE:
+			case WID_NG_YEARS:
+			case WID_NG_INFO: {
+				StringID str = STR_EMPTY;
+				if (widget - WID_NG_NAME == this->servers.SortType()) {
+					str = STR_SMALL_UPARROW + this->servers.IsDescSortOrder();
+				}
+				SetDParam(0, str);
+				break;
+			}
 		}
 	}
 
@@ -522,12 +536,7 @@ public:
 				size->width = NWidgetScrollbar::GetVerticalDimension().width;
 				break;
 
-			case WID_NG_NAME:
-				size->width += 2 * Window::SortButtonWidth(); // Make space for the arrow
-				break;
-
 			case WID_NG_CLIENTS:
-				size->width += 2 * Window::SortButtonWidth(); // Make space for the arrow
 				SetDParamMaxValue(0, MAX_CLIENTS);
 				SetDParamMaxValue(1, MAX_CLIENTS);
 				SetDParamMaxValue(2, MAX_COMPANIES);
@@ -536,7 +545,6 @@ public:
 				break;
 
 			case WID_NG_MAPSIZE:
-				size->width += 2 * Window::SortButtonWidth(); // Make space for the arrow
 				SetDParamMaxValue(0, MAX_MAP_SIZE);
 				SetDParamMaxValue(1, MAX_MAP_SIZE);
 				*size = maxdim(*size, GetStringBoundingBox(STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT));
@@ -544,9 +552,13 @@ public:
 
 			case WID_NG_DATE:
 			case WID_NG_YEARS:
-				size->width += 2 * Window::SortButtonWidth(); // Make space for the arrow
 				SetDParamMaxValue(0, 5);
 				*size = maxdim(*size, GetStringBoundingBox(STR_JUST_INT));
+				SetDParam(0, STR_SMALL_UPARROW);
+				*size = maxdim(*size, GetStringBoundingBox(STR_NETWORK_SERVER_LIST_DATE_CAPTION));
+				*size = maxdim(*size, GetStringBoundingBox(STR_NETWORK_SERVER_LIST_YEARS_CAPTION));
+				size->width += padding.width;
+				size->height += padding.height;
 				break;
 
 			case WID_NG_DETAILS_SPACER:
@@ -578,15 +590,6 @@ public:
 
 			case WID_NG_DETAILS:
 				this->DrawDetails(r);
-				break;
-
-			case WID_NG_NAME:
-			case WID_NG_CLIENTS:
-			case WID_NG_MAPSIZE:
-			case WID_NG_DATE:
-			case WID_NG_YEARS:
-			case WID_NG_INFO:
-				if (widget - WID_NG_NAME == this->servers.SortType()) this->DrawSortButtonState(widget, this->servers.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 		}
 	}
