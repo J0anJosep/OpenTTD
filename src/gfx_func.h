@@ -142,18 +142,6 @@ void CheckBlitter();
 
 bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height);
 
-/**
- * Determine where to draw a centred object inside a widget.
- * @param min The top or left coordinate.
- * @param max The bottom or right coordinate.
- * @param size The height or width of the object to draw.
- * @return Offset of where to start drawing the object.
- */
-static inline int CenterBounds(int min, int max, int size)
-{
-	return min + (max - min - size + 1) / 2;
-}
-
 /* window.cpp */
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);
 
@@ -184,6 +172,30 @@ int GetCharacterHeight(FontSize size);
 
 /** Height of characters in the large (#FS_MONO) font. @note Some characters may be oversized. */
 #define FONT_HEIGHT_MONO  (GetCharacterHeight(FS_MONO))
+
+/**
+ * Determine where to draw a centred object inside a widget.
+ * @param min The top or left coordinate.
+ * @param max The bottom or right coordinate.
+ * @param size The height or width of the object to draw.
+ * @return Offset of where to start drawing the object.
+ */
+static inline int CenterBounds(int min, int max, int size = FONT_HEIGHT_NORMAL)
+{
+	return min + (max - min - size + 1) / 2;
+}
+
+/**
+ * Determine where to draw a centered object inside a widget.
+ * @param min The top or left coordinate.
+ * @param length The available length.
+ * @param size The height or width of the object to draw.
+ * @return The coordinate where to start drawing the centered object.
+ */
+static inline int Center(int min, int length, int size = FONT_HEIGHT_NORMAL)
+{
+	return min + (length - size) / 2;
+}
 
 int InitTempMargin(int left, int right, bool to_end_line);
 void AddSpace(int space, int &here, bool to_end_line);
