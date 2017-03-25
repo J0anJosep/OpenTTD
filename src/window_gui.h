@@ -507,8 +507,6 @@ public:
 
 	void DrawWidgets() const;
 	void DrawViewport() const;
-	void DrawSortButtonState(int widget, SortButtonState state) const;
-	static int SortButtonWidth();
 
 	void DeleteChildWindows(WindowClass wc = WC_INVALID) const;
 
