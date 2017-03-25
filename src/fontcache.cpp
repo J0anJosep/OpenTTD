@@ -136,25 +136,41 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 		case FS_ICONS_SMALL:  base = SPR_FIRST_PRINTABLE_ICON; break;
 	}
 
-	for (uint i = ASCII_LETTERSTART; i < 256; i++) {
-		SpriteID sprite = base + i - ASCII_LETTERSTART;
-		if (!SpriteExists(sprite)) continue;
-		this->SetUnicodeGlyph(i, sprite);
-		this->SetUnicodeGlyph(i + SCC_SPRITE_START, sprite);
-	}
+	if (this->fs < FS_ICONS_START) {
+		for (uint i = ASCII_LETTERSTART; i < 256; i++) {
+			SpriteID sprite = base + i - ASCII_LETTERSTART;
+			if (!SpriteExists(sprite)) continue;
+			this->SetUnicodeGlyph(i, sprite);
+			this->SetUnicodeGlyph(i + SCC_SPRITE_START, sprite);
+		}
 
-	for (uint i = 0; i < lengthof(_default_unicode_map); i++) {
-		byte key = _default_unicode_map[i].key;
-		if (key == CLRA) {
-			/* Clear the glyph. This happens if the glyph at this code point
-			 * is non-standard and should be accessed by an SCC_xxx enum
-			 * entry only. */
-			this->SetUnicodeGlyph(_default_unicode_map[i].code, 0);
-		} else {
-			SpriteID sprite = base + key - ASCII_LETTERSTART;
-			this->SetUnicodeGlyph(_default_unicode_map[i].code, sprite);
+		for (uint i = 0; i < lengthof(_default_unicode_map); i++) {
+			byte key = _default_unicode_map[i].key;
+			if (key == CLRA) {
+				/* Clear the glyph. This happens if the glyph at this code point
+				* is non-standard and should be accessed by an SCC_xxx enum
+				* entry only. */
+				this->SetUnicodeGlyph(_default_unicode_map[i].code, 0);
+			} else {
+				SpriteID sprite = base + key - ASCII_LETTERSTART;
+				this->SetUnicodeGlyph(_default_unicode_map[i].code, sprite);
+			}
+		}
+	} else {
+		static const SpriteID sprite_icons_table[FONT_ICON_COUNT] = {
+				143, 140, 130, 145, 4943, 158, 159, 150, 151, 152 /* bus */,
+				153, 154 /* ship */, 5071, 5072, 4945, 5064, 5048, 5047, 91, 4940,
+				4947, 4948, 5049, 682 /* window */, 4946, 5062, 5063, 5039, 5038, 5037,
+				5036, 5034, 5035, 712, 5045, 711, 709, 710, 5043, 5044,
+				142 /* checkmark*/, 369, 143};
+
+		for (uint i = 0; i < FONT_ICON_COUNT; i++) {
+			SpriteID sprite = sprite_icons_table[i];
+			//if (!SpriteExists(sprite)) continue;
+			this->SetUnicodeGlyph(i + ASCII_LETTERSTART, sprite);
 		}
 	}
+
 }
 
 /**

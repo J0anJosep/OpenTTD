@@ -377,7 +377,7 @@ public:
 		switch (widget) {
 			case WID_STL_SORTBY: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				d.height += padding.height;
 				*size = maxdim(*size, d);
 				break;
@@ -412,11 +412,6 @@ public:
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		switch (widget) {
-			case WID_STL_SORTBY:
-				/* draw arrow pointing up/down for ascending/descending sorting */
-				this->DrawSortButtonState(WID_STL_SORTBY, this->stations.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
-				break;
-
 			case WID_STL_LIST: {
 				int max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->stations.Length());
 				uint line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
@@ -449,9 +444,15 @@ public:
 
 	virtual void SetStringParameters(int widget) const
 	{
-		if (widget == WID_STL_CAPTION) {
-			SetDParam(0, this->window_number);
-			SetDParam(1, this->vscroll->GetCount());
+		switch (widget) {
+			case WID_STL_CAPTION:
+				SetDParam(0, this->window_number);
+				SetDParam(1, this->vscroll->GetCount());
+				break;
+			case WID_STL_SORTBY:
+				/* draw arrow pointing up/down for ascending/descending sorting */
+				SetDParam(0, STR_SMALL_UPARROW + this->stations.IsDescSortOrder());
+				break;
 		}
 	}
 
@@ -570,8 +571,8 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_STL_CAPTION), SetDataTip(STR_STATION_LIST_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
-		NWidget(WWT_IMGBTN, COLOUR_GREY, WID_STL_FILTER), SetMinimalSize(12, 12), SetFill(0, 1),
-				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_STATIONS_DIRECTORY_FILTER_TOOLTIP),
+		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_STL_FILTER), SetMinimalSize(12, 12), SetFill(0, 1),
+				SetDataTip(STR_ICON_FILTER, STR_STATIONS_DIRECTORY_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
@@ -1288,9 +1289,6 @@ struct StationViewWindow : public Window {
 				}
 			}
 
-			/* Draw arrow pointing up/down for ascending/descending sorting */
-			this->DrawSortButtonState(WID_SV_SORT_ORDER, sort_orders[1] == SO_ASCENDING ? SBS_UP : SBS_DOWN);
-
 			int pos = this->vscroll->GetPosition();
 
 			int maxrows = this->vscroll->GetCapacity();
@@ -1307,9 +1305,19 @@ struct StationViewWindow : public Window {
 
 	virtual void SetStringParameters(int widget) const
 	{
-		const Station *st = Station::Get(this->window_number);
-		SetDParam(0, st->index);
-		SetDParam(1, st->facilities);
+		switch (widget) {
+			case WID_SV_CAPTION: {
+				const Station *st = Station::Get(this->window_number);
+				SetDParam(0, st->index);
+				SetDParam(1, st->facilities);
+				break;
+			}
+
+			case WID_SV_SORT_ORDER:
+				/* Draw arrow pointing up/down for ascending/descending sorting */
+				SetDParam(0, sort_orders[1] == SO_ASCENDING ? STR_SMALL_UPARROW : STR_SMALL_DOWNARROW);
+				break;
+		}
 	}
 
 	/**
