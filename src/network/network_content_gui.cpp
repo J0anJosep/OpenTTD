@@ -610,18 +610,25 @@ public:
 
 	virtual void OnPaint()
 	{
-		const SortButtonState arrow = this->content.IsDescSortOrder() ? SBS_DOWN : SBS_UP;
-
 		if (this->content.NeedRebuild()) {
 			this->BuildContentList();
 		}
 
 		this->DrawWidgets();
+	}
 
-		switch (this->content.SortType()) {
-			case WID_NCL_CHECKBOX - WID_NCL_CHECKBOX: this->DrawSortButtonState(WID_NCL_CHECKBOX, arrow); break;
-			case WID_NCL_TYPE     - WID_NCL_CHECKBOX: this->DrawSortButtonState(WID_NCL_TYPE,     arrow); break;
-			case WID_NCL_NAME     - WID_NCL_CHECKBOX: this->DrawSortButtonState(WID_NCL_NAME,     arrow); break;
+	virtual void SetStringParameters(int widget) const
+	{
+		switch (widget) {
+			case WID_NCL_CHECKBOX:
+			case WID_NCL_TYPE:
+			case WID_NCL_NAME: {
+				StringID str = STR_EMPTY;
+				if (this->content.SortType() == widget - WID_NCL_CHECKBOX) {
+					str = STR_SMALL_UPARROW + this->content.IsDescSortOrder();
+				}
+				SetDParam(0, str);
+			}
 		}
 	}
 
@@ -1068,7 +1075,7 @@ static const NWidgetPart _nested_network_content_list_widgets[] = {
 				NWidget(NWID_HORIZONTAL),
 					NWidget(NWID_VERTICAL),
 						NWidget(NWID_HORIZONTAL),
-							NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NCL_CHECKBOX), SetMinimalSize(13, 1), SetDataTip(STR_EMPTY, STR_NULL),
+							NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NCL_CHECKBOX), SetMinimalSize(13, 1), SetDataTip(STR_BLACK_STRING, STR_NULL),
 							NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NCL_TYPE),
 											SetDataTip(STR_CONTENT_TYPE_CAPTION, STR_CONTENT_TYPE_CAPTION_TOOLTIP),
 							NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_NCL_NAME), SetResize(1, 0), SetFill(1, 0),
