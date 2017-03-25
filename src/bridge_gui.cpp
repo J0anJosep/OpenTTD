@@ -169,7 +169,7 @@ public:
 		switch (widget) {
 			case WID_BBS_DROPDOWN_ORDER: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				d.height += padding.height;
 				*size = maxdim(*size, d);
 				break;
@@ -218,13 +218,18 @@ public:
 		return corner;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
 			case WID_BBS_DROPDOWN_ORDER:
-				this->DrawSortButtonState(widget, this->bridges->IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				SetDParam(0, this->bridges->IsDescSortOrder() ? STR_SMALL_DOWNARROW : STR_SMALL_UPARROW);
 				break;
+		}
+	}
 
+	virtual void DrawWidget(const Rect &r, int widget) const
+	{
+		switch (widget) {
 			case WID_BBS_BRIDGE_LIST: {
 				uint y = r.top;
 				for (int i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < (int)this->bridges->Length(); i++) {
