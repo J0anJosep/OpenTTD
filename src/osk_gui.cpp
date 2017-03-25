@@ -257,7 +257,7 @@ static NWidgetBase *MakeTopKeys(int *biggest_index)
 
 	AddKey(hor, key_height, 6 * 2, WWT_TEXTBTN,    WID_OSK_CANCEL,    STR_BUTTON_CANCEL,  biggest_index);
 	AddKey(hor, key_height, 6 * 2, WWT_TEXTBTN,    WID_OSK_OK,        STR_BUTTON_OK,      biggest_index);
-	AddKey(hor, key_height, 2 * 2, WWT_PUSHIMGBTN, WID_OSK_BACKSPACE, SPR_OSK_BACKSPACE, biggest_index);
+	AddKey(hor, key_height, 2 * 2, WWT_PUSHTXTBTN, WID_OSK_BACKSPACE, STR_ICON_BACKSPACE, biggest_index);
 	return hor;
 }
 
@@ -279,7 +279,7 @@ static NWidgetBase *MakeQwertyKeys(int *biggest_index)
 	NWidgetHorizontal *hor = new NWidgetHorizontalLTR();
 	int key_height = GetMinSizing(NWST_KEYBOARD, FONT_HEIGHT_NORMAL + 6);
 
-	AddKey(hor, key_height, 3, WWT_PUSHIMGBTN, WID_OSK_SPECIAL, SPR_OSK_SPECIAL, biggest_index);
+	AddKey(hor, key_height, 3, WWT_PUSHTXTBTN, WID_OSK_SPECIAL, STR_ICON_TABULAR, biggest_index);
 	for (int widnum = WID_OSK_QWERTY_FIRST; widnum <= WID_OSK_QWERTY_LAST; widnum++) {
 		AddKey(hor, key_height, 2, WWT_PUSHBTN, widnum, 0x0, biggest_index);
 	}
@@ -293,7 +293,7 @@ static NWidgetBase *MakeAsdfgKeys(int *biggest_index)
 	NWidgetHorizontal *hor = new NWidgetHorizontalLTR();
 	int key_height = GetMinSizing(NWST_KEYBOARD, FONT_HEIGHT_NORMAL + 6);
 
-	AddKey(hor, key_height, 4, WWT_IMGBTN, WID_OSK_CAPS, SPR_OSK_CAPS, biggest_index);
+	AddKey(hor, key_height, 4, WWT_TEXTBTN, WID_OSK_CAPS, STR_ICON_CAPS, biggest_index);
 	for (int widnum = WID_OSK_ASDFG_FIRST; widnum <= WID_OSK_ASDFG_LAST; widnum++) {
 		AddKey(hor, key_height, 2, WWT_PUSHBTN, widnum, 0x0, biggest_index);
 	}
@@ -306,7 +306,7 @@ static NWidgetBase *MakeZxcvbKeys(int *biggest_index)
 	NWidgetHorizontal *hor = new NWidgetHorizontalLTR();
 	int key_height = GetMinSizing(NWST_KEYBOARD, FONT_HEIGHT_NORMAL + 6);
 
-	AddKey(hor, key_height, 3, WWT_IMGBTN, WID_OSK_SHIFT, SPR_OSK_SHIFT, biggest_index);
+	AddKey(hor, key_height, 3, WWT_TEXTBTN, WID_OSK_SHIFT, STR_ICON_SHIFT, biggest_index);
 	for (int widnum = WID_OSK_ZXCVB_FIRST; widnum <= WID_OSK_ZXCVB_LAST; widnum++) {
 		AddKey(hor, key_height, 2, WWT_PUSHBTN, widnum, 0x0, biggest_index);
 	}
@@ -323,8 +323,8 @@ static NWidgetBase *MakeSpacebarKeys(int *biggest_index)
 	AddKey(hor, key_height,  8, NWID_SPACER, 0, 0, biggest_index);
 	AddKey(hor, key_height, 13, WWT_PUSHTXTBTN, WID_OSK_SPACE, STR_EMPTY, biggest_index);
 	AddKey(hor, key_height,  3, NWID_SPACER, 0, 0, biggest_index);
-	AddKey(hor, key_height,  2, WWT_PUSHIMGBTN, WID_OSK_LEFT,  SPR_OSK_LEFT, biggest_index);
-	AddKey(hor, key_height,  2, WWT_PUSHIMGBTN, WID_OSK_RIGHT, SPR_OSK_RIGHT, biggest_index);
+	AddKey(hor, key_height,  2, WWT_PUSHTXTBTN, WID_OSK_LEFT,  STR_ICON_ARROW_LEFT_OSK, biggest_index);
+	AddKey(hor, key_height,  2, WWT_PUSHTXTBTN, WID_OSK_RIGHT, STR_ICON_ARROW_RIGHT_OSK, biggest_index);
 	return hor;
 }
 

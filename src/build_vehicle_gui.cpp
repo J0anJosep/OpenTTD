@@ -1330,6 +1330,10 @@ struct BuildVehicleWindow : Window {
 	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
+			case WID_BV_SORT_ASCENDING_DESCENDING:
+				SetDParam(0, this->descending_sort_order ? STR_SMALL_DOWNARROW : STR_SMALL_UPARROW);
+				break;
+
 			case WID_BV_CAPTION:
 				if (this->vehicle_type == VEH_TRAIN && !this->listview_mode) {
 					const RailtypeInfo *rti = GetRailTypeInfo(this->filter.railtype);
@@ -1374,7 +1378,7 @@ struct BuildVehicleWindow : Window {
 
 			case WID_BV_SORT_ASCENDING_DESCENDING: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				d.height += padding.height;
 				d.height = GetMinSizing(NWST_STEP, d.height);
 				*size = maxdim(*size, d);
@@ -1395,10 +1399,6 @@ struct BuildVehicleWindow : Window {
 		switch (widget) {
 			case WID_BV_LIST:
 				DrawEngineList(this->vehicle_type, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
-				break;
-
-			case WID_BV_SORT_ASCENDING_DESCENDING:
-				this->DrawSortButtonState(WID_BV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
 				break;
 		}
 	}
