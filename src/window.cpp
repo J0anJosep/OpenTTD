@@ -41,8 +41,10 @@
 #include "signs_base.h"
 #include "gui.h"
 #include "command_func.h"
+#include "core/geometry_func.hpp"
 
 #include "safeguards.h"
+#include "table/strings.h"
 
 /** Values for _settings_client.gui.auto_scrolling */
 enum ViewportAutoscrolling {
