@@ -84,7 +84,7 @@ static const NWidgetPart _nested_load_dialog_widgets[] = {
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYNAME), SetDataTip(STR_SORT_BY_CAPTION_NAME, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYDATE), SetDataTip(STR_SORT_BY_CAPTION_DATE, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 				EndContainer(),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(SPR_HOUSE_ICON, STR_SAVELOAD_HOME_BUTTON),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(STR_ICON_HOME, STR_SAVELOAD_HOME_BUTTON),
 			EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_FILE_BACKGROUND),
 				NWidget(NWID_HORIZONTAL),
@@ -126,7 +126,7 @@ static const NWidgetPart _nested_load_heightmap_dialog_widgets[] = {
 				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYNAME), SetDataTip(STR_SORT_BY_CAPTION_NAME, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYDATE), SetDataTip(STR_SORT_BY_CAPTION_DATE, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 			EndContainer(),
-			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(SPR_HOUSE_ICON, STR_SAVELOAD_HOME_BUTTON),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(STR_ICON_HOME, STR_SAVELOAD_HOME_BUTTON),
 		EndContainer(),
 		NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_FILE_BACKGROUND),
 			NWidget(NWID_HORIZONTAL),
@@ -160,7 +160,7 @@ static const NWidgetPart _nested_save_dialog_widgets[] = {
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYNAME), SetDataTip(STR_SORT_BY_CAPTION_NAME, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYDATE), SetDataTip(STR_SORT_BY_CAPTION_DATE, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 				EndContainer(),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(SPR_HOUSE_ICON, STR_SAVELOAD_HOME_BUTTON),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(STR_ICON_HOME, STR_SAVELOAD_HOME_BUTTON),
 			EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_FILE_BACKGROUND),
 				NWidget(NWID_HORIZONTAL),
@@ -201,7 +201,7 @@ static const NWidgetPart _nested_select_font_widgets[] = {
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYNAME), SetDataTip(STR_SORT_BY_CAPTION_NAME, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SL_SORT_BYDATE), SetDataTip(STR_SORT_BY_CAPTION_DATE, STR_TOOLTIP_SORT_ORDER), SetFill(1, 0), SetResize(1, 0),
 				EndContainer(),
-				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(SPR_HOUSE_ICON, STR_SAVELOAD_HOME_BUTTON),
+				NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SL_HOME_BUTTON), SetMinimalSize(12, 12), SetDataTip(STR_ICON_HOME, STR_SAVELOAD_HOME_BUTTON),
 			EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_GREY, WID_SL_FILE_BACKGROUND),
 				NWidget(NWID_HORIZONTAL),
@@ -382,13 +382,6 @@ public:
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		switch (widget) {
-			case WID_SL_SORT_BYNAME:
-			case WID_SL_SORT_BYDATE:
-				if (((_savegame_sort_order & SORT_BY_NAME) != 0) == (widget == WID_SL_SORT_BYNAME)) {
-					this->DrawSortButtonState(widget, _savegame_sort_order & SORT_DESCENDING ? SBS_DOWN : SBS_UP);
-				}
-				break;
-
 			case WID_SL_BACKGROUND: {
 				static const char *path = NULL;
 				static StringID str = STR_ERROR_UNABLE_TO_READ_DRIVE;
@@ -518,6 +511,20 @@ public:
 		}
 	}
 
+	virtual void SetStringParameters(int widget) const
+	{
+		switch (widget) {
+			case WID_SL_SORT_BYNAME:
+			case WID_SL_SORT_BYDATE:
+				StringID str = STR_EMPTY;
+				if (((_savegame_sort_order & SORT_BY_NAME) != 0) == (widget == WID_SL_SORT_BYNAME)) {
+					str = (_savegame_sort_order & SORT_DESCENDING) ? STR_SMALL_DOWNARROW : STR_SMALL_UPARROW;
+				}
+				SetDParam(0, str);
+				break;
+		}
+	}
+
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		switch (widget) {
@@ -532,7 +539,7 @@ public:
 			case WID_SL_SORT_BYNAME:
 			case WID_SL_SORT_BYDATE: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				d.height += padding.height;
 				*size = maxdim(*size, d);
 				break;

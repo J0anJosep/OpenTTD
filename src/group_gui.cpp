@@ -42,10 +42,10 @@ static const NWidgetPart _nested_group_widgets[] = {
 	NWidget(NWID_HORIZONTAL), // Window header
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_GL_CAPTION),
-		NWidget(WWT_IMGBTN, COLOUR_GREY, WID_GL_FILTER_GROUPS), SetMinimalSize(12, 12), SetFill(0, 1),
-				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_GROUP_GROUP_FILTER_TOOLTIP),
-		NWidget(WWT_IMGBTN, COLOUR_GREY, WID_GL_FILTER_VEHICLES), SetMinimalSize(12, 12), SetFill(0, 1),
-				SetDataTip(SPR_LARGE_SMALL_WINDOW, STR_GROUP_VEHICLE_FILTER_TOOLTIP),
+		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GL_FILTER_GROUPS), SetMinimalSize(12, 12), SetFill(0, 1),
+				SetDataTip(STR_ICON_FILTER_GROUPS, STR_GROUP_GROUP_FILTER_TOOLTIP),
+		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GL_FILTER_VEHICLES), SetMinimalSize(12, 12), SetFill(0, 1),
+				SetDataTip(STR_ICON_FILTER, STR_GROUP_VEHICLE_FILTER_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
@@ -405,8 +405,9 @@ public:
 
 			case WID_GL_VEHICLE_SORT_BY_ORDER:
 			case WID_GL_GROUP_SORT_BY_ORDER: {
+				SetDParam(0, STR_SMALL_UPARROW);
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
+				d.width += padding.width;
 				size->width = max(size->width, d.width);
 				size->height = this->tiny_step_height;
 				break;
@@ -465,6 +466,14 @@ public:
 	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
+			case WID_GL_VEHICLE_SORT_BY_ORDER:
+				SetDParam(0, STR_SMALL_UPARROW + this->vehicles.IsDescSortOrder());
+				break;
+
+			case WID_GL_GROUP_SORT_BY_ORDER:
+				SetDParam(0, STR_SMALL_UPARROW + this->groups.IsDescSortOrder());
+				break;
+
 			case WID_GL_AVAILABLE_VEHICLES:
 				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
 				break;
@@ -617,14 +626,6 @@ public:
 				}
 				break;
 			}
-
-			case WID_GL_VEHICLE_SORT_BY_ORDER:
-				this->DrawSortButtonState(WID_GL_VEHICLE_SORT_BY_ORDER, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
-				break;
-
-			case WID_GL_GROUP_SORT_BY_ORDER:
-				this->DrawSortButtonState(WID_GL_GROUP_SORT_BY_ORDER, this->groups.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
-				break;
 
 			case WID_GL_LIST_VEHICLE:
 				this->DrawVehicleListItems(this->vehicle_sel, this->resize.step_height, r);
