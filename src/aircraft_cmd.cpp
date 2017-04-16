@@ -1145,6 +1145,6 @@ Station *GetTargetAirportIfValid(const Aircraft *v)
  * Updates the status of the Aircraft heading or in the station
  * @param st Station been updated
  */
-void UpdateAirplanesOnNewStation(const Station *st)
+void UpdateAirplanesOnChangedAirport(const Station *st)
 {
 }
