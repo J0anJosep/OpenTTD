@@ -858,6 +858,7 @@ STR_NEWS_VEHICLE_IS_LOST                                        :{WHITE}{VEHICLE
 STR_NEWS_VEHICLE_TOO_LONG_FOR_SERVICING                         :{WHITE}{VEHICLE} couldn't service in too short platform
 STR_NEWS_VEHICLE_IS_UNPROFITABLE                                :{WHITE}{VEHICLE}'s profit last year was {CURRENCY_LONG}
 STR_NEWS_AIRCRAFT_DEST_TOO_FAR                                  :{WHITE}{VEHICLE} can't get to the next destination because it is out of range
+STR_NEWS_AIRCRAFT_CANNOT_LAND_NEXT_DEST                         :{WHITE}{VEHICLE} can't get to the next destination because it can't land there
 
 STR_NEWS_ORDER_REFIT_FAILED                                     :{WHITE}{VEHICLE} stopped because an ordered refit failed
 STR_NEWS_VEHICLE_AUTORENEW_FAILED                               :{WHITE}Autorenew failed on {VEHICLE}{}{STRING}
@@ -3980,6 +3981,7 @@ STR_VEHICLE_STATUS_TRAIN_STUCK                                  :{ORANGE}Waiting
 STR_VEHICLE_STATUS_SERVICING                                    :{LTBLUE}Servicing vehicle
 STR_VEHICLE_STATUS_SHIP_LOCK                                    :{LTBLUE}Lock procedure
 STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR                             :{ORANGE}Too far to next destination
+STR_VEHICLE_STATUS_AIRCRAFT_CANNOT_LAND_DEST                    :{ORANGE}Can't land on destination
 
 STR_VEHICLE_STATUS_HEADING_FOR_STATION_VEL                      :{LTBLUE}Heading for {STATION}, {VELOCITY}
 STR_VEHICLE_STATUS_NO_ORDERS_VEL                                :{LTBLUE}No orders, {VELOCITY}

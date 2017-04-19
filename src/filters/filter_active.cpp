@@ -138,7 +138,7 @@ bool TestProperty(const Vehicle *v, VehicleGroupProperties property)
 		case VGP_CRASHED:
 			return v->IsCrashedVehicle();
 		case VGP_PATHFINDER_LOST:
-			return v->IsLostVehicle() || (v->type == VEH_AIRCRAFT && HasBit(Aircraft::From(v)->flags, VAF_DEST_TOO_FAR));
+			return v->IsLostVehicle() || (v->type == VEH_AIRCRAFT && (HasBit(Aircraft::From(v)->flags, VAF_DEST_TOO_FAR) || HasBit(Aircraft::From(v)->flags, VAF_CANNOT_LAND_DEST)));
 		case VGP_OLD_VEHICLE:
 			return v->IsOldVehicle();
 		case VGP_NEW_VEHICLE:

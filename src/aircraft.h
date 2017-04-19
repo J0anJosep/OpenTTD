@@ -46,6 +46,7 @@ enum AirVehicleFlags {
 	VAF_IN_MAX_HEIGHT_CORRECTION = 1, ///< The vehicle is currently lowering its altitude because it hit the upper bound.
 	VAF_IN_MIN_HEIGHT_CORRECTION = 2, ///< The vehicle is currently raising its altitude because it hit the lower bound.
 	VAF_STUCK                    = 3, ///< The vehicle is mark as stuck.
+	VAF_CANNOT_LAND_DEST         = 4, ///< Vehicle can't land on next airport.
 };
 
 static const int ROTOR_Z_OFFSET         = 5;    ///< Z Offset between helicopter- and rotorsprite.
