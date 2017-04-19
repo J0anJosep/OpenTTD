@@ -80,7 +80,6 @@ struct CFollowTrackT
 	inline void Init(Owner o, RailTypes railtype_override, CPerformanceTimer *pPerf)
 	{
 		assert(!IsRoadTT() || m_veh != NULL);
-		assert(!IsAirTT() || m_veh != NULL);
 		assert(!IsRailTT() || railtype_override != INVALID_RAILTYPES);
 		m_veh_owner = o;
 		m_pPerf = pPerf;

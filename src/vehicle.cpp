@@ -439,6 +439,7 @@ Vehicle::Vehicle(VehicleType type)
 	this->cargo_age_counter  = 1;
 	this->last_station_visited = INVALID_STATION;
 	this->last_loading_station = INVALID_STATION;
+	this->dest_tile          = INVALID_TILE;
 }
 
 /**
@@ -981,11 +982,8 @@ void Vehicle::PreDestructor()
 	}
 
 	if (this->type == VEH_AIRCRAFT && this->IsPrimaryVehicle()) {
-		//Aircraft *a = Aircraft::From(this);
-		//Station *st = GetTargetAirportIfValid(a);
-		// revise free track
+		Aircraft::From(this)->FreeReservation();
 	}
-
 
 	if (this->type == VEH_ROAD && this->IsPrimaryVehicle()) {
 		RoadVehicle *v = RoadVehicle::From(this);
@@ -1618,7 +1616,6 @@ void VehicleEnterDepot(Vehicle *v)
 
 		case VEH_AIRCRAFT:
 			SetWindowClassesDirty(WC_AIRCRAFT_LIST);
-			HandleAircraftEnterHangar(Aircraft::From(v));
 			break;
 		default: NOT_REACHED();
 	}
@@ -1652,6 +1649,7 @@ void VehicleEnterDepot(Vehicle *v)
 				real_order != NULL && !(real_order->GetDepotActionType() & ODATFB_NEAREST_DEPOT) &&
 				(v->type == VEH_AIRCRAFT ? v->current_order.GetDestination() != GetStationIndex(v->tile) : v->current_order.GetDestination() != GetDepotIndex(v->tile))) {
 			/* We are heading for another depot, keep driving. */
+			DEBUG(misc, 0, "Heading to another hangar");
 			return;
 		}
 
@@ -2934,8 +2932,10 @@ bool CanVehicleUseStation(EngineID engine_type, const Station *st)
 		case VEH_AIRCRAFT: {
 			if ((st->facilities & FACIL_AIRPORT) == 0) return false;
 
+			DEBUG(misc, 0, "Before checking");
 			const AircraftVehicleInfo *avi = &(e->u.air);
 			if (!IsCompatibleAirType(avi->airtype, st->airport.air_type)) return false;
+			DEBUG(misc, 0, "After checking");
 
 			if (e->u.air.subtype != AIR_HELI) {
 				return st->airport.HasLanding();

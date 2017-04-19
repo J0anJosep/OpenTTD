@@ -166,6 +166,9 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 	void MarkAsStuck();
 	void Unstuck();
 
+	void UpdateVisibility();
+	void FreeReservation();
+
 	bool Tick();
 	void OnNewDay();
 	uint Crash(bool flooded = false);

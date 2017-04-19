@@ -908,10 +908,13 @@ CommandCost CmdInsertOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				if (ret.Failed()) return ret;
 			}
 
+			DEBUG(misc, 0, "Pre cant use");
 			if (!CanVehicleUseStation(v, st)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER);
+			DEBUG(misc, 0, "Mid cant use");
 			for (Vehicle *u = v->FirstShared(); u != NULL; u = u->NextShared()) {
 				if (!CanVehicleUseStation(u, st)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER_SHARED);
 			}
+			DEBUG(misc, 0, "Post can use");
 
 			/* Non stop only allowed for ground vehicles. */
 			if (new_order.GetNonStopType() != ONSF_STOP_EVERYWHERE && !v->IsGroundVehicle()) return CMD_ERROR;
@@ -2242,9 +2245,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 				UpdateVehicleTimetable(v, true);
 				v->IncrementRealOrderIndex();
 			} else {
-				if (v->type != VEH_AIRCRAFT) {
-					v->dest_tile = Depot::Get(order->GetDestination())->GetBestDepotTile(v);
-				}
+				v->dest_tile = Depot::Get(order->GetDestination())->GetBestDepotTile(v);
 				return true;
 			}
 			break;
@@ -2377,6 +2378,7 @@ bool ProcessOrders(Vehicle *v)
 	/* If it is unchanged, keep it. */
 	if (order->Equals(v->current_order) && (v->type == VEH_AIRCRAFT || v->dest_tile != 0) &&
 			(v->type != VEH_SHIP || !order->IsType(OT_GOTO_STATION) || Station::Get(order->GetDestination())->HasFacilities(FACIL_DOCK))) {
+		DEBUG(misc, 0, "Dest is unchanged");
 		return false;
 	}
 
