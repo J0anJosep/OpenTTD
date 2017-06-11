@@ -139,6 +139,22 @@ static inline DiagDirDiff DiagDirDifference(DiagDirection d0, DiagDirection d1)
 }
 
 /**
+ * Calculate the non-oriented difference between two DiagDirection values
+ *
+ * @param d0 The first direction as the base
+ * @param d1 The second direction as the offset from the base
+ * @return The number of non-oriented 90 degrees difference.
+ */
+static inline byte NonOriented90DegreeDifference(DiagDirection d0, DiagDirection d1)
+{
+	assert(IsValidDiagDirection(d0));
+	assert(IsValidDiagDirection(d1));
+	byte diag_dir_diff = (byte)DiagDirDifference(d0, d1);
+	if (diag_dir_diff == DIAGDIRDIFF_90LEFT) return 1;
+	return diag_dir_diff;
+}
+
+/**
  * Applies a difference on a DiagDirection
  *
  * This function applies a difference on a DiagDirection and returns
