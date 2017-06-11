@@ -38,6 +38,7 @@
 #include "zoom_func.h"
 #include "disaster_vehicle.h"
 #include "depot_map.h"
+#include "air.h"
 
 #include "table/strings.h"
 
@@ -240,8 +241,7 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 	const AircraftVehicleInfo *avi = &e->u.air;
 	const Station *st = Station::GetByTile(tile);
 
-	/* Prevent building aircraft types at places which can't handle them */
-	if (!CanVehicleUseStation(e->index, st)) return CMD_ERROR;
+	if (!IsCompatibleAirType(avi->airtype, st->airport.air_type)) return_cmd_error(STR_ERROR_AIRCRAFT_INCOMPATIBLE_AIR_TYPE);
 
 	/* Make sure all aircraft end up in the first tile of the hangar. */
 	/* Revise!!! */
@@ -252,6 +252,8 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 		Aircraft *u = new Aircraft(); // shadow
 		*ret = v;
 
+		v->airtype = avi->airtype;
+		v->compatible_airtypes = GetCompatibleAirTypes(v->airtype);
 		v->owner = u->owner = _current_company;
 		v->cur_state = AM_HANGAR;
 		v->tile = tile;

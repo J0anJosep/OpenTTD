@@ -347,6 +347,11 @@ static inline Money AirMaintenanceCost(AirType airtype, uint32 num, uint32 total
 	return (_price[PR_INFRASTRUCTURE_AIRPORT] * GetAirTypeInfo(airtype)->maintenance_multiplier * num * (1 + IntSqrt(total_num))) >> 11; // 4 bits fraction for the multiplier and 7 bits scaling.
 }
 
+static inline bool DoesHaveWaterCompatibleAirTypes(AirTypes airtypes)
+{
+	return (airtypes & AIRTYPES_WATER) != 0;
+}
+
 Foundation GetAirFoundation(Slope tileh, TrackBits bits);
 
 
