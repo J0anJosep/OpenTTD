@@ -42,6 +42,7 @@
 #include "pbs_water.h"
 #include "tilearea_type.h"
 #include "dock_base.h"
+#include "air.h"
 
 #include "table/strings.h"
 
@@ -1569,6 +1570,7 @@ static Vehicle *FloodVehicleProc(Vehicle *v, void *data)
 		case VEH_AIRCRAFT: {
 			if (!IsAirportTile(v->tile) || GetTileMaxZ(v->tile) != 0) break;
 			if (v->subtype == AIR_SHADOW) break;
+			if (DoesHaveWaterCompatibleAirTypes(((Aircraft*)v)->compatible_airtypes)) break;
 
 			/* We compare v->z_pos against delta_z + 1 because the shadow
 			 * is at delta_z and the actual aircraft at delta_z + 1. */
