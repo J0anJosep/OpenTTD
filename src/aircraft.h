@@ -52,18 +52,12 @@ enum AirVehicleFlags {
 
 static const int ROTOR_Z_OFFSET         = 5;    ///< Z Offset between helicopter- and rotorsprite.
 
-void HandleAircraftEnterHangar(Aircraft *v);
 void GetAircraftSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
-void UpdateAirplanesOnNewStation(const Station *st);
+void UpdateAirplanesOnChangedAirport(const Station *st);
 void UpdateAircraftCache(Aircraft *v, bool update_range = false);
 
-void AircraftLeaveHangar(Aircraft *v, Direction exit_dir);
-void AircraftNextAirportPos_and_Order(Aircraft *v);
-void SetAircraftPosition(Aircraft *v, int x, int y, int z);
-
 void GetAircraftFlightLevelBounds(const Vehicle *v, int *min, int *max);
-template <class T>
-int GetAircraftFlightLevel(T *v, bool takeoff = false);
+int GetAircraftFlightLevel(DisasterVehicle *v);
 
 /** Variables that are cached to improve performance and such. */
 struct AircraftCache {
@@ -165,6 +159,9 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 
 	void MarkAsStuck();
 	void Unstuck();
+
+	void SetHidden(bool hidden);
+	void FreeReservation();
 
 	bool Tick();
 	void OnNewDay();

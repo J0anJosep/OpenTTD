@@ -1306,7 +1306,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 		st->TranslateAirport();
 
-		UpdateAirplanesOnNewStation(st);
+		UpdateAirplanesOnChangedAirport(st);
 
 		Company::Get(st->owner)->infrastructure.airport++;
 
