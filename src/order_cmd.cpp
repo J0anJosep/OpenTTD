@@ -2232,10 +2232,6 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					/* If there is no depot in front, reverse automatically (trains only) */
 					if (v->type == VEH_TRAIN && reverse) DoCommand(v->tile, v->index, 0, DC_EXEC, CMD_REVERSE_TRAIN_DIRECTION);
 
-					if (v->type == VEH_AIRCRAFT) {
-						//Aircraft *a = Aircraft::From(v);
-						//revise
-					}
 					return true;
 				}
 
@@ -2245,9 +2241,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 				UpdateVehicleTimetable(v, true);
 				v->IncrementRealOrderIndex();
 			} else {
-				if (v->type != VEH_AIRCRAFT) {
-					v->dest_tile = Depot::Get(order->GetDestination())->GetBestDepotTile(v);
-				}
+				v->dest_tile = Depot::Get(order->GetDestination())->GetBestDepotTile(v);
 				return true;
 			}
 			break;
@@ -2324,8 +2318,7 @@ bool ProcessOrders(Vehicle *v)
 			return false;
 
 		case OT_LEAVESTATION:
-			if (v->type != VEH_AIRCRAFT) return false;
-			break;
+			return false;
 
 		default: break;
 	}
@@ -2364,21 +2357,14 @@ bool ProcessOrders(Vehicle *v)
 	}
 
 	/* If no order, do nothing. */
-	if (order == NULL || (v->type == VEH_AIRCRAFT && !CheckForValidOrders(v))) {
-		if (v->type == VEH_AIRCRAFT) {
-			/* Aircraft do something vastly different here, so handle separately */
-			extern void HandleMissingAircraftOrders(Aircraft *v);
-			HandleMissingAircraftOrders(Aircraft::From(v));
-			return false;
-		}
-
+	if (order == NULL) {
 		v->current_order.Free();
 		v->dest_tile = 0;
 		return false;
 	}
 
 	/* If it is unchanged, keep it. */
-	if (order->Equals(v->current_order) && (v->type == VEH_AIRCRAFT || v->dest_tile != 0) &&
+	if (order->Equals(v->current_order) &&
 			(v->type != VEH_SHIP || !order->IsType(OT_GOTO_STATION) || Station::Get(order->GetDestination())->HasFacilities(FACIL_DOCK))) {
 		return false;
 	}
