@@ -468,6 +468,7 @@ Vehicle::Vehicle(VehicleType type)
 	this->cargo_age_counter  = 1;
 	this->last_station_visited = INVALID_STATION;
 	this->last_loading_station = INVALID_STATION;
+	this->dest_tile          = INVALID_TILE;
 }
 
 /**
@@ -1010,11 +1011,8 @@ void Vehicle::PreDestructor()
 	}
 
 	if (this->type == VEH_AIRCRAFT && this->IsPrimaryVehicle()) {
-		//Aircraft *a = Aircraft::From(this);
-		//Station *st = GetTargetAirportIfValid(a);
-		// revise free track
+		Aircraft::From(this)->FreeReservation();
 	}
-
 
 	if (this->type == VEH_ROAD && this->IsPrimaryVehicle()) {
 		RoadVehicle *v = RoadVehicle::From(this);
@@ -1656,7 +1654,6 @@ void VehicleEnterDepot(Vehicle *v)
 
 		case VEH_AIRCRAFT:
 			SetWindowClassesDirty(WC_AIRCRAFT_LIST);
-			HandleAircraftEnterHangar(Aircraft::From(v));
 			break;
 		default: NOT_REACHED();
 	}
