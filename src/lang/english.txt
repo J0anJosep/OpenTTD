@@ -4600,6 +4600,7 @@ STR_ERROR_AIRPORT_RUNWAY_TOO_SHORT                              :{WHITE}... runw
 STR_ERROR_AIRPORT_RUNWAY_INCOMPLETE                             :{WHITE}... not all runway is on the same airport station.
 STR_ERROR_AIRPORT_RUNWAY_CANNOT_BUILD_OVER                      :{WHITE}... it is not possible to build the runway over those tiles.
 STR_ERROR_AIRPORT_AIRCRAFT_ON_TILES                             :{WHITE}... aircraft present in the airport.
+STR_ERROR_AIRPORT_BAD_DESIGN                                    :{WHITE}The airport design is not valid. Please, check it or aircraft won't be able to use it.
 
 STR_ERROR_AIRPORT_RUNWAY_OVERLAP                                :{WHITE}... runway overlaps other runways.
 STR_ERROR_AIRPORT_RUNWAY_CANNOT_REMOVE                          :{WHITE}... remove runways correctly.
