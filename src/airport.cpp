@@ -509,10 +509,20 @@ void Station::UpdateAirportDataStructure()
 		this->airport.hangar = new Depot(first_hangar, VEH_AIRCRAFT, GetTileOwner(first_hangar), this);
 		this->airport.hangar->build_date = this->build_date;
 		this->airport.hangar->town = this->town;
+		SetBit(this->airport.flags, AFB_HANGAR);
 	} else if (this->airport.hangar != nullptr) {
-		this->airport.hangar->Disuse();
-		delete this->airport.hangar;
-		this->airport.hangar = nullptr;
+		if (first_hangar == INVALID_TILE) {
+			ClrBit(this->airport.flags, AFB_HANGAR);
+			if (this->airport.hangar->IsInUse()) {
+				this->airport.hangar->Disuse();
+			}
+		} else {
+			SetBit(this->airport.flags, AFB_HANGAR);
+			if (!this->airport.hangar->IsInUse()) {
+				/* Reuse current hangar. */
+				this->airport.hangar->Reuse(first_hangar);
+			}
+		}
 	}
 
 	if (airport_area.tile == INVALID_TILE) return;

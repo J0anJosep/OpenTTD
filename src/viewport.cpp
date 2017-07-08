@@ -1452,7 +1452,7 @@ static void ViewportAddKdtreeSigns(DrawPixelInfo *dpi)
 
 	for (const auto *d : depots) {
 		SetDParam(0, d->veh_type);
-		SetDParam(1, d->index);
+		SetDParam(1, d->veh_type == VEH_AIRCRAFT ? d->station->index : d->index);
 		ViewportAddString(dpi, ZOOM_LVL_OUT_4X, &d->sign, STR_VIEWPORT_DEPOT, STR_VIEWPORT_DEPOT_TINY, STR_NULL, COLOUR_GREY);
 	}
 

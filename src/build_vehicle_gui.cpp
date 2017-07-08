@@ -39,6 +39,8 @@
 #include "stringfilter_type.h"
 #include "hotkeys.h"
 #include "depot_base.h"
+#include "depot_func.h"
+#include "air.h"
 
 #include "widgets/build_vehicle_widget.h"
 
@@ -1511,25 +1513,25 @@ struct BuildVehicleWindow : Window {
 
 		this->eng_list.clear();
 
-		const Station *st = this->listview_mode ? nullptr : Depot::Get(this->window_number)->station;
+		if (this->listview_mode || !Depot::Get(this->window_number)->depot_tiles.empty()) {
+			const Station *st = this->listview_mode ? nullptr : Depot::Get(this->window_number)->station;
 
-		/* Make list of all available planes.
-		 * Also check to see if the previously selected plane is still available,
-		 * and if not, reset selection to INVALID_ENGINE. This could be the case
-		 * when planes become obsolete and are removed */
-		for (const Engine *e : Engine::IterateType(VEH_AIRCRAFT)) {
-			if (!this->show_hidden_engines && e->IsVariantHidden(_local_company)) continue;
-			EngineID eid = e->index;
-			if (!IsEngineBuildable(eid, VEH_AIRCRAFT, _local_company)) continue;
-			/* First VEH_END window_numbers are fake to allow a window open for all different types at once */
-			if (!this->listview_mode && !CanVehicleUseStation(eid, st)) continue;
+			/* Make list of all available planes.
+			* Also check to see if the previously selected plane is still available,
+			* and if not, reset selection to INVALID_ENGINE. This could be the case
+			* when planes become obsolete and are removed */
+			for (const Engine *e : Engine::IterateType(VEH_AIRCRAFT)) {
+				if (!this->show_hidden_engines && e->IsVariantHidden(_local_company)) continue;
+				EngineID eid = e->index;
+				if (!IsEngineBuildable(eid, VEH_AIRCRAFT, _local_company)) continue;
+				if (!this->listview_mode && !CanVehicleUseStation(eid, st)) continue;
 
-			/* Filter by name or NewGRF extra text */
-			if (!FilterByText(e)) continue;
+				/* Filter by name or NewGRF extra text */
+				if (!FilterByText(e)) continue;
 
-			this->eng_list.emplace_back(eid, e->info.variant_id, e->display_flags, 0);
-
-			if (eid == this->sel_engine) sel_id = eid;
+				this->eng_list.emplace_back(eid, e->info.variant_id, e->display_flags, 0);
+				if (eid == this->sel_engine) sel_id = eid;
+			}
 		}
 
 		this->SelectEngine(sel_id);

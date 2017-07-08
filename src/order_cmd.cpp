@@ -16,6 +16,7 @@
 #include "timetable.h"
 #include "vehicle_func.h"
 #include "depot_base.h"
+#include "depot_func.h"
 #include "core/pool_func.hpp"
 #include "core/random_func.hpp"
 #include "aircraft.h"
@@ -698,7 +699,11 @@ DestinationID GetTargetDestination(const Order &o, bool is_aircraft)
 			return destination_id;
 		case OT_GOTO_DEPOT:
 			assert(Depot::IsValidID(destination_id));
-			return is_aircraft ? GetStationIndex(Depot::Get(destination_id)->xy) : destination_id;
+			if (is_aircraft) {
+				destination_id = Depot::Get(destination_id)->station->index;
+				assert(Station::IsValidID(destination_id));
+			}
+			return destination_id;
 		default:
 			return INVALID_STATION;
 	}
