@@ -3208,19 +3208,87 @@ bool AfterLoadGame()
 		Aircraft *v;
 		FOR_ALL_AIRCRAFT(v) {
 			if (v->IsNormalAircraft()) {
-				if ((v->vehstatus & VS_CRASHED) == 0) {
-					if (Company::IsValidID(v->owner)) SubtractMoneyFromCompanyFract(v->owner, CommandCost(EXPENSES_NEW_VEHICLES, -2 * v->value));
-					v->Crash();
-				}
-				v->crashed_counter = 0; // Make aircraft disappear on next tick.
-				v->cargo.Truncate();
-				v->Next()->cargo.Truncate();
 				v->airtype = Engine::Get(v->engine_type)->u.air.airtype;
 				v->compatible_airtypes = GetAirTypeInfo(v->airtype)->compatible_airtypes;
-				//todo: add compatibility with current airtype when at an airport
-				if (IsAirportTile(v->tile))v->compatible_airtypes = GetAirTypeInfo(GetAirportType(v->tile))->compatible_airtypes;
+
+				v->Next()->spritenum = v->spritenum;
+				v->Next()->direction = v->direction;
+
+				switch (v->current_order.GetType()) {
+					case OT_LOADING:
+						v->LeaveStation();
+						v->current_order.Free();
+						break;
+
+					default: break;
+				}
+
+				ProcessOrders(v);
+
+				if (v->vehstatus & VS_HIDDEN) {
+					/* Aircraft is in an hangar. */
+					v->cur_state = AM_HANGAR;
+					v->next_state = AM_HANGAR;
+					v->target_state = AM_IDLE;
+					v->next_tile = v->tile;
+					v->direction = DiagDirToDir(GetHangarDirection(v->tile));
+					v->trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+					v->next_trackdir = v->trackdir;
+					v->desired_trackdir = INVALID_TRACKDIR;
+					v->targetairport = GetStationIndex(v->tile);
+					continue;
+				} else {
+					v->cur_state = AM_FLYING;
+					v->next_state = v->IsHelicopter() ? AM_HELICOPTER_LANDING : AM_LANDING;
+					v->target_state = AM_IDLE;
+					v->targetairport = v->current_order.GetDestination();
+					v->z_pos = GetAircraftFlightLevel(v);
+					v->desired_trackdir = INVALID_TRACKDIR;
+					v->direction = DIR_BEGIN;
+					v->Next()->direction = v->direction;
+					v->trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+					v->next_trackdir = v->trackdir;
+					v->next_tile = GetClosestLandingTile(v);
+					switch (v->current_order.GetType()) {
+						case OT_GOTO_STATION:
+							v->target_state = v->IsHelicopter() ? AM_HELIPAD : AM_TERMINAL;
+							v->targetairport = v->current_order.GetDestination();
+							break;
+
+						case OT_NOTHING:
+							if (Station::GetByTile(v->tile)->airport.HasHangar()) {
+								v->target_state = AM_HANGAR;
+								v->targetairport = GetStationIndex(v->tile);
+							}
+							break;
+
+						case OT_GOTO_DEPOT:
+							v->target_state = AM_HANGAR;
+							v->targetairport = v->current_order.GetDestination();
+							break;
+
+						case OT_LOADING:
+						case OT_LEAVESTATION:
+						case OT_DUMMY:
+						case OT_GOTO_WAYPOINT:
+						case OT_CONDITIONAL:
+						case OT_IMPLICIT:
+						default:
+							v->target_state = AM_IDLE;
+							break;
+					}
+				}
+
+				if (v->IsHelicopter()) {
+					if (Company::IsValidID(v->owner)) SubtractMoneyFromCompanyFract(v->owner, CommandCost(EXPENSES_NEW_VEHICLES, -2 * v->value));
+					v->Crash();
+					v->crashed_counter = 10000; // Make aircraft disappear on next tick.
+					v->cargo.Truncate();
+					v->Next()->cargo.Truncate();
+				}
 			}
 		}
+
 		InitializeAirportGui();
 	}
 

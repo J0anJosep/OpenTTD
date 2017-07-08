@@ -1424,7 +1424,6 @@ void DoRotationStep(Aircraft *v)
 	} else {
 		DirDiff difference = DirDifference(v->direction, DiagDirToDir(TrackdirToExitdir(v->desired_trackdir)));
 		if (difference == DIRDIFF_SAME) {
-			DumpAircraftState(v);
 			NOT_REACHED(); // revise, should be not_reached
 		} else if (difference <= DIRDIFF_REVERSE) {
 			difference = DIRDIFF_45LEFT;
@@ -1706,7 +1705,6 @@ bool AircraftArrivesAtPartialDestination(Aircraft *v)
 	}
 
 	/* Orders may have changed. Update. */
-	DumpAircraftState(v);
 	UpdateTargetState(v);
 
 	/* Execute state. */
@@ -2129,8 +2127,6 @@ static void AircraftController(Aircraft *v, bool mode)
 		assert(CheckAircraftSanity(v));
 	}
 
-	DEBUG(misc, 0, "Before move");
-	DumpAircraftState(v);
 	if (v->IsAircraftMoving()) {
 		/* The aircraft is moving (it has a reserved path or it is flying). */
 		if (v->cur_state == AM_HELICOPTER_TAKEOFF) {
@@ -2204,8 +2200,6 @@ static void AircraftController(Aircraft *v, bool mode)
 	} else {
 		/* If it has no destination, do nothing. */
 		if (v->cur_state == v->next_state) {
-			DEBUG(misc, 0, "No destination dumping");
-			DumpAircraftState(v);
 			if (!v->IsStuck()) v->MarkAsStuck();
 			return;
 		}
@@ -2217,8 +2211,6 @@ static void AircraftController(Aircraft *v, bool mode)
 			return;
 		}
 
-		DEBUG(misc, 0, "Not moving, but reachable dest");
-		DumpAircraftState(v);
 		/* Check aircraft can reserve a path to next state. */
 		if (TryReservePath(v)) {
 			if (v->IsStuck()) v->Unstuck();
