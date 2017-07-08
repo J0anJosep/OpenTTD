@@ -3124,19 +3124,55 @@ bool AfterLoadGame()
 		Aircraft *v;
 		FOR_ALL_AIRCRAFT(v) {
 			if (v->IsNormalAircraft()) {
+				v->airtype = Engine::Get(v->engine_type)->u.air.airtype;
+				v->compatible_airtypes = GetAirTypeInfo(v->airtype)->compatible_airtypes;
+
+				v->Next()->spritenum = v->spritenum;
+				v->Next()->direction = v->direction;
+
+				switch (v->current_order.GetType()) {
+					case OT_LOADING:
+						v->LeaveStation();
+						break;
+
+					default: break;
+				}
+
+				if (v->vehstatus & VS_HIDDEN) {
+					/* Aircraft is in an hangar. */
+					v->cur_state = AM_HANGAR;
+					v->next_state = AM_HANGAR;
+					v->target_state = AM_IDLE;
+					v->next_tile = v->tile;
+					v->direction = DiagDirToDir(GetHangarDirection(v->tile));
+					v->trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+					v->next_trackdir = v->trackdir;
+					v->desired_trackdir = INVALID_TRACKDIR;
+					v->targetairport = GetStationIndex(v->tile);
+					ProcessOrders(v);
+					AircraftArrivesAtPartialDestination(v);
+
+					continue;
+				}
+
+				ProcessOrders(v);
+
+				v->cur_state = AM_FLYING;
+				v->targetairport = v->current_order.GetDestination();
+				v->z_pos = GetAircraftFlightLevel(v);
+				v->desired_trackdir = INVALID_TRACKDIR;
+				v->next_tile = GetClosestLandingTile(v);
+
 				if ((v->vehstatus & VS_CRASHED) == 0) {
 					if (Company::IsValidID(v->owner)) SubtractMoneyFromCompanyFract(v->owner, CommandCost(EXPENSES_NEW_VEHICLES, -2 * v->value));
 					v->Crash();
+					v->crashed_counter = 10000; // Make aircraft disappear on next tick.
+					v->cargo.Truncate();
+					v->Next()->cargo.Truncate();
 				}
-				v->crashed_counter = 0; // Make aircraft disappear on next tick.
-				v->cargo.Truncate();
-				v->Next()->cargo.Truncate();
-				v->airtype = Engine::Get(v->engine_type)->u.air.airtype;
-				v->compatible_airtypes = GetAirTypeInfo(v->airtype)->compatible_airtypes;
-				//todo: add compatibility with current airtype when at an airport
-				if (IsAirportTile(v->tile))v->compatible_airtypes = GetAirTypeInfo(GetAirportType(v->tile))->compatible_airtypes;
 			}
 		}
+
 		InitializeAirportGui();
 	}
 

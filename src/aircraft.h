@@ -57,7 +57,9 @@ void UpdateAirplanesOnChangedAirport(const Station *st);
 void UpdateAircraftCache(Aircraft *v, bool update_range = false);
 
 void GetAircraftFlightLevelBounds(const Vehicle *v, int *min, int *max);
+int GetAircraftFlightLevel(Aircraft *v);
 int GetAircraftFlightLevel(DisasterVehicle *v);
+TileIndex GetClosestLandingTile(Aircraft *v);
 
 /** Variables that are cached to improve performance and such. */
 struct AircraftCache {
@@ -236,6 +238,7 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 #define FOR_ALL_AIRCRAFT(var) FOR_ALL_VEHICLES_OF_TYPE(Aircraft, var)
 
 void GetRotorImage(const Aircraft *v, EngineImageType image_type, VehicleSpriteSeq *result);
+void AircraftArrivesAtPartialDestination(Aircraft *v);
 
 Station *GetTargetAirportIfValid(const Aircraft *v);
 
