@@ -44,6 +44,10 @@ Depot::~Depot()
 	/* Clear the order backup. */
 	OrderBackup::Reset(this->index, false);
 
+	if (this->veh_type == VEH_AIRCRAFT) {
+		this->station->airport.hangar = nullptr;
+	}
+
 	/* Make sure no vehicle is going to the old depot. */
 	for (Vehicle *v : Vehicle::Iterate()) {
 		if (v->First() != v) continue;

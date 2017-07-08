@@ -3665,7 +3665,17 @@ void TriggerWatchedCargoCallbacks(Station *st)
 static bool StationHandleBigTick(BaseStation *st)
 {
 	if (!st->IsInUse()) {
-		if (++st->delete_ctr >= 8) delete st;
+		if (++st->delete_ctr >= 8) {
+			if (Station::IsExpected(st)) {
+				Station *s = Station::From(st);
+				if (s->airport.hangar != nullptr) {
+					delete s->airport.hangar;
+					s->airport.hangar = nullptr;
+				}
+			}
+
+			delete st;
+		}
 		return false;
 	}
 
