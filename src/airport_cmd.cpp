@@ -38,6 +38,8 @@
 #include "newgrf_airporttiles.h"
 #include "order_backup.h"
 #include "water_map.h"
+#include "tile_list.h"
+#include "pathfinder/yapf/yapf.h"
 
 #include "table/strings.h"
 #include "table/airtypes.h"
@@ -243,6 +245,94 @@ CommandCost AircraftInAirport(const Station *st)
 	return CommandCost();
 }
 
+/* Mark an airport design as not valid. */
+void MarkInvalidAirportDesign(Station *st)
+{
+	st->airport.flags |= AF_CLOSED_DESIGN;
+}
+
+/**
+ * Check whether there is a valid path
+ * between the possible start/end tiles of a path.
+ * @param[in,out] tile_list tiles already checked.
+ * @param tile tile to check now.
+ * @note tile_list and tile are airport tiles where a path
+ *       can begin or end; this function checks if a valid
+ *       path between all these tiles exists.
+ */
+bool CheckPathConnection(TileIDVector *tile_list, TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	assert(MayHaveAirTracks(tile));
+	assert(!IsPlainRunway(tile));
+	assert(!IsSimpleTrack(tile));
+
+	*tile_list->Append() = tile;
+
+	for (const TileIndex *t = tile_list->Begin(); t < tile_list->End() - 1; t++) {
+		if (!YapfDoesPathExist(*t, tile)) return false;
+	}
+
+	return true;
+}
+
+/**
+ * Checks whether the airport design is correct (i.e. it cannot cause errors).
+ * The simple way of ensuring this is that any hangar can reach any end path
+ * tile of the airport.
+ * @param station to check
+ */
+void ValidateAirportDesign(Station *st)
+{
+	st->airport.flags &= ~AF_CLOSED_DESIGN;
+
+	/* A valid airport must have a hangar or a terminal/helipad. */
+	if (!st->airport.HasHangar() && !st->airport.HasHelipad() && !st->airport.HasTerminals()) {
+		return MarkInvalidAirportDesign(st);
+	}
+
+	TileIDVector tile_list;
+
+	TILE_AREA_LOOP(t, st->airport) {
+		if (!st->TileBelongsToAirport(t)) continue;
+		if (!MayHaveAirTracks(t)) continue;
+
+		switch (GetAirportTileType(t)) {
+			case ATT_HANGAR:
+				if (!CheckPathConnection(&tile_list, t)) return MarkInvalidAirportDesign(st);
+				break;
+
+			case ATT_TERMINAL:
+				if (IsHeliport(t)) continue;
+				if (!CheckPathConnection(&tile_list, t)) return MarkInvalidAirportDesign(st);
+				break;
+
+			case ATT_RUNWAY_START: {
+				/* Possibly a takeoff or landing runway. */
+				if ((GetAirportTileTracks(t) & TRACK_BIT_CROSS) != 0) {
+					/* A takeoff runway (maybe a landing runway too
+					 * but it doesn't matter now). */
+					if (!CheckPathConnection(&tile_list, t)) return MarkInvalidAirportDesign(st);
+				} else if (!IsLandingTypeTile(t)) {
+					/* A non-landing non-takeoff runway... not valid. */
+					return MarkInvalidAirportDesign(st);
+				}
+				break;
+			}
+
+			case ATT_RUNWAY_END: {
+				/* Landing runway? */
+				if (!IsLandingTypeTile(t)) continue;
+				if (!CheckPathConnection(&tile_list, t)) return MarkInvalidAirportDesign(st);
+				break;
+			}
+
+			default: break;
+		}
+	}
+
+	assert((st->airport.flags & AF_CLOSED_DESIGN) == 0);
+}
 
 CommandCost CheckRunwayLength(AirType air_type, uint length)
 {
@@ -380,6 +470,7 @@ fill_next_track:
 			assert(st != NULL);
 			st->airport.type = AT_CUSTOM;
 			st->UpdateAirportDataStructure();
+			ValidateAirportDesign(st);
 		}
 	}
 
@@ -477,6 +568,7 @@ CommandCost AddRunway(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2,
 
 		st->airport.type = AT_CUSTOM;
 		st->UpdateAirportDataStructure();
+		ValidateAirportDesign(st);
 	}
 
 	return cost;
@@ -522,6 +614,7 @@ CommandCost RemoveRunway(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		st->airport.type = AT_CUSTOM;
 		st->UpdateAirportDataStructure();
+		ValidateAirportDesign(st);
 	}
 
 	return cost;
@@ -665,6 +758,7 @@ CommandCost CmdChangeAirportTiles(TileIndex tile, DoCommandFlag flags, uint32 p1
 
 		if (flags & DC_EXEC) {
 			st->UpdateAirportDataStructure();
+			ValidateAirportDesign(st);
 			st->UpdateCatchment();
 			UpdateCALayer(st->index);
 		}
@@ -856,6 +950,7 @@ static CommandCost RemoveAirportTiles(TileIndex org_tile, DoCommandFlag flags, u
 			st->airport.type = AT_CUSTOM;
 			AirType air_type = st->airport.air_type;
 			st->UpdateAirportDataStructure();
+			ValidateAirportDesign(st);
 			if (st->airport.tile == INVALID_TILE) {
 				st->facilities &= ~FACIL_AIRPORT;
 				st->town->noise_reached -= GetAirTypeInfo(air_type)->base_noise_level;
@@ -1125,6 +1220,7 @@ CommandCost CmdAddRemoveAirportTiles(TileIndex org_tile, DoCommandFlag flags, ui
 			}
 		}
 		st->UpdateAirportDataStructure();
+		ValidateAirportDesign(st);
 		st->AfterStationTileSetChange(true, new_location, STATION_AIRPORT);
 		st->airport.type = AT_CUSTOM;
 	}
