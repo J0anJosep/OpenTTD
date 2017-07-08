@@ -57,7 +57,9 @@ void UpdateAirplanesOnChangedAirport(const Station *st);
 void UpdateAircraftCache(Aircraft *v, bool update_range = false);
 
 void GetAircraftFlightLevelBounds(const Vehicle *v, int *min, int *max);
+int GetAircraftFlightLevel(Aircraft *v);
 int GetAircraftFlightLevel(DisasterVehicle *v);
+TileIndex GetClosestLandingTile(Aircraft *v);
 
 /** Variables that are cached to improve performance and such. */
 struct AircraftCache {
