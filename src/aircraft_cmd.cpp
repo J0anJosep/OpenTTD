@@ -1581,11 +1581,12 @@ void AircraftArrivesAtPartialDestination(Aircraft *v)
 			assert(IsTileType(v->tile, MP_STATION) && IsAirportTile(v->tile));
 			break;
 		case AM_HELICOPTER_LANDING:
+			/* if (!IsBuiltInHeliportTile(v->tile)) break;
 			TileIndex heli_tile = v->tile + ToTileIndexDiff({-2, 0});
 			assert(IsAirportTile(heli_tile));
-			Station *st = Station::GetByTile(heli_tile);
+			Station *st = Station::GetByTile(v->tile);
 			assert(st != NULL && st->airport.type == AT_OILRIG);
-			v->tile = heli_tile;
+			v->tile = heli_tile; */
 			break;
 	}
 
