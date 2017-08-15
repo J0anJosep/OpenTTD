@@ -1201,8 +1201,8 @@ static void AircraftArrivesAt(const Vehicle *v, Station *st)
 static bool CheckPartialDestination(Aircraft *v)
 {
 	/* Stay quiet if it reached the target state. */
-	//if (v->cur_state != v->next_state || v->tile != v->next_tile) return false;
-	if (v->tile != v->next_tile) return false;
+	if (v->cur_state != v->next_state || v->tile != v->next_tile) return false;
+	// if (v->tile != v->next_tile) return false;
 	if ((v->x_pos & 0xF) != 8 || (v->y_pos & 0xF) != 8) return false;
 	if (v->trackdir != v->next_trackdir) return false;
 
@@ -1581,12 +1581,12 @@ void AircraftArrivesAtPartialDestination(Aircraft *v)
 			assert(IsTileType(v->tile, MP_STATION) && IsAirportTile(v->tile));
 			break;
 		case AM_HELICOPTER_LANDING:
-			/* if (!IsBuiltInHeliportTile(v->tile)) break;
+			if (!IsBuiltInHeliportTile(v->tile)) break;
 			TileIndex heli_tile = v->tile + ToTileIndexDiff({-2, 0});
 			assert(IsAirportTile(heli_tile));
 			Station *st = Station::GetByTile(v->tile);
 			assert(st != NULL && st->airport.type == AT_OILRIG);
-			v->tile = heli_tile; */
+			v->tile = heli_tile;
 			break;
 	}
 
@@ -1985,7 +1985,6 @@ static void AircraftController(Aircraft *v, bool mode)
 
 	assert(CheckAircraftSanity(v));
 
-	//DumpAircraftState(v);
 	switch (v->current_order.GetType()) {
 		case OT_LEAVESTATION:
 			/* A leave station order only needs one tick to get processed,
