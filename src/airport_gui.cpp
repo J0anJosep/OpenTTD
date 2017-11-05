@@ -289,6 +289,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 			case WID_AT_INFRASTRUCTURE_CATCH:
 				second_bit = true;
+				FALLTHROUGH;
 			case WID_AT_INFRASTRUCTURE_NO_CATCH:
 				airport_tile_type = ATT_INFRASTRUCTURE;
 				break;
@@ -297,6 +298,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 			case WID_AT_RUNWAY_LANDING:
 				second_bit = true;
+				FALLTHROUGH;
 			case WID_AT_RUNWAY_NO_LANDING:
 				allow_ctrl_key = false;
 				airport_tile_type = ATT_RUNWAY_START;
@@ -308,6 +310,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 			case WID_AT_HANGAR_BIG:
 				second_bit = true;
+				FALLTHROUGH;
 			case WID_AT_HANGAR_SMALL:
 				allow_ctrl_key = false;
 				airport_tile_type = ATT_HANGAR;
