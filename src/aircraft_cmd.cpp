@@ -1557,6 +1557,8 @@ void AssignLandingTile(Aircraft *v, TileIndex tile)
 				case HTT_BUILTIN_HELIPORT:
 					/* Oil rig heliport is not the actual station tile. */
 					tile +=  ToTileIndexDiff({2, 0});
+					v->next_state = AM_HELICOPTER_LANDING;
+					break;
 				case HTT_HELIPORT:
 					v->next_state = AM_HELICOPTER_LANDING;
 					break;
