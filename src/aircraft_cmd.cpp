@@ -155,7 +155,7 @@ void GetRotorImage(const Aircraft *v, EngineImageType image_type, VehicleSpriteS
 	}
 
 	/* Return standard rotor sprites if there are no custom sprites for this helicopter */
-	DEBUG(misc, 0, "cur_state for rotor: %d", w->cur_state);
+	DEBUG(misc, 0, "cur_state for rotor: %d", (uint)w->cur_state);
 	result->Set(SPR_ROTOR_STOPPED + w->cur_state);
 }
 
@@ -1340,8 +1340,8 @@ void DumpAircraftState(Aircraft *v)
 	DEBUG(misc, 0, "Current tile %d, next_tile %d, dest_tile %d", v->tile, v->next_tile, v->dest_tile);
 	StationID st_id = IsTileType(v->tile, MP_STATION) ? GetStationIndex(v->tile) : 0;
 	DEBUG(misc, 0, "Actual station %d. Target station %d", st_id, v->targetairport);
-	DEBUG(misc, 0, "Trackdir %d, next_trackdir %d, desired_trackdir %d, invalid trackdir %d", v->trackdir,
-			v->next_trackdir, v->desired_trackdir, INVALID_TRACKDIR);
+	DEBUG(misc, 0, "Trackdir %d, next_trackdir %d, desired_trackdir %d, invalid trackdir %d", (uint)v->trackdir,
+			(uint)v->next_trackdir, (uint)v->desired_trackdir, (uint)INVALID_TRACKDIR);
 }
 
 byte GetFakeDelta(uint orig, uint dest) {
