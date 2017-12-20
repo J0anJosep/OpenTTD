@@ -196,24 +196,24 @@ struct TimetableWindow : Window {
 				SetDParamMaxValue(0, MAX_YEAR * DAYS_IN_YEAR, 0, FS_SMALL);
 				this->deparr_time_width = GetStringBoundingBox(STR_JUST_DATE_TINY).width;
 				this->deparr_abbr_width = max(GetStringBoundingBox(STR_TIMETABLE_ARRIVAL_ABBREVIATION).width, GetStringBoundingBox(STR_TIMETABLE_DEPARTURE_ABBREVIATION).width);
-				size->width = WD_FRAMERECT_LEFT + this->deparr_abbr_width + 10 + this->deparr_time_width + WD_FRAMERECT_RIGHT;
+				size->width = ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + 10) + this->deparr_abbr_width + this->deparr_time_width;
 				FALLTHROUGH;
 
 			case WID_VT_ARRIVAL_DEPARTURE_SELECTION:
 			case WID_VT_TIMETABLE_PANEL:
 				resize->height = FONT_HEIGHT_NORMAL;
-				size->height = WD_FRAMERECT_TOP + 8 * resize->height + WD_FRAMERECT_BOTTOM;
+				size->height = ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) + 8 * resize->height;
 				break;
 
 			case WID_VT_SUMMARY_PANEL:
-				size->height = WD_FRAMERECT_TOP + 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
+				size->height = ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) + 2 * FONT_HEIGHT_NORMAL;
 				break;
 		}
 	}
 
 	int GetOrderFromTimetableWndPt(int y, const Vehicle *v)
 	{
-		int sel = (y - this->GetWidget<NWidgetBase>(WID_VT_TIMETABLE_PANEL)->pos_y - WD_FRAMERECT_TOP) / FONT_HEIGHT_NORMAL;
+		int sel = (y - this->GetWidget<NWidgetBase>(WID_VT_TIMETABLE_PANEL)->pos_y - SWD_FRAMERECT_TOP) / FONT_HEIGHT_NORMAL;
 
 		if ((uint)sel >= this->vscroll->GetCapacity()) return INVALID_ORDER;
 
@@ -356,7 +356,7 @@ struct TimetableWindow : Window {
 
 		switch (widget) {
 			case WID_VT_TIMETABLE_PANEL: {
-				int y = r.top + WD_FRAMERECT_TOP;
+				int y = r.top + SWD_FRAMERECT_TOP;
 				int i = this->vscroll->GetPosition();
 				VehicleOrderID order_id = (i + 1) / 2;
 				bool final_order = false;
@@ -364,7 +364,7 @@ struct TimetableWindow : Window {
 				bool rtl = _current_text_dir == TD_RTL;
 				SetDParamMaxValue(0, v->GetNumOrders(), 2);
 				int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + 2 * GetSpriteSize(rtl ? SPR_ARROW_RIGHT : SPR_ARROW_LEFT).width + 3;
-				int middle = rtl ? r.right - WD_FRAMERECT_RIGHT - index_column_width : r.left + WD_FRAMERECT_LEFT + index_column_width;
+				int middle = rtl ? r.right - SWD_FRAMERECT_RIGHT - index_column_width : r.left + SWD_FRAMERECT_LEFT + index_column_width;
 
 				const Order *order = v->GetOrder(order_id);
 				while (order != NULL) {
@@ -372,7 +372,7 @@ struct TimetableWindow : Window {
 					if (!this->vscroll->IsVisible(i)) break;
 
 					if (i % 2 == 0) {
-						DrawOrderString(v, order, order_id, y, i == selected, true, r.left + WD_FRAMERECT_LEFT, middle, r.right - WD_FRAMERECT_RIGHT);
+						DrawOrderString(v, order, order_id, y, i == selected, true, r.left + SWD_FRAMERECT_LEFT, middle, r.right - SWD_FRAMERECT_RIGHT);
 
 						order_id++;
 
@@ -408,7 +408,7 @@ struct TimetableWindow : Window {
 						}
 						SetDParam(2, order->GetMaxSpeed());
 
-						DrawString(rtl ? r.left + WD_FRAMERECT_LEFT : middle, rtl ? middle : r.right - WD_FRAMERECT_LEFT, y, string, colour);
+						DrawString(rtl ? r.left + SWD_FRAMERECT_LEFT : middle, rtl ? middle : r.right - SWD_FRAMERECT_LEFT, y, string, colour);
 
 						if (final_order) break;
 					}
@@ -432,16 +432,16 @@ struct TimetableWindow : Window {
 
 				VehicleOrderID earlyID = BuildArrivalDepartureList(v, arr_dep) ? cur_order : (VehicleOrderID)INVALID_VEH_ORDER_ID;
 
-				int y = r.top + WD_FRAMERECT_TOP;
+				int y = r.top + SWD_FRAMERECT_TOP;
 
 				bool show_late = this->show_expected && v->lateness_counter > DAY_TICKS;
 				Ticks offset = show_late ? 0 : -v->lateness_counter;
 
 				bool rtl = _current_text_dir == TD_RTL;
-				int abbr_left  = rtl ? r.right - WD_FRAMERECT_RIGHT - this->deparr_abbr_width : r.left + WD_FRAMERECT_LEFT;
-				int abbr_right = rtl ? r.right - WD_FRAMERECT_RIGHT : r.left + WD_FRAMERECT_LEFT + this->deparr_abbr_width;
-				int time_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - WD_FRAMERECT_RIGHT - this->deparr_time_width;
-				int time_right = rtl ? r.left + WD_FRAMERECT_LEFT + this->deparr_time_width : r.right - WD_FRAMERECT_RIGHT;
+				int abbr_left  = rtl ? r.right - SWD_FRAMERECT_RIGHT - this->deparr_abbr_width : r.left + SWD_FRAMERECT_LEFT;
+				int abbr_right = rtl ? r.right - SWD_FRAMERECT_RIGHT : r.left + SWD_FRAMERECT_LEFT + this->deparr_abbr_width;
+				int time_left  = rtl ? r.left + SWD_FRAMERECT_LEFT : r.right - SWD_FRAMERECT_RIGHT - this->deparr_time_width;
+				int time_right = rtl ? r.left + SWD_FRAMERECT_LEFT + this->deparr_time_width : r.right - SWD_FRAMERECT_RIGHT;
 
 				for (int i = this->vscroll->GetPosition(); i / 2 < v->GetNumOrders(); ++i) { // note: i is also incremented in the loop
 					/* Don't draw anything if it extends past the end of the window. */
@@ -473,12 +473,12 @@ struct TimetableWindow : Window {
 			}
 
 			case WID_VT_SUMMARY_PANEL: {
-				int y = r.top + WD_FRAMERECT_TOP;
+				int y = r.top + SWD_FRAMERECT_TOP;
 
 				Ticks total_time = v->orders.list != NULL ? v->orders.list->GetTimetableDurationIncomplete() : 0;
 				if (total_time != 0) {
 					SetTimetableParams(0, 1, total_time);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, v->orders.list->IsCompleteTimetable() ? STR_TIMETABLE_TOTAL_TIME : STR_TIMETABLE_TOTAL_TIME_INCOMPLETE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, v->orders.list->IsCompleteTimetable() ? STR_TIMETABLE_TOTAL_TIME : STR_TIMETABLE_TOTAL_TIME_INCOMPLETE);
 				}
 				y += FONT_HEIGHT_NORMAL;
 
@@ -487,16 +487,16 @@ struct TimetableWindow : Window {
 					 * timetable at the given time. */
 					SetDParam(0, STR_JUST_DATE_TINY);
 					SetDParam(1, v->timetable_start);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_START_AT);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_START_AT);
 				} else if (!HasBit(v->vehicle_flags, VF_TIMETABLE_STARTED)) {
 					/* We aren't running on a timetable yet, so how can we be "on time"
 					 * when we aren't even "on service"/"on duty"? */
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_NOT_STARTED);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_NOT_STARTED);
 				} else if (v->lateness_counter == 0 || (!_settings_client.gui.timetable_in_ticks && v->lateness_counter / DAY_TICKS == 0)) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_ON_TIME);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_ON_TIME);
 				} else {
 					SetTimetableParams(0, 1, abs(v->lateness_counter));
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, v->lateness_counter < 0 ? STR_TIMETABLE_STATUS_EARLY : STR_TIMETABLE_STATUS_LATE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, v->lateness_counter < 0 ? STR_TIMETABLE_STATUS_EARLY : STR_TIMETABLE_STATUS_LATE);
 				}
 				break;
 			}
@@ -637,7 +637,7 @@ struct TimetableWindow : Window {
 	virtual void OnResize()
 	{
 		/* Update the scroll bar */
-		this->vscroll->SetCapacityFromWidget(this, WID_VT_TIMETABLE_PANEL, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		this->vscroll->SetCapacityFromWidget(this, WID_VT_TIMETABLE_PANEL, ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 	}
 
 	/**

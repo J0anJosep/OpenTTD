@@ -75,18 +75,18 @@ public:
 	{
 		if (widget != WID_LI_BACKGROUND) return;
 
-		uint y = r.top + WD_TEXTPANEL_TOP;
+		uint y = r.top + SWD_TEXTPANEL_TOP;
 		for (uint i = 0; i < LAND_INFO_CENTERED_LINES; i++) {
 			if (StrEmpty(this->landinfo_data[i])) break;
 
-			DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
-			y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+			DrawString(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
+			y += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 			if (i == 0) y += 4;
 		}
 
 		if (!StrEmpty(this->landinfo_data[LAND_INFO_MULTICENTER_LINE])) {
 			SetDParamStr(0, this->landinfo_data[LAND_INFO_MULTICENTER_LINE]);
-			DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_TEXTPANEL_BOTTOM, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
+			DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, r.bottom - SWD_TEXTPANEL_BOTTOM, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 		}
 	}
 
@@ -94,22 +94,22 @@ public:
 	{
 		if (widget != WID_LI_BACKGROUND) return;
 
-		size->height = WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM;
+		size->height = ScaleGUIPixels(WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM);
 		for (uint i = 0; i < LAND_INFO_CENTERED_LINES; i++) {
 			if (StrEmpty(this->landinfo_data[i])) break;
 
-			uint width = GetStringBoundingBox(this->landinfo_data[i]).width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
+			uint width = GetStringBoundingBox(this->landinfo_data[i]).width + ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
 			size->width = max(size->width, width);
 
-			size->height += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+			size->height += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 			if (i == 0) size->height += 4;
 		}
 
 		if (!StrEmpty(this->landinfo_data[LAND_INFO_MULTICENTER_LINE])) {
-			uint width = GetStringBoundingBox(this->landinfo_data[LAND_INFO_MULTICENTER_LINE]).width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
+			uint width = GetStringBoundingBox(this->landinfo_data[LAND_INFO_MULTICENTER_LINE]).width + ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
 			size->width = max(size->width, min(300u, width));
 			SetDParamStr(0, this->landinfo_data[LAND_INFO_MULTICENTER_LINE]);
-			size->height += GetStringHeight(STR_JUST_RAW_STRING, size->width - WD_FRAMETEXT_LEFT - WD_FRAMETEXT_RIGHT);
+			size->height += GetStringHeight(STR_JUST_RAW_STRING, size->width - ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT));
 		}
 	}
 
@@ -507,7 +507,7 @@ struct AboutWindow : public Window {
 	{
 		if (--this->counter == 0) {
 			this->counter = 5;
-			this->text_position--;
+			this->text_position -= WD_GUI_UNIT;
 			/* If the last text has scrolled start a new from the start */
 			if (this->text_position < (int)(this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->pos_y - lengthof(_credits) * this->line_height)) {
 				this->text_position = this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->pos_y + this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->current_y;
@@ -692,12 +692,12 @@ struct TooltipsWindow : public Window
 		/* There is only one widget. */
 		for (uint i = 0; i != this->paramcount; i++) SetDParam(i, this->params[i]);
 
-		size->width  = min(GetStringBoundingBox(this->string_id).width, max<uint>(_tooltip_width, ScaleGUITrad(194)));
+		size->width  = min(GetStringBoundingBox(this->string_id).width, max<uint>(_tooltip_width, ScaleGUIPixels(194)));
 		size->height = GetStringHeight(this->string_id, size->width);
 
 		/* Increase slightly to have some space around the box. */
-		size->width  += 2 + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-		size->height += 2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		size->width  += ScaleGUIPixels(2 + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+		size->height += ScaleGUIPixels(2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
@@ -709,7 +709,7 @@ struct TooltipsWindow : public Window
 		for (uint arg = 0; arg < this->paramcount; arg++) {
 			SetDParam(arg, this->params[arg]);
 		}
-		DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, this->string_id, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, r.top + SWD_FRAMERECT_TOP, r.bottom - SWD_FRAMERECT_BOTTOM, this->string_id, TC_FROMSTRING, SA_CENTER);
 	}
 
 	virtual void OnMouseLoop()
@@ -766,7 +766,8 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	bool rtl = _current_text_dir == TD_RTL;
 	StringID str = STR_ICON_DELETE_STRING_LTR + rtl;
 	Dimension button_size = GetStringBoundingBox(str);
-	int clearbtn_width = GetMinSizing(NWST_BUTTON, button_size.width + WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
+	int clearbtn_width = GetMinSizing(NWST_BUTTON,
+			button_size.width + ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT));
 
 	int clearbtn_left  = wi->pos_x + (rtl ? 0 : wi->current_x - clearbtn_width);
 	int clearbtn_right = wi->pos_x + (rtl ? clearbtn_width : wi->current_x) - 1;
@@ -780,14 +781,14 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 
 	DrawString(clearbtn_left + wi->IsLowered(), clearbtn_right, Center(top + wi->IsLowered(), bottom - top, button_size.height), str, TC_BLACK, SA_HOR_CENTER);
 
-	if (this->text.bytes == 1) GfxFillRect(clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
+	if (this->text.bytes == 1) GfxFillRect(clearbtn_left + WD_BEVEL, top + WD_BEVEL, clearbtn_right - WD_BEVEL, bottom - WD_BEVEL, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
 
 	DrawFrameRect(left, top, right, bottom, wi->colour, FR_LOWERED | FR_DARKENED);
-	GfxFillRect(left + 1, top + 1, right - 1, bottom - 1, PC_BLACK);
+	GfxFillRect(left + WD_BEVEL, top + WD_BEVEL, right - WD_BEVEL, bottom - WD_BEVEL, PC_BLACK);
 
 	/* Limit the drawing of the string inside the widget boundaries */
 	DrawPixelInfo dpi;
-	if (!FillDrawPixelInfo(&dpi, left + WD_FRAMERECT_LEFT, top + WD_FRAMERECT_TOP, right - left - WD_FRAMERECT_RIGHT, bottom - top - WD_FRAMERECT_BOTTOM)) return;
+	if (!FillDrawPixelInfo(&dpi, left + SWD_FRAMERECT_LEFT, top + SWD_FRAMERECT_TOP, right - left - SWD_FRAMERECT_RIGHT, bottom - top - SWD_FRAMERECT_BOTTOM)) return;
 
 	DrawPixelInfo *old_dpi = _cur_dpi;
 	_cur_dpi = &dpi;
@@ -827,7 +828,7 @@ Point QueryString::GetCaretPosition(const Window *w, int wid) const
 
 	bool rtl = _current_text_dir == TD_RTL;
 	Dimension sprite_size = GetSpriteSize(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT);
-	int clearbtn_width = sprite_size.width + WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT;
+	int clearbtn_width = sprite_size.width + ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
 
 	int left   = wi->pos_x + (rtl ? clearbtn_width : 0);
 	int right  = wi->pos_x + (rtl ? wi->current_x : wi->current_x - clearbtn_width) - 1;
@@ -837,7 +838,7 @@ Point QueryString::GetCaretPosition(const Window *w, int wid) const
 	int delta = min(0, (right - left) - tb->pixels - 10);
 	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
 
-	Point pt = {left + WD_FRAMERECT_LEFT + tb->caretxoffs + delta, (int)wi->pos_y + WD_FRAMERECT_TOP};
+	Point pt = {left + SWD_FRAMERECT_LEFT + tb->caretxoffs + delta, (int)wi->pos_y + SWD_FRAMERECT_TOP};
 	return pt;
 }
 
@@ -857,13 +858,13 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
 
 	bool rtl = _current_text_dir == TD_RTL;
 	Dimension sprite_size = GetSpriteSize(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT);
-	int clearbtn_width = sprite_size.width + WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT;
+	int clearbtn_width = sprite_size.width + ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
 
 	int left   = wi->pos_x + (rtl ? clearbtn_width : 0);
 	int right  = wi->pos_x + (rtl ? wi->current_x : wi->current_x - clearbtn_width) - 1;
 
-	int top    = wi->pos_y + WD_FRAMERECT_TOP;
-	int bottom = wi->pos_y + wi->current_y - 1 - WD_FRAMERECT_BOTTOM;
+	int top    = wi->pos_y + SWD_FRAMERECT_TOP;
+	int bottom = wi->pos_y + wi->current_y - 1 - SWD_FRAMERECT_BOTTOM;
 
 	/* Clamp caret position to be inside our current width. */
 	const Textbuf *tb = &this->text;
@@ -874,7 +875,7 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
 	Point p1 = GetCharPosInString(tb->buf, from, FS_NORMAL);
 	Point p2 = from != to ? GetCharPosInString(tb->buf, to, FS_NORMAL) : p1;
 
-	Rect r = { Clamp(left + p1.x + delta + WD_FRAMERECT_LEFT, left, right), top, Clamp(left + p2.x + delta + WD_FRAMERECT_LEFT, left, right - WD_FRAMERECT_RIGHT), bottom };
+	Rect r = { Clamp(left + p1.x + delta + SWD_FRAMERECT_LEFT, left, right), top, Clamp(left + p2.x + delta + SWD_FRAMERECT_LEFT, left, right - SWD_FRAMERECT_RIGHT), bottom };
 
 	return r;
 }
@@ -894,13 +895,13 @@ const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point
 
 	bool rtl = _current_text_dir == TD_RTL;
 	Dimension sprite_size = GetSpriteSize(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT);
-	int clearbtn_width = sprite_size.width + WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT;
+	int clearbtn_width = sprite_size.width + ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
 
 	int left   = wi->pos_x + (rtl ? clearbtn_width : 0);
 	int right  = wi->pos_x + (rtl ? wi->current_x : wi->current_x - clearbtn_width) - 1;
 
-	int top    = wi->pos_y + WD_FRAMERECT_TOP;
-	int bottom = wi->pos_y + wi->current_y - 1 - WD_FRAMERECT_BOTTOM;
+	int top    = wi->pos_y + SWD_FRAMERECT_TOP;
+	int bottom = wi->pos_y + wi->current_y - 1 - SWD_FRAMERECT_BOTTOM;
 
 	if (!IsInsideMM(pt.y, top, bottom)) return NULL;
 
@@ -1121,8 +1122,8 @@ struct QueryWindow : public Window {
 
 		size->width = GetMinSizing(NWST_MESSAGE_LENGTH, size->width);
 		Dimension d = GetStringMultiLineBoundingBox(this->message, *size);
-		d.width += WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
-		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		d.width += ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
+		d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		*size = d;
 	}
 
@@ -1130,7 +1131,7 @@ struct QueryWindow : public Window {
 	{
 		if (widget != WID_Q_TEXT) return;
 
-		DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
+		DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, r.top + SWD_FRAMERECT_TOP, r.bottom - SWD_FRAMERECT_BOTTOM,
 				this->message, TC_FROMSTRING, SA_CENTER);
 	}
 

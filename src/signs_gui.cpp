@@ -196,27 +196,27 @@ struct SignListWindow : Window, SignList {
 	{
 		switch (widget) {
 			case WID_SIL_LIST: {
-				uint y = Center(r.top + WD_FRAMERECT_TOP, this->resize.step_height); // Offset from top of widget.
+				uint y = r.top + SWD_FRAMERECT_TOP; // Offset from top of widget.
 				/* No signs? */
 				if (this->vscroll->GetCount() == 0) {
-					DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_STATION_LIST_NONE);
+					DrawString(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, STR_STATION_LIST_NONE);
 					return;
 				}
 
 				bool rtl = _current_text_dir == TD_RTL;
-				int sprite_offset_y = (FONT_HEIGHT_NORMAL - 10) / 2 + 1;
-				uint icon_left  = 4 + (rtl ? r.right - this->text_offset : r.left);
-				uint text_left  = r.left + (rtl ? WD_FRAMERECT_LEFT : this->text_offset);
-				uint text_right = r.right - (rtl ? this->text_offset : WD_FRAMERECT_RIGHT);
+				Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
+				uint icon_left  = 4 * WD_GUI_UNIT + (rtl ? r.right - this->text_offset : r.left);
+				uint text_left  = r.left + (rtl ? SWD_FRAMERECT_LEFT : this->text_offset);
+				uint text_right = r.right - (rtl ? this->text_offset : SWD_FRAMERECT_RIGHT);
 
 				/* At least one sign available. */
 				for (uint16 i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < this->vscroll->GetCount(); i++) {
 					const Sign *si = this->signs[i];
 
-					if (si->owner != OWNER_NONE) DrawCompanyIcon(si->owner, icon_left, y + sprite_offset_y);
+					if (si->owner != OWNER_NONE) DrawCompanyIcon(si->owner, icon_left, Center(y, this->resize.step_height, d.height));
 
 					SetDParam(0, si->index);
-					DrawString(text_left, text_right, y, STR_SIGN_NAME, TC_YELLOW);
+					DrawString(text_left, text_right, Center(y, this->resize.step_height), STR_SIGN_NAME, TC_YELLOW);
 					y += this->resize.step_height;
 				}
 				break;
@@ -233,7 +233,7 @@ struct SignListWindow : Window, SignList {
 	{
 		switch (widget) {
 			case WID_SIL_LIST: {
-				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SIL_LIST, WD_FRAMERECT_TOP);
+				uint id_v = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SIL_LIST, SWD_FRAMERECT_TOP);
 				if (id_v == INT_MAX) return;
 
 				const Sign *si = this->signs[id_v];
@@ -258,7 +258,8 @@ struct SignListWindow : Window, SignList {
 
 	virtual void OnResize()
 	{
-		this->vscroll->SetCapacityFromWidget(this, WID_SIL_LIST, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		this->vscroll->SetCapacityFromWidget(this, WID_SIL_LIST,
+				ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -266,10 +267,10 @@ struct SignListWindow : Window, SignList {
 		switch (widget) {
 			case WID_SIL_LIST: {
 				Dimension spr_dim = GetSpriteSize(SPR_COMPANY_ICON);
-				this->text_offset = WD_FRAMETEXT_LEFT + spr_dim.width + 2; // 2 pixels space between icon and the sign text.
+				this->text_offset = SWD_FRAMETEXT_LEFT + spr_dim.width + 2 * WD_GUI_UNIT; // 2 pixels space between icon and the sign text.
 				resize->height = max<uint>(FONT_HEIGHT_NORMAL, spr_dim.height);
 				resize->height = GetMinSizing(NWST_STEP, resize->height);
-				Dimension d = {(uint)(this->text_offset + WD_FRAMETEXT_RIGHT), WD_FRAMERECT_TOP + 5 * resize->height + WD_FRAMERECT_BOTTOM};
+				Dimension d = {(uint)(this->text_offset + SWD_FRAMETEXT_RIGHT), SWD_FRAMERECT_TOP + 5 * resize->height + SWD_FRAMERECT_BOTTOM};
 				*size = maxdim(*size, d);
 				break;
 			}

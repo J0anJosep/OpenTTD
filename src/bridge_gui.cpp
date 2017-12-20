@@ -200,8 +200,8 @@ public:
 				text_dim.height++; // Allowing the bottom row pixels to be rendered on the edge of the matrix field.
 				resize->height = max(sprite_dim.height, text_dim.height) + 2; // Max of both sizes + account for matrix edges.
 
-				this->bridgetext_offset = WD_MATRIX_LEFT + sprite_dim.width + 1; // Left edge of text, 1 pixel distance from the sprite.
-				size->width = this->bridgetext_offset + text_dim.width + WD_MATRIX_RIGHT;
+				this->bridgetext_offset = SWD_MATRIX_LEFT + sprite_dim.width + 1; // Left edge of text, 1 pixel distance from the sprite.
+				size->width = this->bridgetext_offset + text_dim.width + SWD_MATRIX_RIGHT;
 				size->height = 4 * resize->height; // Smallest bridge gui is 4 entries high in the matrix.
 				break;
 			}
@@ -240,7 +240,7 @@ public:
 					SetDParam(0, b->material);
 
 					uint y_sprite = Center(y, this->resize.step_height, GetSpriteSize(b->sprite).height);
-					DrawSprite(b->sprite, b->pal, r.left + WD_MATRIX_LEFT, y_sprite);
+					DrawSprite(b->sprite, b->pal, r.left + SWD_MATRIX_LEFT, y_sprite);
 					DrawStringMultiLine(r.left + this->bridgetext_offset, r.right, y + 2, y + this->resize.step_height,
 							_game_mode == GM_EDITOR ? STR_SELECT_BRIDGE_SCENEDIT_INFO : STR_SELECT_BRIDGE_INFO);
 					y += this->resize.step_height;
