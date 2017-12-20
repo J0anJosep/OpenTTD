@@ -376,7 +376,7 @@ struct NewGRFInspectWindow : Window {
 			case WID_NGRFI_VEH_CHAIN: {
 				assert(this->HasChainIndex());
 				GrfSpecFeature f = GetFeatureNum(this->window_number);
-				size->height = max(size->height, GetVehicleImageCellSize((VehicleType)(VEH_TRAIN + (f - GSF_TRAINS)), EIT_IN_DEPOT).height + 2 + WD_BEVEL_TOP + WD_BEVEL_BOTTOM);
+				size->height = max(size->height, GetVehicleImageCellSize((VehicleType)(VEH_TRAIN + (f - GSF_TRAINS)), EIT_IN_DEPOT).height + 2 + 2 * WD_BEVEL);
 				break;
 			}
 
@@ -428,7 +428,7 @@ struct NewGRFInspectWindow : Window {
 					if (u == v) sel_end = total_width;
 				}
 
-				int width = r.right + 1 - r.left - WD_BEVEL_LEFT - WD_BEVEL_RIGHT;
+				int width = r.right + 1 - r.left - 2 * WD_BEVEL;
 				int skip = 0;
 				if (total_width > width) {
 					int sel_center = (sel_start + sel_end) / 2;
@@ -438,7 +438,7 @@ struct NewGRFInspectWindow : Window {
 				GrfSpecFeature f = GetFeatureNum(this->window_number);
 				int h = GetVehicleImageCellSize((VehicleType)(VEH_TRAIN + (f - GSF_TRAINS)), EIT_IN_DEPOT).height;
 				int y = CenterBounds(r.top, r.bottom, h);
-				DrawVehicleImage(v->First(), r.left + WD_BEVEL_LEFT, r.right - WD_BEVEL_RIGHT, y + 1, h, INVALID_VEHICLE, EIT_IN_DETAILS, skip);
+				DrawVehicleImage(v->First(), r.left + WD_BEVEL, r.right - WD_BEVEL, y + 1, h, INVALID_VEHICLE, EIT_IN_DETAILS, skip);
 
 				/* Highlight the articulated part (this is different to the whole-vehicle highlighting of DrawVehicleImage */
 				if (_current_text_dir == TD_RTL) {
@@ -873,13 +873,13 @@ struct SpriteAlignerWindow : Window {
 			case WID_SA_SPRITE: {
 				/* Center the sprite ourselves */
 				const Sprite *spr = GetSprite(this->current_sprite, ST_NORMAL);
-				int width  = r.right  - r.left + 1 - WD_BEVEL_LEFT - WD_BEVEL_RIGHT;
-				int height = r.bottom - r.top  + 1 - WD_BEVEL_TOP - WD_BEVEL_BOTTOM;
+				int width  = r.right  - r.left + 1 - 2 * WD_BEVEL;
+				int height = r.bottom - r.top  + 1 - 2 * WD_BEVEL;
 				int x = -UnScaleGUI(spr->x_offs) + (width  - UnScaleGUI(spr->width) ) / 2;
 				int y = -UnScaleGUI(spr->y_offs) + (height - UnScaleGUI(spr->height)) / 2;
 
 				DrawPixelInfo new_dpi;
-				if (!FillDrawPixelInfo(&new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
+				if (!FillDrawPixelInfo(&new_dpi, r.left + WD_BEVEL, r.top + WD_BEVEL, width, height)) break;
 				DrawPixelInfo *old_dpi = _cur_dpi;
 				_cur_dpi = &new_dpi;
 
@@ -897,10 +897,10 @@ struct SpriteAlignerWindow : Window {
 				SmallVector<SpriteID, 256> &list = _newgrf_debug_sprite_picker.sprites;
 				int max = min<int>(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), list.Length());
 
-				int y = Center(r.top + WD_FRAMERECT_TOP, step_size, FONT_HEIGHT_NORMAL);
+				int y = Center(r.top + SWD_FRAMERECT_TOP, step_size, FONT_HEIGHT_NORMAL);
 				for (int i = this->vscroll->GetPosition(); i < max; i++) {
 					SetDParam(0, list[i]);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_BLACK_COMMA, TC_FROMSTRING, SA_CENTER | SA_FORCE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_BLACK_COMMA, TC_FROMSTRING, SA_CENTER | SA_FORCE);
 					y += step_size;
 				}
 				break;
@@ -1051,7 +1051,7 @@ static const NWidgetPart _nested_sprite_aligner_widgets[] = {
 						NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_SA_LEFT), SetDataTip(SPR_ARROW_LEFT, STR_SPRITE_ALIGNER_MOVE_TOOLTIP), SetResize(0, 0),
 						NWidget(NWID_SPACER), SetFill(1, 1),
 					EndContainer(),
-					NWidget(WWT_PANEL, COLOUR_DARK_BLUE, WID_SA_SPRITE), SetDataTip(STR_NULL, STR_SPRITE_ALIGNER_SPRITE_TOOLTIP),
+					NWidget(WWT_PANEL, COLOUR_DARK_BLUE, WID_SA_SPRITE), SetMinimalSize(34, 100), SetDataTip(STR_NULL, STR_SPRITE_ALIGNER_SPRITE_TOOLTIP),
 					EndContainer(),
 					NWidget(NWID_VERTICAL),
 						NWidget(NWID_SPACER), SetFill(1, 1),

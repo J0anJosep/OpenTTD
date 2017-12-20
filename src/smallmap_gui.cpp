@@ -1165,7 +1165,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	}
 
 	/* The width of a column is the minimum width of all texts + the size of the blob + some spacing */
-	this->column_width = min_width + LEGEND_BLOB_WIDTH + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+	this->column_width = min_width + FONT_HEIGHT_SMALL + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
 }
 
 /* virtual */ void SmallMapWindow::OnPaint()
@@ -1198,15 +1198,15 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 			uint columns = this->GetNumberColumnsLegend(r.right - r.left + 1);
 			uint number_of_rows = this->GetNumberRowsLegend(columns);
 			bool rtl = _current_text_dir == TD_RTL;
-			uint y_org = r.top + WD_FRAMERECT_TOP;
-			uint x = rtl ? r.right - this->column_width - WD_FRAMERECT_RIGHT : r.left + WD_FRAMERECT_LEFT;
+			uint y_org = r.top + SWD_FRAMERECT_TOP;
+			uint x = rtl ? r.right - this->column_width - SWD_FRAMERECT_RIGHT : r.left + SWD_FRAMERECT_LEFT;
 			uint y = Center(y_org, this->row_height, FONT_HEIGHT_SMALL);
 			uint i = 0; // Row counter for industry legend.
 
-			uint text_left  = rtl ? 0 : LEGEND_BLOB_WIDTH + WD_FRAMERECT_LEFT;
-			uint text_right = this->column_width - 1 - (rtl ? LEGEND_BLOB_WIDTH + WD_FRAMERECT_RIGHT : 0);
-			uint blob_left  = rtl ? this->column_width - 1 - LEGEND_BLOB_WIDTH : 0;
-			uint blob_right = rtl ? this->column_width - 1 : LEGEND_BLOB_WIDTH;
+			uint text_left  = rtl ? 0 : FONT_HEIGHT_SMALL + SWD_FRAMERECT_LEFT;
+			uint text_right = this->column_width - 1 - (rtl ? FONT_HEIGHT_SMALL + SWD_FRAMERECT_RIGHT : 0);
+			uint blob_left  = rtl ? this->column_width - 1 - FONT_HEIGHT_SMALL : 0;
+			uint blob_right = rtl ? this->column_width - 1 : FONT_HEIGHT_SMALL;
 
 			StringID string = STR_NULL;
 			switch (this->map_type) {
@@ -1271,7 +1271,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 						DrawString(x + text_left, x + text_right, y, tbl->legend);
 						break;
 				}
-				GfxFillRect(x + blob_left + 1, y + 2, x + blob_right - 1, y + FONT_HEIGHT_SMALL - 2, legend_colour); // Legend colour
+				GfxFillRect(x + blob_left + WD_GUI_UNIT, y + 1 + WD_GUI_UNIT, x + blob_right - WD_GUI_UNIT, y + FONT_HEIGHT_SMALL - WD_GUI_UNIT - 1, legend_colour); // Legend colour
 
 				y += this->row_height;
 			}
@@ -1368,7 +1368,7 @@ void SmallMapWindow::SetOverlayCargoMask()
 int SmallMapWindow::GetPositionOnLegend(Point pt)
 {
 	const NWidgetBase *wi = this->GetWidget<NWidgetBase>(WID_SM_LEGEND);
-	uint line = (pt.y - wi->pos_y - WD_FRAMERECT_TOP) / this->row_height;
+	uint line = (pt.y - wi->pos_y - SWD_FRAMERECT_TOP) / this->row_height;
 	uint columns = this->GetNumberColumnsLegend(wi->current_x);
 	uint number_of_rows = this->GetNumberRowsLegend(columns);
 	if (line >= number_of_rows) return -1;
@@ -1376,7 +1376,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 	bool rtl = _current_text_dir == TD_RTL;
 	int x = pt.x - wi->pos_x;
 	if (rtl) x = wi->current_x - x;
-	uint column = (x - WD_FRAMERECT_LEFT) / this->column_width;
+	uint column = (x - SWD_FRAMERECT_LEFT) / this->column_width;
 
 	return (column * number_of_rows) + line;
 }
