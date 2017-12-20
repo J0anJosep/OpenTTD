@@ -129,7 +129,7 @@ WindowDesc::~WindowDesc()
  */
 int16 WindowDesc::GetDefaultWidth() const
 {
-	return this->pref_width != 0 ? this->pref_width : ScaleGUITrad(this->default_width_trad);
+	return this->pref_width != 0 ? this->pref_width : ScaleGUIPixels(this->default_width_trad);
 }
 
 /**
@@ -139,7 +139,7 @@ int16 WindowDesc::GetDefaultWidth() const
  */
 int16 WindowDesc::GetDefaultHeight() const
 {
-	return this->pref_height != 0 ? this->pref_height : ScaleGUITrad(this->default_height_trad);
+	return this->pref_height != 0 ? this->pref_height : ScaleGUIPixels(this->default_height_trad);
 }
 
 /**

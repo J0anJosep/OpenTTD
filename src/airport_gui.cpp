@@ -331,7 +331,7 @@ public:
 					size->width = max(size->width, GetStringBoundingBox(as->name).width);
 				}
 
-				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
+				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM));
 				size->height = 5 * this->line_height;
 				break;
 			}
@@ -344,8 +344,8 @@ public:
 						SpriteID sprite = GetCustomAirportSprite(as, layout);
 						if (sprite != 0) {
 							Dimension d = GetSpriteSize(sprite);
-							d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-							d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+							d.width += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+							d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 							*size = maxdim(d, *size);
 						}
 					}
@@ -381,10 +381,10 @@ public:
 				for (uint i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < apclass->GetSpecCount(); i++) {
 					const AirportSpec *as = apclass->GetSpec(i);
 					if (!as->IsAvailable()) {
-						GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->line_height - 2, PC_BLACK, FILLRECT_CHECKER);
+						GfxFillRect(r.left + WD_BEVEL, y + WD_BEVEL, r.right + WD_BEVEL, y + this->line_height - WD_BEVEL, PC_BLACK, FILLRECT_CHECKER);
 					}
 
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, Center(y, this->line_height), as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
+					DrawString(r.left + SWD_MATRIX_LEFT, r.right - SWD_MATRIX_RIGHT, Center(y, this->line_height), as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
 
 					y += this->line_height;
 				}
@@ -415,7 +415,7 @@ public:
 	{
 		this->DrawWidgets();
 
-		uint16 top = this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->pos_y + this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->current_y + WD_PAR_VSEP_NORMAL;
+		uint16 top = this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->pos_y + this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->current_y + SWD_PAR_VSEP_NORMAL;
 		NWidgetBase *panel_nwi = this->GetWidget<NWidgetBase>(WID_AP_BOTTOMPANEL);
 
 		int right = panel_nwi->pos_x +  panel_nwi->current_x;
@@ -429,13 +429,13 @@ public:
 			if (_settings_game.economy.station_noise_level) {
 				/* show the noise of the selected airport */
 				SetDParam(0, as->noise_level);
-				DrawString(panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_STATION_BUILD_NOISE);
-				top += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+				DrawString(panel_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, STR_STATION_BUILD_NOISE);
+				top += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 			}
 
 			/* strings such as 'Size' and 'Coverage Area' */
-			top = DrawStationCoverageAreaText(panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, SCT_ALL, rad, false) + WD_PAR_VSEP_NORMAL;
-			top = DrawStationCoverageAreaText(panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, SCT_ALL, rad, true) + WD_PAR_VSEP_NORMAL;
+			top = DrawStationCoverageAreaText(panel_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, SCT_ALL, rad, false) + SWD_PAR_VSEP_NORMAL;
+			top = DrawStationCoverageAreaText(panel_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, SCT_ALL, rad, true) + SWD_PAR_VSEP_NORMAL;
 		}
 
 		/* Resize background if the window is too small.

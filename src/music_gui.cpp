@@ -529,8 +529,8 @@ struct MusicTrackSelectionWindow : public Window {
 					d.height += d2.height;
 				}
 				resize->height = GetMinSizing(NWST_STEP, d.height);
-				d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				d.height = 10 * resize->height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				d.width += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				d.height = 10 * resize->height + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				*size = maxdim(*size, d);
 				break;
 			}
@@ -541,28 +541,28 @@ struct MusicTrackSelectionWindow : public Window {
 	{
 		switch (widget) {
 			case WID_MTS_LIST_LEFT: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL, r.right - WD_BEVEL, r.bottom - WD_BEVEL, PC_BLACK);
 
-				int y = r.top + WD_FRAMERECT_TOP;
+				int y = r.top + SWD_FRAMERECT_TOP;
 				for (MusicSystem::Playlist::const_iterator song = _music.music_set.begin(); song != _music.music_set.end(); ++song) {
 					SetDParam(0, song->tracknr);
 					SetDParam(1, 2);
 					SetDParamStr(2, song->songname);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, Center(y, this->resize.step_height, FONT_HEIGHT_SMALL), STR_PLAYLIST_TRACK_NAME);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, Center(y, this->resize.step_height, FONT_HEIGHT_SMALL), STR_PLAYLIST_TRACK_NAME);
 					y += this->resize.step_height;
 				}
 				break;
 			}
 
 			case WID_MTS_LIST_RIGHT: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL, r.right - WD_BEVEL, r.bottom - WD_BEVEL, PC_BLACK);
 
-				int y = r.top + WD_FRAMERECT_TOP;
+				int y = r.top + SWD_FRAMERECT_TOP;
 				for (MusicSystem::Playlist::const_iterator song = _music.active_playlist.begin(); song != _music.active_playlist.end(); ++song) {
 					SetDParam(0, song->tracknr);
 					SetDParam(1, 2);
 					SetDParamStr(2, song->songname);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, Center(y, this->resize.step_height, FONT_HEIGHT_SMALL), STR_PLAYLIST_TRACK_NAME);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, Center(y, this->resize.step_height, FONT_HEIGHT_SMALL), STR_PLAYLIST_TRACK_NAME);
 					y += this->resize.step_height;
 				}
 				break;
@@ -574,13 +574,13 @@ struct MusicTrackSelectionWindow : public Window {
 	{
 		switch (widget) {
 			case WID_MTS_LIST_LEFT: { // add to playlist
-				int y = this->GetRowFromWidget(pt.y, widget, WD_FRAMERECT_TOP, this->resize.step_height);
+				int y = this->GetRowFromWidget(pt.y, widget, SWD_FRAMERECT_TOP, this->resize.step_height);
 				_music.PlaylistAdd(y);
 				break;
 			}
 
 			case WID_MTS_LIST_RIGHT: { // remove from playlist
-				int y = this->GetRowFromWidget(pt.y, widget, WD_FRAMERECT_TOP, this->resize.step_height);
+				int y = this->GetRowFromWidget(pt.y, widget, SWD_FRAMERECT_TOP, this->resize.step_height);
 				_music.PlaylistRemove(y);
 				break;
 			}
@@ -678,13 +678,14 @@ static void ShowMusicTrackSelection()
 }
 
 struct MusicWindow : public Window {
-	static const int slider_width = 3;
+	static int slider_width;
 
 	MusicWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
 		this->InitNested(number);
 		this->LowerWidget(_settings_client.music.playlist + WID_M_ALL);
 		this->SetWidgetLoweredState(WID_M_SHUFFLE, _settings_client.music.shuffle);
+		this->slider_width = 3 * WD_GUI_UNIT;
 
 		UpdateDisabledButtons();
 	}
@@ -717,8 +718,8 @@ struct MusicWindow : public Window {
 
 			case WID_M_TRACK_NR: {
 				Dimension d = GetStringBoundingBox(STR_MUSIC_TRACK_NONE);
-				d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				d.width += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				*size = maxdim(*size, d);
 				break;
 			}
@@ -729,9 +730,14 @@ struct MusicWindow : public Window {
 					SetDParamStr(0, song->songname);
 					d = maxdim(d, GetStringBoundingBox(STR_MUSIC_TITLE_NAME));
 				}
-				d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				d.width += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				*size = maxdim(*size, d);
+				break;
+			}
+
+			case WID_M_MUSIC_VOL: case WID_M_EFFECT_VOL: {
+				size->width = max(size->width, (uint)ScaleGUIPixels(6));
 				break;
 			}
 
@@ -747,22 +753,31 @@ struct MusicWindow : public Window {
 	{
 		switch (widget) {
 			case WID_M_TRACK_NR: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
-				if (BaseMusic::GetUsedSet()->num_available == 0) {
-					break;
-				}
+				GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL, r.right, r.bottom - WD_BEVEL, PC_BLACK);
+				/* Fill in a part of the bevel so track name and track number widgets
+				 * look like they are a single widget. */
+				GfxFillRect(r.right - WD_BEVEL, r.top, r.right, r.top + WD_BEVEL - 1, _colour_gradient[COLOUR_GREY][7]);
+
+				if (BaseMusic::GetUsedSet()->num_available == 0) break;
+
 				StringID str = STR_MUSIC_TRACK_NONE;
 				if (_music.IsPlaying()) {
 					SetDParam(0, _music.GetCurrentSong().tracknr);
 					SetDParam(1, 2);
 					str = STR_MUSIC_TRACK_DIGIT;
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom, FONT_HEIGHT_SMALL), str);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom, FONT_HEIGHT_SMALL), str);
 				break;
 			}
 
 			case WID_M_TRACK_NAME: {
-				GfxFillRect(r.left, r.top + 1, r.right - 1, r.bottom, PC_BLACK);
+				GfxFillRect(r.left, r.top + WD_BEVEL, r.right - WD_BEVEL, r.bottom - WD_BEVEL, PC_BLACK);
+
+				/* Fill in a part of the bevel so track name and track number widgets
+				 * look like they are a single widget. */
+				GfxFillRect(r.left, r.bottom - WD_BEVEL + 1, r.left + WD_BEVEL - 1,
+						r.bottom, _colour_gradient[COLOUR_GREY][3]);
+
 				StringID str = STR_MUSIC_TITLE_NONE;
 				if (BaseMusic::GetUsedSet()->num_available == 0) {
 					str = STR_MUSIC_TITLE_NOMUSIC;
@@ -770,18 +785,17 @@ struct MusicWindow : public Window {
 					str = STR_MUSIC_TITLE_NAME;
 					SetDParamStr(0, _music.GetCurrentSong().songname);
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom, FONT_HEIGHT_SMALL), str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom, FONT_HEIGHT_SMALL), str, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 
 			case WID_M_MUSIC_VOL: case WID_M_EFFECT_VOL: {
-				int sw = ScaleGUITrad(slider_width);
-				int hsw = sw / 2;
-				DrawFrameRect(r.left + hsw, r.top + 2, r.right - hsw, r.bottom - 2, COLOUR_GREY, FR_LOWERED);
+				int hsw = this->slider_width / 2;
+				DrawFrameRect(r.left + hsw, r.top + ScaleGUIPixels(2), r.right - hsw, r.bottom - ScaleGUIPixels(2), COLOUR_GREY, FR_LOWERED);
 				byte volume = (widget == WID_M_MUSIC_VOL) ? _settings_client.music.music_vol : _settings_client.music.effect_vol;
 				if (_current_text_dir == TD_RTL) volume = 127 - volume;
-				int x = r.left + (volume * (r.right - r.left - sw) / 127);
-				DrawFrameRect(x, r.top, x + sw, r.bottom, COLOUR_GREY, FR_NONE);
+				int x = r.left + (volume * (r.right - r.left - this->slider_width) / 127);
+				DrawFrameRect(x, r.top, x + this->slider_width, r.bottom, COLOUR_GREY, FR_NONE);
 				break;
 			}
 		}
@@ -865,6 +879,8 @@ struct MusicWindow : public Window {
 	}
 };
 
+int MusicWindow::slider_width = 3;
+
 static const NWidgetPart _nested_music_window_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
@@ -888,7 +904,7 @@ static const NWidgetPart _nested_music_window_widgets[] = {
 			NWidget(NWID_HORIZONTAL), SetPIP(20, 20, 20),
 				NWidget(NWID_VERTICAL),
 					NWidget(WWT_LABEL, COLOUR_GREY, -1), SetFill(1, 0), SetDataTip(STR_MUSIC_MUSIC_VOLUME, STR_NULL),
-					NWidget(WWT_EMPTY, COLOUR_GREY, WID_M_MUSIC_VOL), SetMinimalSize(67, 0), SetMinimalTextLines(1, 0), SetFill(1, 0), SetDataTip(0x0, STR_MUSIC_TOOLTIP_DRAG_SLIDERS_TO_SET_MUSIC),
+					NWidget(WWT_EMPTY, COLOUR_GREY, WID_M_MUSIC_VOL), SetMinimalSize(67, 0), SetMinimalTextLines(2, 0), SetFill(1, 1), SetDataTip(0x0, STR_MUSIC_TOOLTIP_DRAG_SLIDERS_TO_SET_MUSIC),
 					NWidget(NWID_HORIZONTAL),
 						NWidget(WWT_LABEL, COLOUR_GREY, -1), SetDataTip(STR_MUSIC_RULER_MIN, STR_NULL),
 						NWidget(WWT_LABEL, COLOUR_GREY, -1), SetDataTip(STR_MUSIC_RULER_MARKER, STR_NULL), SetFill(1, 0),
@@ -901,7 +917,7 @@ static const NWidgetPart _nested_music_window_widgets[] = {
 				EndContainer(),
 				NWidget(NWID_VERTICAL),
 					NWidget(WWT_LABEL, COLOUR_GREY, -1), SetFill(1, 0), SetDataTip(STR_MUSIC_EFFECTS_VOLUME, STR_NULL),
-					NWidget(WWT_EMPTY, COLOUR_GREY, WID_M_EFFECT_VOL), SetMinimalSize(67, 0), SetMinimalTextLines(1, 0), SetFill(1, 0), SetDataTip(0x0, STR_MUSIC_TOOLTIP_DRAG_SLIDERS_TO_SET_MUSIC),
+					NWidget(WWT_EMPTY, COLOUR_GREY, WID_M_EFFECT_VOL), SetMinimalSize(67, 0), SetMinimalTextLines(1, 0), SetFill(1, 1), SetDataTip(0x0, STR_MUSIC_TOOLTIP_DRAG_SLIDERS_TO_SET_MUSIC),
 					NWidget(NWID_HORIZONTAL),
 						NWidget(WWT_LABEL, COLOUR_GREY, -1), SetDataTip(STR_MUSIC_RULER_MIN, STR_NULL),
 						NWidget(WWT_LABEL, COLOUR_GREY, -1), SetDataTip(STR_MUSIC_RULER_MARKER, STR_NULL), SetFill(1, 0),

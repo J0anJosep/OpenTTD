@@ -18,6 +18,7 @@
 #include "strings_type.h"
 #include "gfx_type.h"
 #include "window_type.h"
+#include "zoom_func.h"
 
 static const int WIDGET_LIST_END = -1; ///< indicate the end of widgets' list for vararg functions
 
@@ -131,6 +132,11 @@ enum SizingType {
 	ST_RESIZE,   ///< Resize the nested widget tree.
 };
 
+extern byte _gui_shift;
+extern byte _gui_unit;
+extern byte _gui_shadow_offset;
+static inline int ScaleGUIPixels(int num) { return num << _gui_shift; }
+
 /* Forward declarations. */
 class NWidgetCore;
 class Scrollbar;
@@ -164,12 +170,12 @@ public:
 	 * @param bottom Amount of additional space below the widget.
 	 * @param left   Amount of additional space left of the widget.
 	 */
-	inline void SetPadding(uint8 top, uint8 right, uint8 bottom, uint8 left)
+	inline void SetPadding(uint8 top, uint8 right, uint8 bottom, uint8 left, bool scale = true)
 	{
-		this->padding_top = top;
-		this->padding_right = right;
-		this->padding_bottom = bottom;
-		this->padding_left = left;
+		this->padding_top = scale ? ScaleGUIPixels(top) : top;
+		this->padding_right = scale ? ScaleGUIPixels(right) : right;
+		this->padding_bottom = scale ? ScaleGUIPixels(bottom) : bottom;
+		this->padding_left = scale ? ScaleGUIPixels(left) : left;
 	}
 
 	inline uint GetHorizontalStepSize(SizingType sizing) const;
@@ -255,8 +261,8 @@ class NWidgetResizeBase : public NWidgetBase {
 public:
 	NWidgetResizeBase(WidgetType tp, uint fill_x, uint fill_y);
 
-	void SetMinimalSize(uint min_x, uint min_y);
-	void SetMinimalTextLines(uint8 min_lines, uint8 spacing, FontSize size);
+	void SetMinimalSize(uint min_x, uint min_y, bool scale = 1);
+	void SetMinimalTextLines(uint8 min_lines, uint8 spacing, FontSize size, bool scale = 1);
 	void SetFill(uint fill_x, uint fill_y);
 	void SetResize(uint resize_x, uint resize_y);
 
@@ -454,7 +460,7 @@ class NWidgetPIPContainer : public NWidgetContainer {
 public:
 	NWidgetPIPContainer(WidgetType tp, NWidContainerFlags flags = NC_NONE);
 
-	void SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post);
+	void SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post, bool scale = true);
 
 	/* virtual */ void Draw(const Window *w);
 	/* virtual */ NWidgetCore *GetWidgetFromPos(int x, int y);
@@ -547,7 +553,7 @@ private:
  */
 class NWidgetSpacer : public NWidgetResizeBase {
 public:
-	NWidgetSpacer(int length, int height);
+	NWidgetSpacer(int length, int height, bool scale = true);
 
 	void SetupSmallestSize(Window *w, bool init_array);
 	/* virtual */ void FillNestedArray(NWidgetBase **array, uint length);
@@ -567,7 +573,7 @@ public:
 	~NWidgetBackground();
 
 	void Add(NWidgetBase *nwid);
-	void SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post);
+	void SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post, bool scale = true);
 
 	void SetupSmallestSize(Window *w, bool init_array);
 	void AssignSizePosition(SizingType sizing, uint x, uint y, uint given_width, uint given_height, bool rtl);
@@ -800,6 +806,13 @@ public:
 	static Dimension dropdown_dimension;  ///< Cached size of a dropdown widget.
 	static Dimension resizebox_dimension; ///< Cached size of a resizebox widget.
 	static Dimension closebox_dimension;  ///< Cached size of a closebox widget.
+
+	/* GUI unit: 1 pixel for normal, 2 for double GUI, 4 for quadruple GUI. */
+	static byte gui_unit;
+
+	/* GUI shift: 0 for normal, 1 for double GUI, 2 for quadruple GUI. */
+	static byte gui_shift;
+
 private:
 	static Dimension shadebox_dimension;  ///< Cached size of a shadebox widget.
 	static Dimension debugbox_dimension;  ///< Cached size of a debugbox widget.
@@ -981,13 +994,13 @@ uint GetMinSizing(NWidSizingType type, uint min_1 = 0);
  * @param y Vertical minimal size.
  * @ingroup NestedWidgetParts
  */
-static inline NWidgetPart SetMinimalSize(int16 x, int16 y)
+static inline NWidgetPart SetMinimalSize(int16 x, int16 y, bool scale = true)
 {
 	NWidgetPart part;
 
 	part.type = WPT_MINSIZE;
-	part.u.xy.x = x;
-	part.u.xy.y = y;
+	part.u.xy.x = scale ? ScaleGUIPixels(x) : x; //REVISE THESE TWO
+	part.u.xy.y = scale ? ScaleGUIPixels(y) : y;
 
 	return part;
 }
@@ -999,13 +1012,13 @@ static inline NWidgetPart SetMinimalSize(int16 x, int16 y)
  * @param size    Font size of text.
  * @ingroup NestedWidgetParts
  */
-static inline NWidgetPart SetMinimalTextLines(uint8 lines, uint8 spacing, FontSize size = FS_NORMAL)
+static inline NWidgetPart SetMinimalTextLines(uint8 lines, uint8 spacing, FontSize size = FS_NORMAL, bool scale = 1)
 {
 	NWidgetPart part;
 
 	part.type = WPT_MINTEXTLINES;
 	part.u.text_lines.lines = lines;
-	part.u.text_lines.spacing = spacing;
+	part.u.text_lines.spacing = scale ? ScaleGUIPixels(spacing) : spacing;
 	part.u.text_lines.size = size;
 
 	return part;
@@ -1085,10 +1098,10 @@ static inline NWidgetPart SetPadding(uint8 top, uint8 right, uint8 bottom, uint8
 	NWidgetPart part;
 
 	part.type = WPT_PADDING;
-	part.u.padding.top = top;
-	part.u.padding.right = right;
-	part.u.padding.bottom = bottom;
-	part.u.padding.left = left;
+	part.u.padding.top = ScaleGUIPixels(top);
+	part.u.padding.right = ScaleGUIPixels(right);
+	part.u.padding.bottom = ScaleGUIPixels(bottom);
+	part.u.padding.left = ScaleGUIPixels(left);
 
 	return part;
 }
@@ -1110,14 +1123,14 @@ static inline NWidgetPart SetPadding(uint8 padding)
  * @param post The amount of space after the last widget.
  * @ingroup NestedWidgetParts
  */
-static inline NWidgetPart SetPIP(uint8 pre, uint8 inter, uint8 post)
+static inline NWidgetPart SetPIP(uint8 pre, uint8 inter, uint8 post, bool scale = true)
 {
 	NWidgetPart part;
 
 	part.type = WPT_PIPSPACE;
-	part.u.pip.pre = pre;
-	part.u.pip.inter = inter;
-	part.u.pip.post = post;
+	part.u.pip.pre = scale ? ScaleGUIPixels(pre) : pre;
+	part.u.pip.inter = scale ? ScaleGUIPixels(inter) : inter;
+	part.u.pip.post = scale ? ScaleGUIPixels(post) : post;
 
 	return part;
 }
@@ -1194,5 +1207,105 @@ NWidgetContainer *MakeNWidgets(const NWidgetPart *parts, int count, int *biggest
 NWidgetContainer *MakeWindowNWidgetTree(const NWidgetPart *parts, int count, int *biggest_index, NWidgetStacked **shade_select);
 
 NWidgetBase *MakeCompanyButtonRows(int *biggest_index, int widget_first, int widget_last, int max_length, StringID button_tooltip);
+
+#define WD_GUI_UNIT _gui_unit
+#define WD_BEVEL _gui_unit
+#define WD_SHADOW_OFFSET _gui_shadow_offset
+
+#define SWD_IMGBTN_LEFT    ScaleGUIPixels(WD_IMGBTN_LEFT)
+#define SWD_IMGBTN_RIGHT   ScaleGUIPixels(WD_IMGBTN_RIGHT)
+#define SWD_IMGBTN_TOP     ScaleGUIPixels(WD_IMGBTN_TOP)
+#define SWD_IMGBTN_BOTTOM  ScaleGUIPixels(WD_IMGBTN_BOTTOM)
+
+/* WWT_INSET */
+#define SWD_INSET_LEFT  ScaleGUIPixels(WD_INSET_LEFT)
+#define SWD_INSET_RIGHT ScaleGUIPixels(WD_INSET_RIGHT)
+#define SWD_INSET_TOP   ScaleGUIPixels(WD_INSET_TOP)
+
+#define SWD_SCROLLBAR_LEFT   ScaleGUIPixels(WD_SCROLLBAR_LEFT)
+#define SWD_SCROLLBAR_RIGHT  ScaleGUIPixels(WD_SCROLLBAR_RIGHT)
+#define SWD_SCROLLBAR_TOP    ScaleGUIPixels(WD_SCROLLBAR_TOP)
+#define SWD_SCROLLBAR_BOTTOM ScaleGUIPixels(WD_SCROLLBAR_BOTTOM)
+
+/* FrameRect widgets, all text buttons, panel, editbox */
+#define SWD_FRAMERECT_LEFT   ScaleGUIPixels(WD_FRAMERECT_LEFT)
+#define SWD_FRAMERECT_RIGHT  ScaleGUIPixels(WD_FRAMERECT_RIGHT)
+#define SWD_FRAMERECT_TOP    ScaleGUIPixels(WD_FRAMERECT_TOP)
+#define SWD_FRAMERECT_BOTTOM ScaleGUIPixels(WD_FRAMERECT_BOTTOM)
+
+/* Extra space at top/bottom of text panels */
+#define SWD_TEXTPANEL_TOP    ScaleGUIPixels(WD_TEXTPANEL_TOP)
+#define SWD_TEXTPANEL_BOTTOM ScaleGUIPixels(WD_TEXTPANEL_BOTTOM)
+
+/* WWT_FRAME */
+#define SWD_FRAMETEXT_LEFT   ScaleGUIPixels(WD_FRAMETEXT_LEFT)
+#define SWD_FRAMETEXT_RIGHT  ScaleGUIPixels(WD_FRAMETEXT_RIGHT)
+#define SWD_FRAMETEXT_TOP    ScaleGUIPixels(WD_FRAMETEXT_TOP)
+#define SWD_FRAMETEXT_BOTTOM ScaleGUIPixels(WD_FRAMETEXT_BOTTOM)
+
+/* WWT_MATRIX */
+#define SWD_MATRIX_LEFT   ScaleGUIPixels(WD_MATRIX_LEFT)
+#define SWD_MATRIX_RIGHT  ScaleGUIPixels(WD_MATRIX_RIGHT)
+#define SWD_MATRIX_TOP    ScaleGUIPixels(WD_MATRIX_TOP)
+#define SWD_MATRIX_BOTTOM ScaleGUIPixels(WD_MATRIX_BOTTOM)
+
+/* WWT_SHADEBOX */
+#define SWD_SHADEBOX_WIDTH  ScaleGUIPixels(WD_SHADEBOX_WIDTH)
+#define SWD_SHADEBOX_LEFT   ScaleGUIPixels(WD_SHADEBOX_LEFT)
+#define SWD_SHADEBOX_RIGHT  ScaleGUIPixels(WD_SHADEBOX_RIGHT)
+#define SWD_SHADEBOX_TOP    ScaleGUIPixels(WD_SHADEBOX_TOP)
+#define SWD_SHADEBOX_BOTTOM ScaleGUIPixels(WD_SHADEBOX_BOTTOM)
+
+/* WWT_STICKYBOX */
+#define SWD_STICKYBOX_WIDTH  ScaleGUIPixels(WD_STICKYBOX_WIDTH)
+#define SWD_STICKYBOX_LEFT   ScaleGUIPixels(WD_STICKYBOX_LEFT)
+#define SWD_STICKYBOX_RIGHT  ScaleGUIPixels(WD_STICKYBOX_RIGHT)
+#define SWD_STICKYBOX_TOP    ScaleGUIPixels(WD_STICKYBOX_TOP)
+#define SWD_STICKYBOX_BOTTOM ScaleGUIPixels(WD_STICKYBOX_BOTTOM)
+
+/* WWT_DEBUGBOX */
+#define SWD_DEBUGBOX_WIDTH  ScaleGUIPixels(WD_DEBUGBOX_WIDTH)
+#define SWD_DEBUGBOX_LEFT   ScaleGUIPixels(WD_DEBUGBOX_LEFT)
+#define SWD_DEBUGBOX_RIGHT  ScaleGUIPixels(WD_DEBUGBOX_RIGHT)
+#define SWD_DEBUGBOX_TOP    ScaleGUIPixels(WD_DEBUGBOX_TOP)
+#define SWD_DEBUGBOX_BOTTOM ScaleGUIPixels(WD_DEBUGBOX_BOTTOM)
+
+/* WWT_DEFSIZEBOX */
+#define SWD_DEFSIZEBOX_WIDTH  ScaleGUIPixels(WD_DEFSIZEBOX_WIDTH)
+#define SWD_DEFSIZEBOX_LEFT   ScaleGUIPixels(WD_DEFSIZEBOX_LEFT)
+#define SWD_DEFSIZEBOX_RIGHT  ScaleGUIPixels(WD_DEFSIZEBOX_RIGHT)
+#define SWD_DEFSIZEBOX_TOP    ScaleGUIPixels(WD_DEFSIZEBOX_TOP)
+#define SWD_DEFSIZEBOX_BOTTOM ScaleGUIPixels(WD_DEFSIZEBOX_BOTTOM)
+
+/* WWT_RESIZEBOX */
+#define SWD_RESIZEBOX_WIDTH  ScaleGUIPixels(WD_RESIZEBOX_WIDTH)
+#define SWD_RESIZEBOX_LEFT   ScaleGUIPixels(WD_RESIZEBOX_LEFT)
+#define SWD_RESIZEBOX_RIGHT  ScaleGUIPixels(WD_RESIZEBOX_RIGHT)
+#define SWD_RESIZEBOX_TOP    ScaleGUIPixels(WD_RESIZEBOX_TOP)
+#define SWD_RESIZEBOX_BOTTOM ScaleGUIPixels(WD_RESIZEBOX_BOTTOM)
+
+/* WWT_CLOSEBOX */
+#define SWD_CLOSEBOX_WIDTH  ScaleGUIPixels(WD_CLOSEBOX_WIDTH)
+#define SWD_CLOSEBOX_LEFT   ScaleGUIPixels(WD_CLOSEBOX_LEFT)
+#define SWD_CLOSEBOX_RIGHT  ScaleGUIPixels(WD_CLOSEBOX_RIGHT)
+#define SWD_CLOSEBOX_TOP    ScaleGUIPixels(WD_CLOSEBOX_TOP)
+#define SWD_CLOSEBOX_BOTTOM ScaleGUIPixels(WD_CLOSEBOX_BOTTOM)
+
+/* WWT_CAPTION */
+#define SWD_CAPTION_HEIGHT     ScaleGUIPixels(WD_CAPTION_HEIGHT)
+#define SWD_CAPTIONTEXT_LEFT   ScaleGUIPixels(WD_CAPTIONTEXT_LEFT)
+#define SWD_CAPTIONTEXT_RIGHT  ScaleGUIPixels(WD_CAPTIONTEXT_RIGHT)
+#define SWD_CAPTIONTEXT_TOP    ScaleGUIPixels(WD_CAPTIONTEXT_TOP)
+#define SWD_CAPTIONTEXT_BOTTOM ScaleGUIPixels(WD_CAPTIONTEXT_BOTTOM)
+
+/* Dropdown widget. */
+#define SWD_DROPDOWN_HEIGHT     ScaleGUIPixels(WD_DROPDOWN_HEIGHT)
+#define SWD_DROPDOWNTEXT_LEFT   ScaleGUIPixels(WD_DROPDOWNTEXT_LEFT)
+#define SWD_DROPDOWNTEXT_RIGHT  ScaleGUIPixels(WD_DROPDOWNTEXT_RIGHT)
+#define SWD_DROPDOWNTEXT_TOP    ScaleGUIPixels(WD_DROPDOWNTEXT_TOP)
+#define SWD_DROPDOWNTEXT_BOTTOM ScaleGUIPixels(WD_DROPDOWNTEXT_BOTTOM)
+
+#define SWD_PAR_VSEP_NORMAL ScaleGUIPixels(WD_PAR_VSEP_NORMAL)
+#define SWD_PAR_VSEP_WIDE   ScaleGUIPixels(WD_PAR_VSEP_WIDE)
 
 #endif /* WIDGET_TYPE_H */

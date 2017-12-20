@@ -42,7 +42,7 @@ struct SubsidyListWindow : Window {
 	{
 		if (widget != WID_SUL_PANEL) return;
 
-		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SUL_PANEL, WD_FRAMERECT_TOP);
+		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SUL_PANEL, SWD_FRAMERECT_TOP);
 		int num = 0;
 		const Subsidy *s;
 		FOR_ALL_SUBSIDIES(s) {
@@ -137,8 +137,8 @@ struct SubsidyListWindow : Window {
 		resize->height = d.height;
 
 		d.height *= 5;
-		d.width += padding.width + WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT;
-		d.height += padding.height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		d.width += padding.width + ScaleGUIPixels(WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT);
+		d.height += padding.height + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		*size = maxdim(*size, d);
 	}
 
@@ -149,9 +149,9 @@ struct SubsidyListWindow : Window {
 		YearMonthDay ymd;
 		ConvertDateToYMD(_date, &ymd);
 
-		int right = r.right - WD_FRAMERECT_RIGHT;
-		int y = r.top + WD_FRAMERECT_TOP;
-		int x = r.left + WD_FRAMERECT_LEFT;
+		int right = r.right - SWD_FRAMERECT_RIGHT;
+		int y = r.top + SWD_FRAMERECT_TOP;
+		int x = r.left + SWD_FRAMERECT_LEFT;
 
 		int pos = -this->vscroll->GetPosition();
 		const int cap = this->vscroll->GetCapacity();

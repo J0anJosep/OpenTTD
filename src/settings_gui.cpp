@@ -483,7 +483,7 @@ struct GameOptionsWindow : Window {
 						Dimension string_dim;
 						int width = (*it)->Width();
 						string_dim.width = width + padding.width;
-						string_dim.height = (*it)->Height(width) + padding.height;
+						string_dim.height = (*it)->Height() + padding.height;
 						*size = maxdim(*size, string_dim);
 					}
 					delete list;
@@ -1139,8 +1139,8 @@ uint BaseSettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int
 	if (cur_row >= max_row) return cur_row;
 
 	bool rtl = _current_text_dir == TD_RTL;
-	int offset = rtl ? -4 : 4;
-	int level_width = rtl ? -LEVEL_WIDTH : LEVEL_WIDTH;
+	int offset = ScaleGUIPixels(4) * (rtl ? -1 : 1);
+	int level_width = rtl ? -ScaleGUIPixels(LEVEL_WIDTH) : ScaleGUIPixels(LEVEL_WIDTH);
 
 	int x = rtl ? right : left;
 	if (cur_row >= first_row) {
@@ -1149,15 +1149,15 @@ uint BaseSettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int
 
 		/* Draw vertical for parent nesting levels */
 		for (uint lvl = 0; lvl < this->level; lvl++) {
-			if (!HasBit(parent_last, lvl)) GfxDrawLine(x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
+			if (!HasBit(parent_last, lvl)) GfxFillRect(x + offset, y, x + offset + WD_GUI_UNIT - 1, y + SETTING_HEIGHT - 1, colour);
 			x += level_width;
 		}
 		/* draw own |- prefix */
-		int halfway_y = y + SETTING_HEIGHT / 2;
+		int halfway_y = y + (SETTING_HEIGHT - WD_GUI_UNIT) / 2;
 		int bottom_y = (flags & SEF_LAST_FIELD) ? halfway_y : y + SETTING_HEIGHT - 1;
-		GfxDrawLine(x + offset, y, x + offset, bottom_y, colour);
+		GfxFillRect(x + offset, y, x + offset + WD_GUI_UNIT - 1, bottom_y, colour);
 		/* Small horizontal line from the last vertical line */
-		GfxDrawLine(x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
+		GfxFillRect(x + offset, halfway_y, x + level_width - offset, halfway_y + WD_GUI_UNIT - 1, colour);
 		x += level_width;
 
 		this->DrawSetting(settings_ptr, rtl ? left : x, rtl ? x : right, y, this == selected);
@@ -1355,9 +1355,9 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	int state = this->flags & SEF_BUTTONS_MASK;
 
 	bool rtl = _current_text_dir == TD_RTL;
-	uint buttons_left = rtl ? right + 1 - SETTING_BUTTON_WIDTH : left;
-	uint text_left  = left + (rtl ? 0 : SETTING_BUTTON_WIDTH + 5);
-	uint text_right = right - (rtl ? SETTING_BUTTON_WIDTH + 5 : 0);
+	uint buttons_left = rtl ? right + ScaleGUIPixels(1) - SETTING_BUTTON_WIDTH : left;
+	uint text_left  = left + (rtl ? 0 : SETTING_BUTTON_WIDTH + ScaleGUIPixels(5));
+	uint text_right = right - (rtl ? SETTING_BUTTON_WIDTH + ScaleGUIPixels(5) : 0);
 	uint button_y = y + (SETTING_HEIGHT - SETTING_BUTTON_HEIGHT) / 2;
 
 	/* We do not allow changes of some items when we are a client in a networkgame */
@@ -1689,7 +1689,7 @@ void SettingsPage::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	bool rtl = _current_text_dir == TD_RTL;
 	StringID str = this->folded ? STR_CIRCLE_FOLDED : STR_CIRCLE_UNFOLDED;
 	DrawString(left, right, Center(y, SETTING_HEIGHT, FONT_HEIGHT_NORMAL), str);
-	DrawString(rtl ? left : left + _circle_size.width + 2, rtl ? right - _circle_size.width - 2 : right, Center(y, SETTING_HEIGHT), this->title);
+	DrawString(rtl ? left : left + _circle_size.width + ScaleGUIPixels(2), rtl ? right - _circle_size.width - ScaleGUIPixels(2) : right, Center(y, SETTING_HEIGHT), this->title);
 }
 
 /** Construct settings tree */
@@ -2074,7 +2074,8 @@ struct GameSettingsWindow : Window {
 				resize->height = SETTING_HEIGHT = GetMinSizing(NWST_STEP, max(max<int>(_circle_size.height, SETTING_BUTTON_HEIGHT), FONT_HEIGHT_NORMAL) + 1);
 				resize->width  = 1;
 
-				size->height = 5 * resize->height + SETTINGTREE_TOP_OFFSET + SETTINGTREE_BOTTOM_OFFSET;
+				size->height = 5 * resize->height +
+						ScaleGUIPixels(SETTINGTREE_TOP_OFFSET + SETTINGTREE_BOTTOM_OFFSET);
 				break;
 
 			case WID_GS_HELP_TEXT: {
@@ -2087,7 +2088,7 @@ struct GameSettingsWindow : Window {
 					SetDParam(0, setting_types[i]);
 					size->width = max(size->width, GetStringBoundingBox(STR_CONFIG_SETTING_TYPE).width);
 				}
-				size->height = 2 * FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL +
+				size->height = 2 * FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL +
 						max(size->height, GetSettingsTree().GetMaxHelpHeight(size->width));
 				break;
 			}
@@ -2132,13 +2133,13 @@ struct GameSettingsWindow : Window {
 		if (this->warn_missing != WHR_NONE) {
 			const int left = panel->pos_x;
 			const int right = left + panel->current_x - 1;
-			const int top = panel->pos_y + WD_FRAMETEXT_TOP + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) * this->warn_lines / 2;
+			const int top = panel->pos_y + SWD_FRAMETEXT_TOP + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) * this->warn_lines / 2;
 			SetDParam(0, _game_settings_restrict_dropdown[this->filter.min_cat]);
 			if (this->warn_lines == 1) {
 				/* If the warning fits at one line, center it. */
-				DrawString(left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(left + SWD_FRAMETEXT_LEFT, right - SWD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			} else {
-				DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawStringMultiLine(left + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 		}
 	}
@@ -2192,11 +2193,11 @@ struct GameSettingsWindow : Window {
 	{
 		switch (widget) {
 			case WID_GS_OPTIONSPANEL: {
-				int top_pos = r.top + SETTINGTREE_TOP_OFFSET + 1 + this->warn_lines * SETTING_HEIGHT;
+				int top_pos = r.top + ScaleGUIPixels(SETTINGTREE_TOP_OFFSET + 1) + this->warn_lines * SETTING_HEIGHT;
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
-				int next_row = GetSettingsTree().Draw(settings_ptr, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
+				int next_row = GetSettingsTree().Draw(settings_ptr, r.left + ScaleGUIPixels(SETTINGTREE_LEFT_OFFSET), r.right - ScaleGUIPixels(SETTINGTREE_RIGHT_OFFSET), top_pos,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);
-				if (next_row == 0) DrawString(r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
+				if (next_row == 0) DrawString(r.left + ScaleGUIPixels(SETTINGTREE_LEFT_OFFSET), r.right - ScaleGUIPixels(SETTINGTREE_RIGHT_OFFSET), top_pos, STR_CONFIG_SETTINGS_NONE);
 				break;
 			}
 
@@ -2217,7 +2218,7 @@ struct GameSettingsWindow : Window {
 					int32 default_value = ReadValue(&sd->desc.def, sd->save.conv);
 					this->last_clicked->SetValueDParams(0, default_value);
 					DrawString(r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
-					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+					y += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 
 					DrawStringMultiLine(r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
 				}
@@ -2272,7 +2273,7 @@ struct GameSettingsWindow : Window {
 
 		if (widget != WID_GS_OPTIONSPANEL) return;
 
-		uint btn = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GS_OPTIONSPANEL, SETTINGTREE_TOP_OFFSET);
+		uint btn = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GS_OPTIONSPANEL, ScaleGUIPixels(SETTINGTREE_TOP_OFFSET));
 		if (btn == INT_MAX || (int)btn < this->warn_lines) return;
 		btn -= this->warn_lines;
 
@@ -2281,7 +2282,7 @@ struct GameSettingsWindow : Window {
 
 		if (clicked_entry == NULL) return;  // Clicked below the last setting of the page
 
-		int x = (_current_text_dir == TD_RTL ? this->width - 1 - pt.x : pt.x) - SETTINGTREE_LEFT_OFFSET - (clicked_entry->level + 1) * LEVEL_WIDTH;  // Shift x coordinate
+		int x = (_current_text_dir == TD_RTL ? this->width - ScaleGUIPixels(1) - pt.x : pt.x) - ScaleGUIPixels(SETTINGTREE_LEFT_OFFSET) - (clicked_entry->level + 1) * ScaleGUIPixels(LEVEL_WIDTH);  // Shift x coordinate
 		if (x < 0) return;  // Clicked left of the entry
 
 		SettingsPage *clicked_page = dynamic_cast<SettingsPage*>(clicked_entry);
@@ -2324,7 +2325,7 @@ struct GameSettingsWindow : Window {
 				this->closing_dropdown = false;
 
 				const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_GS_OPTIONSPANEL);
-				int rel_y = (pt.y - (int)wid->pos_y - SETTINGTREE_TOP_OFFSET) % wid->resize_y;
+				int rel_y = (pt.y - (int)wid->pos_y - ScaleGUIPixels(SETTINGTREE_TOP_OFFSET)) % wid->resize_y;
 
 				Rect wi_rect;
 				wi_rect.left = pt.x - (_current_text_dir == TD_RTL ? SETTING_BUTTON_WIDTH - 1 - x : x);
@@ -2564,7 +2565,7 @@ struct GameSettingsWindow : Window {
 
 	virtual void OnResize()
 	{
-		this->vscroll->SetCapacityFromWidget(this, WID_GS_OPTIONSPANEL, SETTINGTREE_TOP_OFFSET + SETTINGTREE_BOTTOM_OFFSET);
+		this->vscroll->SetCapacityFromWidget(this, WID_GS_OPTIONSPANEL, ScaleGUIPixels(SETTINGTREE_TOP_OFFSET) + ScaleGUIPixels(SETTINGTREE_BOTTOM_OFFSET));
 	}
 };
 
@@ -2654,10 +2655,10 @@ void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clic
 	/* Grey out the buttons that aren't clickable */
 	bool rtl = _current_text_dir == TD_RTL;
 	if (rtl ? !clickable_right : !clickable_left) {
-		GfxFillRect(x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect(x + WD_BEVEL, y + WD_BEVEL, x + dim.width - WD_BEVEL, y + dim.height - WD_BEVEL - 1, colour, FILLRECT_CHECKER);
 	}
 	if (rtl ? !clickable_left : !clickable_right) {
-		GfxFillRect(x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect(x + dim.width + WD_BEVEL, y + WD_BEVEL, x + dim.width + dim.width - WD_BEVEL, y + dim.height - WD_BEVEL - 1, colour, FILLRECT_CHECKER);
 	}
 }
 
@@ -2677,7 +2678,7 @@ void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool cl
 	DrawString(x + (state ? 1 : 0), x + SETTING_BUTTON_WIDTH - (state ? 0 : 1), y + (state ? 2 : 1), STR_DOWNARROW, TC_BLACK, SA_HOR_CENTER);
 
 	if (!clickable) {
-		GfxFillRect(x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect(x + WD_BEVEL, y + WD_BEVEL, x + SETTING_BUTTON_WIDTH - WD_BEVEL, y + SETTING_BUTTON_HEIGHT - WD_BEVEL - 1, colour, FILLRECT_CHECKER);
 	}
 }
 
