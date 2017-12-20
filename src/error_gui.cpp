@@ -188,14 +188,14 @@ public:
 				if (this->textref_stack_size > 0) StartTextRefStackUsage(this->textref_stack_grffile, this->textref_stack_size, this->textref_stack);
 
 				size->width = GetMinSizing(NWST_MESSAGE_LENGTH, size->width);
-				int text_width = max(0, (int)size->width - WD_FRAMETEXT_LEFT - WD_FRAMETEXT_RIGHT);
+				int text_width = max(0, (int)size->width - ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT));
 				this->height_summary = GetStringHeight(this->summary_msg, text_width);
 				this->height_detailed = (this->detailed_msg == INVALID_STRING_ID) ? 0 : GetStringHeight(this->detailed_msg, text_width);
 
 				if (this->textref_stack_size > 0) StopTextRefStackUsage();
 
-				uint panel_height = WD_FRAMERECT_TOP + this->height_summary + WD_FRAMERECT_BOTTOM;
-				if (this->detailed_msg != INVALID_STRING_ID) panel_height += this->height_detailed + WD_PAR_VSEP_WIDE;
+				uint panel_height = ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) + this->height_summary;
+				if (this->detailed_msg != INVALID_STRING_ID) panel_height += this->height_detailed + SWD_PAR_VSEP_WIDE;
 
 				size->height = max(size->height, panel_height);
 				break;
@@ -270,19 +270,19 @@ public:
 				if (this->textref_stack_size > 0) StartTextRefStackUsage(this->textref_stack_grffile, this->textref_stack_size, this->textref_stack);
 
 				if (this->detailed_msg == INVALID_STRING_ID) {
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
+					DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, r.top + SWD_FRAMERECT_TOP, r.bottom - SWD_FRAMERECT_BOTTOM,
 							this->summary_msg, TC_FROMSTRING, SA_CENTER);
 				} else {
-					int extra = (r.bottom - r.top + 1 - this->height_summary - this->height_detailed - WD_PAR_VSEP_WIDE) / 2;
+					int extra = (r.bottom - r.top + 1 - this->height_summary - this->height_detailed - SWD_PAR_VSEP_WIDE) / 2;
 
 					/* Note: NewGRF supplied error message often do not start with a colour code, so default to white. */
-					int top = r.top + WD_FRAMERECT_TOP;
+					int top = r.top + SWD_FRAMERECT_TOP;
 					int bottom = top + this->height_summary + extra;
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, top, bottom, this->summary_msg, TC_WHITE, SA_CENTER);
+					DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, top, bottom, this->summary_msg, TC_WHITE, SA_CENTER);
 
-					bottom = r.bottom - WD_FRAMERECT_BOTTOM;
+					bottom = r.bottom - SWD_FRAMERECT_BOTTOM;
 					top = bottom - this->height_detailed - extra;
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, top, bottom, this->detailed_msg, TC_WHITE, SA_CENTER);
+					DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, top, bottom, this->detailed_msg, TC_WHITE, SA_CENTER);
 				}
 
 				if (this->textref_stack_size > 0) StopTextRefStackUsage();

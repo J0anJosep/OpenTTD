@@ -40,6 +40,7 @@
 #include "widgets/dropdown_type.h"
 #include "widgets/industry_widget.h"
 #include "filters/filter_window_gui.h"
+#include "zoom_func.h"
 
 
 #include "table/strings.h"
@@ -371,7 +372,7 @@ public:
 					if (this->index[i] == INVALID_INDUSTRYTYPE) continue;
 					d = maxdim(d, GetStringBoundingBox(GetIndustrySpec(this->index[i])->name));
 				}
-				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
+				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM));
 				d.width += FONT_HEIGHT_NORMAL * 5 / 4 + padding.width;
 				d.height = 5 * resize->height;
 				*size = maxdim(*size, d);
@@ -417,8 +418,8 @@ public:
 				}
 
 				/* Set it to something more sane :) */
-				size->height = height * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
-				size->width  = d.width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				size->height = height * FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+				size->width  = d.width + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
 				break;
 			}
 
@@ -456,18 +457,18 @@ public:
 		switch (widget) {
 			case WID_DPI_MATRIX_WIDGET: {
 				uint text_left, text_right, icon_left, icon_right;
-				uint square_size = FONT_HEIGHT_NORMAL - 2;
+				uint square_size = FONT_HEIGHT_NORMAL - 2 * WD_GUI_UNIT;
 				uint text_offset = FONT_HEIGHT_NORMAL * 5 / 4;
 				if (_current_text_dir == TD_RTL) {
-					icon_right = r.right    - WD_MATRIX_RIGHT;
+					icon_right = r.right    - SWD_MATRIX_RIGHT;
 					icon_left  = icon_right - square_size;
 					text_right = icon_right - text_offset;
-					text_left  = r.left     + WD_MATRIX_LEFT;
+					text_left  = r.left     + SWD_MATRIX_LEFT;
 				} else {
-					icon_left  = r.left     + WD_MATRIX_LEFT;
+					icon_left  = r.left     + SWD_MATRIX_LEFT;
 					icon_right = icon_left  + square_size;
 					text_left  = icon_left  + text_offset;
-					text_right = r.right    - WD_MATRIX_RIGHT;
+					text_right = r.right    - SWD_MATRIX_RIGHT;
 				}
 
 				int y = Center(r.top, this->resize.step_height);
@@ -482,17 +483,17 @@ public:
 
 					/* Draw the name of the industry in white is selected, otherwise, in orange */
 					DrawString(text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
-					GfxFillRect(icon_left,     y + 1, icon_right,     y + square_size, selected ? PC_WHITE : PC_BLACK);
-					GfxFillRect(icon_left + 1, y + 2, icon_right - 1, y + square_size - 1, indsp->map_colour);
+					GfxFillRect(icon_left,     y + WD_GUI_UNIT, icon_right,     y + square_size, selected ? PC_WHITE : PC_BLACK);
+					GfxFillRect(icon_left + WD_GUI_UNIT, y + 2 * WD_GUI_UNIT, icon_right - WD_GUI_UNIT, y + square_size - WD_GUI_UNIT, indsp->map_colour);
 				}
 				break;
 			}
 
 			case WID_DPI_INFOPANEL: {
-				int y      = r.top    + WD_FRAMERECT_TOP;
-				int bottom = r.bottom - WD_FRAMERECT_BOTTOM;
-				int left   = r.left   + WD_FRAMERECT_LEFT;
-				int right  = r.right  - WD_FRAMERECT_RIGHT;
+				int y      = r.top    + SWD_FRAMERECT_TOP;
+				int bottom = r.bottom - SWD_FRAMERECT_BOTTOM;
+				int left   = r.left   + SWD_FRAMERECT_LEFT;
+				int right  = r.right  - SWD_FRAMERECT_RIGHT;
 
 				if (this->selected_type == INVALID_INDUSTRYTYPE) {
 					DrawStringMultiLine(left, right, y,  bottom, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES_TOOLTIP);
@@ -770,7 +771,7 @@ public:
 		this->editbox_line = IL_NONE;
 		this->clicked_line = IL_NONE;
 		this->clicked_button = 0;
-		this->info_height = WD_FRAMERECT_TOP + 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM + 1; // Info panel has at least two lines text.
+		this->info_height = ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) + 2 * FONT_HEIGHT_NORMAL + 1; // Info panel has at least two lines text.
 
 		this->InitNested(window_number);
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_IV_VIEWPORT);
@@ -805,12 +806,12 @@ public:
 	{
 		Industry *i = Industry::Get(this->window_number);
 		const IndustrySpec *ind = GetIndustrySpec(i->type);
-		int y = top + WD_FRAMERECT_TOP;
+		int y = top + SWD_FRAMERECT_TOP;
 		bool first = true;
 		bool has_accept = false;
 
 		if (i->prod_level == PRODLEVEL_CLOSURE) {
-			DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE);
+			DrawString(left + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE);
 			y += 2 * FONT_HEIGHT_NORMAL;
 		}
 
@@ -818,12 +819,12 @@ public:
 		GetAllCargoSuffixes(CARGOSUFFIX_IN, CST_VIEW, i, i->type, ind, i->accepts_cargo, cargo_suffix);
 		bool stockpiling = HasBit(ind->callback_mask, CBM_IND_PRODUCTION_CARGO_ARRIVAL) || HasBit(ind->callback_mask, CBM_IND_PRODUCTION_256_TICKS);
 
-		uint left_side = left + WD_FRAMERECT_LEFT * 4; // Indent accepted cargoes.
+		uint left_side = left + SWD_FRAMERECT_LEFT * 4; // Indent accepted cargoes.
 		for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
 			if (i->accepts_cargo[j] == CT_INVALID) continue;
 			has_accept = true;
 			if (first) {
-				DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_REQUIRES);
+				DrawString(left + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_REQUIRES);
 				y += FONT_HEIGHT_NORMAL;
 				first = false;
 			}
@@ -850,7 +851,7 @@ public:
 				default:
 					NOT_REACHED();
 			}
-			DrawString(left_side, right - WD_FRAMERECT_RIGHT, y, str);
+			DrawString(left_side, right - SWD_FRAMERECT_RIGHT, y, str);
 			y += FONT_HEIGHT_NORMAL;
 		}
 
@@ -859,8 +860,8 @@ public:
 		for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
 			if (i->produced_cargo[j] == CT_INVALID) continue;
 			if (first) {
-				if (has_accept) y += WD_PAR_VSEP_WIDE;
-				DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LAST_MONTH_TITLE);
+				if (has_accept) y += SWD_PAR_VSEP_WIDE;
+				DrawString(left + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LAST_MONTH_TITLE);
 				y += this->editable == EA_RATE ? GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL) : FONT_HEIGHT_NORMAL;
 				if (this->editable == EA_RATE) this->production_offset_y = y;
 				first = false;
@@ -870,11 +871,11 @@ public:
 			SetDParam(1, i->last_month_production[j]);
 			SetDParamStr(2, cargo_suffix[j].text);
 			SetDParam(3, ToPercent8(i->last_month_pct_transported[j]));
-			uint x = left + WD_FRAMETEXT_LEFT + (this->editable == EA_RATE ? SETTING_BUTTON_WIDTH + 10 : 0);
-			DrawString(x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_TRANSPORTED);
+			uint x = left + SWD_FRAMETEXT_LEFT + (this->editable == EA_RATE ? SETTING_BUTTON_WIDTH + 10 : 0);
+			DrawString(x, right - SWD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_TRANSPORTED);
 			/* Let's put out those buttons.. */
 			if (this->editable == EA_RATE) {
-				DrawArrowButtons(left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_RATE1 + j) ? this->clicked_button : 0,
+				DrawArrowButtons(left + SWD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_RATE1 + j) ? this->clicked_button : 0,
 						i->production_rate[j] > 0, i->production_rate[j] < 255);
 				y += GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
 			} else {
@@ -884,12 +885,12 @@ public:
 
 		/* Display production multiplier if editable */
 		if (this->editable == EA_MULTIPLIER) {
-			y += WD_PAR_VSEP_WIDE;
+			y += SWD_PAR_VSEP_WIDE;
 			this->production_offset_y = y;
 			SetDParam(0, RoundDivSU(i->prod_level * 100, PRODLEVEL_DEFAULT));
-			uint x = left + WD_FRAMETEXT_LEFT + SETTING_BUTTON_WIDTH + 10;
-			DrawString(x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LEVEL);
-			DrawArrowButtons(left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_MULTIPLIER) ? this->clicked_button : 0,
+			uint x = left + SWD_FRAMETEXT_LEFT + SETTING_BUTTON_WIDTH + ScaleGUIPixels(10);
+			DrawString(x, right - SWD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LEVEL);
+			DrawArrowButtons(left + SWD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_MULTIPLIER) ? this->clicked_button : 0,
 					i->prod_level > PRODLEVEL_MINIMUM, i->prod_level < PRODLEVEL_MAXIMUM);
 			y += GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
 		}
@@ -903,19 +904,19 @@ public:
 				} else {
 					StringID message = GetGRFStringID(ind->grf_prop.grffile->grfid, 0xD000 + callback_res);
 					if (message != STR_NULL && message != STR_UNDEFINED) {
-						y += WD_PAR_VSEP_WIDE;
+						y += SWD_PAR_VSEP_WIDE;
 
 						StartTextRefStackUsage(ind->grf_prop.grffile, 6);
 						/* Use all the available space left from where we stand up to the
 						 * end of the window. We ALSO enlarge the window if needed, so we
 						 * can 'go' wild with the bottom of the window. */
-						y = DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, UINT16_MAX, message, TC_BLACK);
+						y = DrawStringMultiLine(left + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, y, UINT16_MAX, message, TC_BLACK);
 						StopTextRefStackUsage();
 					}
 				}
 			}
 		}
-		return y + WD_FRAMERECT_BOTTOM;
+		return y + SWD_FRAMERECT_BOTTOM;
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -961,8 +962,8 @@ public:
 				if (line == IL_NONE) return;
 
 				NWidgetBase *nwi = this->GetWidget<NWidgetBase>(widget);
-				int left = nwi->pos_x + WD_FRAMETEXT_LEFT;
-				int right = nwi->pos_x + nwi->current_x - 1 - WD_FRAMERECT_RIGHT;
+				int left = nwi->pos_x + SWD_FRAMETEXT_LEFT;
+				int right = nwi->pos_x + nwi->current_x - 1 - SWD_FRAMERECT_RIGHT;
 				if (IsInsideMM(pt.x, left, left + SETTING_BUTTON_WIDTH)) {
 					/* Clicked buttons, decrease or increase production */
 					byte button = (pt.x < left + SETTING_BUTTON_WIDTH / 2) ? 1 : 2;
@@ -1376,11 +1377,11 @@ public:
 				int n = 0;
 				int y = Center(r.top, this->resize.step_height);
 				if (this->industries.Length() == 0) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_DIRECTORY_NONE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_INDUSTRY_DIRECTORY_NONE);
 					break;
 				}
 				for (uint i = this->vscroll->GetPosition(); i < this->industries.Length(); i++) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->GetIndustryString(this->industries[i]));
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, this->GetIndustryString(this->industries[i]));
 
 					y += this->resize.step_height;
 					if (++n == this->vscroll->GetCapacity()) break; // max number of industries in 1 window
@@ -1419,8 +1420,8 @@ public:
 				}
 				resize->height = d.height = GetMinSizing(NWST_STEP, d.height);
 				d.height *= 5;
-				d.width += padding.width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				d.height += padding.height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				d.width += padding.width + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				d.height += padding.height + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				*size = maxdim(*size, d);
 				break;
 			}
@@ -1446,7 +1447,7 @@ public:
 				break;
 
 			case WID_ID_INDUSTRY_LIST: {
-				uint p = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_ID_INDUSTRY_LIST, WD_FRAMERECT_TOP);
+				uint p = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_ID_INDUSTRY_LIST, SWD_FRAMERECT_TOP);
 				if (p < this->industries.Length()) {
 					if (_ctrl_pressed) {
 						ShowExtraViewPortWindow(this->industries[p]->location.tile);
@@ -1754,9 +1755,9 @@ struct CargoesField {
 		int n = this->u.cargo.num_cargoes;
 
 		if (n % 2 == 0) {
-			return xpos + cargo_field_width / 2 - (HOR_CARGO_WIDTH + HOR_CARGO_SPACE / 2) * (n / 2);
+			return xpos + cargo_field_width / 2 - ScaleGUIPixels(HOR_CARGO_WIDTH + HOR_CARGO_SPACE / 2) * (n / 2);
 		} else {
-			return xpos + cargo_field_width / 2 - HOR_CARGO_WIDTH / 2 - (HOR_CARGO_WIDTH + HOR_CARGO_SPACE) * (n / 2);
+			return xpos + cargo_field_width / 2 - ScaleGUIPixels(HOR_CARGO_WIDTH + (HOR_CARGO_WIDTH + HOR_CARGO_SPACE) * n) / 2;
 		}
 	}
 
@@ -1767,6 +1768,7 @@ struct CargoesField {
 	 */
 	void Draw(int xpos, int ypos) const
 	{
+		uint line_offset = WD_GUI_UNIT - 1;
 		switch (this->type) {
 			case CFT_EMPTY:
 			case CFT_SMALL_EMPTY:
@@ -1778,13 +1780,13 @@ struct CargoesField {
 				break;
 
 			case CFT_INDUSTRY: {
-				int ypos1 = ypos + VERT_INTER_INDUSTRY_SPACE / 2;
-				int ypos2 = ypos + normal_height - 1 - VERT_INTER_INDUSTRY_SPACE / 2;
+				int ypos1 = ypos + ScaleGUIPixels(VERT_INTER_INDUSTRY_SPACE) / 2;
+				int ypos2 = ypos + normal_height - 1 - ScaleGUIPixels(VERT_INTER_INDUSTRY_SPACE) / 2;
 				int xpos2 = xpos + industry_width - 1;
-				GfxDrawLine(xpos,  ypos1, xpos2, ypos1, INDUSTRY_LINE_COLOUR);
-				GfxDrawLine(xpos,  ypos1, xpos,  ypos2, INDUSTRY_LINE_COLOUR);
-				GfxDrawLine(xpos,  ypos2, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
-				GfxDrawLine(xpos2, ypos1, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
+				GfxFillRect(xpos,  ypos1, xpos2, ypos1 + line_offset, INDUSTRY_LINE_COLOUR);
+				GfxFillRect(xpos,  ypos1, xpos + line_offset,  ypos2, INDUSTRY_LINE_COLOUR);
+				GfxFillRect(xpos,  ypos2 - line_offset, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
+				GfxFillRect(xpos2 - line_offset, ypos1, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
 				ypos += (normal_height - FONT_HEIGHT_NORMAL) / 2;
 				if (this->u.industry.ind_type < NUM_INDUSTRYTYPES) {
 					const IndustrySpec *indsp = GetIndustrySpec(this->u.industry.ind_type);
@@ -1793,14 +1795,14 @@ struct CargoesField {
 					/* Draw the industry legend. */
 					int blob_left, blob_right;
 					if (_current_text_dir == TD_RTL) {
-						blob_right = xpos2 - BLOB_DISTANCE;
-						blob_left  = blob_right - BLOB_WIDTH;
+						blob_right = xpos2 - ScaleGUIPixels(BLOB_DISTANCE);
+						blob_left  = blob_right - ScaleGUIPixels(BLOB_WIDTH);
 					} else {
-						blob_left  = xpos + BLOB_DISTANCE;
-						blob_right = blob_left + BLOB_WIDTH;
+						blob_left  = xpos + ScaleGUIPixels(BLOB_DISTANCE);
+						blob_right = blob_left + ScaleGUIPixels(BLOB_WIDTH);
 					}
-					GfxFillRect(blob_left,     ypos2 - BLOB_DISTANCE - BLOB_HEIGHT,     blob_right,     ypos2 - BLOB_DISTANCE,     PC_BLACK); // Border
-					GfxFillRect(blob_left + 1, ypos2 - BLOB_DISTANCE - BLOB_HEIGHT + 1, blob_right - 1, ypos2 - BLOB_DISTANCE - 1, indsp->map_colour);
+					GfxFillRect(blob_left,     ypos2 - ScaleGUIPixels(BLOB_DISTANCE + BLOB_HEIGHT),     blob_right,     ypos2 - ScaleGUIPixels(BLOB_DISTANCE),     PC_BLACK); // Border
+					GfxFillRect(blob_left + WD_GUI_UNIT, ypos2 - ScaleGUIPixels(BLOB_DISTANCE + BLOB_HEIGHT - 1), blob_right - WD_GUI_UNIT, ypos2 - ScaleGUIPixels(BLOB_DISTANCE + 1), indsp->map_colour);
 				} else {
 					DrawString(xpos, xpos2, ypos, STR_INDUSTRY_CARGOES_HOUSES, TC_FROMSTRING, SA_HOR_CENTER);
 				}
@@ -1814,40 +1816,40 @@ struct CargoesField {
 					other_right = this->u.industry.other_produced;
 					other_left  = this->u.industry.other_accepted;
 				}
-				ypos1 += VERT_CARGO_EDGE;
+				ypos1 += ScaleGUIPixels(VERT_CARGO_EDGE);
 				for (uint i = 0; i < CargoesField::max_cargoes; i++) {
 					if (other_right[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(other_right[i]);
-						int xp = xpos + industry_width + CARGO_STUB_WIDTH;
+						int xp = xpos + industry_width + ScaleGUIPixels(CARGO_STUB_WIDTH);
 						DrawHorConnection(xpos + industry_width, xp - 1, ypos1, csp);
-						GfxDrawLine(xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+						GfxFillRect(xp - line_offset - 1, ypos1, xp - 1, ypos1 + ScaleGUIPixels(HOR_CARGO_WIDTH) - 1, CARGO_LINE_COLOUR);
 					}
 					if (other_left[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(other_left[i]);
-						int xp = xpos - CARGO_STUB_WIDTH;
-						DrawHorConnection(xp + 1, xpos - 1, ypos1, csp);
-						GfxDrawLine(xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+						int xp = xpos - ScaleGUIPixels(CARGO_STUB_WIDTH);
+						DrawHorConnection(xp, xpos - 1, ypos1, csp);
+						GfxFillRect(xp, ypos1, xp + line_offset, ypos1 + ScaleGUIPixels(HOR_CARGO_WIDTH) - 1, CARGO_LINE_COLOUR);
 					}
-					ypos1 += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
+					ypos1 += ScaleGUIPixels(HOR_CARGO_SPACE + CARGO_STUB_WIDTH + VERT_CARGO_SPACE);
 				}
 				break;
 			}
 
 			case CFT_CARGO: {
 				int cargo_base = this->GetCargoBase(xpos);
-				int top = ypos + (this->u.cargo.top_end ? VERT_INTER_INDUSTRY_SPACE / 2 + 1 : 0);
-				int bot = ypos - (this->u.cargo.bottom_end ? VERT_INTER_INDUSTRY_SPACE / 2 + 1 : 0) + normal_height - 1;
+				int top = ypos + (this->u.cargo.top_end ? ScaleGUIPixels(VERT_INTER_INDUSTRY_SPACE) / 2 : 0);
+				int bot = ypos - (this->u.cargo.bottom_end ? ScaleGUIPixels(VERT_INTER_INDUSTRY_SPACE) / 2 : 0) + normal_height - 1;
 				int colpos = cargo_base;
 				for (int i = 0; i < this->u.cargo.num_cargoes; i++) {
-					if (this->u.cargo.top_end) GfxDrawLine(colpos, top - 1, colpos + HOR_CARGO_WIDTH - 1, top - 1, CARGO_LINE_COLOUR);
-					if (this->u.cargo.bottom_end) GfxDrawLine(colpos, bot + 1, colpos + HOR_CARGO_WIDTH - 1, bot + 1, CARGO_LINE_COLOUR);
-					GfxDrawLine(colpos, top, colpos, bot, CARGO_LINE_COLOUR);
-					colpos++;
 					const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[i]);
-					GfxFillRect(colpos, top, colpos + HOR_CARGO_WIDTH - 2, bot, csp->legend_colour, FILLRECT_OPAQUE);
-					colpos += HOR_CARGO_WIDTH - 2;
-					GfxDrawLine(colpos, top, colpos, bot, CARGO_LINE_COLOUR);
-					colpos += 1 + HOR_CARGO_SPACE;
+					GfxFillRect(colpos, top, colpos + ScaleGUIPixels(HOR_CARGO_WIDTH), bot, csp->legend_colour);
+
+					if (this->u.cargo.top_end) GfxFillRect(colpos, top, colpos + ScaleGUIPixels(HOR_CARGO_WIDTH), top + line_offset, CARGO_LINE_COLOUR);
+					if (this->u.cargo.bottom_end) GfxFillRect(colpos, bot - WD_GUI_UNIT + 1, colpos + ScaleGUIPixels(HOR_CARGO_WIDTH) - 1, bot, CARGO_LINE_COLOUR);
+					GfxFillRect(colpos, top, colpos + line_offset, bot, CARGO_LINE_COLOUR);
+					colpos += ScaleGUIPixels(HOR_CARGO_WIDTH);
+					GfxFillRect(colpos, top, colpos + line_offset, bot, CARGO_LINE_COLOUR);
+					colpos += ScaleGUIPixels(HOR_CARGO_SPACE);
 				}
 
 				const CargoID *hor_left, *hor_right;
@@ -1858,44 +1860,45 @@ struct CargoesField {
 					hor_left  = this->u.cargo.supp_cargoes;
 					hor_right = this->u.cargo.cust_cargoes;
 				}
-				ypos += VERT_CARGO_EDGE + VERT_INTER_INDUSTRY_SPACE / 2;
+
+				ypos += ScaleGUIPixels(VERT_CARGO_EDGE + VERT_INTER_INDUSTRY_SPACE / 2);
 				for (uint i = 0; i < MAX_CARGOES; i++) {
 					if (hor_left[i] != INVALID_CARGO) {
 						int col = hor_left[i];
 						int dx = 0;
 						const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[col]);
 						for (; col > 0; col--) {
-							int lf = cargo_base + col * HOR_CARGO_WIDTH + (col - 1) * HOR_CARGO_SPACE;
-							DrawHorConnection(lf, lf + HOR_CARGO_SPACE - dx, ypos, csp);
-							dx = 1;
+							int lf = cargo_base + col * ScaleGUIPixels(HOR_CARGO_WIDTH) + (col - 1) * ScaleGUIPixels(HOR_CARGO_SPACE);
+							DrawHorConnection(lf + WD_GUI_UNIT, lf + ScaleGUIPixels(HOR_CARGO_SPACE) - dx + WD_GUI_UNIT - 1, ypos, csp);
+							dx = WD_GUI_UNIT;
 						}
-						DrawHorConnection(xpos, cargo_base - dx, ypos, csp);
+						DrawHorConnection(xpos, cargo_base + line_offset - dx, ypos, csp);
 					}
 					if (hor_right[i] != INVALID_CARGO) {
 						int col = hor_right[i];
 						int dx = 0;
 						const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[col]);
 						for (; col < this->u.cargo.num_cargoes - 1; col++) {
-							int lf = cargo_base + (col + 1) * HOR_CARGO_WIDTH + col * HOR_CARGO_SPACE;
-							DrawHorConnection(lf + dx - 1, lf + HOR_CARGO_SPACE - 1, ypos, csp);
-							dx = 1;
+							int lf = cargo_base + (col + 1) * ScaleGUIPixels(HOR_CARGO_WIDTH) + col * ScaleGUIPixels(HOR_CARGO_SPACE);
+							DrawHorConnection(lf + dx, lf + ScaleGUIPixels(HOR_CARGO_SPACE) - 1, ypos, csp);
+							dx = WD_GUI_UNIT;
 						}
-						DrawHorConnection(cargo_base + col * HOR_CARGO_SPACE + (col + 1) * HOR_CARGO_WIDTH - 1 + dx, xpos + CargoesField::cargo_field_width - 1, ypos, csp);
+						DrawHorConnection(cargo_base + col * ScaleGUIPixels(HOR_CARGO_SPACE) + (col + 1) * ScaleGUIPixels(HOR_CARGO_WIDTH) + dx, xpos + CargoesField::cargo_field_width - 1, ypos, csp);
 					}
-					ypos += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
+					ypos += ScaleGUIPixels(HOR_CARGO_SPACE + CARGO_STUB_WIDTH + VERT_CARGO_SPACE);
 				}
 				break;
 			}
 
 			case CFT_CARGO_LABEL:
-				ypos += VERT_CARGO_EDGE + VERT_INTER_INDUSTRY_SPACE / 2;
+				ypos += ScaleGUIPixels(VERT_CARGO_EDGE + VERT_INTER_INDUSTRY_SPACE / 2);
 				for (uint i = 0; i < MAX_CARGOES; i++) {
 					if (this->u.cargo_label.cargoes[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(this->u.cargo_label.cargoes[i]);
-						DrawString(xpos + WD_FRAMERECT_LEFT, xpos + industry_width - 1 - WD_FRAMERECT_RIGHT, ypos, csp->name, TC_WHITE,
+						DrawString(xpos + SWD_FRAMERECT_LEFT, xpos + industry_width - 1 - SWD_FRAMERECT_RIGHT, ypos, csp->name, TC_WHITE,
 								(this->u.cargo_label.left_align) ? SA_LEFT : SA_RIGHT);
 					}
-					ypos += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
+					ypos += ScaleGUIPixels(HOR_CARGO_SPACE + CARGO_STUB_WIDTH + VERT_CARGO_SPACE);
 				}
 				break;
 
@@ -1920,17 +1923,17 @@ struct CargoesField {
 		uint col;
 		for (col = 0; col < this->u.cargo.num_cargoes; col++) {
 			if (pt.x < cpos) break;
-			if (pt.x < cpos + CargoesField::HOR_CARGO_WIDTH) return this->u.cargo.vertical_cargoes[col];
-			cpos += CargoesField::HOR_CARGO_WIDTH + CargoesField::HOR_CARGO_SPACE;
+			if (pt.x < cpos + ScaleGUIPixels(CargoesField::HOR_CARGO_WIDTH)) return this->u.cargo.vertical_cargoes[col];
+			cpos += ScaleGUIPixels(CargoesField::HOR_CARGO_WIDTH) + ScaleGUIPixels(CargoesField::HOR_CARGO_SPACE);
 		}
 		/* col = 0 -> left of first col, 1 -> left of 2nd col, ... this->u.cargo.num_cargoes right of last-col. */
 
-		int vpos = VERT_INTER_INDUSTRY_SPACE / 2 + VERT_CARGO_EDGE;
+		int vpos = ScaleGUIPixels(VERT_INTER_INDUSTRY_SPACE / 2 + VERT_CARGO_EDGE);
 		uint row;
 		for (row = 0; row < MAX_CARGOES; row++) {
 			if (pt.y < vpos) return INVALID_CARGO;
 			if (pt.y < vpos + FONT_HEIGHT_NORMAL) break;
-			vpos += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
+			vpos += FONT_HEIGHT_NORMAL + ScaleGUIPixels(VERT_CARGO_SPACE);
 		}
 		if (row == MAX_CARGOES) return INVALID_CARGO;
 
@@ -1972,12 +1975,12 @@ struct CargoesField {
 	{
 		assert(this->type == CFT_CARGO_LABEL);
 
-		int vpos = VERT_INTER_INDUSTRY_SPACE / 2 + VERT_CARGO_EDGE;
+		int vpos = ScaleGUIPixels(VERT_INTER_INDUSTRY_SPACE / 2 + VERT_CARGO_EDGE);
 		uint row;
 		for (row = 0; row < MAX_CARGOES; row++) {
 			if (pt.y < vpos) return INVALID_CARGO;
 			if (pt.y < vpos + FONT_HEIGHT_NORMAL) break;
-			vpos += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
+			vpos += FONT_HEIGHT_NORMAL + ScaleGUIPixels(VERT_CARGO_SPACE);
 		}
 		if (row == MAX_CARGOES) return INVALID_CARGO;
 		return this->u.cargo_label.cargoes[row];
@@ -1993,9 +1996,9 @@ private:
 	 */
 	static void DrawHorConnection(int left, int right, int top, const CargoSpec *csp)
 	{
-		GfxDrawLine(left, top, right, top, CARGO_LINE_COLOUR);
-		GfxFillRect(left, top + 1, right, top + FONT_HEIGHT_NORMAL - 2, csp->legend_colour, FILLRECT_OPAQUE);
-		GfxDrawLine(left, top + FONT_HEIGHT_NORMAL - 1, right, top + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+		GfxFillRect(left, top, right, top + WD_GUI_UNIT - 1, CARGO_LINE_COLOUR);
+		GfxFillRect(left, top + WD_GUI_UNIT, right, top + ScaleGUIPixels(HOR_CARGO_WIDTH) - WD_GUI_UNIT - 1, csp->legend_colour);
+		GfxFillRect(left, top + ScaleGUIPixels(HOR_CARGO_WIDTH) - WD_GUI_UNIT, right, top + ScaleGUIPixels(HOR_CARGO_WIDTH) - 1, CARGO_LINE_COLOUR);
 	}
 };
 
@@ -2012,7 +2015,7 @@ const int CargoesField::VERT_INTER_INDUSTRY_SPACE = 6; ///< Amount of space betw
 const int CargoesField::HOR_CARGO_BORDER_SPACE = 15; ///< Amount of space between the left/right edge of a #CFT_CARGO field, and the left/right most vertical cargo.
 const int CargoesField::CARGO_STUB_WIDTH       = 10; ///< Width of a cargo not carried in the column (should be less than #HOR_CARGO_BORDER_SPACE).
 const int CargoesField::HOR_CARGO_WIDTH        = 15; ///< Width of a vertical cargo column (inclusive the border line).
-const int CargoesField::HOR_CARGO_SPACE        =  5; ///< Amount of horizontal space between two vertical cargoes.
+const int CargoesField::HOR_CARGO_SPACE        =  3; ///< Amount of horizontal space between two vertical cargoes.
 const int CargoesField::VERT_CARGO_EDGE        =  4; ///< Amount of vertical space between top/bottom and the top/bottom connected cargo at an industry.
 const int CargoesField::VERT_CARGO_SPACE       =  4; ///< Amount of vertical space between two connected cargoes at an industry.
 
@@ -2185,8 +2188,8 @@ struct IndustryCargoesWindow : public Window {
 		/* Initialize static CargoesField size variables. */
 		Dimension d = GetStringBoundingBox(STR_INDUSTRY_CARGOES_PRODUCERS);
 		d = maxdim(d, GetStringBoundingBox(STR_INDUSTRY_CARGOES_CUSTOMERS));
-		d.width  += WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
-		d.height += WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM;
+		d.width  += ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
+		d.height += ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM);
 		CargoesField::small_height = d.height;
 
 		/* Decide about the size of the box holding the text of an industry type. */
@@ -2215,23 +2218,23 @@ struct IndustryCargoesWindow : public Window {
 		d = maxdim(d, this->cargo_textsize); // Box must also be wide enough to hold any cargo label.
 		this->cargo_textsize = maxdim(this->cargo_textsize, GetStringBoundingBox(STR_INDUSTRY_CARGOES_SELECT_CARGO));
 
-		d.width  += 2 * HOR_TEXT_PADDING;
+		d.width  += 2 * ScaleGUIPixels(HOR_TEXT_PADDING);
 		/* Ensure the height is enough for the industry type text, for the horizontal connections, and for the cargo labels. */
-		uint min_ind_height = CargoesField::VERT_CARGO_EDGE * 2 + CargoesField::max_cargoes * FONT_HEIGHT_NORMAL + (CargoesField::max_cargoes - 1) *  CargoesField::VERT_CARGO_SPACE;
-		d.height = max(d.height + 2 * VERT_TEXT_PADDING, min_ind_height);
+		uint min_ind_height = ScaleGUIPixels(CargoesField::VERT_CARGO_EDGE) * 2 + CargoesField::max_cargoes * FONT_HEIGHT_NORMAL + (CargoesField::max_cargoes - 1) *  ScaleGUIPixels(CargoesField::VERT_CARGO_SPACE);
+		d.height = max(d.height + 2 * ScaleGUIPixels(VERT_TEXT_PADDING), min_ind_height);
 
 		CargoesField::industry_width = d.width;
-		CargoesField::normal_height = d.height + CargoesField::VERT_INTER_INDUSTRY_SPACE;
+		CargoesField::normal_height = d.height + ScaleGUIPixels(CargoesField::VERT_INTER_INDUSTRY_SPACE);
 
 		/* Width of a #CFT_CARGO field. */
-		CargoesField::cargo_field_width = CargoesField::HOR_CARGO_BORDER_SPACE * 2 + CargoesField::HOR_CARGO_WIDTH * CargoesField::max_cargoes + CargoesField::HOR_CARGO_SPACE * (CargoesField::max_cargoes - 1);
+		CargoesField::cargo_field_width = ScaleGUIPixels(CargoesField::HOR_CARGO_BORDER_SPACE * 2 + CargoesField::HOR_CARGO_WIDTH * CargoesField::max_cargoes + CargoesField::HOR_CARGO_SPACE * (CargoesField::max_cargoes - 1));
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		switch (widget) {
 			case WID_IC_PANEL:
-				size->width = WD_FRAMETEXT_LEFT + CargoesField::industry_width * 3 + CargoesField::cargo_field_width * 2 + WD_FRAMETEXT_RIGHT;
+				size->width = SWD_FRAMETEXT_LEFT + CargoesField::industry_width * 3 + CargoesField::cargo_field_width * 2 + SWD_FRAMETEXT_RIGHT;
 				break;
 
 			case WID_IC_IND_DROPDOWN:
@@ -2485,7 +2488,7 @@ struct IndustryCargoesWindow : public Window {
 		this->ShortenCargoColumn(1, 1, num_indrows);
 		this->ShortenCargoColumn(3, 1, num_indrows);
 		const NWidgetBase *nwp = this->GetWidget<NWidgetBase>(WID_IC_PANEL);
-		this->vscroll->SetCount(CeilDiv(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM + CargoesField::small_height + num_indrows * CargoesField::normal_height, nwp->resize_y));
+		this->vscroll->SetCount(CeilDiv(ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM) + CargoesField::small_height + num_indrows * CargoesField::normal_height, nwp->resize_y));
 		this->SetDirty();
 		this->NotifySmallmap();
 	}
@@ -2553,7 +2556,7 @@ struct IndustryCargoesWindow : public Window {
 
 		this->ShortenCargoColumn(1, 1, num_indrows);
 		const NWidgetBase *nwp = this->GetWidget<NWidgetBase>(WID_IC_PANEL);
-		this->vscroll->SetCount(CeilDiv(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM + CargoesField::small_height + num_indrows * CargoesField::normal_height, nwp->resize_y));
+		this->vscroll->SetCount(CeilDiv(ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM) + CargoesField::small_height + num_indrows * CargoesField::normal_height, nwp->resize_y));
 		this->SetDirty();
 		this->NotifySmallmap();
 	}
@@ -2586,12 +2589,12 @@ struct IndustryCargoesWindow : public Window {
 
 		DrawPixelInfo tmp_dpi, *old_dpi;
 		int width = r.right - r.left + 1;
-		int height = r.bottom - r.top + 1 - WD_FRAMERECT_TOP - WD_FRAMERECT_BOTTOM;
-		if (!FillDrawPixelInfo(&tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
+		int height = r.bottom - r.top + 1 - ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		if (!FillDrawPixelInfo(&tmp_dpi, r.left + SWD_FRAMERECT_LEFT, r.top + SWD_FRAMERECT_TOP, width, height)) return;
 		old_dpi = _cur_dpi;
 		_cur_dpi = &tmp_dpi;
 
-		int left_pos = WD_FRAMERECT_LEFT;
+		int left_pos = SWD_FRAMERECT_LEFT;
 		if (this->ind_cargo >= NUM_INDUSTRYTYPES) left_pos += (CargoesField::industry_width + CargoesField::cargo_field_width) / 2;
 		int last_column = (this->ind_cargo < NUM_INDUSTRYTYPES) ? 4 : 2;
 
@@ -2635,7 +2638,7 @@ struct IndustryCargoesWindow : public Window {
 		pt.x -= nw->pos_x;
 		pt.y -= nw->pos_y;
 
-		int vpos = WD_FRAMERECT_TOP + CargoesField::small_height - this->vscroll->GetPosition() * nw->resize_y;
+		int vpos = SWD_FRAMERECT_TOP + CargoesField::small_height - this->vscroll->GetPosition() * nw->resize_y;
 		if (pt.y < vpos) return false;
 
 		int row = (pt.y - vpos) / CargoesField::normal_height; // row is relative to row 1.
@@ -2643,7 +2646,7 @@ struct IndustryCargoesWindow : public Window {
 		vpos = pt.y - vpos - row * CargoesField::normal_height; // Position in the row + 1 field
 		row++; // rebase row to match index of this->fields.
 
-		int xpos = 2 * WD_FRAMERECT_LEFT + ((this->ind_cargo < NUM_INDUSTRYTYPES) ? 0 :  (CargoesField::industry_width + CargoesField::cargo_field_width) / 2);
+		int xpos = 2 * SWD_FRAMERECT_LEFT + ((this->ind_cargo < NUM_INDUSTRYTYPES) ? 0 :  (CargoesField::industry_width + CargoesField::cargo_field_width) / 2);
 		if (pt.x < xpos) return false;
 		int column;
 		for (column = 0; column <= 5; column++) {

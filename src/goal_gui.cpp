@@ -66,7 +66,7 @@ struct GoalListWindow : public Window {
 	{
 		if (widget != WID_GOAL_LIST) return;
 
-		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GOAL_LIST, WD_FRAMERECT_TOP);
+		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GOAL_LIST, SWD_FRAMERECT_TOP);
 		int num = 0;
 		const Goal *s;
 		FOR_ALL_GOALS(s) {
@@ -185,8 +185,8 @@ struct GoalListWindow : public Window {
 		resize->height = d.height;
 
 		d.height *= 5;
-		d.width += padding.width + WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT;
-		d.height += padding.height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		d.width += padding.width + ScaleGUIPixels(WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT);
+		d.height += padding.height + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		*size = maxdim(*size, d);
 	}
 
@@ -217,7 +217,7 @@ struct GoalListWindow : public Window {
 						case GC_GOAL: {
 							/* Display the goal. */
 							SetDParamStr(0, s->text);
-							uint width_reduction = progress_col_width > 0 ? progress_col_width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT : 0;
+							uint width_reduction = progress_col_width > 0 ? progress_col_width + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT) : 0;
 							DrawString(x + (rtl ? width_reduction : 0), right - (rtl ? 0 : width_reduction), y + pos * FONT_HEIGHT_NORMAL, STR_GOALS_TEXT);
 							break;
 						}
@@ -257,9 +257,9 @@ struct GoalListWindow : public Window {
 	void DrawListColumn(GoalColumn column, NWidgetBase *wid, uint progress_col_width) const
 	{
 		/* Get column draw area. */
-		int y = wid->pos_y + WD_FRAMERECT_TOP;
-		int x = wid->pos_x + WD_FRAMERECT_LEFT;
-		int right = x + wid->current_x - WD_FRAMERECT_RIGHT;
+		int y = wid->pos_y + SWD_FRAMERECT_TOP;
+		int x = wid->pos_x + SWD_FRAMERECT_LEFT;
+		int right = x + wid->current_x - SWD_FRAMERECT_RIGHT;
 
 		int pos = -this->vscroll->GetPosition();
 		const int cap = this->vscroll->GetCapacity();
@@ -434,7 +434,7 @@ struct GoalQuestionWindow : public Window {
 		if (widget != WID_GQ_QUESTION) return;
 
 		SetDParamStr(0, this->question);
-		size->height = GetStringHeight(STR_JUST_RAW_STRING, size->width) + WD_PAR_VSEP_WIDE;
+		size->height = GetStringHeight(STR_JUST_RAW_STRING, size->width) + SWD_PAR_VSEP_WIDE;
 	}
 
 	/* virtual */ void DrawWidget(const Rect &r, int widget) const

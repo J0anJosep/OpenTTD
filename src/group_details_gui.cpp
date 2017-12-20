@@ -135,12 +135,12 @@ struct GroupDetailsWindow : Window {
 		bool valid_vli = vli.UnpackIfValid(index);
 		assert(valid_vli);
 		Dimension dim = GetStringBoundingBox(STR_JUST_NOTHING);
-		this->tiny_step_height = GetMinSizing(NWST_STEP, dim.height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		this->tiny_step_height = GetMinSizing(NWST_STEP, dim.height + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 		stat = &GroupStatistics::Get(this->vli.company, this->vli.index, this->vli.vtype);
 		this->CreateNestedTree(desc);
 		this->tab = GI_TAB_GENERAL;
 		this->GetWidget<NWidgetCore>(GIW_WIDGET_CAPTION)->widget_data = STR_GROUP_DETAILS_CAPTION;
-		this->GetWidget<NWidgetCore>(GIW_WIDGET_LIST)->SetMinimalSize(0, 4 * this->tiny_step_height);
+		this->GetWidget<NWidgetCore>(GIW_WIDGET_LIST)->SetMinimalSize(0, 4 * this->tiny_step_height, false);
 		this->vscroll = this->GetScrollbar(GIW_WIDGET_LIST_SCROLLBAR);
 		this->FinishInitNested(index);
 		this->owner = this->vli.company;
@@ -172,7 +172,7 @@ struct GroupDetailsWindow : Window {
 				/* Set width; string using most width is usually STR_GROUP_DETAILS_GENERAL_PROFIT */
 				for (uint i = 0; i < 2; i++) SetDParam(i, UINT32_MAX);
 				Dimension dim = GetStringBoundingBox(STR_GROUP_DETAILS_GENERAL_PROFIT);
-				size->width = dim.width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				size->width = dim.width + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
 				size->height = this->tiny_step_height;
 				break;
 			}
@@ -187,8 +187,8 @@ struct GroupDetailsWindow : Window {
 	inline void DrawDetails1stLine(const Rect &r) const
 	{
 		int y = Center(r.top, this->tiny_step_height);
-		int left = r.left + WD_FRAMERECT_LEFT;
-		int right = r.right - WD_FRAMERECT_RIGHT;
+		int left = r.left + SWD_FRAMERECT_LEFT;
+		int right = r.right - SWD_FRAMERECT_RIGHT;
 
 		switch (tab) {
 			case GI_TAB_GENERAL:
@@ -210,8 +210,8 @@ struct GroupDetailsWindow : Window {
 	inline void DrawDetailsList(const Rect &r) const
 	{
 		int y = Center(r.top, this->tiny_step_height);
-		int left = r.left + WD_FRAMERECT_LEFT;
-		int right = r.right - WD_FRAMERECT_RIGHT;
+		int left = r.left + SWD_FRAMERECT_LEFT;
+		int right = r.right - SWD_FRAMERECT_RIGHT;
 		switch (tab) {
 			case GI_TAB_GENERAL:
 				if (stat->num_profit_vehicle > 0) {

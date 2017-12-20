@@ -210,7 +210,7 @@ struct NewGRFParametersWindow : public Window {
 			}
 
 			case WID_NP_BACKGROUND:
-				this->line_height = max(SETTING_BUTTON_HEIGHT, FONT_HEIGHT_NORMAL) + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+				this->line_height = max(SETTING_BUTTON_HEIGHT, FONT_HEIGHT_NORMAL) + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
 
 				resize->width = 1;
 				resize->height = this->line_height;
@@ -219,14 +219,14 @@ struct NewGRFParametersWindow : public Window {
 
 			case WID_NP_DESCRIPTION:
 				/* Minimum size of 4 lines. The 500 is the default size of the window. */
-				Dimension suggestion = {500 - WD_FRAMERECT_LEFT - WD_FRAMERECT_RIGHT, (uint)FONT_HEIGHT_NORMAL * 4 + WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM};
+				Dimension suggestion = {(uint)(500 - SWD_FRAMERECT_LEFT - SWD_FRAMERECT_RIGHT), (uint)(FONT_HEIGHT_NORMAL * 4 + ScaleGUIPixels(WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM))};
 				for (uint i = 0; i < this->grf_config->param_info.Length(); i++) {
 					const GRFParameterInfo *par_info = this->grf_config->param_info[i];
 					if (par_info == NULL) continue;
 					const char *desc = GetGRFStringFromGRFText(par_info->desc);
 					if (desc == NULL) continue;
 					Dimension d = GetStringMultiLineBoundingBox(desc, suggestion);
-					d.height += WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM;
+					d.height += ScaleGUIPixels(WD_TEXTPANEL_TOP + WD_TEXTPANEL_BOTTOM);
 					suggestion = maxdim(d, suggestion);
 				}
 				size->height = suggestion.height;
@@ -250,16 +250,16 @@ struct NewGRFParametersWindow : public Window {
 			if (par_info == NULL) return;
 			const char *desc = GetGRFStringFromGRFText(par_info->desc);
 			if (desc == NULL) return;
-			DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_TEXTPANEL_TOP, r.bottom - WD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
+			DrawStringMultiLine(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, r.top + SWD_TEXTPANEL_TOP, r.bottom - SWD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
 			return;
 		} else if (widget != WID_NP_BACKGROUND) {
 			return;
 		}
 
 		bool rtl = _current_text_dir == TD_RTL;
-		uint buttons_left = rtl ? r.right - SETTING_BUTTON_WIDTH - 3 : r.left + 4;
-		uint text_left    = r.left + (rtl ? WD_FRAMERECT_LEFT : SETTING_BUTTON_WIDTH + 8);
-		uint text_right   = r.right - (rtl ? SETTING_BUTTON_WIDTH + 8 : WD_FRAMERECT_RIGHT);
+		uint buttons_left = rtl ? r.right - SETTING_BUTTON_WIDTH - ScaleGUIPixels(3) : r.left + ScaleGUIPixels(4);
+		uint text_left    = r.left + (rtl ? SWD_FRAMERECT_LEFT : SETTING_BUTTON_WIDTH + ScaleGUIPixels(8));
+		uint text_right   = r.right - (rtl ? SETTING_BUTTON_WIDTH + ScaleGUIPixels(8) : SWD_FRAMERECT_RIGHT);
 
 		int y = r.top;
 		int button_y_offset = (this->line_height - SETTING_BUTTON_HEIGHT) / 2;
@@ -738,25 +738,25 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			case WID_NS_FILE_LIST:
 			{
 				Dimension d = maxdim(GetSpriteSize(SPR_SQUARE), GetSpriteSize(SPR_WARNING_SIGN));
-				resize->height = GetMinSizing(NWST_STEP, max(d.height + 2U, FONT_HEIGHT_NORMAL + 2U));
-				size->height = max(size->height, WD_FRAMERECT_TOP + 4 * resize->height + WD_FRAMERECT_BOTTOM);
+				resize->height = GetMinSizing(NWST_STEP, max(d.height, (uint)FONT_HEIGHT_NORMAL) + ScaleGUIPixels(2));
+				size->height = max(size->height, SWD_FRAMERECT_TOP + 4 * resize->height + SWD_FRAMERECT_BOTTOM);
 				break;
 			}
 
 			case WID_NS_AVAIL_LIST:
-				resize->height = GetMinSizing(NWST_STEP, max(12, FONT_HEIGHT_NORMAL + 2));
-				size->height = max(size->height, WD_FRAMERECT_TOP + 4 * resize->height + WD_FRAMERECT_BOTTOM);
+				resize->height = GetMinSizing(NWST_STEP, max(10, FONT_HEIGHT_NORMAL) + ScaleGUIPixels(2));
+				size->height = max(size->height, SWD_FRAMERECT_TOP + 4 * resize->height + SWD_FRAMERECT_BOTTOM);
 				break;
 
 			case WID_NS_NEWGRF_INFO_TITLE: {
 				Dimension dim = GetStringBoundingBox(STR_NEWGRF_SETTINGS_INFO_TITLE);
-				size->height = max(size->height, dim.height + WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM);
-				size->width  = max(size->width,  dim.width  + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
+				size->height = max(size->height, dim.height + ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM));
+				size->width  = max(size->width,  dim.width  + ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT));
 				break;
 			}
 
 			case WID_NS_NEWGRF_INFO:
-				size->height = max(size->height, WD_FRAMERECT_TOP + 10 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM + padding.height + 2);
+				size->height = max(size->height, SWD_FRAMERECT_TOP + 10 * FONT_HEIGHT_NORMAL + SWD_FRAMERECT_BOTTOM + padding.height + ScaleGUIPixels(2));
 				break;
 
 			case WID_NS_PRESET_LIST: {
@@ -844,10 +844,10 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	{
 		switch (widget) {
 			case WID_NS_FILE_LIST: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL, r.right - WD_BEVEL, r.bottom - WD_BEVEL, PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_FILE_LIST)->resize_y;
-				uint y = r.top + WD_FRAMERECT_TOP;
+				uint y = r.top + SWD_FRAMERECT_TOP;
 				Dimension square = GetSpriteSize(SPR_SQUARE);
 				Dimension warning = GetSpriteSize(SPR_WARNING_SIGN);
 				int square_offset_y = (step_height - square.height) / 2;
@@ -855,10 +855,10 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
 
 				bool rtl = _current_text_dir == TD_RTL;
-				uint text_left    = rtl ? r.left + WD_FRAMERECT_LEFT : r.left + square.width + 15;
-				uint text_right   = rtl ? r.right - square.width - 15 : r.right - WD_FRAMERECT_RIGHT;
-				uint square_left  = rtl ? r.right - square.width - 5 : r.left + 5;
-				uint warning_left = rtl ? r.right - square.width - warning.width - 10 : r.left + square.width + 10;
+				uint text_left    = rtl ? r.left + SWD_FRAMERECT_LEFT : r.left + square.width + ScaleGUIPixels(15);
+				uint text_right   = rtl ? r.right - square.width - ScaleGUIPixels(15) : r.right - SWD_FRAMERECT_RIGHT;
+				uint square_left  = rtl ? r.right - square.width - ScaleGUIPixels(5) : r.left + ScaleGUIPixels(5);
+				uint warning_left = rtl ? r.right - square.width - warning.width - ScaleGUIPixels(10) : r.left + square.width + ScaleGUIPixels(10);
 
 				int i = 0;
 				for (const GRFConfig *c = this->actives; c != NULL; c = c->next, i++) {
@@ -868,14 +868,14 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 						PaletteID pal = this->GetPalette(c);
 
 						if (h) {
-							GfxFillRect(r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
+							GfxFillRect(r.left + WD_BEVEL, y, r.right - WD_BEVEL, y + step_height - 1, PC_DARK_BLUE);
 						} else if (i == this->active_over) {
 							/* Get index of current selection. */
 							int active_sel_pos = 0;
 							for (GRFConfig *c = this->actives; c != NULL && c != this->active_sel; c = c->next, active_sel_pos++) {}
 							if (active_sel_pos != this->active_over) {
 								uint top = this->active_over < active_sel_pos ? y + 1 : y + step_height - 2;
-								GfxFillRect(r.left + WD_FRAMERECT_LEFT, top - 1, r.right - WD_FRAMERECT_RIGHT, top + 1, PC_GREY);
+								GfxFillRect(r.left + SWD_FRAMERECT_LEFT, top - 1, r.right - SWD_FRAMERECT_RIGHT, top + 1, PC_GREY);
 							}
 						}
 						DrawSprite(SPR_SQUARE, pal, square_left, y + square_offset_y);
@@ -886,17 +886,17 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 					}
 				}
 				if (i == this->active_over && this->vscroll->IsVisible(i)) { // Highlight is after the last GRF entry.
-					GfxFillRect(r.left + WD_FRAMERECT_LEFT, y, r.right - WD_FRAMERECT_RIGHT, y + 2, PC_GREY);
+					GfxFillRect(r.left + SWD_FRAMERECT_LEFT, y, r.right - SWD_FRAMERECT_RIGHT, y + 2, PC_GREY);
 				}
 				break;
 			}
 
 			case WID_NS_AVAIL_LIST: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, this->active_over == -2 ? PC_DARK_GREY : PC_BLACK);
+				GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL, r.right - WD_BEVEL, r.bottom - WD_BEVEL, this->active_over == -2 ? PC_DARK_GREY : PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_AVAIL_LIST)->resize_y;
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
-				uint y = r.top + WD_FRAMERECT_TOP;
+				uint y = r.top + SWD_FRAMERECT_TOP;
 				uint min_index = this->vscroll2->GetPosition();
 				uint max_index = min(min_index + this->vscroll2->GetCapacity(), this->avails.Length());
 
@@ -905,8 +905,8 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 					bool h = (c == this->avail_sel);
 					const char *text = c->GetName();
 
-					if (h) GfxFillRect(r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
+					if (h) GfxFillRect(r.left + WD_BEVEL, y, r.right - WD_BEVEL, y + step_height - 1, PC_DARK_BLUE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
 				break;
@@ -914,7 +914,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 			case WID_NS_NEWGRF_INFO_TITLE:
 				/* Create the nice grayish rectangle at the details top. */
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_DARK_BLUE);
+				GfxFillRect(r.left + WD_GUI_UNIT, r.top + WD_GUI_UNIT, r.right - WD_GUI_UNIT, r.bottom - WD_GUI_UNIT, PC_DARK_BLUE);
 				DrawString(r.left, r.right, (r.top + r.bottom - FONT_HEIGHT_NORMAL) / 2, STR_NEWGRF_SETTINGS_INFO_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
@@ -922,7 +922,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 				const GRFConfig *selected = this->active_sel;
 				if (selected == NULL) selected = this->avail_sel;
 				if (selected != NULL) {
-					ShowNewGRFInfo(selected, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, r.right - WD_FRAMERECT_RIGHT, r.bottom - WD_FRAMERECT_BOTTOM, this->show_params);
+					ShowNewGRFInfo(selected, r.left + SWD_FRAMERECT_LEFT, r.top + SWD_FRAMERECT_TOP, r.right - SWD_FRAMERECT_RIGHT, r.bottom - SWD_FRAMERECT_BOTTOM, this->show_params);
 				}
 				break;
 			}
@@ -2090,7 +2090,7 @@ struct SavePresetWindow : public Window {
 				size->height = 0;
 				for (uint i = 0; i < this->presets.Length(); i++) {
 					Dimension d = GetStringBoundingBox(this->presets[i]);
-					size->width = max(size->width, d.width + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
+					size->width = max(size->width, d.width + ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT));
 					resize->height = max(resize->height, d.height);
 				}
 				size->height = ClampU(this->presets.Length(), 5, 20) * resize->height + 1;
@@ -2107,7 +2107,7 @@ struct SavePresetWindow : public Window {
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_SVP_PRESET_LIST)->resize_y;
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
-				uint y = r.top + WD_FRAMERECT_TOP;
+				uint y = r.top + SWD_FRAMERECT_TOP;
 				uint min_index = this->vscroll->GetPosition();
 				uint max_index = min(min_index + this->vscroll->GetCapacity(), this->presets.Length());
 
@@ -2115,7 +2115,7 @@ struct SavePresetWindow : public Window {
 					if ((int)i == this->selected) GfxFillRect(r.left + 1, y, r.right - 1, y + step_height - 2, PC_DARK_BLUE);
 
 					const char *text = this->presets[i];
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
 				break;
@@ -2224,7 +2224,7 @@ struct ScanProgressWindow : public Window {
 				/* We really don't know the width. We could determine it by scanning the NewGRFs,
 				 * but this is the status window for scanning them... */
 				size->width = max(400U, GetStringBoundingBox(STR_NEWGRF_SCAN_STATUS).width);
-				size->height = FONT_HEIGHT_NORMAL * 2 + WD_PAR_VSEP_NORMAL;
+				size->height = FONT_HEIGHT_NORMAL * 2 + SWD_PAR_VSEP_NORMAL;
 				break;
 		}
 	}
@@ -2236,9 +2236,9 @@ struct ScanProgressWindow : public Window {
 				/* Draw the % complete with a bar and a text */
 				DrawFrameRect(r.left, r.top, r.right, r.bottom, COLOUR_GREY, FR_BORDERONLY);
 				uint percent = scanned * 100 / max(1U, _settings_client.gui.last_newgrf_count);
-				DrawFrameRect(r.left + 1, r.top + 1, (int)((r.right - r.left - 2) * percent / 100) + r.left + 1, r.bottom - 1, COLOUR_MAUVE, FR_NONE);
+				DrawFrameRect(r.left + WD_GUI_UNIT, r.top + WD_GUI_UNIT, (int)((r.right - r.left - 2 * WD_GUI_UNIT) * percent / 100) + r.left + WD_GUI_UNIT, r.bottom - WD_GUI_UNIT, COLOUR_MAUVE, FR_NONE);
 				SetDParam(0, percent);
-				DrawString(r.left, r.right, r.top + 5, STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(r.left, r.right, Center(r.top - 1, r.bottom - r.top), STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 
@@ -2247,7 +2247,7 @@ struct ScanProgressWindow : public Window {
 				SetDParam(1, _settings_client.gui.last_newgrf_count);
 				DrawString(r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
 
-				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
+				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
 				break;
 		}
 	}
