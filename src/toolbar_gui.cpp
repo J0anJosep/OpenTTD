@@ -108,9 +108,9 @@ public:
 		bool rtl = _current_text_dir == TD_RTL;
 		int y = CenterBounds(top, bottom);
 		if (this->checked) {
-			DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_JUST_CHECKMARK, sel ? TC_WHITE : TC_BLACK);
+			DrawString(left + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, y, STR_JUST_CHECKMARK, sel ? TC_WHITE : TC_BLACK);
 		}
-		DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 0 : this->checkmark_width), right - WD_FRAMERECT_RIGHT - (rtl ? this->checkmark_width : 0), y, this->String(), sel ? TC_WHITE : TC_BLACK);
+		DrawString(left + SWD_FRAMERECT_LEFT + (rtl ? 0 : this->checkmark_width), right - SWD_FRAMERECT_RIGHT - (rtl ? this->checkmark_width : 0), y, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
 };
 
@@ -139,7 +139,7 @@ public:
 		CompanyID company = (CompanyID)this->result;
 		SetDParam(0, company);
 		SetDParam(1, company);
-		return GetStringBoundingBox(STR_COMPANY_NAME_COMPANY_NUM).width + this->icon_size.width + 3;
+		return GetStringBoundingBox(STR_COMPANY_NAME_COMPANY_NUM).width + this->icon_size.width + ScaleGUIPixels(3);
 	}
 
 	uint Height(uint width) const
@@ -158,7 +158,7 @@ public:
 		int icon_offset = (bottom - top - icon_size.height) / 2;
 		int text_offset = (bottom - top - FONT_HEIGHT_NORMAL) / 2;
 
-		DrawCompanyIcon(company, rtl ? right - this->icon_size.width - WD_FRAMERECT_RIGHT : left + WD_FRAMERECT_LEFT, top + icon_offset);
+		DrawCompanyIcon(company, rtl ? right - this->icon_size.width - SWD_FRAMERECT_RIGHT : left + SWD_FRAMERECT_LEFT, top + icon_offset);
 
 		SetDParam(0, company);
 		SetDParam(1, company);
@@ -168,7 +168,7 @@ public:
 		} else {
 			col = sel ? TC_WHITE : TC_BLACK;
 		}
-		DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 0 : 3 + this->icon_size.width), right - WD_FRAMERECT_RIGHT - (rtl ? 3 + this->icon_size.width : 0), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
+		DrawString(left + SWD_FRAMERECT_LEFT + (rtl ? 0 : ScaleGUIPixels(3) + this->icon_size.width), right - SWD_FRAMERECT_RIGHT - (rtl ? ScaleGUIPixels(3) + this->icon_size.width : 0), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
 	}
 };
 
@@ -2359,13 +2359,14 @@ struct ScenarioEditorToolbarWindow : Window {
 	{
 		switch (widget) {
 			case WID_TE_SPACER:
-				size->width = max(GetStringBoundingBox(STR_SCENEDIT_TOOLBAR_OPENTTD).width, GetStringBoundingBox(STR_SCENEDIT_TOOLBAR_SCENARIO_EDITOR).width) + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				size->width = max(GetStringBoundingBox(STR_SCENEDIT_TOOLBAR_OPENTTD).width, GetStringBoundingBox(STR_SCENEDIT_TOOLBAR_SCENARIO_EDITOR).width) + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
 				break;
 
 			case WID_TE_DATE:
 				SetDParam(0, ConvertYMDToDate(MAX_YEAR, 0, 1));
 				*size = GetStringBoundingBox(STR_WHITE_DATE_LONG);
-				size->height = max(size->height, GetSpriteSize(SPR_IMG_SAVE).height + WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM);
+				size->height = max(size->height, GetSpriteSize(SPR_IMG_SAVE).height +
+						ScaleGUIPixels(WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM));
 				break;
 		}
 	}

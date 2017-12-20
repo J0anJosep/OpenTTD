@@ -46,7 +46,7 @@
  */
 uint GetEngineListHeight(VehicleType type)
 {
-	uint size = max<uint>(FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM, GetVehicleImageCellSize(type, EIT_PURCHASE).height);
+	uint size = max<uint>(FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM), GetVehicleImageCellSize(type, EIT_PURCHASE).height);
 	return GetMinSizing(NWST_STEP, size);
 }
 
@@ -905,7 +905,7 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 	int sprite_right = GetVehicleImageCellSize(type, EIT_PURCHASE).extend_right;
 	int sprite_width = sprite_left + sprite_right;
 
-	int sprite_x        = rtl ? r - sprite_right - 1 : l + sprite_left + 1;
+	int sprite_x        = rtl ? r - SWD_FRAMERECT_RIGHT - sprite_right : l + SWD_FRAMERECT_LEFT + sprite_left;
 
 	Dimension replace_icon = {0, 0};
 	int count_width = 0;
@@ -915,11 +915,11 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 		count_width = GetStringBoundingBox(STR_TINY_BLACK_COMA).width;
 	}
 
-	int text_left  = l + (rtl ? WD_FRAMERECT_LEFT + replace_icon.width + 8 + count_width : sprite_width + WD_FRAMETEXT_LEFT);
-	int text_right = r - (rtl ? sprite_width + WD_FRAMETEXT_RIGHT : WD_FRAMERECT_RIGHT + replace_icon.width + 8 + count_width);
-	int replace_icon_left = rtl ? l + WD_FRAMERECT_LEFT : r - WD_FRAMERECT_RIGHT - replace_icon.width;
+	int text_left  = l + (rtl ? SWD_FRAMERECT_LEFT + replace_icon.width + ScaleGUIPixels(8) + count_width : sprite_width + SWD_FRAMETEXT_LEFT);
+	int text_right = r - (rtl ? sprite_width + SWD_FRAMETEXT_RIGHT : SWD_FRAMERECT_RIGHT + replace_icon.width + ScaleGUIPixels(8) + count_width);
+	int replace_icon_left = rtl ? l + SWD_FRAMERECT_LEFT : r - SWD_FRAMERECT_RIGHT - replace_icon.width;
 	int count_left = l;
-	int count_right = rtl ? text_left : r - WD_FRAMERECT_RIGHT - replace_icon.width - 8;
+	int count_right = rtl ? text_left : r - SWD_FRAMERECT_RIGHT - replace_icon.width - ScaleGUIPixels(8);
 
 	for (; min < max; min++, y += step_size) {
 		const EngineID engine = (*eng_list)[min];
@@ -943,7 +943,7 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 
 		/* Highlight the vehicle if it is selected. */
 		if (engine == selected_id) {
-			GfxFillRect(l, y + WD_FRAMERECT_TOP, r, y + step_size - WD_FRAMERECT_BOTTOM - 2, _colour_gradient[COLOUR_GREY][7]);
+			GfxFillRect(l + 2 * WD_BEVEL, y + 2 * WD_BEVEL, r - 2 * WD_BEVEL, y + step_size - 2 * WD_BEVEL, _colour_gradient[COLOUR_GREY][7]);
 		}
 
 		SetDParam(0, engine);
@@ -1057,7 +1057,7 @@ struct BuildVehicleWindow : Window {
 		widget->tool_tip    = STR_SHOW_HIDDEN_ENGINES_VEHICLE_TRAIN_TOOLTIP + type;
 		widget->SetLowered(this->show_hidden_engines);
 
-		this->details_height = ((this->vehicle_type == VEH_TRAIN) ? 10 : 9) * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		this->details_height = ((this->vehicle_type == VEH_TRAIN) ? 10 : 9) * FONT_HEIGHT_NORMAL + SWD_FRAMERECT_TOP + SWD_FRAMERECT_BOTTOM;
 
 		this->FinishInitNested(tile == INVALID_TILE ? (int)type : tile);
 
@@ -1398,7 +1398,7 @@ struct BuildVehicleWindow : Window {
 	{
 		switch (widget) {
 			case WID_BV_LIST:
-				DrawEngineList(this->vehicle_type, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
+				DrawEngineList(this->vehicle_type, r.left, r.right, r.top, &this->eng_list, this->vscroll->GetPosition(), min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
 				break;
 		}
 	}
@@ -1416,9 +1416,9 @@ struct BuildVehicleWindow : Window {
 			/* Draw details panels. */
 			if (this->sel_engine != INVALID_ENGINE) {
 				NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_BV_PANEL);
-				int text_end = DrawVehiclePurchaseInfo(nwi->pos_x + WD_FRAMETEXT_LEFT, nwi->pos_x + nwi->current_x - WD_FRAMETEXT_RIGHT,
-						nwi->pos_y + WD_FRAMERECT_TOP, this->sel_engine);
-				needed_height = max(needed_height, text_end - (int)nwi->pos_y + WD_FRAMERECT_BOTTOM);
+				int text_end = DrawVehiclePurchaseInfo(nwi->pos_x + SWD_FRAMETEXT_LEFT, nwi->pos_x + nwi->current_x - SWD_FRAMETEXT_RIGHT,
+						nwi->pos_y + SWD_FRAMERECT_TOP, this->sel_engine);
+				needed_height = max(needed_height, text_end - (int)nwi->pos_y + SWD_FRAMERECT_BOTTOM);
 			}
 			if (needed_height != this->details_height) { // Details window are not high enough, enlarge them.
 				int resize = needed_height - this->details_height;

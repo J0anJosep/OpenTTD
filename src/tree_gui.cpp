@@ -95,8 +95,8 @@ public:
 		if (widget >= WID_BT_TYPE_11 && widget <= WID_BT_TYPE_34) {
 			Dimension d = GetMaxTreeSpriteSize();
 			/* Allow some pixels extra width and height */
-			size->width = d.width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-			size->height = d.height + WD_FRAMERECT_RIGHT + WD_FRAMERECT_BOTTOM + 7; // we need some more space
+			size->width = d.width + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+			size->height = d.height + ScaleGUIPixels(WD_FRAMERECT_RIGHT + WD_FRAMERECT_BOTTOM + 7); // we need some more space
 			return;
 		}
 
@@ -114,7 +114,7 @@ public:
 
 		int i = this->base + widget - WID_BT_TYPE_11;
 		/* Trees "grow" in the centre on the bottom line of the buttons */
-		DrawSprite(tree_sprites[i].sprite, tree_sprites[i].pal, (r.left + r.right) / 2 + WD_FRAMERECT_LEFT, r.bottom - 7);
+		DrawSprite(tree_sprites[i].sprite, tree_sprites[i].pal, (r.left + r.right) / 2 + SWD_FRAMERECT_LEFT, r.bottom - ScaleGUIPixels(8));
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

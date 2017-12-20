@@ -393,53 +393,53 @@ public:
 				}
 
 				if (str != STR_ERROR_UNABLE_TO_READ_DRIVE) SetDParam(0, tot);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP, str);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, path, TC_BLACK);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + SWD_FRAMERECT_TOP, str);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, r.top + SWD_FRAMERECT_TOP, path, TC_BLACK);
 				break;
 			}
 
 			case WID_SL_DRIVES_DIRECTORIES_LIST: {
 				GfxFillRect(r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
 
-				uint y = r.top + WD_FRAMERECT_TOP;
+				uint y = r.top + SWD_FRAMERECT_TOP;
 				for (uint pos = this->vscroll->GetPosition(); pos < this->fios_items.Length(); pos++) {
 					const FiosItem *item = this->fios_items.Get(pos);
 
 					if (item == this->selected) {
 						GfxFillRect(r.left + 1, y, r.right, y + this->resize.step_height, PC_DARK_BLUE);
 					}
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, Center(y, this->resize.step_height), item->title, _fios_colours[GetDetailedFileType(item->type)]);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, Center(y, this->resize.step_height), item->title, _fios_colours[GetDetailedFileType(item->type)]);
 					y += this->resize.step_height;
-					if (y >= this->vscroll->GetCapacity() * this->resize.step_height + r.top + WD_FRAMERECT_TOP) break;
+					if (y >= this->vscroll->GetCapacity() * this->resize.step_height + r.top + SWD_FRAMERECT_TOP) break;
 				}
 				break;
 			}
 
 			case WID_SL_DETAILS: {
-				GfxFillRect(r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP,
-						r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL * 2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM, PC_GREY);
-				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL / 2 + WD_FRAMERECT_TOP, STR_SAVELOAD_DETAIL_CAPTION, TC_FROMSTRING, SA_HOR_CENTER);
+				GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL,
+						r.right - WD_BEVEL, r.top + FONT_HEIGHT_NORMAL * 2 + WD_BEVEL * 2, PC_GREY);
+				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL / 2 + SWD_FRAMERECT_TOP, STR_SAVELOAD_DETAIL_CAPTION, TC_FROMSTRING, SA_HOR_CENTER);
 
 				if (this->selected == NULL) break;
 
-				uint y = r.top + FONT_HEIGHT_NORMAL * 2 + WD_PAR_VSEP_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
-				uint y_max = r.bottom - FONT_HEIGHT_NORMAL - WD_FRAMERECT_BOTTOM;
+				uint y = r.top + FONT_HEIGHT_NORMAL * 2 + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+				uint y_max = r.bottom - FONT_HEIGHT_NORMAL - SWD_FRAMERECT_BOTTOM;
 
 				if (y > y_max) break;
 				if (!_load_check_data.checkable) {
 					/* Old savegame, no information available */
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
 					y += FONT_HEIGHT_NORMAL;
 				} else if (_load_check_data.error != INVALID_STRING_ID) {
 					/* Incompatible / broken savegame */
 					SetDParamStr(0, _load_check_data.error_data);
-					y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
-							y, r.bottom - WD_FRAMERECT_BOTTOM, _load_check_data.error, TC_RED);
+					y = DrawStringMultiLine(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT,
+							y, r.bottom - SWD_FRAMERECT_BOTTOM, _load_check_data.error, TC_RED);
 				} else {
 					/* Mapsize */
 					SetDParam(0, _load_check_data.map_size_x);
 					SetDParam(1, _load_check_data.map_size_y);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE);
 					y += FONT_HEIGHT_NORMAL;
 					if (y > y_max) break;
 
@@ -447,17 +447,17 @@ public:
 					byte landscape = _load_check_data.settings.game_creation.landscape;
 					if (landscape < NUM_LANDSCAPE) {
 						SetDParam(0, STR_CHEAT_SWITCH_CLIMATE_TEMPERATE_LANDSCAPE + landscape);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE);
+						DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 
-					y += WD_PAR_VSEP_NORMAL;
+					y += SWD_PAR_VSEP_NORMAL;
 					if (y > y_max) break;
 
 					/* Start date (if available) */
 					if (_load_check_data.settings.game_creation.starting_year != 0) {
 						SetDParam(0, ConvertYMDToDate(_load_check_data.settings.game_creation.starting_year, 0, 1));
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE);
+						DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (y > y_max) break;
@@ -466,19 +466,19 @@ public:
 					if (this->abstract_filetype != FT_SCENARIO) {
 						/* Current date */
 						SetDParam(0, _load_check_data.current_date);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE);
+						DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 
 					/* Hide the NewGRF stuff when saving. We also hide the button. */
 					if (this->fop == SLO_LOAD && (this->abstract_filetype == FT_SAVEGAME || this->abstract_filetype == FT_SCENARIO)) {
-						y += WD_PAR_VSEP_NORMAL;
+						y += SWD_PAR_VSEP_NORMAL;
 						if (y > y_max) break;
 
 						/* NewGrf compatibility */
 						SetDParam(0, _load_check_data.grfconfig == NULL ? STR_NEWGRF_LIST_NONE :
 								STR_NEWGRF_LIST_ALL_FOUND + _load_check_data.grf_compatibility);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_GRFSTATUS);
+						DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_GRFSTATUS);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (y > y_max) break;
@@ -500,7 +500,7 @@ public:
 								SetDParam(1, c.name_1);
 								SetDParam(2, c.name_2);
 							}
-							DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_COMPANY_INDEX);
+							DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_COMPANY_INDEX);
 							y += FONT_HEIGHT_NORMAL;
 							if (y > y_max) break;
 						}
@@ -529,12 +529,12 @@ public:
 	{
 		switch (widget) {
 			case WID_SL_BACKGROUND:
-				size->height = 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->height = 2 * FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 
 			case WID_SL_DRIVES_DIRECTORIES_LIST:
 				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
-				size->height = resize->height * 10 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->height = resize->height * 10 + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 			case WID_SL_SORT_BYNAME:
 			case WID_SL_SORT_BYDATE: {
@@ -623,7 +623,7 @@ public:
 				break;
 
 			case WID_SL_DRIVES_DIRECTORIES_LIST: { // Click the listbox
-				int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SL_DRIVES_DIRECTORIES_LIST, WD_FRAMERECT_TOP);
+				int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SL_DRIVES_DIRECTORIES_LIST, SWD_FRAMERECT_TOP);
 				if (y == INT_MAX) return;
 
 				const FiosItem *file = this->fios_items.Get(y);
