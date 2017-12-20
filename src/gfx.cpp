@@ -21,6 +21,7 @@
 #include "network/network_func.h"
 #include "window_func.h"
 #include "newgrf_debug.h"
+#include "widget_type.h"
 
 #include "table/palettes.h"
 #include "table/string_colours.h"
@@ -457,7 +458,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 
 			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter(sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter(sprite, begin_x + WD_SHADOW_OFFSET, top + WD_SHADOW_OFFSET, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
 			GfxMainBlitter(sprite, begin_x, top, BM_COLOUR_REMAP);
@@ -469,7 +470,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter(dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter(dot_sprite, x + WD_SHADOW_OFFSET, y + WD_SHADOW_OFFSET, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
 			GfxMainBlitter(dot_sprite, x, y, BM_COLOUR_REMAP);

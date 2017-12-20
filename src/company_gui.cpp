@@ -531,7 +531,7 @@ public:
 
 	uint Height(uint width) const
 	{
-		return GetMinSizing(NWST_STEP, max(FONT_HEIGHT_NORMAL, ScaleGUITrad(12) + 2));
+		return GetMinSizing(NWST_STEP, max(FONT_HEIGHT_NORMAL, ScaleGUIPixels(12) + 2));
 	}
 
 	bool Selectable() const
@@ -546,10 +546,10 @@ public:
 		int icon_y_offset = height / 2;
 		int text_y_offset = (height - FONT_HEIGHT_NORMAL) / 2 + 1;
 		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + this->result,
-				rtl ? right - 2 - ScaleGUITrad(14) : left + ScaleGUITrad(14) + 2,
+				rtl ? right - 2 - ScaleGUIPixels(14) : left + ScaleGUIPixels(14) + 2,
 				top + icon_y_offset);
-		DrawString(rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
-				rtl ? right - ScaleGUITrad(28) - 4 : right - 2,
+		DrawString(rtl ? left + 2 : left + ScaleGUIPixels(28) + 4,
+				rtl ? right - ScaleGUIPixels(28) - 4 : right - 2,
 				top + text_y_offset, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
 };
@@ -617,7 +617,7 @@ public:
 				for (LiveryScheme scheme = LS_DEFAULT; scheme < LS_END; scheme++) {
 					d = maxdim(d, GetStringBoundingBox(STR_LIVERY_DEFAULT + scheme));
 				}
-				size->width = max(size->width, 5 + this->box.width + d.width + WD_FRAMERECT_RIGHT);
+				size->width = max(size->width, ScaleGUIPixels(5 + SWD_FRAMERECT_RIGHT) + this->box.width + d.width);
 				break;
 			}
 
@@ -698,8 +698,8 @@ public:
 		int sec_left = nwi->pos_x;
 		int sec_right = sec_left + nwi->current_x - 1;
 
-		int text_left  = (rtl ? (uint)WD_FRAMERECT_LEFT : (this->box.width + 5));
-		int text_right = (rtl ? (this->box.width + 5) : (uint)WD_FRAMERECT_RIGHT);
+		int text_left  = (rtl ? (uint)SWD_FRAMERECT_LEFT : (this->box.width + ScaleGUIPixels(5)));
+		int text_right = (rtl ? (this->box.width + ScaleGUIPixels(5)) : (uint)SWD_FRAMERECT_RIGHT);
 
 		int box_offs    = (this->line_height - this->box.height) / 2;
 		int square_offs = (this->line_height - this->square.height) / 2 + 1;
@@ -713,17 +713,17 @@ public:
 
 				/* Optional check box + scheme name. */
 				if (scheme != LS_DEFAULT) {
-					DrawSprite(c->livery[scheme].in_use ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sch_left) + WD_FRAMERECT_LEFT, y + box_offs);
+					DrawSprite(c->livery[scheme].in_use ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + ScaleGUIPixels(5)) + SWD_FRAMERECT_RIGHT : sch_left) + SWD_FRAMERECT_LEFT, y + box_offs);
 				}
 				DrawString(sch_left + text_left, sch_right - text_right, y + text_offs, STR_LIVERY_DEFAULT + scheme, sel ? TC_WHITE : TC_BLACK);
 
 				/* Text below the first dropdown. */
-				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour1), (rtl ? pri_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
+				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour1), (rtl ? pri_right - (this->box.width + ScaleGUIPixels(5)) + SWD_FRAMERECT_RIGHT : pri_left) + SWD_FRAMERECT_LEFT, y + square_offs);
 				DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour1, sel ? TC_WHITE : TC_GOLD);
 
 				/* Text below the second dropdown. */
 				if (sec_right > sec_left) { // Second dropdown has non-zero size.
-					DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour2), (rtl ? sec_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
+					DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour2), (rtl ? sec_right - (this->box.width + ScaleGUIPixels(5)) + SWD_FRAMERECT_RIGHT : sec_left) + SWD_FRAMERECT_LEFT, y + square_offs);
 					DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour2, sel ? TC_WHITE : TC_GOLD);
 				}
 
@@ -1083,8 +1083,8 @@ class SelectCompanyManagerFaceWindow : public Window
 			}
 
 			/* Draw the value/bool in white (0xC). If the button clicked adds 1px to x and y text coordinates (IsWindowWidgetLowered()). */
-			DrawString(nwi_widget->pos_x + nwi_widget->IsLowered(), nwi_widget->pos_x + nwi_widget->current_x - 1 - nwi_widget->IsLowered(),
-					Center(nwi_widget->pos_y + nwi_widget->IsLowered(), nwi_widget->current_y), str, TC_WHITE, SA_HOR_CENTER);
+			DrawString(nwi_widget->pos_x + nwi_widget->IsLowered() * WD_GUI_UNIT, nwi_widget->pos_x + nwi_widget->current_x - 1 - nwi_widget->IsLowered(),
+					Center(nwi_widget->pos_y + nwi_widget->IsLowered() * WD_GUI_UNIT, nwi_widget->current_y), str, TC_WHITE, SA_HOR_CENTER);
 		}
 	}
 
@@ -1132,8 +1132,8 @@ public:
 	{
 		/* Size of the boolean yes/no button. */
 		Dimension yesno_dim = maxdim(GetStringBoundingBox(STR_FACE_YES), GetStringBoundingBox(STR_FACE_NO));
-		yesno_dim.width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-		yesno_dim.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		yesno_dim.width  += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+		yesno_dim.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 
 		yesno_dim.width  = GetMinSizing(NWST_STEP, yesno_dim.width);
 		yesno_dim.height = GetMinSizing(NWST_STEP, yesno_dim.height);
@@ -1144,9 +1144,9 @@ public:
 			SetDParam(0, val);
 			number_dim = maxdim(number_dim, GetStringBoundingBox(STR_JUST_INT));
 		}
-		uint arrows_width = GetSpriteSize(SPR_ARROW_LEFT).width + GetSpriteSize(SPR_ARROW_RIGHT).width + 2 * (WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
-		number_dim.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + arrows_width;
-		number_dim.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		uint arrows_width = GetSpriteSize(SPR_ARROW_LEFT).width + GetSpriteSize(SPR_ARROW_RIGHT).width + 2 * ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
+		number_dim.width += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT) + arrows_width;
+		number_dim.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		/* Compute width of both buttons. */
 		yesno_dim.width = max(yesno_dim.width, number_dim.width);
 		number_dim.width = yesno_dim.width - arrows_width;
@@ -1169,15 +1169,15 @@ public:
 			case WID_SCMF_TIE_EARRING_TEXT: {
 				int offset = (widget - WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) * 2;
 				*size = maxdim(GetStringBoundingBox(PART_TEXTS_IS_FEMALE[offset]), GetStringBoundingBox(PART_TEXTS_IS_FEMALE[offset + 1]));
-				size->width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				size->height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->width  += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				size->height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 			}
 
 			case WID_SCMF_LIPS_MOUSTACHE_TEXT:
 				*size = maxdim(GetStringBoundingBox(STR_FACE_LIPS), GetStringBoundingBox(STR_FACE_MOUSTACHE));
-				size->width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				size->height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->width  += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				size->height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 
 			case WID_SCMF_HAS_GLASSES_TEXT:
@@ -1190,8 +1190,8 @@ public:
 			case WID_SCMF_JACKET_TEXT:
 			case WID_SCMF_COLLAR_TEXT:
 				*size = GetStringBoundingBox(PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT]);
-				size->width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				size->height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->width  += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				size->height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 
 			case WID_SCMF_HAS_MOUSTACHE_EARRING:
@@ -1281,12 +1281,12 @@ public:
 			case WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT:
 			case WID_SCMF_TIE_EARRING_TEXT: {
 				StringID str = PART_TEXTS_IS_FEMALE[(widget - WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) * 2 + this->is_female];
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), str, TC_GOLD, SA_RIGHT);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), str, TC_GOLD, SA_RIGHT);
 				break;
 			}
 
 			case WID_SCMF_LIPS_MOUSTACHE_TEXT:
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), (this->is_moust_male) ? STR_FACE_MOUSTACHE : STR_FACE_LIPS, TC_GOLD, SA_RIGHT);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), (this->is_moust_male) ? STR_FACE_MOUSTACHE : STR_FACE_LIPS, TC_GOLD, SA_RIGHT);
 				break;
 
 			case WID_SCMF_HAS_GLASSES_TEXT:
@@ -1298,7 +1298,7 @@ public:
 			case WID_SCMF_CHIN_TEXT:
 			case WID_SCMF_JACKET_TEXT:
 			case WID_SCMF_COLLAR_TEXT:
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT], TC_GOLD, SA_RIGHT);
+				DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT], TC_GOLD, SA_RIGHT);
 				break;
 
 
@@ -1654,12 +1654,12 @@ struct CompanyInfrastructureWindow : Window
 					if (HasBit(this->railtypes, rt)) {
 						lines++;
 						SetDParam(0, GetRailTypeInfo(rt)->strings.name);
-						size->width = max(size->width, GetStringBoundingBox(STR_WHITE_STRING).width + WD_FRAMERECT_LEFT);
+						size->width = max(size->width, GetStringBoundingBox(STR_WHITE_STRING).width + SWD_FRAMERECT_LEFT);
 					}
 				}
 				if (this->railtypes != RAILTYPES_NONE) {
 					lines++;
-					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS).width + WD_FRAMERECT_LEFT);
+					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS).width + SWD_FRAMERECT_LEFT);
 				}
 
 				size->height = max(size->height, lines * FONT_HEIGHT_NORMAL);
@@ -1673,11 +1673,11 @@ struct CompanyInfrastructureWindow : Window
 
 				if (HasBit(this->roadtypes, ROADTYPE_ROAD)) {
 					lines++;
-					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD).width + WD_FRAMERECT_LEFT);
+					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD).width + SWD_FRAMERECT_LEFT);
 				}
 				if (HasBit(this->roadtypes, ROADTYPE_TRAM)) {
 					lines++;
-					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY).width + WD_FRAMERECT_LEFT);
+					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY).width + SWD_FRAMERECT_LEFT);
 				}
 
 				size->height = max(size->height, lines * FONT_HEIGHT_NORMAL);
@@ -1686,13 +1686,13 @@ struct CompanyInfrastructureWindow : Window
 
 			case WID_CI_WATER_DESC:
 				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT).width);
-				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS).width + WD_FRAMERECT_LEFT);
+				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS).width + SWD_FRAMERECT_LEFT);
 				break;
 
 			case WID_CI_STATION_DESC:
 				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT).width);
-				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS).width + WD_FRAMERECT_LEFT);
-				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS).width + WD_FRAMERECT_LEFT);
+				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS).width + SWD_FRAMERECT_LEFT);
+				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS).width + SWD_FRAMERECT_LEFT);
 				break;
 
 			case WID_CI_RAIL_COUNT:
@@ -1768,8 +1768,8 @@ struct CompanyInfrastructureWindow : Window
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		int y = r.top;
 
-		int offs_left = _current_text_dir == TD_LTR ? WD_FRAMERECT_LEFT : 0;
-		int offs_right = _current_text_dir == TD_LTR ? 0 : WD_FRAMERECT_LEFT;
+		int offs_left = _current_text_dir == TD_LTR ? SWD_FRAMERECT_LEFT : 0;
+		int offs_right = _current_text_dir == TD_LTR ? 0 : SWD_FRAMERECT_LEFT;
 
 		switch (widget) {
 			case WID_CI_RAIL_DESC:

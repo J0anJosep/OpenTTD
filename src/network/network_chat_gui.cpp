@@ -474,8 +474,8 @@ struct NetworkChatWindow : public Window {
 					SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
 				}
 				Dimension d = GetStringBoundingBox(this->dest_string);
-				d.width  += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-				d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				d.width  += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+				d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				*size = maxdim(*size, d);
 				break;
 			}
@@ -494,7 +494,7 @@ struct NetworkChatWindow : public Window {
 		if (this->dtype == DESTTYPE_CLIENT) {
 			SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
 		}
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), this->dest_string, TC_BLACK, SA_RIGHT);
+		DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, CenterBounds(r.top, r.bottom), this->dest_string, TC_BLACK, SA_RIGHT);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

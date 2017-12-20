@@ -109,7 +109,7 @@ struct AIListWindow : public Window {
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget == WID_AIL_LIST) {
-			this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
+			this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM));
 
 			resize->width = 1;
 			resize->height = this->line_height;
@@ -125,13 +125,13 @@ struct AIListWindow : public Window {
 				int y = Center(r.top, this->line_height);
 				/* First AI in the list is hardcoded to random */
 				if (this->vscroll->IsVisible(0)) {
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_LEFT, y, this->slot == OWNER_DEITY ? STR_AI_CONFIG_NONE : STR_AI_CONFIG_RANDOM_AI, this->selected == -1 ? TC_WHITE : TC_ORANGE);
+					DrawString(r.left + SWD_MATRIX_LEFT, r.right - SWD_MATRIX_LEFT, y, this->slot == OWNER_DEITY ? STR_AI_CONFIG_NONE : STR_AI_CONFIG_RANDOM_AI, this->selected == -1 ? TC_WHITE : TC_ORANGE);
 					y += this->line_height;
 				}
 				ScriptInfoList::const_iterator it = this->info_list->begin();
 				for (int i = 1; it != this->info_list->end(); i++, it++) {
 					if (this->vscroll->IsVisible(i)) {
-						DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y, (*it).second->GetName(), (this->selected == i - 1) ? TC_WHITE : TC_ORANGE);
+						DrawString(r.left + SWD_MATRIX_LEFT, r.right - SWD_MATRIX_RIGHT, y, (*it).second->GetName(), (this->selected == i - 1) ? TC_WHITE : TC_ORANGE);
 						y += this->line_height;
 					}
 				}
@@ -145,20 +145,20 @@ struct AIListWindow : public Window {
 				}
 				/* Some info about the currently selected AI. */
 				if (selected_info != NULL) {
-					int y = r.top + WD_FRAMERECT_TOP;
+					int y = r.top + SWD_FRAMERECT_TOP;
 					SetDParamStr(0, selected_info->GetAuthor());
-					DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_AUTHOR);
-					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+					DrawString(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, STR_AI_LIST_AUTHOR);
+					y += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 					SetDParam(0, selected_info->GetVersion());
-					DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_VERSION);
-					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+					DrawString(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, STR_AI_LIST_VERSION);
+					y += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 					if (selected_info->GetURL() != NULL) {
 						SetDParamStr(0, selected_info->GetURL());
-						DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_URL);
-						y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
+						DrawString(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, STR_AI_LIST_URL);
+						y += FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL;
 					}
 					SetDParamStr(0, selected_info->GetDescription());
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_FRAMERECT_BOTTOM, STR_JUST_RAW_STRING, TC_WHITE);
+					DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, y, r.bottom - SWD_FRAMERECT_BOTTOM, STR_JUST_RAW_STRING, TC_WHITE);
 				}
 				break;
 			}
@@ -348,7 +348,7 @@ struct AISettingsWindow : public Window {
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget == WID_AIS_BACKGROUND) {
-			this->line_height = max(SETTING_BUTTON_HEIGHT, FONT_HEIGHT_NORMAL) + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+			this->line_height = max(SETTING_BUTTON_HEIGHT, FONT_HEIGHT_NORMAL) + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
 			this->line_height = GetMinSizing(NWST_STEP, this->line_height);
 
 			resize->width = 1;
@@ -368,8 +368,8 @@ struct AISettingsWindow : public Window {
 
 		bool rtl = _current_text_dir == TD_RTL;
 		uint buttons_left = rtl ? r.right - SETTING_BUTTON_WIDTH - 3 : r.left + 4;
-		uint text_left    = r.left + (rtl ? WD_FRAMERECT_LEFT : SETTING_BUTTON_WIDTH + 8);
-		uint text_right   = r.right - (rtl ? SETTING_BUTTON_WIDTH + 8 : WD_FRAMERECT_RIGHT);
+		uint text_left    = r.left + (rtl ? SWD_FRAMERECT_LEFT : SETTING_BUTTON_WIDTH + ScaleGUIPixels(8));
+		uint text_right   = r.right - (rtl ? SETTING_BUTTON_WIDTH + ScaleGUIPixels(8) : SWD_FRAMERECT_RIGHT);
 
 		int y = r.top;
 		int button_y_offset = (this->line_height - SETTING_BUTTON_HEIGHT) / 2;
@@ -761,12 +761,12 @@ struct AIConfigWindow : public Window {
 	{
 		switch (widget) {
 			case WID_AIC_GAMELIST:
-				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
+				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM));
 				size->height = this->line_height;
 				break;
 
 			case WID_AIC_LIST:
-				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
+				this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM));
 				size->height = 8 * this->line_height;
 				break;
 
@@ -985,9 +985,6 @@ static bool SetScriptButtonColour(NWidgetCore &button, bool dead, bool paused)
  * Window with everything an AI prints via ScriptLog.
  */
 struct AIDebugWindow : public Window {
-	static const int top_offset;    ///< Offset of the text at the top of the WID_AID_LOG_PANEL.
-	static const int bottom_offset; ///< Offset of the text at the bottom of the WID_AID_LOG_PANEL.
-
 	static const uint MAX_BREAK_STR_STRING_LENGTH = 256;   ///< Maximum length of the break string.
 
 	static CompanyID ai_debug_company;                     ///< The AI that is (was last) being debugged.
@@ -1092,8 +1089,8 @@ struct AIDebugWindow : public Window {
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget == WID_AID_LOG_PANEL) {
-			resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL);
-			size->height = 14 * resize->height + this->top_offset + this->bottom_offset;
+			resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL);
+			size->height = 14 * resize->height + ScaleGUIPixels(WD_FRAMERECT_TOP + 2 + WD_FRAMERECT_BOTTOM);
 		}
 	}
 
@@ -1109,7 +1106,7 @@ struct AIDebugWindow : public Window {
 		bool dirty = false;
 
 		Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
-		uint offset_y = Center(0, GetMinSizing(NWST_STEP, d.height + WD_MATRIX_TOP + WD_MATRIX_BOTTOM + 1), d.height);
+		uint offset_y = Center(0, GetMinSizing(NWST_STEP, d.height + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM + 1)), d.height);
 		/* Paint the company icons */
 		for (CompanyID i = COMPANY_FIRST; i < MAX_COMPANIES; i++) {
 			NWidgetCore *button = this->GetWidget<NWidgetCore>(i + WID_AID_COMPANY_BUTTON_START);
@@ -1209,7 +1206,7 @@ struct AIDebugWindow : public Window {
 				ScriptLog::LogData *log = this->GetLogPointer();
 				if (log == NULL) return;
 
-				int y = Center(this->top_offset, this->resize.step_height);
+				int y = Center(ScaleGUIPixels(WD_FRAMERECT_TOP + 2), this->resize.step_height);
 				for (int i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < log->used; i++) {
 					int pos = (i + log->pos + 1 - log->used + log->count) % log->count;
 					if (log->lines[pos] == NULL) break;
@@ -1226,7 +1223,7 @@ struct AIDebugWindow : public Window {
 
 					/* Check if the current line should be highlighted */
 					if (pos == this->highlight_row) {
-						GfxFillRect(r.left + 1, r.top + y, r.right - 1, r.top + y + this->resize.step_height - WD_PAR_VSEP_NORMAL, PC_BLACK);
+						GfxFillRect(r.left + 1, r.top + y, r.right - 1, r.top + y + this->resize.step_height - SWD_PAR_VSEP_NORMAL, PC_BLACK);
 						if (colour == TC_BLACK) colour = TC_WHITE; // Make black text readable by inverting it to white.
 					}
 
@@ -1409,8 +1406,6 @@ struct AIDebugWindow : public Window {
 	static HotkeyList hotkeys;
 };
 
-const int AIDebugWindow::top_offset = WD_FRAMERECT_TOP + 2;
-const int AIDebugWindow::bottom_offset = WD_FRAMERECT_BOTTOM;
 CompanyID AIDebugWindow::ai_debug_company = INVALID_COMPANY;
 char AIDebugWindow::break_string[MAX_BREAK_STR_STRING_LENGTH] = "";
 bool AIDebugWindow::break_check_enabled = true;

@@ -159,7 +159,7 @@ static void StationsWndShowAcceptance(int left, int right, int y, CargoID type)
 	const CargoSpec *cs = CargoSpec::Get(type);
 	if (!cs->IsValid()) return;
 	y++;
-	GfxFillRect(left, y, right, y + GetCharacterHeight(FS_SMALL), cs->rating_colour, FILLRECT_CHECKER);
+	GfxFillRect(left + WD_BEVEL, y + WD_BEVEL, right - WD_BEVEL, y + GetCharacterHeight(FS_SMALL) - WD_BEVEL - 1, cs->rating_colour, FILLRECT_CHECKER);
 	DrawString(left, right, y, cs->abbrev, TC_BLACK, SA_CENTER);
 }
 
@@ -396,7 +396,7 @@ public:
 
 			case WID_STL_LIST:
 				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
-				size->height = WD_FRAMERECT_TOP + 5 * resize->height + WD_FRAMERECT_BOTTOM;
+				size->height = ScaleGUIPixels(WD_FRAMERECT_TOP) + 5 * resize->height;
 				break;
 		}
 	}
@@ -415,7 +415,7 @@ public:
 			case WID_STL_LIST: {
 				int max = min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->stations.Length());
 				uint line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
-				int y = Center(r.top + WD_FRAMERECT_TOP, line_height);
+				int y = Center(r.top + SWD_FRAMERECT_TOP, line_height);
 				for (int i = this->vscroll->GetPosition(); i < max; ++i) { // do until max number of stations of owner
 					const Station *st = this->stations[i];
 					assert(st->xy != INVALID_TILE);
@@ -426,7 +426,7 @@ public:
 
 					SetDParam(0, st->index);
 					SetDParam(1, st->facilities);
-					int x = DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
+					int x = DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
 
 					StationsWndShowStationRating(st, r.left, r.right, x, line_height + 2, y);
 
@@ -434,7 +434,7 @@ public:
 				}
 
 				if (this->vscroll->GetCount() == 0) { // company has no stations
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
+					DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
 					return;
 				}
 				break;
@@ -515,7 +515,7 @@ public:
 
 	virtual void OnResize()
 	{
-		this->vscroll->SetCapacityFromWidget(this, WID_STL_LIST, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		this->vscroll->SetCapacityFromWidget(this, WID_STL_LIST, ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 	}
 
 	/**
@@ -664,7 +664,7 @@ static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int top
 {
 	SpriteID sprite = CargoSpec::Get(i)->GetCargoIcon();
 	Dimension d = GetSpriteSize(sprite);
-	int width = ScaleGUITrad(d.width);
+	int width = ScaleGUIPixels(d.width);
 
 	uint num = min((waiting + (width / 2)) / width, (right - left) / width); // maximum is width / 10 icons so it won't overflow
 	if (num == 0) return;
@@ -1225,12 +1225,12 @@ struct StationViewWindow : public Window {
 		switch (widget) {
 			case WID_SV_WAITING:
 				resize->height = FONT_HEIGHT_NORMAL;
-				size->height = WD_FRAMERECT_TOP + 4 * resize->height + WD_FRAMERECT_BOTTOM;
-				this->expand_shrink_width = max(GetStringBoundingBox("-").width, GetStringBoundingBox("+").width) + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				size->height = ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) + 4 * resize->height;
+				this->expand_shrink_width = max(GetStringBoundingBox("-").width, GetStringBoundingBox("+").width) + ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
 				break;
 
 			case WID_SV_ACCEPT_RATING_LIST:
-				size->height = WD_FRAMERECT_TOP + ((this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) ? this->accepts_lines : this->rating_lines) * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
+				size->height = ScaleGUIPixels(WD_FRAMERECT_TOP) + ((this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) ? this->accepts_lines : this->rating_lines) * FONT_HEIGHT_NORMAL;
 				break;
 
 			case WID_SV_CLOSE_AIRPORT:
@@ -1597,13 +1597,13 @@ struct StationViewWindow : public Window {
 
 			if (pos > -maxrows && pos <= 0) {
 				StringID str = STR_EMPTY;
-				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
+				int y = r.top + SWD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 				SetDParam(0, cargo);
 				SetDParam(1, cd->GetCount());
 
 				if (this->groupings[column] == GR_CARGO) {
 					str = STR_STATION_VIEW_WAITING_CARGO;
-					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y, y + FONT_HEIGHT_NORMAL);
+					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + SWD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - SWD_FRAMERECT_RIGHT - this->expand_shrink_width, y, y + FONT_HEIGHT_NORMAL);
 				} else {
 					if (!auto_distributed) grouping = GR_SOURCE;
 					StationID station = cd->GetStation();
@@ -1628,10 +1628,10 @@ struct StationViewWindow : public Window {
 				}
 
 				bool rtl = _current_text_dir == TD_RTL;
-				int text_left    = rtl ? r.left + this->expand_shrink_width : r.left + WD_FRAMERECT_LEFT + column * this->expand_shrink_width;
-				int text_right   = rtl ? r.right - WD_FRAMERECT_LEFT - column * this->expand_shrink_width : r.right - this->expand_shrink_width;
-				int shrink_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
-				int shrink_right = rtl ? r.left + this->expand_shrink_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
+				int text_left    = rtl ? r.left + this->expand_shrink_width : r.left + SWD_FRAMERECT_LEFT + column * this->expand_shrink_width;
+				int text_right   = rtl ? r.right - SWD_FRAMERECT_LEFT - column * this->expand_shrink_width : r.right - this->expand_shrink_width;
+				int shrink_left  = rtl ? r.left + SWD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + SWD_FRAMERECT_LEFT;
+				int shrink_right = rtl ? r.left + this->expand_shrink_width - SWD_FRAMERECT_RIGHT : r.right - SWD_FRAMERECT_RIGHT;
 
 				DrawString(text_left, text_right, y, str);
 
@@ -1674,8 +1674,8 @@ struct StationViewWindow : public Window {
 			if (HasBit(st->goods[i].status, GoodsEntry::GES_ACCEPTANCE)) SetBit(cargo_mask, i);
 		}
 		SetDParam(0, cargo_mask);
-		int bottom = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
-		return CeilDiv(bottom - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
+		int bottom = DrawStringMultiLine(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, r.top + SWD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
+		return CeilDiv(bottom - r.top - SWD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
 	}
 
 	/**
@@ -1686,15 +1686,15 @@ struct StationViewWindow : public Window {
 	int DrawCargoRatings(const Rect &r) const
 	{
 		const Station *st = Station::Get(this->window_number);
-		int y = r.top + WD_FRAMERECT_TOP;
+		int y = r.top + SWD_FRAMERECT_TOP;
 
 		if (st->town->exclusive_counter > 0) {
 			SetDParam(0, st->town->exclusivity);
-			y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATION_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATION_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
-			y += WD_PAR_VSEP_WIDE;
+			y = DrawStringMultiLine(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATION_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATION_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
+			y += SWD_PAR_VSEP_WIDE;
 		}
 
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
+		DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
 		y += FONT_HEIGHT_NORMAL;
 
 		const CargoSpec *cs;
@@ -1707,10 +1707,10 @@ struct StationViewWindow : public Window {
 			SetDParam(1, lg != NULL ? lg->Monthly((*lg)[ge->node].Supply()) : 0);
 			SetDParam(2, STR_CARGO_RATING_APPALLING + (ge->rating >> 5));
 			SetDParam(3, ToPercent8(ge->rating));
-			DrawString(r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
+			DrawString(r.left + ScaleGUIPixels(WD_FRAMERECT_LEFT + 6), r.right - ScaleGUIPixels(WD_FRAMERECT_RIGHT + 6), y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
 			y += FONT_HEIGHT_NORMAL;
 		}
-		return CeilDiv(y - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
+		return CeilDiv(y - r.top - SWD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
 	}
 
 	/**
@@ -1752,7 +1752,7 @@ struct StationViewWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SV_WAITING:
-				this->HandleCargoWaitingClick(this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SV_WAITING, WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL) - this->vscroll->GetPosition());
+				this->HandleCargoWaitingClick(this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SV_WAITING, SWD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL) - this->vscroll->GetPosition());
 				break;
 
 			case WID_SV_LOCATION:
@@ -1927,7 +1927,7 @@ struct StationViewWindow : public Window {
 
 	virtual void OnResize()
 	{
-		this->vscroll->SetCapacityFromWidget(this, WID_SV_WAITING, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		this->vscroll->SetCapacityFromWidget(this, WID_SV_WAITING, ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 	}
 
 	/**
@@ -2137,8 +2137,8 @@ struct SelectStationWindow : Window {
 
 		resize->height = GetMinSizing(NWST_STEP, d.height);
 		d.height = 5 * resize->height;
-		d.width += WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT;
-		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		d.width += ScaleGUIPixels(WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT);
+		d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		*size = d;
 	}
 
@@ -2148,7 +2148,7 @@ struct SelectStationWindow : Window {
 
 		uint y = Center(r.top, this->resize.step_height);
 		if (this->vscroll->GetPosition() == 0) {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
+			DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
 			y += this->resize.step_height;
 		}
 
@@ -2159,7 +2159,7 @@ struct SelectStationWindow : Window {
 			const T *st = T::Get(_stations_nearby_list[i - 1]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
+			DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, y, T::EXPECTED_FACIL == FACIL_WAYPOINT ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
 		}
 	}
 
@@ -2167,7 +2167,7 @@ struct SelectStationWindow : Window {
 	{
 		if (widget != WID_JS_PANEL) return;
 
-		uint st_index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_JS_PANEL, WD_FRAMERECT_TOP);
+		uint st_index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_JS_PANEL, SWD_FRAMERECT_TOP);
 		bool distant_join = (st_index > 0);
 		if (distant_join) st_index--;
 
@@ -2194,7 +2194,7 @@ struct SelectStationWindow : Window {
 
 	virtual void OnResize()
 	{
-		this->vscroll->SetCapacityFromWidget(this, WID_JS_PANEL, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+		this->vscroll->SetCapacityFromWidget(this, WID_JS_PANEL, ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 	}
 
 	/**

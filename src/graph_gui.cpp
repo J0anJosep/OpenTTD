@@ -67,11 +67,11 @@ struct GraphLegendWindow : Window {
 		bool rtl = _current_text_dir == TD_RTL;
 
 		Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
-		DrawCompanyIcon(cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
+		DrawCompanyIcon(cid, rtl ? r.right - d.width - ScaleGUIPixels(2) : r.left + ScaleGUIPixels(2), r.top + (r.bottom - r.top - d.height) / 2);
 
 		SetDParam(0, cid);
 		SetDParam(1, cid);
-		DrawString(r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
+		DrawString(r.left + (rtl ? (uint)SWD_FRAMERECT_LEFT : (d.width + ScaleGUIPixels(4))), r.right - (rtl ? (d.width + ScaleGUIPixels(4)) : (uint)SWD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -112,12 +112,12 @@ struct GraphLegendWindow : Window {
 static NWidgetBase *MakeNWidgetCompanyLines(int *biggest_index)
 {
 	NWidgetVertical *vert = new NWidgetVertical();
-	uint line_height = max<uint>(GetSpriteSize(SPR_COMPANY_ICON).height, FONT_HEIGHT_NORMAL) + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+	uint line_height = max<uint>(GetSpriteSize(SPR_COMPANY_ICON).height, FONT_HEIGHT_NORMAL) + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 
 	for (int widnum = WID_GL_FIRST_COMPANY; widnum <= WID_GL_LAST_COMPANY; widnum++) {
 		NWidgetBackground *panel = new NWidgetBackground(WWT_PANEL, COLOUR_GREY, widnum);
 		panel->sizing_type = NWST_STEP;
-		panel->SetMinimalSize(246, line_height);
+		panel->SetMinimalSize(246 * WD_GUI_UNIT, line_height, false);
 		panel->SetFill(1, 0);
 		panel->SetDataTip(0x0, STR_GRAPH_KEY_COMPANY_SELECTION_TOOLTIP);
 		vert->Add(panel);
@@ -299,15 +299,15 @@ protected:
 
 		/* Rect r will be adjusted to contain just the graph, with labels being
 		 * placed outside the area. */
-		r.top    += 5 + GetCharacterHeight(FS_SMALL) / 2;
-		r.bottom -= (this->month == 0xFF ? 1 : 3) * GetCharacterHeight(FS_SMALL) + 4;
-		r.left   += 9;
-		r.right  -= 5;
+		r.top    += 5 * WD_GUI_UNIT + GetCharacterHeight(FS_SMALL) / 2;
+		r.bottom -= (this->month == 0xFF ? 1 : 3) * GetCharacterHeight(FS_SMALL) + 4 * WD_GUI_UNIT;
+		r.left   += 9 * WD_GUI_UNIT;
+		r.right  -= 5 * WD_GUI_UNIT;
 
 		/* Initial number of horizontal lines. */
 		int num_hori_lines = 160 / MIN_GRID_PIXEL_SIZE;
 		/* For the rest of the height, the number of horizontal lines will increase more slowly. */
-		int resize = (r.bottom - r.top - 160) / (2 * MIN_GRID_PIXEL_SIZE);
+		int resize = (r.bottom - r.top - 160 * WD_GUI_UNIT) / (2 * MIN_GRID_PIXEL_SIZE);
 		if (resize > 0) num_hori_lines += resize;
 
 		interval = GetValuesInterval(num_hori_lines);
@@ -332,9 +332,10 @@ protected:
 
 		/* Don't draw the first line, as that's where the axis will be. */
 		x = r.left + x_sep;
+		uint width_line_offset = WD_GUI_UNIT / 2;
 
 		for (int i = 0; i < this->num_vert_lines; i++) {
-			GfxFillRect(x, r.top, x, r.bottom, grid_colour);
+			GfxFillRect(x - width_line_offset, r.top, x + width_line_offset, r.bottom, grid_colour);
 			x += x_sep;
 		}
 
@@ -342,17 +343,17 @@ protected:
 		y = r.bottom;
 
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
-			GfxFillRect(r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
-			GfxFillRect(r.left, y, r.right, y, grid_colour);
+			GfxFillRect(r.left - 3 * WD_GUI_UNIT, y - width_line_offset, r.left - WD_GUI_UNIT, y + width_line_offset, GRAPH_AXIS_LINE_COLOUR);
+			GfxFillRect(r.left, y - width_line_offset, r.right, y + width_line_offset, grid_colour);
 			y -= y_sep;
 		}
 
 		/* Draw the y axis. */
-		GfxFillRect(r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect(r.left - width_line_offset, r.top, r.left + width_line_offset, r.bottom, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Draw the x axis. */
 		y = x_axis_offset + r.top;
-		GfxFillRect(r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect(r.left, y - width_line_offset, r.right, y + width_line_offset, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Find the largest value that will be drawn. */
 		if (this->num_on_x_axis == 0) return;
@@ -369,7 +370,7 @@ protected:
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
 			SetDParam(0, this->format_str_y_axis);
 			SetDParam(1, y_label);
-			DrawString(r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
+			DrawString(r.left - label_width - 4 * WD_GUI_UNIT, r.left - 4 * WD_GUI_UNIT, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
 
 			y_label -= y_label_separation;
 			y += y_sep;
@@ -378,7 +379,7 @@ protected:
 		/* draw strings on the x axis */
 		if (this->month != 0xFF) {
 			x = r.left;
-			y = r.bottom + 2;
+			y = r.bottom + 2 * WD_GUI_UNIT;
 			byte month = this->month;
 			Year year  = this->year;
 			for (int i = 0; i < this->num_on_x_axis; i++) {
@@ -397,12 +398,12 @@ protected:
 		} else {
 			/* Draw the label under the data point rather than on the grid line. */
 			x = r.left;
-			y = r.bottom + 2;
+			y = r.bottom + 2 * WD_GUI_UNIT;
 			uint16 label = this->x_values_start;
 
 			for (int i = 0; i < this->num_on_x_axis; i++) {
 				SetDParam(0, label);
-				DrawString(x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
+				DrawString(x + WD_GUI_UNIT, x + x_sep - WD_GUI_UNIT, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
 
 				label += this->x_values_increment;
 				x += x_sep;
@@ -931,8 +932,8 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		SetDParam(0, cs->name);
 		Dimension d = GetStringBoundingBox(STR_GRAPH_CARGO_PAYMENT_CARGO);
 		d.width += GetMinSizing(NWST_STEP, FONT_HEIGHT_SMALL) * 3 / 2; // colour field and post space
-		d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		d.width += ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
+		d.height += ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 		*size = maxdim(d, *size);
 	}
 
@@ -951,7 +952,7 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		 * clk_dif will move one pixel down and one pixel to the right
 		 * when the button is clicked */
 		byte clk_dif = this->IsWidgetLowered(widget) ? 1 : 0;
-		int x = r.left + WD_FRAMERECT_LEFT;
+		int x = r.left + SWD_FRAMERECT_LEFT;
 		int y = r.top;
 		int font_height = FONT_HEIGHT_SMALL;
 		int text_x_offset = GetMinSizing(NWST_STEP, font_height);
@@ -1191,14 +1192,14 @@ public:
 	{
 		if (widget != WID_CL_BACKGROUND) return;
 
-		uint y = r.top + WD_FRAMERECT_TOP;
+		uint y = r.top + SWD_FRAMERECT_TOP;
 
 		bool rtl = _current_text_dir == TD_RTL;
-		uint ordinal_left  = rtl ? r.right - WD_FRAMERECT_LEFT - this->ordinal_width : r.left + WD_FRAMERECT_LEFT;
-		uint ordinal_right = rtl ? r.right - WD_FRAMERECT_LEFT : r.left + WD_FRAMERECT_LEFT + this->ordinal_width;
-		uint icon_left     = r.left + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + (rtl ? this->text_width : this->ordinal_width);
-		uint text_left     = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - WD_FRAMERECT_LEFT - this->text_width;
-		uint text_right    = rtl ? r.left + WD_FRAMERECT_LEFT + this->text_width : r.right - WD_FRAMERECT_LEFT;
+		uint ordinal_left  = rtl ? r.right - SWD_FRAMERECT_LEFT - this->ordinal_width : r.left + SWD_FRAMERECT_LEFT;
+		uint ordinal_right = rtl ? r.right - SWD_FRAMERECT_LEFT : r.left + SWD_FRAMERECT_LEFT + this->ordinal_width;
+		uint icon_left     = r.left + SWD_FRAMERECT_LEFT + SWD_FRAMERECT_RIGHT + (rtl ? this->text_width : this->ordinal_width);
+		uint text_left     = rtl ? r.left + SWD_FRAMERECT_LEFT : r.right - SWD_FRAMERECT_LEFT - this->text_width;
+		uint text_right    = rtl ? r.left + SWD_FRAMERECT_LEFT + this->text_width : r.right - SWD_FRAMERECT_LEFT;
 
 		for (uint i = 0; i != this->companies.Length(); i++) {
 			const Company *c = this->companies[i];
@@ -1250,8 +1251,8 @@ public:
 
 		this->text_width = widest_width + 30; // Keep some extra spacing
 
-		size->width = WD_FRAMERECT_LEFT + this->ordinal_width + WD_FRAMERECT_RIGHT + this->icon_width + WD_FRAMERECT_LEFT + this->text_width + WD_FRAMERECT_RIGHT;
-		size->height = WD_FRAMERECT_TOP + this->line_height * MAX_COMPANIES + WD_FRAMERECT_BOTTOM;
+		size->width = ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT) + this->ordinal_width + this->icon_width + this->text_width;
+		size->height = ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) + this->line_height * MAX_COMPANIES;
 	}
 
 
@@ -1341,15 +1342,15 @@ struct PerformanceRatingDetailWindow : Window {
 	{
 		switch (widget) {
 			case WID_PRD_SCORE_FIRST:
-				this->bar_height = FONT_HEIGHT_NORMAL + 4;
-				size->height = this->bar_height + 2 * WD_MATRIX_TOP;
+				this->bar_height = FONT_HEIGHT_NORMAL + ScaleGUIPixels(4);
+				size->height = this->bar_height + 2 * SWD_MATRIX_TOP;
 
 				uint score_info_width = 0;
 				for (uint i = SCORE_BEGIN; i < SCORE_END; i++) {
 					score_info_width = max(score_info_width, GetStringBoundingBox(STR_PERFORMANCE_DETAIL_VEHICLES + i).width);
 				}
 				SetDParamMaxValue(0, 1000);
-				score_info_width += GetStringBoundingBox(STR_BLACK_COMMA).width + WD_FRAMERECT_LEFT;
+				score_info_width += GetStringBoundingBox(STR_BLACK_COMMA).width + SWD_FRAMERECT_LEFT;
 
 				SetDParamMaxValue(0, 100);
 				this->bar_width = GetStringBoundingBox(STR_PERFORMANCE_DETAIL_PERCENT).width + 20; // Wide bars!
@@ -1428,8 +1429,8 @@ struct PerformanceRatingDetailWindow : Window {
 			needed = SCORE_MAX;
 		}
 
-		uint bar_top  = r.top + WD_MATRIX_TOP;
-		uint text_top = bar_top + 2;
+		uint bar_top  = r.top + SWD_MATRIX_TOP;
+		uint text_top = bar_top + ScaleGUIPixels(2);
 
 		DrawString(this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
 
