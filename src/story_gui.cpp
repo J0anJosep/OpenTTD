@@ -266,7 +266,7 @@ protected:
 	 */
 	uint GetAvailablePageContentWidth()
 	{
-		return this->GetWidget<NWidgetCore>(WID_SB_PAGE_PANEL)->current_x - WD_FRAMETEXT_LEFT - WD_FRAMERECT_RIGHT;
+		return this->GetWidget<NWidgetCore>(WID_SB_PAGE_PANEL)->current_x - ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMERECT_RIGHT);
 	}
 
 	/**
@@ -382,7 +382,7 @@ protected:
 		uint text_top = y_offset + (element_height - line_height) / 2;
 
 		DrawSprite(action_sprite, PAL_NONE, 0, sprite_top);
-		DrawString(sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
+		DrawString(sprite_dim.width + SWD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
 
 		y_offset += element_height;
 	}
@@ -504,10 +504,10 @@ public:
 		StoryPage *page = this->GetSelPage();
 		if (page == NULL) return;
 
-		const int x = r.left + WD_FRAMETEXT_LEFT;
-		const int y = r.top + WD_FRAMETEXT_TOP;
-		const int right = r.right - WD_FRAMETEXT_RIGHT;
-		const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
+		const int x = r.left + SWD_FRAMETEXT_LEFT;
+		const int y = r.top + SWD_FRAMETEXT_TOP;
+		const int right = r.right - SWD_FRAMETEXT_RIGHT;
+		const int bottom = r.bottom - SWD_FRAMETEXT_BOTTOM;
 
 		/* Set up a clipping region for the panel. */
 		DrawPixelInfo tmp_dpi;
@@ -598,7 +598,7 @@ public:
 
 			case WID_SB_PAGE_PANEL: {
 				d.height *= 5;
-				d.height += padding.height + WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM;
+				d.height += padding.height + ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM);
 				*size = maxdim(*size, d);
 				break;
 			}
@@ -608,7 +608,7 @@ public:
 
 	virtual void OnResize()
 	{
-		this->vscroll->SetCapacityFromWidget(this, WID_SB_PAGE_PANEL, WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM);
+		this->vscroll->SetCapacityFromWidget(this, WID_SB_PAGE_PANEL, ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM));
 		this->vscroll->SetCount(this->GetContentHeight());
 	}
 
@@ -640,7 +640,7 @@ public:
 				break;
 
 			case WID_SB_PAGE_PANEL: {
-				uint clicked_y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SB_PAGE_PANEL, WD_FRAMETEXT_TOP);
+				uint clicked_y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SB_PAGE_PANEL, SWD_FRAMETEXT_TOP);
 				uint max_width = GetAvailablePageContentWidth();
 
 				/* Skip head rows. */

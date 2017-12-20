@@ -74,8 +74,8 @@ static int HighlightDragPosition(int px, int max_width, VehicleID selection, boo
 	int drag_hlight_width = max(drag_hlight_right - drag_hlight_left + 1, 0);
 
 	if (drag_hlight_width > 0) {
-		GfxFillRect(drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
-				drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
+		GfxFillRect(drag_hlight_left + SWD_FRAMERECT_LEFT, SWD_FRAMERECT_TOP + 1,
+				drag_hlight_right - SWD_FRAMERECT_RIGHT, ScaleGUIPixels(13) - SWD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
 	}
 
 	return drag_hlight_width;
@@ -101,7 +101,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	int highlight_l = 0;
 	int highlight_r = 0;
 	int max_width = right - left + 1;
-	int height = ScaleGUITrad(14);
+	int height = ScaleGUIPixels(14);
 
 	if (!FillDrawPixelInfo(&tmp_dpi, left, y, max_width, height)) return;
 
@@ -356,10 +356,10 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
 void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab)
 {
 	/* get rid of awkward offset */
-	y -= WD_MATRIX_TOP;
+	y -= SWD_MATRIX_TOP;
 
-	int sprite_height = ScaleGUITrad(GetVehicleHeight(VEH_TRAIN));
-	int line_height = max(sprite_height, WD_MATRIX_TOP + FONT_HEIGHT_NORMAL + WD_MATRIX_BOTTOM);
+	int sprite_height = ScaleGUIPixels(GetVehicleHeight(VEH_TRAIN));
+	int line_height = max(sprite_height, ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM) + FONT_HEIGHT_NORMAL);
 	int sprite_y_offset = line_height / 2;
 	int text_y_offset = (line_height - FONT_HEIGHT_NORMAL) / 2;
 
@@ -367,7 +367,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 	if (det_tab != TDW_TAB_TOTALS) {
 		bool rtl = _current_text_dir == TD_RTL;
 		Direction dir = rtl ? DIR_E : DIR_W;
-		int x = rtl ? right : left;
+		int x = rtl ? right - SWD_MATRIX_RIGHT : left + SWD_MATRIX_LEFT;
 		for (; v != NULL && vscroll_pos > -vscroll_cap; v = v->GetNextVehicle()) {
 			GetCargoSummaryOfArticulatedVehicle(v, &_cargo_summary);
 
@@ -382,7 +382,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 					int pitch = 0;
 					const Engine *e = Engine::Get(v->engine_type);
 					if (e->GetGRF() != NULL) {
-						pitch = ScaleGUITrad(e->GetGRF()->traininfo_vehicle_pitch);
+						pitch = ScaleGUIPixels(e->GetGRF()->traininfo_vehicle_pitch);
 					}
 					PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
 					VehicleSpriteSeq seq;
@@ -394,7 +394,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				u = u->Next();
 			} while (u != NULL && u->IsArticulatedPart());
 
-			bool separate_sprite_row = (dx > (uint)ScaleGUITrad(TRAIN_DETAILS_MAX_INDENT));
+			bool separate_sprite_row = (dx > (uint)ScaleGUIPixels(TRAIN_DETAILS_MAX_INDENT));
 			if (separate_sprite_row) {
 				vscroll_pos--;
 				dx = 0;
@@ -402,13 +402,13 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 
 			uint num_lines = max(1u, _cargo_summary.Length());
 			for (uint i = 0; i < num_lines; i++) {
-				int sprite_width = max<int>(dx, ScaleGUITrad(TRAIN_DETAILS_MIN_INDENT)) + 3;
+				int sprite_width = max<int>(dx, ScaleGUIPixels(TRAIN_DETAILS_MIN_INDENT)) + ScaleGUIPixels(4);
 				int data_left  = left + (rtl ? 0 : sprite_width);
 				int data_right = right - (rtl ? sprite_width : 0);
 				if (vscroll_pos <= 0 && vscroll_pos > -vscroll_cap) {
 					int py = y - line_height * vscroll_pos + text_y_offset;
 					if (i > 0 || separate_sprite_row) {
-						if (vscroll_pos != 0) GfxFillRect(left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
+						if (vscroll_pos != 0) GfxFillRect(left, py - SWD_MATRIX_TOP - 1, right, py - SWD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
 					}
 					switch (det_tab) {
 						case TDW_TAB_CARGO:

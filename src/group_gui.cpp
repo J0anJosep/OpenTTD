@@ -174,17 +174,16 @@ private:
 		this->column_size[VGC_NUMBER] = GetStringBoundingBox(STR_TINY_COMMA);
 		this->tiny_step_height = max(this->tiny_step_height, this->column_size[VGC_NUMBER].height);
 
-		this->tiny_step_height += WD_MATRIX_TOP;
+		this->tiny_step_height += SWD_MATRIX_TOP;
 		this->tiny_step_height = GetMinSizing(NWST_STEP, this->tiny_step_height);
 
-		uint total_size = WD_FRAMERECT_LEFT + 8 +
-			this->column_size[VGC_NAME].width + 2 +
-			this->column_size[VGC_PROTECT].width + 2 +
-			this->column_size[VGC_AUTOREPLACE].width + 2 +
-			this->column_size[VGC_PROFIT].width + 2 +
-			this->column_size[VGC_TIMETABLE].width + 2 +
-			this->column_size[VGC_NUMBER].width + 2 +
-			WD_FRAMERECT_RIGHT;
+		uint total_size = ScaleGUIPixels(WD_FRAMERECT_LEFT + 8 + 2 + 2 + 2 + 2 + 2 + WD_FRAMERECT_RIGHT) +
+			this->column_size[VGC_NAME].width + /* 2 + */
+			this->column_size[VGC_PROTECT].width + /* 2 + */
+			this->column_size[VGC_AUTOREPLACE].width + /* 2 + */
+			this->column_size[VGC_PROFIT].width + /* 2 + */
+			this->column_size[VGC_TIMETABLE].width + /* 2 + */
+			this->column_size[VGC_NUMBER].width;
 
 		/* The buttons below the list may be too big...
 		 * Add aditional space to name. */
@@ -209,7 +208,7 @@ private:
 	{
 		/* Highlight the group if a vehicle is dragged over it */
 		if (g_id == this->group_over) {
-			GfxFillRect(left + WD_FRAMERECT_LEFT, y + WD_FRAMERECT_TOP + WD_MATRIX_TOP, right - WD_FRAMERECT_RIGHT, y + this->tiny_step_height - WD_FRAMERECT_BOTTOM - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][7]);
+			GfxFillRect(left + WD_BEVEL, y + WD_BEVEL, right - WD_BEVEL, y + this->tiny_step_height - WD_BEVEL - 1, _colour_gradient[COLOUR_GREY][7]);
 		}
 
 		if (g_id == NEW_GROUP) return;
@@ -239,31 +238,31 @@ private:
 			SetDParam(0, g_id);
 			str = STR_GROUP_NAME;
 			if (!protection) {
-				longer_name += this->column_size[VGC_PROTECT].width + 2;
-				if (!stats.autoreplace_defined) longer_name += this->column_size[VGC_AUTOREPLACE].width + 2;
+				longer_name += this->column_size[VGC_PROTECT].width + ScaleGUIPixels(2);
+				if (!stats.autoreplace_defined) longer_name += this->column_size[VGC_AUTOREPLACE].width + ScaleGUIPixels(2);
 			}
 		}
-		int x = rtl ? right - WD_FRAMERECT_RIGHT - 8 - this->column_size[VGC_NAME].width - longer_name + 1 : left + WD_FRAMERECT_LEFT + 8;
+		int x = rtl ? right - ScaleGUIPixels(WD_FRAMERECT_RIGHT + 8) - this->column_size[VGC_NAME].width - longer_name + 1 : left + ScaleGUIPixels(WD_FRAMERECT_LEFT + 8);
 		DrawString(x + indent * LEVEL_WIDTH, x + this->column_size[VGC_NAME].width + longer_name - 1, Center(y, this->tiny_step_height, this->column_size[VGC_NAME].height), str, colour);
 
 		/* draw autoreplace protection */
-		x = rtl ? x - 2 - this->column_size[VGC_PROTECT].width : x + 2 + this->column_size[VGC_NAME].width;
+		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_PROTECT].width : x + ScaleGUIPixels(2) + this->column_size[VGC_NAME].width;
 		if (protection) DrawSprite(SPR_GROUP_REPLACE_PROTECT, PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_PROTECT].height));
 
 		/* draw autoreplace status */
-		x = rtl ? x - 2 - this->column_size[VGC_AUTOREPLACE].width : x + 2 + this->column_size[VGC_PROTECT].width;
+		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_AUTOREPLACE].width : x + ScaleGUIPixels(2) + this->column_size[VGC_PROTECT].width;
 		if (stats.autoreplace_defined) DrawSprite(SPR_GROUP_REPLACE_ACTIVE, stats.autoreplace_finished ? PALETTE_CRASH : PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_AUTOREPLACE].height));
 
 		/* draw the profit icon */
-		x = rtl ? x - 2 - this->column_size[VGC_PROFIT].width : x + 2 + this->column_size[VGC_AUTOREPLACE].width;
+		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_PROFIT].width : x + ScaleGUIPixels(2) + this->column_size[VGC_AUTOREPLACE].width;
 		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_PROFIT].height));
 
 		/* draw a timetable state indicator */
-		x = rtl ? x - 2 - this->column_size[VGC_TIMETABLE].width : x + 2 + this->column_size[VGC_PROFIT].width;
+		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_TIMETABLE].width : x + ScaleGUIPixels(2) + this->column_size[VGC_PROFIT].width;
 		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, Center(y, this->tiny_step_height, this->column_size[VGC_TIMETABLE].height), STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, colour);
 
 		/* draw the number of vehicles of the group */
-		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_TIMETABLE].width;
+		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_NUMBER].width : x + ScaleGUIPixels(2) + this->column_size[VGC_TIMETABLE].width;
 		SetDParam(0, stats.num_vehicle);
 		DrawString(x, x + this->column_size[VGC_NUMBER].width - 1, Center(y, this->tiny_step_height, this->column_size[VGC_NUMBER].height), STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
 	}
@@ -388,7 +387,7 @@ public:
 				resize->height = this->tiny_step_height;
 
 				/* Minimum height is the height of the list widget minus all and default vehicles... */
-				size->height =  4 * GetVehicleListHeight(this->vli.vtype, this->tiny_step_height) - 4 * this->tiny_step_height - ((FONT_HEIGHT_NORMAL * 3) + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+				size->height =  4 * GetVehicleListHeight(this->vli.vtype, this->tiny_step_height) - 4 * this->tiny_step_height - ((FONT_HEIGHT_NORMAL * 3) + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM));
 
 				/* Get a multiple of tiny_step_height of that amount */
 				size->height = Ceil(size->height, tiny_step_height);
@@ -429,7 +428,7 @@ public:
 			}
 
 			case WID_GL_INFO: {
-				size->height = (FONT_HEIGHT_NORMAL * 3) + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->height = (FONT_HEIGHT_NORMAL * 3) + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 			}
 		}
@@ -587,10 +586,10 @@ public:
 					occupancy += v->trip_occupancy;
 				}
 
-				const int left  = r.left + WD_FRAMERECT_LEFT + 8;
-				const int right = r.right - WD_FRAMERECT_RIGHT - 8;
+				const int left  = r.left + ScaleGUIPixels(WD_FRAMERECT_LEFT + 8);
+				const int right = r.right - ScaleGUIPixels(WD_FRAMERECT_RIGHT - 8);
 
-				int y = r.top + WD_FRAMERECT_TOP;
+				int y = r.top + SWD_FRAMERECT_TOP;
 				DrawString(left, right, y, STR_GROUP_PROFIT_THIS_YEAR, TC_BLACK);
 				SetDParam(0, this_year);
 				DrawString(left, right, y, STR_JUST_CURRENCY_LONG, TC_BLACK, SA_RIGHT);
