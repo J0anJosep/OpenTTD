@@ -218,7 +218,7 @@ struct CheatWindow : Window {
 	CheatWindow(WindowDesc *desc) : Window(desc)
 	{
 		this->box_width = GetSpriteSize(SPR_BOX_EMPTY).width;
-		this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL);
+		this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + SWD_PAR_VSEP_NORMAL);
 		this->InitNested();
 	}
 
@@ -226,19 +226,17 @@ struct CheatWindow : Window {
 	{
 		if (widget != WID_C_PANEL) return;
 
-		int y = r.top + WD_FRAMERECT_TOP + this->header_height;
-		DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, y, STR_CHEATS_WARNING, TC_FROMSTRING, SA_CENTER);
+		int y = r.top + SWD_FRAMERECT_TOP + this->header_height;
+		DrawStringMultiLine(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_LEFT, r.top + SWD_FRAMERECT_TOP, y, STR_CHEATS_WARNING, TC_FROMSTRING, SA_CENTER);
 
 		bool rtl = _current_text_dir == TD_RTL;
-		uint box_left    = rtl ? r.right - this->box_width - 5 : r.left + 5;
-		uint button_left = rtl ? r.right - this->box_width - 10 - SETTING_BUTTON_WIDTH : r.left + this->box_width + 10;
-		uint text_left   = r.left + (rtl ? WD_FRAMERECT_LEFT : 20 + this->box_width + SETTING_BUTTON_WIDTH);
-		uint text_right  = r.right - (rtl ? 20 + this->box_width + SETTING_BUTTON_WIDTH : WD_FRAMERECT_RIGHT);
+		uint box_left    = rtl ? r.right - this->box_width - ScaleGUIPixels(5) : r.left + ScaleGUIPixels(5);
+		uint button_left = rtl ? r.right - this->box_width - ScaleGUIPixels(10) - SETTING_BUTTON_WIDTH : r.left + this->box_width + ScaleGUIPixels(10);
+		uint text_left   = r.left + (rtl ? SWD_FRAMERECT_LEFT : ScaleGUIPixels(20) + this->box_width + SETTING_BUTTON_WIDTH);
+		uint text_right  = r.right - (rtl ? ScaleGUIPixels(20) + this->box_width + SETTING_BUTTON_WIDTH : SWD_FRAMERECT_RIGHT);
 		int box_offset = Center(0, this->line_height, GetSpriteSize(SPR_BOX_EMPTY).height);
 		int button_offset = Center(0, this->line_height, SETTING_BUTTON_HEIGHT);
 		int text_offset = Center(0, this->line_height);
-
-		int icon_y_offset = Center(0, this->line_height, SETTING_BUTTON_HEIGHT);
 
 		for (int i = 0; i != lengthof(_cheats_ui); i++) {
 			const CheatEntry *ce = &_cheats_ui[i];
@@ -269,8 +267,8 @@ struct CheatWindow : Window {
 						case STR_CHEAT_CHANGE_COMPANY: {
 							SetDParam(0, val + 1);
 							GetString(buf, STR_CHEAT_CHANGE_COMPANY, lastof(buf));
-							uint offset = 10 + GetStringBoundingBox(buf).width;
-							DrawCompanyIcon(_local_company, rtl ? text_right - offset - 10 : text_left + offset, y + icon_y_offset + 2);
+							uint offset = ScaleGUIPixels(rtl ? 10 : 3) + GetStringBoundingBox(buf).width;
+							DrawCompanyIcon(_local_company, rtl ? text_right - offset - ScaleGUIPixels(rtl ? 10 : 3) : text_left + offset, Center(y, this->line_height, GetSpriteSize(SPR_COMPANY_ICON).height));
 							break;
 						}
 
@@ -326,12 +324,12 @@ struct CheatWindow : Window {
 
 		this->line_height = max(GetSpriteSize(SPR_BOX_CHECKED).height, GetSpriteSize(SPR_BOX_EMPTY).height);
 		this->line_height = max<uint>(this->line_height, SETTING_BUTTON_HEIGHT);
-		this->line_height = max<uint>(this->line_height, FONT_HEIGHT_NORMAL) + WD_PAR_VSEP_NORMAL;
+		this->line_height = max<uint>(this->line_height, FONT_HEIGHT_NORMAL) + SWD_PAR_VSEP_NORMAL;
 		this->line_height = GetMinSizing(NWST_STEP, this->line_height);
 
 		size->width = width + 20 + this->box_width + SETTING_BUTTON_WIDTH /* stuff on the left */ + 10 /* extra spacing on right */;
-		this->header_height = GetStringHeight(STR_CHEATS_WARNING, size->width - WD_FRAMERECT_LEFT - WD_FRAMERECT_RIGHT) + WD_PAR_VSEP_WIDE;
-		size->height = this->header_height + WD_FRAMERECT_TOP + WD_PAR_VSEP_NORMAL + WD_FRAMERECT_BOTTOM + this->line_height * lengthof(_cheats_ui);
+		this->header_height = GetStringHeight(STR_CHEATS_WARNING, size->width - SWD_FRAMERECT_LEFT - SWD_FRAMERECT_RIGHT) + SWD_PAR_VSEP_WIDE;
+		size->height = this->header_height + SWD_FRAMERECT_TOP + ScaleGUIPixels(WD_PAR_VSEP_NORMAL + WD_FRAMERECT_BOTTOM) + this->line_height * lengthof(_cheats_ui);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -339,10 +337,10 @@ struct CheatWindow : Window {
 		const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_C_PANEL);
 		uint button_offset = Center(0, this->line_height, SETTING_BUTTON_HEIGHT);
 
-		if ((pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height - button_offset) % this->line_height > (uint)SETTING_BUTTON_HEIGHT) return;
-		if ((pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height) % this->line_height < button_offset) return;
+		if ((pt.y - wid->pos_y - SWD_FRAMERECT_TOP - this->header_height - button_offset) % this->line_height > (uint)SETTING_BUTTON_HEIGHT) return;
+		if ((pt.y - wid->pos_y - SWD_FRAMERECT_TOP - this->header_height) % this->line_height < button_offset) return;
 
-		uint btn = (pt.y - wid->pos_y - WD_FRAMERECT_TOP - this->header_height) / this->line_height;
+		uint btn = (pt.y - wid->pos_y - SWD_FRAMERECT_TOP - this->header_height) / this->line_height;
 		uint x = pt.x - wid->pos_x;
 		bool rtl = _current_text_dir == TD_RTL;
 		if (rtl) x = wid->current_x - x;

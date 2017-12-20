@@ -52,7 +52,7 @@ struct FilterWindowBase : Window, FilterLists {
 	 * On new filterlists, set where the active filter is; if null, create a new active filter.
 	 * @param active If not null, set passed FilterActive as the active elements.
 	 */
-	FilterWindowBase(WindowDesc *desc, uint mask, FilterActive *active) : Window(desc), mask(mask), tiny_step(GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM))
+	FilterWindowBase(WindowDesc *desc, uint mask, FilterActive *active) : Window(desc), mask(mask), tiny_step(GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)))
 	{
 		if (active == NULL) {
 			this->active = new FilterActive();
@@ -95,8 +95,8 @@ struct FilterWindowBase : Window, FilterLists {
 	{
 		const bool rtl = _current_text_dir == TD_RTL;
 		const int sqr_width = FONT_HEIGHT_NORMAL - 2;
-		const int left = r.left + WD_FRAMERECT_LEFT;
-		const int right = r.right - WD_FRAMERECT_RIGHT;
+		const int left = r.left + SWD_FRAMERECT_LEFT;
+		const int right = r.right - SWD_FRAMERECT_RIGHT;
 		const int left_rect = rtl ? right - sqr_width : left;
 		const int right_rect = rtl ? right : left + sqr_width;
 		const int margin_left = rtl ? left : left + sqr_width + 4;
