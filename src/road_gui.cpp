@@ -881,10 +881,10 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 	{
 		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
 
-		int x = Center(r.left + ScaleGUITrad(TILE_PIXELS), r.right - r.left, ScaleGUITrad(2 * TILE_PIXELS));
+		int x = Center(r.left + ScaleGUIPixels(TILE_PIXELS), r.right - r.left, ScaleGUIPixels(2 * TILE_PIXELS));
 		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetDepotSpriteHeight(). */
-		int y = Center(r.top + WD_FRAMERECT_TOP - WD_MATRIX_BOTTOM + this->GetDepotSpriteHeight(),
-				r.bottom - r.top, TILE_PIXELS + this->GetDepotSpriteHeight()) + IsWidgetLowered(widget);
+		int y = Center(r.top + ScaleGUIPixels(WD_FRAMERECT_TOP - WD_MATRIX_BOTTOM + this->GetDepotSpriteHeight()),
+				r.bottom - r.top, ScaleGUIPixels(TILE_PIXELS + this->GetDepotSpriteHeight())) + IsWidgetLowered(widget) * WD_GUI_UNIT;
 
 		DrawRoadDepotSprite(x, y, (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE), _cur_roadtype);
 	}
@@ -893,8 +893,8 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 	{
 		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
 
-		size->height = max(size->height, (uint)ScaleGUITrad(2 * TILE_SIZE + this->GetDepotSpriteHeight())) + WD_FRAMERECT_TOP + WD_MATRIX_BOTTOM;
-		size->width = max(size->width, (uint)ScaleGUITrad(4 * TILE_SIZE + WD_FRAMERECT_LEFT + WD_MATRIX_RIGHT));
+		size->height = max(size->height, (uint)ScaleGUIPixels(2 * TILE_SIZE + this->GetDepotSpriteHeight() + WD_FRAMERECT_TOP + WD_MATRIX_BOTTOM));
+		size->width = max(size->width, (uint)ScaleGUIPixels(4 * TILE_SIZE + WD_FRAMERECT_LEFT + WD_MATRIX_RIGHT));
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1001,12 +1001,12 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 
 		/* 'Accepts' and 'Supplies' texts. */
 		StationCoverageType sct = (this->window_class == WC_BUS_STATION) ? SCT_PASSENGERS_ONLY : SCT_NON_PASSENGERS_ONLY;
-		int top = this->GetWidget<NWidgetBase>(WID_BROS_LT_ON)->pos_y + this->GetWidget<NWidgetBase>(WID_BROS_LT_ON)->current_y + WD_PAR_VSEP_NORMAL;
+		int top = this->GetWidget<NWidgetBase>(WID_BROS_LT_ON)->pos_y + this->GetWidget<NWidgetBase>(WID_BROS_LT_ON)->current_y + SWD_PAR_VSEP_NORMAL;
 		NWidgetBase *back_nwi = this->GetWidget<NWidgetBase>(WID_BROS_BACKGROUND);
 		int right = back_nwi->pos_x +  back_nwi->current_x;
 		int bottom = back_nwi->pos_y +  back_nwi->current_y;
-		top = DrawStationCoverageAreaText(back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, sct, rad, false) + WD_PAR_VSEP_NORMAL;
-		top = DrawStationCoverageAreaText(back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, sct, rad, true) + WD_PAR_VSEP_NORMAL;
+		top = DrawStationCoverageAreaText(back_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, sct, rad, false) + SWD_PAR_VSEP_NORMAL;
+		top = DrawStationCoverageAreaText(back_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, sct, rad, true) + SWD_PAR_VSEP_NORMAL;
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */
@@ -1019,17 +1019,17 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 	{
 		if (!IsInsideMM(widget, WID_BROS_STATION_NE, WID_BROS_STATION_Y + 1)) return;
 
-		size->width  = ScaleGUITrad(64) + 2;
-		size->height = ScaleGUITrad(48) + 2;
+		size->width  = ScaleGUIPixels(64 + 2);
+		size->height = ScaleGUIPixels(48 + 2);
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		if (!IsInsideMM(widget, WID_BROS_STATION_NE, WID_BROS_STATION_Y + 1)) return;
 
-		int x = Center(r.left + TILE_PIXELS, r.right - r.left, 2 * TILE_PIXELS);
+		int x = Center(r.left + WD_BEVEL, r.right - r.left + 1 - 2 * WD_BEVEL, 0);
 		/* Height of bus/truck sprite in OpenGFX is TILE_PIXELS + 11. */
-		int y = Center(r.top + WD_FRAMERECT_TOP - WD_MATRIX_BOTTOM + 11, r.bottom - r.top, TILE_PIXELS + 11) + IsWidgetLowered(widget);
+		int y = Center(r.top + ScaleGUIPixels(WD_FRAMERECT_TOP - WD_MATRIX_BOTTOM + 11 + IsWidgetLowered(widget)), r.bottom - r.top + 1, ScaleGUIPixels(TILE_PIXELS + 11));
 
 		StationType st = (this->window_class == WC_BUS_STATION) ? STATION_BUS : STATION_TRUCK;
 

@@ -33,6 +33,7 @@
 #include "command_func.h"
 #include "company_base.h"
 #include "settings_internal.h"
+#include "zoom_func.h"
 
 #include "widgets/news_widget.h"
 
@@ -80,14 +81,14 @@ static TileIndex GetReferenceTile(NewsReferenceType reftype, uint32 ref)
 static const NWidgetPart _nested_normal_news_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_WHITE, WID_N_PANEL),
 		NWidget(NWID_HORIZONTAL), SetPadding(1, 1, 0, 1),
-			NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(0, 0, 0, 1),
+			NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(2, 1, 2, 2),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 			NWidget(NWID_VERTICAL),
 				NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_DATE), SetDataTip(STR_DATE_LONG_SMALL, STR_NULL),
-				NWidget(NWID_SPACER), SetFill(0, 1),
+				NWidget(NWID_SPACER), SetFill(0, 1), SetPadding(2, 2, 2, 1),
 			EndContainer(),
 		EndContainer(),
-		NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_MESSAGE), SetSizingType(NWST_BIG_NEWS), SetMinimalSize(428, 154),  SetPadding(0, 5, 1, 5),
+		NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_MESSAGE), SetSizingType(NWST_BIG_NEWS), SetMinimalSize(428, 154),  SetPadding(0, 5, 2, 5),
 	EndContainer(),
 };
 
@@ -103,7 +104,7 @@ static const NWidgetPart _nested_vehicle_news_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_WHITE, WID_N_PANEL),
 		NWidget(NWID_HORIZONTAL), SetPadding(1, 1, 0, 1),
 			NWidget(NWID_VERTICAL),
-				NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(0, 0, 0, 1),
+				NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(2, 1, 2, 2),
 				NWidget(NWID_SPACER), SetFill(0, 1),
 			EndContainer(),
 			NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_VEH_TITLE), SetSizingType(NWST_BIG_NEWS), SetFill(1, 1), SetMinimalSize(419, 55), SetDataTip(STR_EMPTY, STR_NULL),
@@ -130,7 +131,7 @@ static const NWidgetPart _nested_company_news_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_WHITE, WID_N_PANEL),
 		NWidget(NWID_HORIZONTAL), SetPadding(1, 1, 0, 1),
 			NWidget(NWID_VERTICAL),
-				NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(0, 0, 0, 1),
+				NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_BUTTON), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(2, 1, 2, 2),
 				NWidget(NWID_SPACER), SetFill(0, 1),
 			EndContainer(),
 			NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_TITLE), SetSizingType(NWST_BIG_NEWS), SetFill(1, 1), SetMinimalSize(410, 20), SetDataTip(STR_EMPTY, STR_NULL),
@@ -157,14 +158,14 @@ static WindowDesc _company_news_desc(
 static const NWidgetPart _nested_thin_news_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_WHITE, WID_N_PANEL),
 		NWidget(NWID_HORIZONTAL), SetPadding(1, 1, 0, 1),
-			NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_STEP), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(0, 0, 0, 1),
+			NWidget(WWT_TEXT, COLOUR_WHITE, WID_N_CLOSEBOX), SetSizingType(NWST_STEP), SetDataTip(STR_SILVER_CROSS, STR_NULL), SetPadding(2, 1, 2, 2),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 			NWidget(NWID_VERTICAL),
 				NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_DATE), SetDataTip(STR_DATE_LONG_SMALL, STR_NULL),
-				NWidget(NWID_SPACER), SetFill(0, 1),
+				NWidget(NWID_SPACER), SetFill(0, 1), SetPadding(2, 2, 2, 1),
 			EndContainer(),
 		EndContainer(),
-		NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_MESSAGE), SetSizingType(NWST_BIG_NEWS), SetMinimalSize(428, 48), SetFill(1, 0), SetPadding(0, 5, 0, 5),
+		NWidget(WWT_LABEL, COLOUR_WHITE, WID_N_MESSAGE), SetSizingType(NWST_BIG_NEWS), SetMinimalSize(428, 48), SetFill(1, 0), SetPadding(0, 5, 2, 5),
 		NWidget(NWID_VIEWPORT, INVALID_COLOUR, WID_N_VIEWPORT), SetMinimalSize(426, 70), SetPadding(1, 2, 2, 2),
 	EndContainer(),
 };
@@ -189,7 +190,7 @@ static const NWidgetPart _nested_small_news_widgets[] = {
 		NWidget(WWT_INSET, COLOUR_LIGHT_BLUE, WID_N_INSET), SetPadding(2, 2, 2, 2),
 			NWidget(NWID_VIEWPORT, INVALID_COLOUR, WID_N_VIEWPORT), SetPadding(1, 1, 1, 1), SetMinimalSize(274, 47), SetFill(1, 0),
 		EndContainer(),
-		NWidget(WWT_EMPTY, COLOUR_WHITE, WID_N_MESSAGE), SetMinimalSize(275, 20), SetFill(1, 0), SetPadding(0, 5, 0, 5),
+		NWidget(WWT_EMPTY, COLOUR_WHITE, WID_N_MESSAGE), SetMinimalSize(275, 20), SetFill(1, 0), SetPadding(0, 5, 2, 5),
 	EndContainer(),
 };
 
@@ -297,10 +298,10 @@ struct NewsWindow : Window {
 	{
 		GfxFillRect(r.left,  r.top,    r.right, r.bottom, PC_WHITE);
 
-		GfxFillRect(r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
-		GfxFillRect(r.right, r.top,    r.right, r.bottom, PC_BLACK);
-		GfxFillRect(r.left,  r.top,    r.right, r.top,    PC_BLACK);
-		GfxFillRect(r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
+		GfxFillRect(r.left,  r.top,    r.left + WD_GUI_UNIT - 1,  r.bottom, PC_BLACK);
+		GfxFillRect(r.right - WD_GUI_UNIT + 1, r.top,    r.right, r.bottom, PC_BLACK);
+		GfxFillRect(r.left,  r.top,    r.right, r.top + WD_GUI_UNIT - 1,    PC_BLACK);
+		GfxFillRect(r.left,  r.bottom - WD_GUI_UNIT + 1, r.right, r.bottom, PC_BLACK);
 	}
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
@@ -488,7 +489,7 @@ struct NewsWindow : Window {
 	virtual void OnTick()
 	{
 		/* Scroll up newsmessages from the bottom in steps of 4 pixels */
-		int newtop = max(this->top - 4, _screen.height - this->height - this->status_height - this->chat_height);
+		int newtop = max(this->top - (4 << (_gui_shift / 2 + 1)), _screen.height - this->height - this->status_height - this->chat_height);
 		this->SetWindowTop(newtop);
 	}
 
@@ -1000,9 +1001,6 @@ static void DrawNewsString(uint left, uint right, int y, TextColour colour, cons
 }
 
 struct MessageHistoryWindow : Window {
-	static const int top_spacing;    ///< Additional spacing at the top of the #WID_MH_BACKGROUND widget.
-	static const int bottom_spacing; ///< Additional spacing at the bottom of the #WID_MH_BACKGROUND widget.
-
 	int line_height; /// < Height of a single line in the news history window including spacing.
 	int date_width;  /// < Width needed for the date part.
 
@@ -1019,7 +1017,7 @@ struct MessageHistoryWindow : Window {
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget == WID_MH_BACKGROUND) {
-			this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + 2);
+			this->line_height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(2));
 			resize->height = this->line_height;
 
 			/* Months are off-by-one, so it's actually 8. Not using
@@ -1027,7 +1025,8 @@ struct MessageHistoryWindow : Window {
 			SetDParam(0, ConvertYMDToDate(ORIGINAL_MAX_YEAR, 7, 30));
 			this->date_width = GetStringBoundingBox(STR_SHORT_DATE).width;
 
-			size->height = 4 * resize->height + this->top_spacing + this->bottom_spacing; // At least 4 lines are visible.
+			size->height = 4 * resize->height + // At least 4 lines are visible.
+					 + ScaleGUIPixels(WD_FRAMERECT_TOP + 4 /* Extra top spacing */ + WD_FRAMERECT_BOTTOM);
 			size->width = max(200u, size->width); // At least 200 pixels wide.
 		}
 	}
@@ -1050,12 +1049,12 @@ struct MessageHistoryWindow : Window {
 		}
 
 		/* Fill the widget with news items. */
-		int y = Center(r.top + this->top_spacing, this->line_height, FONT_HEIGHT_NORMAL);
+		int y = Center(r.top + SWD_FRAMERECT_TOP + ScaleGUIPixels(1), this->line_height, FONT_HEIGHT_NORMAL);
 		bool rtl = _current_text_dir == TD_RTL;
-		uint date_left  = rtl ? r.right - WD_FRAMERECT_RIGHT - this->date_width : r.left + WD_FRAMERECT_LEFT;
-		uint date_right = rtl ? r.right - WD_FRAMERECT_RIGHT : r.left + WD_FRAMERECT_LEFT + this->date_width;
-		uint news_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.left + WD_FRAMERECT_LEFT + this->date_width + WD_FRAMERECT_RIGHT;
-		uint news_right = rtl ? r.right - WD_FRAMERECT_RIGHT - this->date_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
+		uint date_left  = rtl ? r.right - SWD_FRAMERECT_RIGHT - this->date_width : r.left + SWD_FRAMERECT_LEFT;
+		uint date_right = rtl ? r.right - SWD_FRAMERECT_RIGHT : r.left + SWD_FRAMERECT_LEFT + this->date_width;
+		uint news_left  = rtl ? r.left + SWD_FRAMERECT_LEFT : r.left + SWD_FRAMERECT_LEFT + this->date_width + SWD_FRAMERECT_RIGHT;
+		uint news_right = rtl ? r.right - SWD_FRAMERECT_RIGHT - this->date_width - SWD_FRAMERECT_RIGHT : r.right - SWD_FRAMERECT_RIGHT;
 		for (int n = this->vscroll->GetCapacity(); n > 0; n--) {
 			SetDParam(0, ni->date);
 			DrawString(date_left, date_right, y, STR_SHORT_DATE);
@@ -1085,7 +1084,7 @@ struct MessageHistoryWindow : Window {
 			NewsItem *ni = _latest_news;
 			if (ni == NULL) return;
 
-			for (int n = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_MH_BACKGROUND, WD_FRAMERECT_TOP, this->line_height); n > 0; n--) {
+			for (int n = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_MH_BACKGROUND, SWD_FRAMERECT_TOP, this->line_height); n > 0; n--) {
 				ni = ni->prev;
 				if (ni == NULL) return;
 			}
@@ -1099,9 +1098,6 @@ struct MessageHistoryWindow : Window {
 		this->vscroll->SetCapacityFromWidget(this, WID_MH_BACKGROUND);
 	}
 };
-
-const int MessageHistoryWindow::top_spacing = WD_FRAMERECT_TOP + 4;
-const int MessageHistoryWindow::bottom_spacing = WD_FRAMERECT_BOTTOM;
 
 static const NWidgetPart _nested_message_history[] = {
 	NWidget(NWID_HORIZONTAL),
