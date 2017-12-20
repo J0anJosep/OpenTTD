@@ -66,7 +66,6 @@ protected:
 	static bool show_towns;       ///< Display town names in the smallmap.
 	static int max_heightlevel;   ///< Currently used/cached maximum heightlevel.
 
-	static const uint LEGEND_BLOB_WIDTH = 8;              ///< Width of the coloured blob in front of a line text in the #WID_SM_LEGEND widget.
 	static const uint INDUSTRY_MIN_NUMBER_OF_COLUMNS = 2; ///< Minimal number of columns in the #WID_SM_LEGEND widget for the #SMT_INDUSTRY legend.
 	static const uint FORCE_REFRESH_PERIOD = 930; ///< map is redrawn after that many milliseconds.
 	static const uint BLINK_PERIOD         = 450; ///< highlight blinking interval in milliseconds.
@@ -117,7 +116,7 @@ protected:
 	 */
 	inline uint GetMinLegendWidth() const
 	{
-		return WD_FRAMERECT_LEFT + this->min_number_of_columns * this->column_width;
+		return SWD_FRAMERECT_LEFT + this->min_number_of_columns * this->column_width;
 	}
 
 	/**
@@ -136,7 +135,7 @@ protected:
 	 */
 	inline uint GetLegendHeight(uint num_columns) const
 	{
-		return WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM +
+		return ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) +
 				this->GetNumberRowsLegend(num_columns) * this->row_height;
 	}
 

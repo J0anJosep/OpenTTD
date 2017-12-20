@@ -121,13 +121,13 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 	if (widget != WID_NCDS_BACKGROUND) return;
 
 	/* Draw nice progress bar :) */
-	DrawFrameRect(r.left + 20, r.top + 4, r.left + 20 + (int)((this->width - 40LL) * this->downloaded_bytes / this->total_bytes), r.top + 14, COLOUR_MAUVE, FR_NONE);
+	DrawFrameRect(r.left + ScaleGUIPixels(20), r.top + ScaleGUIPixels(4), r.left + ScaleGUIPixels(20) + (int)(this->width - ScaleGUIPixels(40LL)) * this->downloaded_bytes / this->total_bytes, r.top + ScaleGUIPixels(14), COLOUR_MAUVE, FR_NONE);
 
-	int y = r.top + 20;
+	int y = r.top + ScaleGUIPixels(20);
 	SetDParam(0, this->downloaded_bytes);
 	SetDParam(1, this->total_bytes);
 	SetDParam(2, this->downloaded_bytes * 100LL / this->total_bytes);
-	DrawString(r.left + 2, r.right - 2, y, STR_CONTENT_DOWNLOAD_PROGRESS_SIZE, TC_FROMSTRING, SA_HOR_CENTER);
+	DrawString(r.left + ScaleGUIPixels(2), r.right - ScaleGUIPixels(2), y, STR_CONTENT_DOWNLOAD_PROGRESS_SIZE, TC_FROMSTRING, SA_HOR_CENTER);
 
 	StringID str;
 	if (this->downloaded_bytes == this->total_bytes) {
@@ -141,8 +141,8 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 		str = STR_CONTENT_DOWNLOAD_INITIALISE;
 	}
 
-	y += FONT_HEIGHT_NORMAL + 5;
-	DrawStringMultiLine(r.left + 2, r.right - 2, y, y + FONT_HEIGHT_NORMAL * 2, str, TC_FROMSTRING, SA_CENTER);
+	y += FONT_HEIGHT_NORMAL + ScaleGUIPixels(5);
+	DrawStringMultiLine(r.left + ScaleGUIPixels(2), r.right - ScaleGUIPixels(2), y, y + FONT_HEIGHT_NORMAL * 2, str, TC_FROMSTRING, SA_CENTER);
 }
 
 /* virtual */ void BaseNetworkContentDownloadStatusWindow::OnDownloadProgress(const ContentInfo *ci, int bytes)
@@ -571,7 +571,7 @@ public:
 				break;
 
 			case WID_NCL_CHECKBOX:
-				size->width = this->checkbox_size.width + WD_MATRIX_RIGHT + WD_MATRIX_LEFT;
+				size->width = this->checkbox_size.width + ScaleGUIPixels(WD_MATRIX_RIGHT + WD_MATRIX_LEFT);
 				break;
 
 			case WID_NCL_TYPE: {
@@ -579,12 +579,12 @@ public:
 				for (int i = CONTENT_TYPE_BEGIN; i < CONTENT_TYPE_END; i++) {
 					d = maxdim(d, GetStringBoundingBox(STR_CONTENT_TYPE_BASE_GRAPHICS + i - CONTENT_TYPE_BASE_GRAPHICS));
 				}
-				size->width = d.width + WD_MATRIX_RIGHT + WD_MATRIX_LEFT;
+				size->width = d.width + ScaleGUIPixels(WD_MATRIX_RIGHT + WD_MATRIX_LEFT);
 				break;
 			}
 
 			case WID_NCL_MATRIX:
-				resize->height = GetMinSizing(NWST_STEP, max(this->checkbox_size.height, (uint)FONT_HEIGHT_NORMAL) + WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
+				resize->height = GetMinSizing(NWST_STEP, max(this->checkbox_size.height, (uint)FONT_HEIGHT_NORMAL) + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM));
 				size->height = 10 * resize->height;
 				break;
 		}
@@ -649,7 +649,7 @@ public:
 		for (ConstContentIterator iter = this->content.Get(this->vscroll->GetPosition()); iter != this->content.End() && cnt < this->vscroll->GetCapacity(); iter++, cnt++) {
 			const ContentInfo *ci = *iter;
 
-			if (ci == this->selected) GfxFillRect(r.left + 1, y + WD_FRAMERECT_TOP, r.right - 1, y + this->resize.step_height - WD_FRAMERECT_BOTTOM, PC_GREY);
+			if (ci == this->selected) GfxFillRect(r.left + 1, y + SWD_FRAMERECT_TOP, r.right - 1, y + this->resize.step_height - SWD_FRAMERECT_BOTTOM, PC_GREY);
 
 			SpriteID sprite;
 			SpriteID pal = PAL_NONE;
@@ -667,7 +667,7 @@ public:
 			StringID str = STR_CONTENT_TYPE_BASE_GRAPHICS + ci->type - CONTENT_TYPE_BASE_GRAPHICS;
 			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, Center(y, this->resize.step_height), str, TC_BLACK, SA_HOR_CENTER);
 
-			DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, Center(y,this->resize.step_height), ci->name, TC_BLACK);
+			DrawString(nwi_name->pos_x + SWD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - SWD_FRAMERECT_RIGHT, Center(y,this->resize.step_height), ci->name, TC_BLACK);
 			y += this->resize.step_height;
 		}
 	}
@@ -686,26 +686,26 @@ public:
 		int DETAIL_TITLE_HEIGHT = 5 * FONT_HEIGHT_NORMAL;
 
 		/* Create the nice grayish rectangle at the details top */
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
-		DrawString(r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
+		GfxFillRect(r.left + WD_GUI_UNIT, r.top + WD_GUI_UNIT, r.right - WD_GUI_UNIT, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
+		DrawString(r.left + SWD_INSET_LEFT, r.right - SWD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + SWD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* Draw the total download size */
 		SetDParam(0, this->filesize_sum);
-		DrawString(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_NORMAL, STR_CONTENT_TOTAL_DOWNLOAD_SIZE);
+		DrawString(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, r.bottom - FONT_HEIGHT_NORMAL - SWD_PAR_VSEP_NORMAL, STR_CONTENT_TOTAL_DOWNLOAD_SIZE);
 
 		if (this->selected == NULL) return;
 
 		/* And fill the rest of the details when there's information to place there */
-		DrawStringMultiLine(r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + DETAIL_TITLE_HEIGHT / 2, r.top + DETAIL_TITLE_HEIGHT, STR_CONTENT_DETAIL_SUBTITLE_UNSELECTED + this->selected->state, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine(r.left + SWD_INSET_LEFT, r.right - SWD_INSET_RIGHT, r.top + DETAIL_TITLE_HEIGHT / 2, r.top + DETAIL_TITLE_HEIGHT, STR_CONTENT_DETAIL_SUBTITLE_UNSELECTED + this->selected->state, TC_FROMSTRING, SA_CENTER);
 
 		/* Also show the total download size, so keep some space from the bottom */
-		const uint max_y = r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_WIDE;
+		const uint max_y = r.bottom - FONT_HEIGHT_NORMAL - SWD_PAR_VSEP_WIDE;
 		int y = r.top + DETAIL_TITLE_HEIGHT + DETAIL_TOP;
 
 		if (this->selected->upgrade) {
 			SetDParam(0, STR_CONTENT_TYPE_BASE_GRAPHICS + this->selected->type - CONTENT_TYPE_BASE_GRAPHICS);
 			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_UPDATE);
-			y += WD_PAR_VSEP_WIDE;
+			y += SWD_PAR_VSEP_WIDE;
 		}
 
 		SetDParamStr(0, this->selected->name);
@@ -729,7 +729,7 @@ public:
 		SetDParam(0, STR_CONTENT_TYPE_BASE_GRAPHICS + this->selected->type - CONTENT_TYPE_BASE_GRAPHICS);
 		y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TYPE);
 
-		y += WD_PAR_VSEP_WIDE;
+		y += SWD_PAR_VSEP_WIDE;
 		SetDParam(0, this->selected->filesize);
 		y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_FILESIZE);
 

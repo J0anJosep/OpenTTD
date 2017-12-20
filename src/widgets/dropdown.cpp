@@ -27,9 +27,9 @@ void DropDownListItem::Draw(int left, int right, int top, int bottom, bool sel, 
 	int c1 = _colour_gradient[bg_colour][3];
 	int c2 = _colour_gradient[bg_colour][7];
 
-	int mid = top + this->Height(0) / 2;
-	GfxFillRect(left + 1, mid - 2, right - 1, mid - 2, c1);
-	GfxFillRect(left + 1, mid - 1, right - 1, mid - 1, c2);
+	int mid = top + this->Height() / 2;
+	GfxFillRect(left + WD_GUI_UNIT, mid - WD_GUI_UNIT, right - WD_GUI_UNIT, mid - 1, c1);
+	GfxFillRect(left + WD_GUI_UNIT, mid, right - WD_GUI_UNIT, mid + WD_GUI_UNIT - 1, c2);
 }
 
 uint DropDownListStringItem::Width() const
@@ -41,7 +41,7 @@ uint DropDownListStringItem::Width() const
 
 void DropDownListStringItem::Draw(int left, int right, int top, int bottom, bool sel, Colours bg_colour) const
 {
-	DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, CenterBounds(top, bottom), this->String(), sel ? TC_WHITE : TC_BLACK);
+	DrawString(left + SWD_FRAMERECT_LEFT + WD_BEVEL, right - SWD_FRAMERECT_RIGHT - WD_BEVEL + 2, CenterBounds(top, bottom), this->String(), sel ? TC_WHITE : TC_BLACK);
 }
 
 /**
@@ -90,14 +90,14 @@ uint DropDownListIconItem::Height(uint width) const
 
 uint DropDownListIconItem::Width() const
 {
-	return DropDownListStringItem::Width() + this->dim.width + WD_FRAMERECT_LEFT;
+	return DropDownListStringItem::Width() + this->dim.width + SWD_FRAMERECT_LEFT;
 }
 
 void DropDownListIconItem::Draw(int left, int right, int top, int bottom, bool sel, Colours bg_colour) const
 {
 	bool rtl = _current_text_dir == TD_RTL;
-	DrawSprite(this->sprite, this->pal, rtl ? right - this->dim.width - WD_FRAMERECT_RIGHT : left + WD_FRAMERECT_LEFT, top + this->sprite_y);
-	DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 0 : (this->dim.width + WD_FRAMERECT_LEFT)), right - WD_FRAMERECT_RIGHT - (rtl ? (this->dim.width + WD_FRAMERECT_RIGHT) : 0), top + this->text_y, this->String(), sel ? TC_WHITE : TC_BLACK);
+	DrawSprite(this->sprite, this->pal, rtl ? right - this->dim.width - SWD_FRAMERECT_RIGHT : left + SWD_FRAMERECT_LEFT, top + this->sprite_y);
+	DrawString(left + SWD_FRAMERECT_LEFT + (rtl ? 0 : (this->dim.width + SWD_FRAMERECT_LEFT)), right - SWD_FRAMERECT_RIGHT - (rtl ? (this->dim.width + SWD_FRAMERECT_RIGHT) : 0), top + this->text_y, this->String(), sel ? TC_WHITE : TC_BLACK);
 }
 
 void DropDownListIconItem::SetDimension(Dimension d)
@@ -161,7 +161,7 @@ struct DropdownWindow : Window {
 
 		uint items_width = size.width - (scroll ? NWidgetScrollbar::GetVerticalDimension().width : 0);
 		NWidgetCore *nwi = this->GetWidget<NWidgetCore>(WID_DM_ITEMS);
-		nwi->SetMinimalSize(items_width, size.height + 4);
+		nwi->SetMinimalSize(items_width, size.height, false);
 		nwi->colour = wi_colour;
 
 		nwi = this->GetWidget<NWidgetCore>(WID_DM_SCROLL);
@@ -176,7 +176,7 @@ struct DropdownWindow : Window {
 		int list_height = 0;
 		for (const DropDownListItem * const *it = list->Begin(); it != list->End(); ++it) {
 			const DropDownListItem *item = *it;
-			list_height += item->Height(items_width);
+			list_height += item->Height();
 		}
 
 		/* Capacity is the average number of items visible */
@@ -226,8 +226,9 @@ struct DropdownWindow : Window {
 		if (GetWidgetFromPos(this, _cursor.pos.x - this->left, _cursor.pos.y - this->top) < 0) return false;
 
 		NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_DM_ITEMS);
-		int y     = _cursor.pos.y - this->top - nwi->pos_y - 2;
-		int width = nwi->current_x - 4;
+		int y     = _cursor.pos.y - this->top + 1 - nwi->pos_y - WD_BEVEL;
+		if (_cursor.pos.x + 1 < (int)(this->left + WD_BEVEL + nwi->pos_x)) return false;
+		if (_cursor.pos.x + WD_BEVEL > (int)(this->left + nwi->pos_x + nwi->current_x)) return false;
 		int pos   = this->vscroll->GetPosition();
 
 		const DropDownList *list = this->list;
@@ -237,7 +238,7 @@ struct DropdownWindow : Window {
 			if (--pos >= 0) continue;
 
 			const DropDownListItem *item = *it;
-			int item_height = item->Height(width);
+			int item_height = item->Height();
 
 			if (y < item_height) {
 				if (item->masked || !item->Selectable()) return false;
@@ -257,23 +258,23 @@ struct DropdownWindow : Window {
 
 		Colours colour = this->GetWidget<NWidgetCore>(widget)->colour;
 
-		int y = r.top + 2;
+		int y = r.top + WD_BEVEL;
 		int pos = this->vscroll->GetPosition();
 		for (const DropDownListItem * const *it = this->list->Begin(); it != this->list->End(); ++it) {
 			const DropDownListItem *item = *it;
-			int item_height = item->Height(r.right - r.left + 1);
+			int item_height = item->Height();
 
 			/* Skip items that are scrolled up */
 			if (--pos >= 0) continue;
 
-			if (y + item_height < r.bottom) {
+			if (y + item_height + WD_BEVEL <= r.bottom + 1) {
 				bool selected = (this->selected_index == item->result);
-				if (selected) GfxFillRect(r.left + 2, y, r.right - 1, y + item_height - 1, PC_BLACK);
+				if (selected) GfxFillRect(r.left + WD_BEVEL, y, r.right - WD_BEVEL, y + item_height - 1, PC_BLACK);
 
 				item->Draw(r.left, r.right, y, y + item_height, selected, colour);
 
 				if (item->masked) {
-					GfxFillRect(r.left + 1, y, r.right - 1, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
+					GfxFillRect(r.left + WD_BEVEL, y, r.right - WD_BEVEL, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
 				}
 			}
 			y += item_height;
@@ -338,11 +339,11 @@ struct DropdownWindow : Window {
 				}
 				this->click_delay = 2;
 			} else {
-				if (_cursor.pos.y <= this->top + 2) {
+				if (_cursor.pos.y <= this->top + 2 * WD_GUI_UNIT) {
 					/* Cursor is above the list, set scroll up */
 					this->scrolling = -1;
 					return;
-				} else if (_cursor.pos.y >= this->top + this->height - 2) {
+				} else if (_cursor.pos.y >= this->top + this->height - 2 * WD_GUI_UNIT) {
 					/* Cursor is below list, set scroll down */
 					this->scrolling = 1;
 					return;
@@ -391,8 +392,8 @@ void ShowDropDownListAt(Window *w, const DropDownList *list, int selected, int b
 
 	for (const DropDownListItem * const *it = list->Begin(); it != list->End(); ++it) {
 		const DropDownListItem *item = *it;
-		height += item->Height(width);
-		if (auto_width) max_item_width = max(max_item_width, item->Width() + 5);
+		height += item->Height();
+		if (auto_width) max_item_width = max(max_item_width, item->Width());
 	}
 
 	/* Scrollbar needed? */
@@ -421,7 +422,7 @@ void ShowDropDownListAt(Window *w, const DropDownList *list, int selected, int b
 			uint avg_height = height / list->Length();
 
 			/* Check at least there is space for one item. */
-			assert(available_height >= avg_height);
+			if (available_height < avg_height) return;
 
 			/* Fit the list. */
 			uint rows = available_height / avg_height;
@@ -433,14 +434,14 @@ void ShowDropDownListAt(Window *w, const DropDownList *list, int selected, int b
 
 		/* Set the top position if needed. */
 		if (above) {
-			top = w->top + wi_rect.top - height - 4;
+			top = w->top + wi_rect.top - height - ScaleGUIPixels(2) + 1;
 		}
 	}
 
-	if (auto_width) width = max(width, max_item_width);
+	if (auto_width) width = max(width, max_item_width + (uint)ScaleGUIPixels(6) /* 2 BEVELS + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT */);
 
 	Point dw_pos = { w->left + (_current_text_dir == TD_RTL ? wi_rect.right + 1 - (int)width : wi_rect.left), top};
-	Dimension dw_size = {width, height};
+	Dimension dw_size = {width, height + 2 * WD_BEVEL};
 	DropdownWindow *dropdown = new DropdownWindow(w, list, selected, button, instant_close, dw_pos, dw_size, wi_colour, scroll);
 
 	/* The dropdown starts scrolling downwards when opening it towards

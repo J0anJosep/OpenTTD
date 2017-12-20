@@ -178,7 +178,7 @@ struct StatusBarWindow : Window {
 					str = STR_STATUSBAR_PAUSED;
 				} else if (this->ticker_scroll < TICKER_STOP && FindWindowById(WC_NEWS_WINDOW, 0) == NULL && _statusbar_news_item != NULL && _statusbar_news_item->string_id != 0) {
 					/* Draw the scrolling news text */
-					if (!DrawScrollingStatusText(_statusbar_news_item, this->ticker_scroll, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom)) {
+					if (!DrawScrollingStatusText(_statusbar_news_item, this->ticker_scroll, r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, r.top + SWD_FRAMERECT_TOP, r.bottom)) {
 						InvalidateWindowData(WC_STATUS_BAR, 0, SBI_NEWS_DELETED);
 						if (Company::IsValidID(_local_company)) {
 							/* This is the default text */
@@ -197,14 +197,14 @@ struct StatusBarWindow : Window {
 				if (!this->reminder_timeout.HasElapsed()) {
 					Dimension icon_size = GetSpriteSize(SPR_UNREAD_NEWS);
 					int center_icon = CenterBounds(r.top, r.bottom, icon_size.height);
-					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, center_icon);
+					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - SWD_FRAMERECT_RIGHT - icon_size.width, center_icon);
 				}
 				break;
 		}
 
-		// revise: Center(r.top + WD_FRAMERECT_TOP, r.bottom - r.top);
+		// revise: Center(r.top + SWD_FRAMERECT_TOP, r.bottom - r.top);
 		int center_top = CenterBounds(r.top, r.bottom);
-		if (str != INVALID_STRING_ID) DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, center_top, str, TC_FROMSTRING, SA_HOR_CENTER);
+		if (str != INVALID_STRING_ID) DrawString(r.left + SWD_FRAMERECT_LEFT, r.right - SWD_FRAMERECT_RIGHT, center_top, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 
 	/**

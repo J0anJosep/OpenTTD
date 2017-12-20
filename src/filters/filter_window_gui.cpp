@@ -54,7 +54,7 @@ struct FilterWindowBase : Window, FilterLists {
 	 * On new filterlists, set where the active filter is; if null, create a new active filter.
 	 * @param active If not null, set passed FilterActive as the active elements.
 	 */
-	FilterWindowBase(WindowDesc *desc, uint mask, FilterActive *active) : Window(desc), mask(mask), tiny_step(GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM))
+	FilterWindowBase(WindowDesc *desc, uint mask, FilterActive *active) : Window(desc), mask(mask), tiny_step(GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)))
 	{
 		if (active == NULL) {
 			this->active = new FilterActive();
@@ -86,7 +86,7 @@ struct FilterWindowBase : Window, FilterLists {
 	void DrawSquare(const int left, const int top, const int width, int contour_colour, int inner_colour) const
 	{
 		GfxFillRect(left, top, left + width - 1, top + width - 1, contour_colour);
-		GfxFillRect(left + 1, top + 1, left + width - 2, top + width - 2, inner_colour);
+		GfxFillRect(left + WD_GUI_UNIT, top + WD_GUI_UNIT, left + width - WD_GUI_UNIT - 1, top + width - WD_GUI_UNIT - 1, inner_colour);
 	}
 
 	/**
@@ -102,13 +102,13 @@ struct FilterWindowBase : Window, FilterLists {
 	void DrawList(const ListType list_type, const Rect &r, int &y, uint &n, uint initial_list_pos, bool only_active, uint &skip_lines) const
 	{
 		const bool rtl = _current_text_dir == TD_RTL;
-		const int sqr_width = FONT_HEIGHT_NORMAL - 2;
-		const int left = r.left + WD_FRAMERECT_LEFT;
-		const int right = r.right - WD_FRAMERECT_RIGHT;
-		const int left_rect = rtl ? right - sqr_width + 1 : left;
+		const int sqr_width = this->tiny_step - ScaleGUIPixels(4);
+		const int left = r.left + SWD_FRAMERECT_LEFT;
+		const int right = r.right - SWD_FRAMERECT_RIGHT;
+		const int left_rect = rtl ? right - sqr_width + 1: left;
 		const int right_rect = rtl ? right : left + sqr_width - 1;
-		const int margin_left = rtl ? left : left + sqr_width + 4;
-		const int margin_right = rtl ? right - sqr_width - 4 : right;
+		const int margin_left = rtl ? left : left + sqr_width + ScaleGUIPixels(4);
+		const int margin_right = rtl ? right - sqr_width - ScaleGUIPixels(4) : right;
 		const GUIListForFilter &list = only_active ? this->active->lists[list_type] : this->lists[list_type];
 		int x;
 		int sqr_offset = Center(0, this->tiny_step, sqr_width);
@@ -221,7 +221,7 @@ struct FilterWindowBase : Window, FilterLists {
 
 			if (list_type == LT_STATIONS) {
 				const Station *st = Station::GetIfValid(element_is.GetElement());
-				StationsWndShowStationRating(st, left, right, x, FONT_HEIGHT_NORMAL + 2, Center(y, this->tiny_step));
+				StationsWndShowStationRating(st, left, right, x, FONT_HEIGHT_NORMAL + ScaleGUIPixels(2), Center(y, this->tiny_step));
 			}
 			n++;
 			y += this->tiny_step;

@@ -147,15 +147,15 @@ public:
 		/* We cache the button size. This is safe as no reinit can happen here. */
 		if (this->button_size.width == 0) {
 			this->button_size = maxdim(GetStringBoundingBox(STR_MISSING_GRAPHICS_YES_DOWNLOAD), GetStringBoundingBox(STR_MISSING_GRAPHICS_NO_QUIT));
-			this->button_size.width += WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT;
-			this->button_size.height += WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM;
+			this->button_size.width += ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
+			this->button_size.height += ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM);
 		}
 
 		switch (widget) {
 			case WID_BAFD_QUESTION:
 				/* The question is twice as wide as the buttons, and determine the height based on the width. */
 				size->width = this->button_size.width * 2;
-				size->height = GetStringHeight(STR_MISSING_GRAPHICS_SET_MESSAGE, size->width - WD_FRAMETEXT_LEFT - WD_FRAMETEXT_RIGHT) + WD_FRAMETEXT_BOTTOM + WD_FRAMETEXT_TOP;
+				size->height = GetStringHeight(STR_MISSING_GRAPHICS_SET_MESSAGE, size->width - ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT)) + ScaleGUIPixels(WD_FRAMETEXT_BOTTOM + WD_FRAMETEXT_TOP);
 				break;
 
 			case WID_BAFD_YES:
@@ -169,7 +169,7 @@ public:
 	{
 		if (widget != 0) return;
 
-		DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMETEXT_TOP, r.bottom - WD_FRAMETEXT_BOTTOM, STR_MISSING_GRAPHICS_SET_MESSAGE, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine(r.left + SWD_FRAMETEXT_LEFT, r.right - SWD_FRAMETEXT_RIGHT, r.top + SWD_FRAMETEXT_TOP, r.bottom - SWD_FRAMETEXT_BOTTOM, STR_MISSING_GRAPHICS_SET_MESSAGE, TC_FROMSTRING, SA_CENTER);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

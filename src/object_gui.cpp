@@ -130,7 +130,7 @@ public:
 					size->width = max(size->width, GetStringBoundingBox(objclass->name).width);
 				}
 				size->width += padding.width;
-				this->line_height = FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+				this->line_height = FONT_HEIGHT_NORMAL + ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM);
 				resize->height = this->line_height;
 				size->height = 5 * this->line_height;
 				break;
@@ -168,8 +168,8 @@ public:
 
 				/* Determine the pixel heights. */
 				for (size_t i = 0; i < lengthof(height); i++) {
-					height[i] *= ScaleGUITrad(TILE_HEIGHT);
-					height[i] += ScaleGUITrad(TILE_PIXELS) + 2 * OBJECT_MARGIN;
+					height[i] *= ScaleGUIPixels(TILE_HEIGHT);
+					height[i] += ScaleGUIPixels(TILE_PIXELS) + 2 * OBJECT_MARGIN;
 				}
 
 				/* Now determine the size of the minimum widgets. When there are two columns, then
@@ -178,9 +178,9 @@ public:
 				 * of widgets, or just the twice the widget height of the two row ones. */
 				size->height = max(height[0], height[1] * 2 + 2);
 				if (two_wide) {
-					size->width  = (3 * ScaleGUITrad(TILE_PIXELS) + 2 * OBJECT_MARGIN) * 2 + 2;
+					size->width  = (3 * ScaleGUIPixels(TILE_PIXELS) + 2 * OBJECT_MARGIN) * 2 + 2;
 				} else {
-					size->width  = 4 * ScaleGUITrad(TILE_PIXELS) + 2 * OBJECT_MARGIN;
+					size->width  = 4 * ScaleGUIPixels(TILE_PIXELS) + 2 * OBJECT_MARGIN;
 				}
 
 				/* Get the right size for the single widget based on the current spec. */
@@ -202,8 +202,8 @@ public:
 				break;
 
 			case WID_BO_SELECT_IMAGE:
-				size->width  = ScaleGUITrad(64) + 2;
-				size->height = ScaleGUITrad(58) + 2;
+				size->width  = ScaleGUIPixels(64) + 2;
+				size->height = ScaleGUIPixels(58) + 2;
 				break;
 
 			default: break;
@@ -220,7 +220,7 @@ public:
 					ObjectClass *objclass = ObjectClass::Get((ObjectClassID)i);
 					if (objclass->GetUISpecCount() == 0) continue;
 					if (!this->vscroll->IsVisible(pos++)) continue;
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
+					DrawString(r.left + SWD_MATRIX_LEFT, r.right - SWD_MATRIX_RIGHT, y + SWD_MATRIX_TOP, objclass->name,
 							((int)i == _selected_object_class) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
@@ -246,9 +246,9 @@ public:
 					if (spec->grf_prop.grffile == NULL) {
 						extern const DrawTileSprites _objects[];
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
+						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUIPixels(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, GB(widget, 16, 16));
+						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUIPixels(TILE_PIXELS), spec, GB(widget, 16, 16));
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -263,7 +263,7 @@ public:
 				if (spec == NULL) break;
 
 				if (!spec->IsAvailable()) {
-					GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
+					GfxFillRect(r.left + WD_BEVEL, r.top + WD_BEVEL, r.right - WD_BEVEL, r.bottom - WD_BEVEL, PC_BLACK, FILLRECT_CHECKER);
 				}
 				DrawPixelInfo tmp_dpi;
 				/* Set up a clipping area for the preview. */
@@ -273,9 +273,9 @@ public:
 					if (spec->grf_prop.grffile == NULL) {
 						extern const DrawTileSprites _objects[];
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
+						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUIPixels(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec,
+						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUIPixels(TILE_PIXELS), spec,
 								min(_selected_object_view, spec->views - 1));
 					}
 					_cur_dpi = old_dpi;

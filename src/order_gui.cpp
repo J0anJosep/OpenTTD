@@ -535,7 +535,7 @@ private:
 	VehicleOrderID GetOrderFromPt(int y)
 	{
 		NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_O_ORDER_LIST);
-		int sel = (y - nwid->pos_y - WD_FRAMERECT_TOP) / nwid->resize_y; // Selected line in the WID_O_ORDER_LIST panel.
+		int sel = (y - nwid->pos_y - SWD_FRAMERECT_TOP) / nwid->resize_y; // Selected line in the WID_O_ORDER_LIST panel.
 
 		if ((uint)sel >= this->vscroll->GetCapacity()) return INVALID_VEH_ORDER_ID;
 
@@ -797,7 +797,7 @@ public:
 		switch (widget) {
 			case WID_O_ORDER_LIST:
 				resize->height = GetMinSizing(NWST_STEP, FONT_HEIGHT_NORMAL);
-				size->height = 6 * resize->height + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+				size->height = 6 * resize->height + ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
 				break;
 
 			case WID_O_COND_VARIABLE: {
@@ -1081,10 +1081,10 @@ public:
 		bool rtl = _current_text_dir == TD_RTL;
 		SetDParamMaxValue(0, this->vehicle->GetNumOrders(), 2);
 		int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + GetStringBoundingBox(STR_ORDER_ARROW_LTR + rtl).width + 3;
-		int middle = rtl ? r.right - WD_FRAMETEXT_RIGHT - index_column_width : r.left + WD_FRAMETEXT_LEFT + index_column_width;
+		int middle = rtl ? r.right - SWD_FRAMETEXT_RIGHT - index_column_width : r.left + SWD_FRAMETEXT_LEFT + index_column_width;
 
 		int line_height = this->GetWidget<NWidgetBase>(WID_O_ORDER_LIST)->resize_y;
-		int y = Center(r.top + WD_FRAMERECT_TOP, line_height, FONT_HEIGHT_NORMAL);
+		int y = Center(r.top + SWD_FRAMERECT_TOP, line_height, FONT_HEIGHT_NORMAL);
 
 		int i = this->vscroll->GetPosition();
 		const Order *order = this->vehicle->GetOrder(i);
@@ -1096,10 +1096,10 @@ public:
 
 				if (i != this->selected_order && i == this->order_over) {
 					/* Highlight dragged order destination. */
-					int top = (this->order_over < this->selected_order ? y : y + line_height) - WD_FRAMERECT_TOP;
-					int bottom = min(top + 2, r.bottom - WD_FRAMERECT_BOTTOM);
-					top = max(top - 3, r.top + WD_FRAMERECT_TOP);
-					GfxFillRect(r.left + WD_FRAMETEXT_LEFT, top, r.right - WD_FRAMETEXT_RIGHT, bottom, _colour_gradient[COLOUR_GREY][7]);
+					int top = (this->order_over < this->selected_order ? y : y + line_height) - SWD_FRAMERECT_TOP;
+					int bottom = min(top + ScaleGUIPixels(2), r.bottom - SWD_FRAMERECT_BOTTOM);
+					top = max(top - ScaleGUIPixels(3), r.top + SWD_FRAMERECT_TOP);
+					GfxFillRect(r.left + SWD_FRAMETEXT_LEFT, top, r.right - SWD_FRAMETEXT_RIGHT, bottom, _colour_gradient[COLOUR_GREY][7]);
 					break;
 				}
 				y += line_height;
@@ -1109,7 +1109,7 @@ public:
 			}
 
 			/* Reset counters for drawing the orders. */
-			y = r.top + WD_FRAMERECT_TOP;
+			y = r.top + SWD_FRAMERECT_TOP;
 			i = this->vscroll->GetPosition();
 			order = this->vehicle->GetOrder(i);
 		}
@@ -1119,7 +1119,7 @@ public:
 			/* Don't draw anything if it extends past the end of the window. */
 			if (!this->vscroll->IsVisible(i)) break;
 
-			DrawOrderString(this->vehicle, order, i, y, i == this->selected_order, false, r.left + WD_FRAMETEXT_LEFT, middle, r.right - WD_FRAMETEXT_RIGHT);
+			DrawOrderString(this->vehicle, order, i, y, i == this->selected_order, false, r.left + SWD_FRAMETEXT_LEFT, middle, r.right - SWD_FRAMETEXT_RIGHT);
 			y += line_height;
 
 			i++;
@@ -1128,7 +1128,7 @@ public:
 
 		if (this->vscroll->IsVisible(i)) {
 			StringID str = this->vehicle->IsOrderListShared() ? STR_ORDERS_END_OF_SHARED_ORDERS : STR_ORDERS_END_OF_ORDERS;
-			DrawString(rtl ? r.left + WD_FRAMETEXT_LEFT : middle, rtl ? middle : r.right - WD_FRAMETEXT_RIGHT, y, str, (i == this->selected_order) ? TC_WHITE : TC_BLACK);
+			DrawString(rtl ? r.left + SWD_FRAMETEXT_LEFT : middle, rtl ? middle : r.right - SWD_FRAMETEXT_RIGHT, y, str, (i == this->selected_order) ? TC_WHITE : TC_BLACK);
 		}
 	}
 

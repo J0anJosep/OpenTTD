@@ -83,7 +83,7 @@ TextfileWindow::TextfileWindow(TextfileType file_type) : Window(&_textfile_desc)
  */
 uint TextfileWindow::GetContentHeight()
 {
-	int max_width = this->GetWidget<NWidgetCore>(WID_TF_BACKGROUND)->current_x - WD_FRAMETEXT_LEFT - WD_FRAMERECT_RIGHT;
+	int max_width = this->GetWidget<NWidgetCore>(WID_TF_BACKGROUND)->current_x - ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMERECT_RIGHT);
 
 	uint height = 0;
 	for (uint i = 0; i < this->lines.Length(); i++) {
@@ -99,7 +99,7 @@ uint TextfileWindow::GetContentHeight()
 		case WID_TF_BACKGROUND:
 			resize->height = 1;
 
-			size->height = 4 * resize->height + TOP_SPACING + BOTTOM_SPACING; // At least 4 lines are visible.
+			size->height = 4 * resize->height + ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM); // At least 4 lines are visible.
 			size->width = max(200u, size->width); // At least 200 pixels wide.
 			break;
 	}
@@ -117,7 +117,7 @@ void TextfileWindow::SetupScrollbars()
 			max_length = max(max_length, GetStringBoundingBox(this->lines[i], FS_MONO).width);
 		}
 		this->vscroll->SetCount(this->lines.Length() * FONT_HEIGHT_MONO);
-		this->hscroll->SetCount(max_length + WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT);
+		this->hscroll->SetCount(max_length + ScaleGUIPixels(WD_FRAMETEXT_LEFT + WD_FRAMETEXT_RIGHT));
 	}
 
 	this->SetWidgetDisabledState(WID_TF_HSCROLLBAR, IsWidgetLowered(WID_TF_WRAPTEXT));
@@ -138,10 +138,10 @@ void TextfileWindow::SetupScrollbars()
 {
 	if (widget != WID_TF_BACKGROUND) return;
 
-	const int x = r.left + WD_FRAMETEXT_LEFT;
-	const int y = r.top + WD_FRAMETEXT_TOP;
-	const int right = r.right - WD_FRAMETEXT_RIGHT;
-	const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
+	const int x = r.left + SWD_FRAMETEXT_LEFT;
+	const int y = r.top + SWD_FRAMETEXT_TOP;
+	const int right = r.right - SWD_FRAMETEXT_RIGHT;
+	const int bottom = r.bottom - SWD_FRAMETEXT_BOTTOM;
 
 	DrawPixelInfo new_dpi;
 	if (!FillDrawPixelInfo(&new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
@@ -166,7 +166,7 @@ void TextfileWindow::SetupScrollbars()
 
 /* virtual */ void TextfileWindow::OnResize()
 {
-	this->vscroll->SetCapacityFromWidget(this, WID_TF_BACKGROUND, TOP_SPACING + BOTTOM_SPACING);
+	this->vscroll->SetCapacityFromWidget(this, WID_TF_BACKGROUND, ScaleGUIPixels(WD_FRAMETEXT_TOP + WD_FRAMETEXT_BOTTOM));
 	this->hscroll->SetCapacityFromWidget(this, WID_TF_BACKGROUND);
 
 	this->SetupScrollbars();

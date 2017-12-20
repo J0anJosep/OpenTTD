@@ -462,12 +462,12 @@ public:
 		}
 
 		/* strings such as 'Size' and 'Coverage Area' */
-		int top = this->GetWidget<NWidgetBase>(BDSW_LT_OFF)->pos_y + this->GetWidget<NWidgetBase>(BDSW_LT_OFF)->current_y + WD_PAR_VSEP_NORMAL;
+		int top = this->GetWidget<NWidgetBase>(BDSW_LT_OFF)->pos_y + this->GetWidget<NWidgetBase>(BDSW_LT_OFF)->current_y + SWD_PAR_VSEP_NORMAL;
 		NWidgetBase *back_nwi = this->GetWidget<NWidgetBase>(BDSW_BACKGROUND);
 		int right  = back_nwi->pos_x + back_nwi->current_x;
 		int bottom = back_nwi->pos_y + back_nwi->current_y;
-		top = DrawStationCoverageAreaText(back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, SCT_ALL, rad, false) + WD_PAR_VSEP_NORMAL;
-		top = DrawStationCoverageAreaText(back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, SCT_ALL, rad, true) + WD_PAR_VSEP_NORMAL;
+		top = DrawStationCoverageAreaText(back_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, SCT_ALL, rad, false) + SWD_PAR_VSEP_NORMAL;
+		top = DrawStationCoverageAreaText(back_nwi->pos_x + SWD_FRAMERECT_LEFT, right - SWD_FRAMERECT_RIGHT, top, SCT_ALL, rad, true) + SWD_PAR_VSEP_NORMAL;
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */
@@ -550,8 +550,8 @@ public:
 		switch (widget) {
 			case WID_BDD_X:
 			case WID_BDD_Y:
-				size->width  = ScaleGUITrad(3 * TILE_PIXELS + 2);
-				size->height = ScaleGUITrad(3 * TILE_PIXELS / 2 + 22 + 2);
+				size->width  = ScaleGUIPixels(3 * TILE_PIXELS + 2);
+				size->height = ScaleGUIPixels(3 * TILE_PIXELS / 2 + 22 + 2);
 				break;
 		}
 	}
@@ -561,14 +561,16 @@ public:
 
 		Axis axis = widget == WID_BDD_X ? AXIS_X : AXIS_Y;
 
-		int x = Center(r.left, r.right - r.left, ScaleGUITrad(3 * TILE_PIXELS));
+		int x = Center(r.left, r.right - r.left + 1, ScaleGUIPixels(3 * TILE_PIXELS));
 		/* Height of ship depot is 18 pixels, 70 = 16 + 16 + 16 + 22. */
-		int y = Center(r.top + ScaleGUITrad(22),
-				r.bottom - r.top, ScaleGUITrad(3 * TILE_PIXELS / 2 + 22)) + IsWidgetLowered(widget);
+		int y = Center(r.top + ScaleGUIPixels(22),
+				r.bottom - r.top + 1, ScaleGUIPixels(3 * TILE_PIXELS / 2 + 22)) +
+				IsWidgetLowered(widget) * WD_GUI_UNIT -
+				(widget == WID_BDD_Y) * WD_GUI_UNIT;
 
 		for (uint part = DEPOT_PART_NORTH; part < DEPOT_PART_END; part++) {
-			DrawShipDepotSprite(x + ScaleGUITrad(TILE_PIXELS * (part == axis ? 2 : 1)),
-					y + ScaleGUITrad(part == DEPOT_PART_SOUTH ? TILE_PIXELS / 2 : 0),
+			DrawShipDepotSprite(x + ScaleGUIPixels(TILE_PIXELS * (part == axis ? 2 : 1) - 1),
+					y + ScaleGUIPixels(part == DEPOT_PART_SOUTH ? TILE_PIXELS / 2 : 0),
 					axis, (DepotPart)part);
 		}
 	}
