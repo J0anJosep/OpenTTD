@@ -221,6 +221,7 @@ struct GameOptionsWindow : Window {
 		this->SetWidgetsDisabledState(_settings_client.gui.manage_min_sizing,
 			WID_GO_BASE_MIN_BUTTON_BUTTON,
 			WID_GO_BASE_MIN_STEP_BUTTON,
+			WID_GO_GUI_ZOOM_DROPDOWN,
 			WIDGET_LIST_END);
 
 		for (uint i = FS_BEGIN; i < FS_END; i++) {
