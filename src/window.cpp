@@ -1910,6 +1910,16 @@ void CheckWindowMinSizings(bool close)
 		_freetype.fonts[FS_ICONS_BIG].size = _settings_client.gui.min_button * 4 / 5;
 		_freetype.fonts[FS_ICONS_NORMAL].size = _freetype.fonts[FS_NORMAL].size;
 		_freetype.fonts[FS_ICONS_SMALL].size = _freetype.fonts[FS_SMALL].size;
+
+		uint zoom_level = 0; // Normal zoom level;
+		if (_freetype.fonts[FS_NORMAL].size > 23) zoom_level++;
+		if (_freetype.fonts[FS_NORMAL].size > 47) zoom_level++;
+		if (_gui_zoom != (ZoomLevel)(ZOOM_LVL_OUT_4X - zoom_level)) {
+			_gui_zoom = (ZoomLevel)(ZOOM_LVL_OUT_4X - zoom_level);
+			GfxClearSpriteCache();
+			UpdateCursorSize();
+			LoadStringWidthTable();
+		}
 	}
 
 	InitFreeType(false);
