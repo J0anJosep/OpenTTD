@@ -768,6 +768,9 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_STUCK_SHIPS)) _settings_game.pf.ship_path_reservation = false;
 	if (IsSavegameVersionBefore(SLV_CATCHMENT_AREAS)) _settings_game.station.precise_catchment = false;
 	if (IsSavegameVersionBefore(SLV_COMPANY_RIGHTS)) _settings_game.vehicle.buy_engine_rights = false;
+	if (IsSavegameVersionBefore(SLV_STORE_WATER_TRACKS)) {
+		_settings_game.pf.coastal_water_tracks = true;
+	}
 
 	/* Load the sprites */
 	GfxLoadSprites();
