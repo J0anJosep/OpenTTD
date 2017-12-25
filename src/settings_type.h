@@ -440,6 +440,8 @@ struct PathfinderSettings {
 	byte   path_backoff_interval;            ///< ticks between checks for a free path.
 
 	/* Water pathfinding. */
+	bool   coastal_water_tracks;             ///< whether water tracks that lead to coast or
+	                                         ///  river banks should be considered.
 	bool   ship_path_reservation;            ///< whether ships reserve tiles and avoid collisions.
 
 	OPFSettings  opf;                        ///< pathfinder settings for the old pathfinder

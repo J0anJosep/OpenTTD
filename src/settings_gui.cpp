@@ -1631,6 +1631,7 @@ static SettingsContainer &GetSettingsTree()
 				routing->Add(new SettingEntry("pf.forbid_90_deg"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_roadvehs"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_ships"));
+				routing->Add(new SettingEntry("pf.coastal_water_tracks"));
 				routing->Add(new SettingEntry("pf.ship_path_reservation"));
 			}
 
