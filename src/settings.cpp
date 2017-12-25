@@ -1107,6 +1107,25 @@ static bool ZoomMinMaxChanged(int32 p1)
 	return true;
 }
 
+static bool ChangeCoastalTracks(int32 p1)
+{
+	/* In menu, settings can be changed and
+	 * changes should not be applied to the
+	 * intro game. */
+	if (_game_mode == GM_MENU) return true;
+
+	Ship *s;
+	FOR_ALL_SHIPS(s) {
+		if (!s->IsInDepot()) return false;
+	}
+
+	/* For all tiles of the map,
+	 * update their water tracks. */
+	UpdateWaterTiles();
+
+	return RedrawScreen(p1);
+}
+
 static bool ChangeShipReservation(int32 p1)
 {
 	/* In menu, settings can be changed and
