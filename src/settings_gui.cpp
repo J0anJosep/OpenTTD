@@ -1662,6 +1662,7 @@ static SettingsContainer &GetSettingsTree()
 				routing->Add(new SettingEntry("pf.forbid_90_deg_ships"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_roadvehs"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_ships"));
+				routing->Add(new SettingEntry("pf.ship_path_reservation"));
 			}
 
 			vehicles->Add(new SettingEntry("order.no_servicing_if_no_breakdowns"));

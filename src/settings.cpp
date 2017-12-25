@@ -1078,6 +1078,21 @@ static bool ZoomMinMaxChanged(int32 p1)
 	return true;
 }
 
+static bool ChangeShipReservation(int32 p1)
+{
+	/* In menu, settings can be changed and
+	 * changes should not be applied to the
+	 * intro game. */
+	if (_game_mode == GM_MENU) return true;
+
+	Ship *s;
+	FOR_ALL_SHIPS(s) {
+		if (!s->IsInDepot()) return false;
+	}
+
+	return RedrawScreen(p1);
+}
+
 /**
  * Update any possible saveload window and delete any newgrf dialogue as
  * its widget parts might change. Reinit all windows as it allows access to the

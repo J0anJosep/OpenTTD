@@ -753,6 +753,7 @@ bool AfterLoadGame()
 			c->settings.group_hierarchy = false;
 		}
 	}
+	if (IsSavegameVersionBefore(SLV_STUCK_SHIPS)) _settings_game.pf.ship_path_reservation = false;
 
 	/* Load the sprites */
 	GfxLoadSprites();
