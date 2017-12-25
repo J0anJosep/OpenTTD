@@ -437,6 +437,9 @@ struct PathfinderSettings {
 	byte   wait_for_pbs_path;                ///< how long to wait for a path reservation.
 	byte   path_backoff_interval;            ///< ticks between checks for a free path.
 
+	/* Water pathfinding. */
+	bool   ship_path_reservation;            ///< whether ships reserve tiles and avoid collisions.
+
 	OPFSettings  opf;                        ///< pathfinder settings for the old pathfinder
 	NPFSettings  npf;                        ///< pathfinder settings for the new pathfinder
 	YAPFSettings yapf;                       ///< pathfinder settings for the yet another pathfinder
