@@ -180,13 +180,20 @@ bool IsWaterPositionFree(TileIndex tile, Trackdir trackdir)
 {
 	if (!_settings_game.pf.ship_path_reservation) return true;
 
+	/* Check the next tile, if a path collides, then it isn't a waiting position at all. */
+	CFollowTrackWater ft(INVALID_COMPANY);
+
+	/* Skip tiles of a lock. */
+	if (IsLockTile(tile)) {
+		while (ft.Follow(tile, trackdir) && CheckSameLock(tile, ft.m_new_tile)) {
+			tile = ft.m_new_tile;
+		}
+	}
+
 	Track track = TrackdirToTrack(trackdir);
 
 	/* Tile reserved? Can never be a free waiting position. */
 	if (TrackCollidesTrackReservation(tile, track)) return false;
-
-	/* Check the next tile, if a path collides, then it isn't a waiting position at all. */
-	CFollowTrackWater ft(INVALID_COMPANY);
 
 	if (!ft.Follow(tile, trackdir)) {
 		if (IsTileType(ft.m_new_tile, MP_INDUSTRY)) {
@@ -312,6 +319,20 @@ Ship *GetShipForReservation(TileIndex tile, Track track)
 			FindVehicleOnPos(GetOtherTunnelBridgeEnd(fsoti.res.tile), &fsoti, FindShipOnTrackEnum);
 			if (fsoti.best != NULL) return fsoti.best;
 		}
+
+		/* Special case for locks: check the three tiles. */
+		if (IsLockTile(fsoti.res.tile)) {
+			/* Move to middle tile of the lock. */
+			TileIndex tile =  GetLockMiddleTile(fsoti.res.tile);
+			FindVehicleOnPos(tile, &fsoti, FindShipOnTrackEnum);
+			/* Check other tiles. */
+			DiagDirection diagdir = GetLockDirection(fsoti.res.tile);
+			if (fsoti.best != NULL) return fsoti.best;
+			FindVehicleOnPos(TileAddByDiagDir(tile, diagdir), &fsoti, FindShipOnTrackEnum);
+			if (fsoti.best != NULL) return fsoti.best;
+			FindVehicleOnPos(TileAddByDiagDir(tile, ReverseDiagDir(diagdir)), &fsoti, FindShipOnTrackEnum);
+			if (fsoti.best != NULL) return fsoti.best;
+		}
 	}
 
 	return NULL;
@@ -401,9 +422,10 @@ bool TryLiftShipReservation(const Ship *v, TileIndex tile, Track track)
 		if (trackdir == INVALID_TRACKDIR) break;
 		tile = fs.m_new_tile;
 		if (check_first) {
-			if (tile == v->dest_tile) {
-				return false;
-			}
+			/* Skip tiles of the same lock. */
+			if (CheckSameLock(v->tile, tile)) continue;
+
+			if (tile == v->dest_tile) return false;
 			check_first = false;
 		}
 
