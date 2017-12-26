@@ -79,8 +79,13 @@ public:
 
 			if (v->dest_tile == tile) last_free = node;
 
-			if (!IsWaterPositionFree(node->GetTile(), node->GetTrackdir())) last_free = NULL;
-			else if (last_free == NULL) last_free = node;
+			if (!IsWaterPositionFree(tile, node->GetTrackdir())) {
+				last_free = NULL;
+				/* Skip tiles of the same lock. */
+				while (CheckSameLock(tile, node->m_parent->GetTile())) node = node->m_parent;
+			} else if (last_free == NULL) {
+				last_free = node;
+			}
 		}
 
 		NOT_REACHED();
