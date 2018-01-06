@@ -2077,6 +2077,15 @@ byte _gui_shadow_offset = 1;
 /** Reset the cached dimensions. */
 /* static */ void NWidgetLeaf::InvalidateDimensionCache()
 {
+	NWidgetLeaf::matrix_padding       = {0, 0};
+	NWidgetLeaf::framerect_padding    = {0, 0};
+	NWidgetLeaf::imagebtn_padding     = {0, 0};
+	NWidgetLeaf::caption_padding      = {0, 0};
+	/* shadebox_padding, debugbox_padding, stickybox_padding,
+	 * defsizebox_padding, resizebox_padding, dropdown_padding
+	 * are also invalidated when invalidating
+	 * NWidgetLeaf::*_dimension. */
+
 	NWidgetLeaf::shadebox_dimension   = {0, 0};
 	NWidgetLeaf::debugbox_dimension   = {0, 0};
 	NWidgetLeaf::defsizebox_dimension = {0, 0};
@@ -2089,6 +2098,18 @@ byte _gui_shadow_offset = 1;
 	_gui_unit = 1 << _gui_shift;
 	_gui_shadow_offset = _gui_shift / 2 + 1;
 }
+
+Dimension NWidgetLeaf::matrix_padding       = {0, 0};
+Dimension NWidgetLeaf::shadebox_padding     = {0, 0};
+Dimension NWidgetLeaf::debugbox_padding     = {0, 0};
+Dimension NWidgetLeaf::stickybox_padding    = {0, 0};
+Dimension NWidgetLeaf::defsizebox_padding   = {0, 0};
+Dimension NWidgetLeaf::resizebox_padding    = {0, 0};
+Dimension NWidgetLeaf::framerect_padding    = {0, 0};
+Dimension NWidgetLeaf::imagebtn_padding     = {0, 0};
+Dimension NWidgetLeaf::closebox_padding     = {0, 0};
+Dimension NWidgetLeaf::caption_padding      = {0, 0};
+Dimension NWidgetLeaf::dropdown_padding     = {0, 0};
 
 Dimension NWidgetLeaf::shadebox_dimension   = {0, 0};
 Dimension NWidgetLeaf::debugbox_dimension   = {0, 0};
@@ -2238,37 +2259,42 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 	Dimension fill = {this->fill_x, this->fill_y};
 	Dimension resize = {this->resize_x, this->resize_y};
 	/* Get padding, and update size with the real content size if appropriate. */
-	const Dimension *padding = NULL;
+	Dimension *padding = NULL;
 	switch (this->type) {
 		case WWT_EMPTY: {
-			static const Dimension extra = {0, 0};
+			static Dimension extra = {0, 0};
 			padding = &extra;
 			break;
 		}
 		case WWT_MATRIX: {
-			static const Dimension extra = {(uint)(WD_MATRIX_LEFT + WD_MATRIX_RIGHT), (uint)(WD_MATRIX_TOP + WD_MATRIX_BOTTOM)};
-			padding = &extra;
+			padding = &NWidgetLeaf::matrix_padding;
+			if (padding->width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_MATRIX_LEFT + WD_MATRIX_RIGHT),
+						(uint)ScaleGUIPixels(WD_MATRIX_TOP + WD_MATRIX_BOTTOM)};
+			}
 			break;
 		}
 		case WWT_SHADEBOX: {
-			static const Dimension extra = {WD_SHADEBOX_LEFT + WD_SHADEBOX_RIGHT, WD_SHADEBOX_TOP + WD_SHADEBOX_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::shadebox_padding;
 			if (NWidgetLeaf::shadebox_dimension.width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_SHADEBOX_LEFT + WD_SHADEBOX_RIGHT),
+						(uint)ScaleGUIPixels(WD_SHADEBOX_TOP + WD_SHADEBOX_BOTTOM)};
 				NWidgetLeaf::shadebox_dimension = maxdim(GetStringBoundingBox(STR_ICON_COLLAPSE_WINDOW), GetStringBoundingBox(STR_ICON_EXPAND_WINDOW));
-				NWidgetLeaf::shadebox_dimension.width += extra.width;
-				NWidgetLeaf::shadebox_dimension.height += extra.height;
+				NWidgetLeaf::shadebox_dimension.width += padding->width;
+				NWidgetLeaf::shadebox_dimension.height += padding->height;
 			}
 			size = maxdim(size, NWidgetLeaf::shadebox_dimension);
 			break;
 		}
 		case WWT_DEBUGBOX:
 			if (_settings_client.gui.newgrf_developer_tools && w->IsNewGRFInspectable()) {
-				static const Dimension extra = {WD_DEBUGBOX_LEFT + WD_DEBUGBOX_RIGHT, WD_DEBUGBOX_TOP + WD_DEBUGBOX_BOTTOM};
-				padding = &extra;
+				padding = &NWidgetLeaf::debugbox_padding;
 				if (NWidgetLeaf::debugbox_dimension.width == 0) {
+					*padding = {(uint)ScaleGUIPixels(WD_DEBUGBOX_LEFT + WD_DEBUGBOX_RIGHT),
+							(uint)ScaleGUIPixels(WD_DEBUGBOX_TOP + WD_DEBUGBOX_BOTTOM)};
 					NWidgetLeaf::debugbox_dimension = GetStringBoundingBox(STR_ICON_DEBUG);
-					NWidgetLeaf::debugbox_dimension.width += extra.width;
-					NWidgetLeaf::debugbox_dimension.height += extra.height;
+					NWidgetLeaf::debugbox_dimension.width += padding->width;
+					NWidgetLeaf::debugbox_dimension.height += padding->height;
 				}
 				size = maxdim(size, NWidgetLeaf::debugbox_dimension);
 			} else {
@@ -2280,36 +2306,39 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			break;
 
 		case WWT_STICKYBOX: {
-			static const Dimension extra = {WD_STICKYBOX_LEFT + WD_STICKYBOX_RIGHT, WD_STICKYBOX_TOP + WD_STICKYBOX_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::stickybox_padding;
 			if (NWidgetLeaf::stickybox_dimension.width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_STICKYBOX_LEFT + WD_STICKYBOX_RIGHT),
+						(uint)ScaleGUIPixels(WD_STICKYBOX_TOP + WD_STICKYBOX_BOTTOM)};
 				NWidgetLeaf::stickybox_dimension = maxdim(GetStringBoundingBox(STR_ICON_PIN_WINDOW), GetStringBoundingBox(STR_ICON_UNPIN_WINDOW));
-				NWidgetLeaf::stickybox_dimension.width += extra.width;
-				NWidgetLeaf::stickybox_dimension.height += extra.height;
+				NWidgetLeaf::stickybox_dimension.width += padding->width;
+				NWidgetLeaf::stickybox_dimension.height += padding->height;
 			}
 			size = maxdim(size, NWidgetLeaf::stickybox_dimension);
 			break;
 		}
 
 		case WWT_DEFSIZEBOX: {
-			static const Dimension extra = {WD_DEFSIZEBOX_LEFT + WD_DEFSIZEBOX_RIGHT, WD_DEFSIZEBOX_TOP + WD_DEFSIZEBOX_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::defsizebox_padding;
 			if (NWidgetLeaf::defsizebox_dimension.width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_DEFSIZEBOX_LEFT + WD_DEFSIZEBOX_RIGHT),
+						(uint)ScaleGUIPixels(WD_DEFSIZEBOX_TOP + WD_DEFSIZEBOX_BOTTOM)};
 				NWidgetLeaf::defsizebox_dimension = GetStringBoundingBox(STR_ICON_DEFAULT_SIZE);
-				NWidgetLeaf::defsizebox_dimension.width += extra.width;
-				NWidgetLeaf::defsizebox_dimension.height += extra.height;
+				NWidgetLeaf::defsizebox_dimension.width += padding->width;
+				NWidgetLeaf::defsizebox_dimension.height += padding->height;
 			}
 			size = maxdim(size, NWidgetLeaf::defsizebox_dimension);
 			break;
 		}
 
 		case WWT_RESIZEBOX: {
-			static const Dimension extra = {WD_RESIZEBOX_LEFT + WD_RESIZEBOX_RIGHT, WD_RESIZEBOX_TOP + WD_RESIZEBOX_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::resizebox_padding;
 			if (NWidgetLeaf::resizebox_dimension.width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_RESIZEBOX_LEFT + WD_RESIZEBOX_RIGHT),
+						(uint)ScaleGUIPixels(WD_RESIZEBOX_TOP + WD_RESIZEBOX_BOTTOM)};
 				NWidgetLeaf::resizebox_dimension = maxdim(GetStringBoundingBox(STR_ICON_RESIZE_WINDOW_LTR), GetStringBoundingBox(STR_ICON_RESIZE_WINDOW_RTL));
-				NWidgetLeaf::resizebox_dimension.width += extra.width;
-				NWidgetLeaf::resizebox_dimension.height += extra.height;
+				NWidgetLeaf::resizebox_dimension.width += padding->width;
+				NWidgetLeaf::resizebox_dimension.height += padding->height;
 			}
 			size = maxdim(size, NWidgetLeaf::resizebox_dimension);
 			break;
@@ -2321,15 +2350,21 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			FALLTHROUGH;
 		}
 		case WWT_PUSHBTN: {
-			static const Dimension extra = {(uint)(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT), (uint)(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)};
-			padding = &extra;
+			padding = &NWidgetLeaf::framerect_padding;
+			if (padding->width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT),
+					(uint)ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)};
+			}
 			break;
 		}
 		case WWT_IMGBTN:
 		case WWT_IMGBTN_2:
 		case WWT_PUSHIMGBTN: {
-			static const Dimension extra = {WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT,  WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::imagebtn_padding;
+			if (padding->width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT),
+					(uint)ScaleGUIPixels(WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM)};
+			}
 			Dimension d2 = GetSpriteSize(this->widget_data);
 			if (this->type == WWT_IMGBTN_2) d2 = maxdim(d2, GetSpriteSize(this->widget_data + 1));
 			d2.width += padding->width;
@@ -2339,22 +2374,26 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 		}
 		case WWT_ARROWBTN:
 		case WWT_PUSHARROWBTN: {
-			static const Dimension extra = {WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT,  WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::imagebtn_padding;
+			if (padding->width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT),
+					(uint)ScaleGUIPixels(WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM)};
+			}
 			Dimension d2 = maxdim(GetStringBoundingBox(STR_LEFTARROW), GetStringBoundingBox(STR_RIGHTARROW));
-			d2.width += extra.width;
-			d2.height += extra.height;
+			d2.width += padding->width;
+			d2.height += padding->height;
 			size = maxdim(size, d2);
 			break;
 		}
 
 		case WWT_CLOSEBOX: {
-			static const Dimension extra = {WD_CLOSEBOX_LEFT + WD_CLOSEBOX_RIGHT, WD_CLOSEBOX_TOP + WD_CLOSEBOX_BOTTOM};
-			padding = &extra;
+			padding = &NWidgetLeaf::closebox_padding;
 			if (NWidgetLeaf::closebox_dimension.width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_CLOSEBOX_LEFT + WD_CLOSEBOX_RIGHT),
+					(uint)ScaleGUIPixels(WD_CLOSEBOX_TOP + WD_CLOSEBOX_BOTTOM)};
 				NWidgetLeaf::closebox_dimension = GetStringBoundingBox(STR_BLACK_CROSS);
-				NWidgetLeaf::closebox_dimension.width += extra.width;
-				NWidgetLeaf::closebox_dimension.height += extra.height;
+				NWidgetLeaf::closebox_dimension.width += padding->width;
+				NWidgetLeaf::closebox_dimension.height += padding->height;
 			}
 			size = maxdim(size, NWidgetLeaf::closebox_dimension);
 			break;
@@ -2362,49 +2401,56 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 		case WWT_TEXTBTN:
 		case WWT_PUSHTXTBTN:
 		case WWT_TEXTBTN_2: {
-			static const Dimension extra = {(uint)(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT), (uint)(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)};
-			padding = &extra;
+			padding = &NWidgetLeaf::framerect_padding;
+			if (padding->width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT),
+					(uint)ScaleGUIPixels(WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM)};
+			}
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data);
-			d2.width += extra.width;
-			d2.height += extra.height;
+			d2.width += padding->width;
+			d2.height += padding->height;
 			size = maxdim(size, d2);
 			break;
 		}
 		case WWT_LABEL:
 		case WWT_TEXT: {
-			static const Dimension extra = {0, 0};
+			static Dimension extra = {0, 0};
 			padding = &extra;
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			size = maxdim(size, GetStringBoundingBox(this->widget_data));
 			break;
 		}
 		case WWT_CAPTION: {
-			static const Dimension extra = {(uint)(WD_CAPTIONTEXT_LEFT + WD_CAPTIONTEXT_RIGHT), (uint)(WD_CAPTIONTEXT_TOP + WD_CAPTIONTEXT_BOTTOM)};
-			padding = &extra;
+			padding = &NWidgetLeaf::caption_padding;
+			if (padding->width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_CAPTIONTEXT_LEFT + WD_CAPTIONTEXT_RIGHT),
+					(uint)ScaleGUIPixels(WD_CAPTIONTEXT_TOP + WD_CAPTIONTEXT_BOTTOM)};
+			}
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data);
-			d2.width += extra.width + GetMinSizing(NWST_STEP, 11U);
-			d2.height += extra.height;
+			d2.width += padding->width + GetMinSizing(NWST_STEP, 11U);
+			d2.height += padding->height;
 			size = maxdim(size, d2);
 			break;
 		}
 		case WWT_DROPDOWN:
 		case NWID_BUTTON_DROPDOWN:
 		case NWID_PUSHBUTTON_DROPDOWN: {
-			static Dimension extra = {(uint)(WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT), (uint)(WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM)};
-			padding = &extra;
+			padding = &NWidgetLeaf::dropdown_padding;
 			if (NWidgetLeaf::dropdown_dimension.width == 0) {
+				*padding = {(uint)ScaleGUIPixels(WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT),
+					(uint)ScaleGUIPixels(WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM)};
 				NWidgetLeaf::dropdown_dimension = GetStringBoundingBox(STR_DOWNARROW);
-				NWidgetLeaf::dropdown_dimension.width += WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT;
+				NWidgetLeaf::dropdown_dimension.width += ScaleGUIPixels(WD_IMGBTN_LEFT + WD_IMGBTN_RIGHT);
 				NWidgetLeaf::dropdown_dimension.width = GetMinSizing(NWST_STEP, NWidgetLeaf::dropdown_dimension.width);
-				NWidgetLeaf::dropdown_dimension.height += WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM;
-				extra.width = WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT + NWidgetLeaf::dropdown_dimension.width;
+				NWidgetLeaf::dropdown_dimension.height += ScaleGUIPixels(WD_IMGBTN_TOP + WD_IMGBTN_BOTTOM);
+				padding->width = ScaleGUIPixels(WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT) + NWidgetLeaf::dropdown_dimension.width;
 			}
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data);
-			d2.width += extra.width;
-			d2.height = max(d2.height, NWidgetLeaf::dropdown_dimension.height) + extra.height;
+			d2.width += padding->width;
+			d2.height = max(d2.height + padding->height, NWidgetLeaf::dropdown_dimension.height);
 			size = maxdim(size, d2);
 			break;
 		}
