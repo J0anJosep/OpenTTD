@@ -814,10 +814,22 @@ public:
 	static byte gui_shift;
 
 private:
-	static Dimension shadebox_dimension;  ///< Cached size of a shadebox widget.
-	static Dimension debugbox_dimension;  ///< Cached size of a debugbox widget.
+	static Dimension matrix_padding;       ///< Cached padding of a matrix widget.
+	static Dimension shadebox_padding;     ///< Cached padding of a shadebox widget.
+	static Dimension debugbox_padding;     ///< Cached padding of a debugbox widget.
+	static Dimension stickybox_padding;    ///< Cached padding of a stickybox widget.
+	static Dimension defsizebox_padding;   ///< Cached padding of a defsize widget.
+	static Dimension resizebox_padding;    ///< Cached padding of a resizebox widget.
+	static Dimension framerect_padding;    ///< Cached padding of a frame (text buttons) widget.
+	static Dimension imagebtn_padding;     ///< Cached padding of an image button widget.
+	static Dimension closebox_padding;     ///< Cached padding of a closebox widget.
+	static Dimension caption_padding;      ///< Cached padding of a caption widget.
+	static Dimension dropdown_padding;     ///< Cached padding of a dropdown text widget.
+
+	static Dimension shadebox_dimension;   ///< Cached size of a shadebox widget.
+	static Dimension debugbox_dimension;   ///< Cached size of a debugbox widget.
 	static Dimension defsizebox_dimension; ///< Cached size of a defsizebox widget.
-	static Dimension stickybox_dimension; ///< Cached size of a stickybox widget.
+	static Dimension stickybox_dimension;  ///< Cached size of a stickybox widget.
 };
 
 /**
