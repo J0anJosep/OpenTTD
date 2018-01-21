@@ -219,6 +219,7 @@ enum {
 	GHK_RESET_OBJECT_TO_PLACE,
 	GHK_DELETE_WINDOWS,
 	GHK_DELETE_NONVITAL_WINDOWS,
+	GHK_DELETE_NEWS_WINDOWS,
 	GHK_REFRESH_SCREEN,
 	GHK_CRASH,
 	GHK_MONEY,
@@ -343,6 +344,7 @@ struct MainWindow : Window
 			case GHK_RESET_OBJECT_TO_PLACE: ResetObjectToPlace(); break;
 			case GHK_DELETE_WINDOWS: DeleteNonVitalWindows(); break;
 			case GHK_DELETE_NONVITAL_WINDOWS: DeleteAllNonVitalWindows(); break;
+			case GHK_DELETE_NEWS_WINDOWS: DeleteAllNewsWindows(); break;
 			case GHK_REFRESH_SCREEN: MarkWholeScreenDirty(); break;
 
 			case GHK_CRASH: // Crash the game
@@ -485,7 +487,8 @@ static Hotkey global_hotkeys[] = {
 	Hotkey('Z', "center_zoom", GHK_CENTER_ZOOM),
 	Hotkey(WKC_ESC, "reset_object_to_place", GHK_RESET_OBJECT_TO_PLACE),
 	Hotkey(WKC_DELETE, "delete_windows", GHK_DELETE_WINDOWS),
-	Hotkey(WKC_DELETE | WKC_SHIFT, "delete_all_windows", GHK_DELETE_NONVITAL_WINDOWS),
+	Hotkey(WKC_DELETE | WKC_SHIFT, "delete_all_windows", GHK_DELETE_NEWS_WINDOWS),
+	Hotkey(WKC_DELETE | WKC_CTRL, "delete_all_message_windows", GHK_DELETE_NEWS_WINDOWS),
 	Hotkey('R' | WKC_CTRL, "refresh_screen", GHK_REFRESH_SCREEN),
 #if defined(_DEBUG)
 	Hotkey('0' | WKC_ALT, "crash_game", GHK_CRASH),
