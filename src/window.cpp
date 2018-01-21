@@ -37,6 +37,7 @@
 #include "game/game.hpp"
 #include "video/video_driver.hpp"
 #include "framerate_type.h"
+#include "news_func.h"
 
 #include "safeguards.h"
 
@@ -3324,6 +3325,15 @@ restart_search:
 			goto restart_search;
 		}
 	}
+}
+
+/**
+ * Delete all news windows and all pending news windows as well. */
+void DeleteAllNewsWindows()
+{
+	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_NEWS_DELETED); // invalidate the statusbar
+	DeleteWindowById(WC_NEWS_WINDOW, 0); // close the newspapers window if shown
+	InitNewsItemStructs();
 }
 
 /**
