@@ -240,5 +240,6 @@ struct Aircraft FINAL : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 void GetRotorImage(const Aircraft *v, EngineImageType image_type, VehicleSpriteSeq *result);
 
 Station *GetTargetAirportIfValid(const Aircraft *v);
+void DumpAircraftState(const Aircraft *v);
 
 #endif /* AIRCRAFT_H */

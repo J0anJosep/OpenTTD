@@ -2977,6 +2977,7 @@ public:
 
 			case VEH_SHIP:
 			case VEH_AIRCRAFT:
+				if (v->type == VEH_AIRCRAFT) DumpAircraftState(Aircraft::From(v));
 				this->SelectPlane(SEL_RT_REFIT);
 				break;
 
