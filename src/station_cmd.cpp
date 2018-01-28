@@ -3848,6 +3848,9 @@ void DeleteOilRig(TileIndex tile)
 
 	st->rect.AfterRemoveTile(st, tile);
 
+	// revise helicopters must take off
+	// helicopters heading here must update...
+
 	st->UpdateVirtCoord();
 	st->UpdateCatchment();
 	st->RecomputeIndustriesNear();
