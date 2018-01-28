@@ -1228,6 +1228,35 @@ CommandCost CmdAddRemoveAirportTiles(TileIndex org_tile, DoCommandFlag flags, ui
 	return cost;
 }
 
+/**
+ * Return the rotated tile corresponding to a non-rotated tile_area.
+ * @param tile_area tile_area of the airport
+ * @param layout rotation of the tile_area respect original layout.
+ * @param x x coordinate of the tile inside the tile_area to be rotated.
+ * @param y y coordinate of the tile inside the tile_area to be rotated.
+ */
+TileIndex RotateTile(TileArea tile_area, byte layout, uint x, uint y) {
+	uint s_x = x;
+	uint s_y = y;
+	switch (layout) {
+		case 0:
+			break;
+		case 1:
+			s_y = tile_area.h - 1 - y;
+			break;
+		case 2:
+			s_x = tile_area.w - 1 - x;
+			s_y = tile_area.h - 1 - y;
+			break;
+		case 3:
+			s_x = tile_area.w - 1 - x;
+			break;
+		default: NOT_REACHED();
+	}
+
+	return TILE_ADD(tile_area.tile, TileDiffXY(s_x, s_y));
+}
+
 
 /**
  * Place an Airport.
@@ -1252,7 +1281,6 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	byte layout = GB(p1, 8, 8);
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
-
 	if (airport_type >= NEW_AIRPORT_OFFSET) return CMD_ERROR;
 
 	CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
@@ -1263,13 +1291,15 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 	if (_translation_airport_hangars[airport_type] && !Depot::CanAllocateItem()) return CMD_ERROR;
 
-	if (!as->IsAvailable() || layout >= as->num_table) return CMD_ERROR;
+	if (!as->IsAvailable()) return CMD_ERROR;
 
-	Direction rotation = as->rotation[layout];
-	int w = as->size_x;
-	int h = as->size_y;
+	Direction rotation = (Direction)(layout * 2);
+	int w, orig_w, h, orig_h;
+	w = orig_w = as->size_x;
+	h = orig_h = as->size_y;
 
 	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
+
 	TileArea airport_area = TileArea(tile, w, h);
 
 	if (w > _settings_game.station.station_spread || h > _settings_game.station.station_spread) {
@@ -1344,17 +1374,23 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 		st->rect.BeforeAddRect(tile, w, h, StationRect::ADD_TRY);
 
-		for (AirportTileTableIterator iter(as->table[layout], tile); iter != INVALID_TILE; ++iter) {
-			MakeAirport(iter, st->owner, st->index, iter.GetStationGfx(), WATER_CLASS_INVALID);
-			SetStationTileRandomBits(iter, GB(Random(), 0, 4));
-			st->airport.Add(iter);
+		AirportTileTableIterator iter(as->table[0], tile);
+		for (int x = 0; x < w; x++) {
+			for (int y = 0; y < h; y++) {
+				TileIndex rotated_tile = RotateTile(airport_area, layout, x, y);
+				MakeAirport(rotated_tile, st->owner, st->index, iter.GetStationGfx(), WATER_CLASS_INVALID);
+				SetStationTileRandomBits(rotated_tile, GB(Random(), 0, 4));
+				st->airport.Add(rotated_tile);
 
-			if (AirportTileSpec::Get(GetTranslatedAirportTileID(iter.GetStationGfx()))->animation.status != ANIM_STATUS_NO_ANIMATION) AddAnimatedTile(iter);
+				if (AirportTileSpec::Get(GetTranslatedAirportTileID(iter.GetStationGfx()))->animation.status != ANIM_STATUS_NO_ANIMATION) AddAnimatedTile(rotated_tile);
+
+				++iter;
+			}
 		}
 
 		/* Only call the animation trigger after all tiles have been built */
-		for (AirportTileTableIterator iter(as->table[layout], tile); iter != INVALID_TILE; ++iter) {
-			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
+		TILE_AREA_LOOP(trigger_tile, airport_area) {
+			AirportTileAnimationTrigger(st, trigger_tile, AAT_BUILT);
 		}
 
 		st->TranslateAirport();

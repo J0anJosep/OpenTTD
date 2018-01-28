@@ -2616,6 +2616,10 @@ STR_AIRPORT_CLASS_HUB                                           :Hub airports
 STR_AIRPORT_CLASS_HELIPORTS                                     :Helicopter airports
 STR_AIRPORT_CLASS_CUSTOMIZED                                    :Customized airports
 
+STR_AIRPORT_ROTATION_0                                          :Default orientation
+STR_AIRPORT_ROTATION_90                                         :90º rotated
+STR_AIRPORT_ROTATION_180                                        :180º rotated
+STR_AIRPORT_ROTATION_270                                        :270º rotated
 
 STR_STATION_BUILD_NOISE                                         :{BLACK}Noise generated: {GOLD}{COMMA}
 
