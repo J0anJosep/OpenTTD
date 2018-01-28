@@ -294,4 +294,20 @@ static inline bool IsDiagonalDirection(Direction dir)
 	return (dir & 1) != 0;
 }
 
+/**
+ * Rotate a diagonal direction as indicated by another diagonal direction.
+ */
+static inline Direction RotateDirection(Direction dir, DiagDirection rotate)
+{
+	return (Direction)((dir + 2 * rotate) % DIR_END);
+}
+
+/**
+ * Rotate a diagonal direction as indicated by another diagonal direction.
+ */
+static inline DiagDirection RotateDiagDir(DiagDirection dir, DiagDirection rotate)
+{
+	return (DiagDirection)((dir + rotate) % DIAGDIR_END);
+}
+
 #endif /* DIRECTION_FUNC_H */

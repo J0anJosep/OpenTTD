@@ -708,7 +708,7 @@ public:
 			const AirportSpec *as = ac->GetSpec(_selected_airport_index);
 			if (as->IsAvailable()) {
 				/* Ensure the airport layout is valid. */
-				_selected_airport_layout = Clamp(_selected_airport_layout, 0, as->num_table - 1);
+				_selected_airport_layout = Clamp(_selected_airport_layout, 0, 3);
 				selectFirstAirport = false;
 				this->UpdateSelectSize();
 			}
@@ -733,14 +733,7 @@ public:
 			case WID_AP_LAYOUT_NUM:
 				SetDParam(0, STR_EMPTY);
 				if (_selected_airport_index != -1) {
-					const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index);
-					StringID string = GetAirportTextCallback(as, _selected_airport_layout, CBID_AIRPORT_LAYOUT_NAME);
-					if (string != STR_UNDEFINED) {
-						SetDParam(0, string);
-					} else if (as->num_table > 1) {
-						SetDParam(0, STR_STATION_BUILD_AIRPORT_LAYOUT_NAME);
-						SetDParam(1, _selected_airport_layout + 1);
-					}
+					SetDParam(0, STR_AIRPORT_ROTATION_0 + _selected_airport_layout);
 				}
 				break;
 
@@ -908,14 +901,11 @@ public:
 			const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index);
 			int w = as->size_x;
 			int h = as->size_y;
-			Direction rotation = as->rotation[_selected_airport_layout];
-			if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
+			DiagDirection rotation = (DiagDirection)_selected_airport_layout;
+			if (rotation == DIAGDIR_SE || rotation == DIAGDIR_NW) Swap(w, h);
 			SetTileSelectSize(w, h);
 
-			this->preview_sprite = GetCustomAirportSprite(as, _selected_airport_layout);
-
-			this->SetWidgetDisabledState(WID_AP_LAYOUT_DECREASE, _selected_airport_layout == 0);
-			this->SetWidgetDisabledState(WID_AP_LAYOUT_INCREASE, _selected_airport_layout + 1 >= as->num_table);
+			this->preview_sprite = GetCustomAirportSprite(as, _selected_airport_layout) + _selected_airport_layout;
 
 			int rad = _settings_game.station.modified_catchment ? as->catchment : (uint)CA_UNMODIFIED;
 			if (_settings_client.gui.station_show_coverage) SetTileSelectBigSize(-rad, -rad, 2 * rad, 2 * rad);
@@ -947,13 +937,13 @@ public:
 				break;
 
 			case WID_AP_LAYOUT_DECREASE:
-				_selected_airport_layout--;
+				_selected_airport_layout = (_selected_airport_layout + 3) % 4;
 				this->UpdateSelectSize();
 				this->SetDirty();
 				break;
 
 			case WID_AP_LAYOUT_INCREASE:
-				_selected_airport_layout++;
+				_selected_airport_layout = (_selected_airport_layout + 1) % 4;
 				this->UpdateSelectSize();
 				this->SetDirty();
 				break;

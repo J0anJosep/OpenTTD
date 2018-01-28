@@ -54,14 +54,68 @@ void UpdateTracks(TileIndex tile)
 	SetAirportTileTracks(tile, tracks);
 }
 
+/**
+ * Get the coordinate of the non-rotated spec of an airport.
+ * @param tile one tile of the area of the airport.
+ * @param tile_area of the airport.
+ * @param layout the rotation of the airport.
+ */
+uint RotatedAirportSpecTile(const TileIndex tile, const TileArea tile_area, const DiagDirection dir)
+{
+	/* Get the tile difference between current tile and northern tile of the airport.
+	 * @revise the function TileIndexToTileIndexDiffC as it seems to return the difference
+	 * between the first tile minus the second one (one would expect to be the opposite).
+	 */
+	TileIndexDiffC tile_diff = TileIndexToTileIndexDiffC(tile, tile_area.tile);
+
+	switch (dir) {
+		case 0:
+			break;
+		case 1:
+			tile_diff = {(int16)(tile_area.h - 1 - tile_diff.y), (int16)tile_diff.x};
+			break;
+		case 2:
+			tile_diff = {(int16)(tile_area.w - 1 - tile_diff.x), (int16)(tile_area.h - 1 - tile_diff.y)};
+			break;
+		case 3:
+			tile_diff = {(int16)tile_diff.y, (int16)(tile_area.w - 1 - tile_diff.x)};
+			break;
+		default: NOT_REACHED();
+	}
+
+	return tile_diff.x + tile_diff.y * (dir % 2 == 0 ? tile_area.w : tile_area.h);
+}
+
+/**
+ * Rotate the trackbits as indicated by a direction (0 -> no rotation, 1 -> 90 clockwise,
+ * 2 -> 180 clockwise, 3 -> 270 clockwise).
+ */
+TrackBits RotateTrackBits(TrackBits track_bits, DiagDirection dir)
+{
+	static const TrackBits rotation_table[DIAGDIR_END][TRACK_END] = {
+		{TRACK_BIT_X, TRACK_BIT_Y, TRACK_BIT_UPPER, TRACK_BIT_LOWER, TRACK_BIT_LEFT,  TRACK_BIT_RIGHT},
+		{TRACK_BIT_Y, TRACK_BIT_X, TRACK_BIT_RIGHT,  TRACK_BIT_LEFT,  TRACK_BIT_UPPER, TRACK_BIT_LOWER},
+		{TRACK_BIT_X, TRACK_BIT_Y, TRACK_BIT_LOWER, TRACK_BIT_UPPER, TRACK_BIT_RIGHT, TRACK_BIT_LEFT},
+		{TRACK_BIT_Y, TRACK_BIT_X, TRACK_BIT_LEFT,  TRACK_BIT_RIGHT, TRACK_BIT_LOWER, TRACK_BIT_UPPER}
+	};
+
+	TrackBits rotated = TRACK_BIT_NONE;
+	Track track;
+	FOR_EACH_SET_TRACK(track, track_bits) {
+		rotated |= rotation_table[dir][track];
+	}
+
+	return rotated;
+}
+
 void Station::TranslateAirport()
 {
 	if (this->airport.tile == INVALID_TILE) return;
 
 	this->airport.air_type = _translation_airport_specs[this->airport.type][0].ground;
 
-	uint iter = 0;
 	TILE_AREA_LOOP(t, this->airport) { // Default airports are rectangular.
+		uint iter = RotatedAirportSpecTile(t, this->airport, (DiagDirection)this->airport.layout);
 		const TileTranslation *translation = &_translation_airport_specs[this->airport.type][iter];
 		assert(translation->ground == this->airport.air_type);
 
@@ -73,10 +127,10 @@ void Station::TranslateAirport()
 
 		if (!IsInfrastructure(t)) {
 			if (IsHangar(t)) {
-				SetHangarDirection(t, translation->dir);
+				SetHangarDirection(t, RotateDiagDir(translation->dir, (DiagDirection)this->airport.layout));
 			}
 
-			SetAirportTileTracks(t, translation->trackbits);
+			SetAirportTileTracks(t, RotateTrackBits(translation->trackbits, (DiagDirection)this->airport.layout));
 		}
 
 		switch (GetAirportTileType(t)) {
@@ -94,18 +148,16 @@ void Station::TranslateAirport()
 				break;
 
 			case ATT_RUNWAY:
-				SB(_m[t].m4, 4, 2, translation->runway_directions);
+				SB(_m[t].m4, 4, 2, RotateDirection(translation->runway_directions, (DiagDirection)this->airport.layout));
 				break;
 
 			case ATT_RUNWAY_START:
 			case ATT_RUNWAY_END:
-				SB(_m[t].m4, 4, 2, translation->dir);
+				SB(_m[t].m4, 4, 2, RotateDiagDir(translation->dir, (DiagDirection)this->airport.layout));
 				SB(_m[t].m4, 6, 1, translation->landing);
 				break;
 			default: NOT_REACHED();
 		}
-
-		iter++;
 	}
 
 	this->UpdateAirportDataStructure();
