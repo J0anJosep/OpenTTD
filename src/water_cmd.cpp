@@ -1082,11 +1082,41 @@ bool DoesLockPartNeedGate(TileIndex tile)
 	}
 }
 
+/**
+ * Some locks need special sprites for their back part.
+ * It depends on which lock tile is in front of them and the water level of both tiles.
+ * @param[out] image sprite to use.
+ * @param water_level of the current tile.
+ * @param next_water_level water level of the lock tile in front of current tile.
+ */
+void GetCuttedLockSprite(SpriteID &image, int8 water_level, int8 next_water_level, DiagDirection dir)
+{
+	/* No need of special sprites if next_water_level is high enough. */
+	if (next_water_level == 8) return;
+	assert(next_water_level > water_level + 1 + ((dir % 2) == 0 ? 2 : 0));
+	assert(next_water_level > 1);
+
+	static const SpriteID special_cutted_lock_sprites[2][6] = {
+		{ SPR_WATER_LOCK_BACK_X_CUT_EXT, SPR_WATER_LOCK_BACK_X_CUT_EXT + 4, SPR_WATER_LOCK_BACK_X_CUT_EXT + 7,
+				SPR_WATER_LOCK_BACK_X_CUT_EXT + 9, 0},
+		{ SPR_WATER_LOCK_BACK_Y_CUT_EXT, SPR_WATER_LOCK_BACK_Y_CUT_EXT + 6, SPR_WATER_LOCK_BACK_Y_CUT_EXT + 11,
+				SPR_WATER_LOCK_BACK_Y_CUT_EXT + 15, SPR_WATER_LOCK_BACK_Y_CUT_EXT + 18,
+				SPR_WATER_LOCK_BACK_Y_CUT_EXT + 20},
+	};
+
+	image = special_cutted_lock_sprites[dir % 2][7 - next_water_level];
+	assert(image != 0);
+}
+
 /** Draw a lock tile. */
 static void DrawWaterLock(const TileInfo *ti)
 {
+	/* Common sprites and offsets for both locks (with and without gates). */
 	int part = GetLockPart(ti->tile);
-	const DrawTileSprites &dts = _lock_display_data[part][GetLockDirection(ti->tile)];
+	DiagDirection dir = GetLockDirection(ti->tile);
+	const DrawTileSprites &dts = _settings_game.pf.ship_path_reservation ?
+			_lock_with_gates_front[part][dir] :
+			_lock_display_data[part][dir];
 
 	/* Draw ground sprite. */
 	SpriteID image = dts.ground.sprite;
@@ -1107,10 +1137,114 @@ static void DrawWaterLock(const TileInfo *ti)
 	if (image < 5) image += water_base;
 	DrawGroundSprite(image, PAL_NONE);
 
-	/* Draw structures. */
-	uint     zoffs = 0;
-	SpriteID base  = GetCanalSprite(CF_LOCKS, ti->tile);
+	if (_settings_game.pf.ship_path_reservation) {
+		/* Draw lock with gates. */
+		int8 water_level = GetLockWaterLevel(ti->tile);
+		int8 z_offset = water_level - (part == LOCK_PART_UPPER ? 8 : 0);
 
+		/* Don't draw if buildings are invisible. */
+		if (!IsInvisibilitySet(TO_BUILDINGS)) {
+			bool cutted_sprites = false;
+			int8 next_water_level = 8;
+
+			static const TileIndexDiffC _dir_offsets[2] = {{1,  0}, {0,  1}};
+			TileIndex next_tile = ti->tile + ToTileIndexDiff(_dir_offsets[dir % 2]);
+			if (CheckSameLock(ti->tile, next_tile)) {
+				next_water_level = GetLockWaterLevel(next_tile);
+				if (next_water_level > water_level + 1 + ((dir % 2) == 0 ? 2 : 0)) cutted_sprites = true;
+			} else if (part == LOCK_PART_UPPER) {
+				cutted_sprites = true;
+			}
+
+			/* Draw back sprite. */
+			switch (dir) {
+				case DIAGDIR_NE:
+					if (part == LOCK_PART_LOWER) { image = SPR_WATER_LOCK_BASE_HIGH_X; break; }
+					FALLTHROUGH;
+				case DIAGDIR_SW:
+					image = cutted_sprites ? SPR_WATER_LOCK_BACK_X_CUTTED : SPR_WATER_LOCK_BACK_X;
+					if (cutted_sprites) GetCuttedLockSprite(image, water_level, next_water_level, dir);
+					break;
+				case DIAGDIR_NW:
+					if (part == LOCK_PART_LOWER) { image = SPR_WATER_LOCK_BASE_HIGH_Y; break; }
+					FALLTHROUGH;
+				case DIAGDIR_SE:
+					image = cutted_sprites ? SPR_WATER_LOCK_BACK_Y_CUTTED : SPR_WATER_LOCK_BACK_Y;
+					if (cutted_sprites) GetCuttedLockSprite(image, water_level, next_water_level, dir);
+					break;
+				default: NOT_REACHED();
+			}
+
+			AddSortableSpriteToDraw(image + water_level, PAL_NONE, ti->x, ti->y,
+					(dir % 2 == 0) ? 16 : 2,
+					(dir % 2 == 0) ? 2 : 16,
+					20,
+					ti->z - (part == LOCK_PART_UPPER ? 8 : 0),
+					IsTransparencySet(TO_BUILDINGS));
+		}
+
+		static const SpriteID gate_sprites[] = {
+				SPR_WATER_LOCK_GATE_NE, SPR_WATER_LOCK_GATE_SE, SPR_WATER_LOCK_GATE_SW, SPR_WATER_LOCK_GATE_NW };
+
+		/* Draw gate on upper part of the lock. */
+		if (part == LOCK_PART_UPPER) {
+			if (GetLockWaterLevel(ti->tile) != 8) {
+				uint8 upper_lock_gate_z = 8;
+				image = gate_sprites[dir];
+				if (dir == 0 || dir == 3) {
+					upper_lock_gate_z = GetLockWaterLevel(ti->tile);
+					image += upper_lock_gate_z;
+				}
+				const uint x_offsets[] = {0, 2,16, 2};
+				const uint y_offsets[] = {2, 17, 2, 0};
+				AddSortableSpriteToDraw(image, PAL_NONE,
+						ti->x + x_offsets[dir],
+						ti->y + y_offsets[dir],
+						(dir % 2 == 0) ? 1 : 12,
+						(dir % 2 == 0) ? 12 : 1,
+						8 - upper_lock_gate_z,
+						ti->z + upper_lock_gate_z - 6);
+			}
+		}
+
+		/* Draw water and reservation. */
+		image = (dir % 2 == 0) ? SPR_WATER_LOCK_Y : SPR_WATER_LOCK_X;
+		DrawGroundSpriteAt(image, PAL_NONE, 0, 0, z_offset);
+
+		/* Draw lower gate of the tile. */
+		if (DoesLockPartNeedGate(ti->tile)) {
+			image = gate_sprites[dir];
+			if (dir == 0 || dir == 3) {
+				uint z_offset = 0;
+				image += 8 - GetLockWaterLevel(ti->tile);
+				if (part == LOCK_PART_UPPER) {
+					z_offset = GetLockWaterLevel(GetLockMiddleTile(ti->tile));
+				} else if (part == LOCK_PART_MIDDLE) {
+					z_offset += GetLockWaterLevel(GetLockLowerTile(ti->tile));
+				}
+				image += z_offset;
+				AddSortableSpriteToDraw(image, PAL_NONE,
+						ti->x + (dir == 0 ? 14 : 1),
+						ti->y + (dir == 0 ? 1 : 14),
+						(dir == 0) ? 1 : 13,
+						(dir == 0) ? 13 : 1,
+						water_level,
+						ti->z - (part == LOCK_PART_UPPER ? 10 : 2) + z_offset);
+			} else {
+				AddSortableSpriteToDraw(image, PAL_NONE,
+						ti->x,
+						ti->y,
+						(dir % 2 == 0) ? 1 : 12,
+						(dir % 2 == 0) ? 12 : 1,
+						0,
+						ti->z + z_offset);
+			}
+		}
+	}
+
+	/* Draw water tracks and the rest of the lock structures. */
+	uint zoffs = 0;
+	SpriteID base = GetCanalSprite(CF_LOCKS, ti->tile);
 	if (base == 0) {
 		/* If no custom graphics, use defaults. */
 		base = SPR_LOCK_BASE;
@@ -1118,6 +1252,7 @@ static void DrawWaterLock(const TileInfo *ti)
 		zoffs = ti->z > z_threshold ? 24 : 0;
 	}
 
+	if (_settings_client.gui.show_water_tracks) DrawWaterTracks(ti->tile);
 	DrawWaterTileStruct(ti, dts.seq, base, zoffs, PAL_NONE, CF_LOCKS);
 }
 
@@ -1223,11 +1358,16 @@ void DrawWaterTracks(TileIndex tile)
 
 	static const byte slope_offset[] = {6, 7, 7, 8};
 	byte slope_off = 0;
+	int z_offset = 0;
 
 	if (IsLockTile(tile)) {
-		Slope slope = GetTileSlope(tile);
-		if (slope != SLOPE_FLAT && IsInclinedSlope(slope)) {
-			slope_off = slope_offset[GetInclinedSlopeDirection(slope)];
+		if (_settings_game.pf.ship_path_reservation) {
+			z_offset = GetLockWaterLevel(tile) - (GetLockPart(tile) == LOCK_PART_UPPER ? 8 : 0);
+		} else {
+			Slope slope = GetTileSlope(tile);
+			if (slope != SLOPE_FLAT && IsInclinedSlope(slope)) {
+				slope_off = slope_offset[GetInclinedSlopeDirection(slope)];
+			}
 		}
 	}
 
@@ -1237,16 +1377,17 @@ void DrawWaterTracks(TileIndex tile)
 	PaletteID pal = IsDockTile(tile) ? PALETTE_SEL_TILE_GREEN : PALETTE_SEL_TILE_BLUE;
 	FOR_EACH_SET_TRACK(track, available) {
 		if ((TrackToTrackBits(track) & (shallow | trackbits)) != 0) continue;
-		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, pal, 0, 0, TILE_HEIGHT);
+		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, pal, 0, 0, TILE_HEIGHT + z_offset);
 	}
+
 
 	FOR_EACH_SET_TRACK(track, shallow) {
 		if ((TrackToTrackBits(track) & trackbits) != 0) continue;
-		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PALETTE_SEL_TILE_RED, 0, 0, TILE_HEIGHT);
+		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PALETTE_SEL_TILE_RED, 0, 0, TILE_HEIGHT + z_offset);
 	}
 
 	FOR_EACH_SET_TRACK(track, trackbits) {
-		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
+		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT + z_offset);
 	}
 
 	if (!HasPreferredWaterTrackdirs(tile)) return;
