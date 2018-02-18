@@ -59,9 +59,6 @@ static const SpriteID SPR_LARGE_SMALL_WINDOW = 682;
 /* Base graphics spritenumbers. */
 static const SpriteID SPR_OPENTTD_BASE   = 4896;
 
-/** Extra graphic spritenumbers */
-static const uint16 OPENTTD_SPRITE_COUNT = 177;
-
 /* Halftile-selection sprites */
 static const SpriteID SPR_HALFTILE_SELECTION_FLAT = SPR_OPENTTD_BASE;
 static const SpriteID SPR_HALFTILE_SELECTION_DOWN = SPR_OPENTTD_BASE + 4;
@@ -164,10 +161,31 @@ static const SpriteID SPR_IMG_DELETE_LEFT            = SPR_OPENTTD_BASE + 166;
 static const SpriteID SPR_IMG_DELETE_RIGHT           = SPR_OPENTTD_BASE + 167;
 
 static const SpriteID SPR_WINDOW_DEFSIZE             = SPR_OPENTTD_BASE + 168;
+static const SpriteID SPR_IMG_CARGOFLOW              = SPR_OPENTTD_BASE + 174;
+
 static const SpriteID SPR_FILTER_ICON                = SPR_OPENTTD_BASE + 175;
 static const SpriteID SPR_FILTER_GROUPS_ICON         = SPR_OPENTTD_BASE + 176;
 
-static const SpriteID SPR_IMG_CARGOFLOW              = SPR_OPENTTD_BASE + 174;
+static const SpriteID SPR_WATER_LOCK_X               = SPR_OPENTTD_BASE + 177;
+static const SpriteID SPR_WATER_LOCK_Y               = SPR_OPENTTD_BASE + 178;
+
+/* Sprites for lock gates. */
+static const uint GATE_SEQUENCE_FRAMES = 8;
+static const SpriteID SPR_WATER_LOCK_GATE_SW         = SPR_OPENTTD_BASE + 179;
+static const SpriteID SPR_WATER_LOCK_GATE_SE         = SPR_OPENTTD_BASE + 180;
+static const SpriteID SPR_WATER_LOCK_BACK_X          = SPR_OPENTTD_BASE + 181;
+static const SpriteID SPR_WATER_LOCK_BACK_Y          = SPR_WATER_LOCK_BACK_X + GATE_SEQUENCE_FRAMES + 1;
+static const SpriteID SPR_WATER_LOCK_BACK_X_CUTTED   = SPR_WATER_LOCK_BACK_Y + GATE_SEQUENCE_FRAMES + 1;
+static const SpriteID SPR_WATER_LOCK_BACK_Y_CUTTED   = SPR_WATER_LOCK_BACK_X_CUTTED + GATE_SEQUENCE_FRAMES + 1;
+static const SpriteID SPR_WATER_LOCK_BASE_HIGH_X     = SPR_WATER_LOCK_BACK_Y_CUTTED + GATE_SEQUENCE_FRAMES + 1;
+static const SpriteID SPR_WATER_LOCK_BASE_HIGH_Y     = SPR_WATER_LOCK_BASE_HIGH_X + GATE_SEQUENCE_FRAMES + 1;
+static const SpriteID SPR_WATER_LOCK_BACK_X_CUT_EXT  = SPR_WATER_LOCK_BASE_HIGH_Y + GATE_SEQUENCE_FRAMES + 1;
+static const SpriteID SPR_WATER_LOCK_BACK_Y_CUT_EXT  = SPR_WATER_LOCK_BACK_X_CUT_EXT + 10;
+static const SpriteID SPR_WATER_LOCK_GATE_NE         = SPR_WATER_LOCK_BACK_Y_CUT_EXT + 21;
+static const SpriteID SPR_WATER_LOCK_GATE_NW         = SPR_WATER_LOCK_GATE_NE + GATE_SEQUENCE_FRAMES;
+
+/** Extra graphic spritenumbers */
+static const uint16 OPENTTD_SPRITE_COUNT = SPR_WATER_LOCK_GATE_NW + GATE_SEQUENCE_FRAMES;
 
 static const SpriteID SPR_SIGNALS_BASE  = SPR_OPENTTD_BASE + OPENTTD_SPRITE_COUNT;
 static const uint16 PRESIGNAL_SPRITE_COUNT                   =  48;
