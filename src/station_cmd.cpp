@@ -65,6 +65,7 @@
 #include "table/strings.h"
 #include "table/airport_translation.h"
 #include "table/autorail.h"
+#include "table/clear_land.h"
 
 #include "safeguards.h"
 
@@ -3016,6 +3017,40 @@ draw_default_foundation:
 		} else {
 			image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
 			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
+
+			if (IsAirportTile(ti->tile)) {
+				// Draw climate ground.
+				SpriteID base = SPR_FLAT_GRASS_TILE;
+				if (IsTileOnWater(ti->tile)) {
+					base = SPR_WATER_BASE;
+				} else {
+					switch (_settings_game.game_creation.landscape) {
+						default: break;
+						case LT_TEMPERATE: break;
+						case LT_ARCTIC: {
+							byte density = GetSnowDensityForAirports(ti->tile);
+							base = _clear_land_sprites_snow_desert[density];
+							break;
+						}
+						case LT_TROPIC: {
+							switch (GetTropicZone(ti->tile)) {
+								case TROPICZONE_RAINFOREST:
+									break;
+								case TROPICZONE_NORMAL:
+									if (NeighbourIsDesert(ti->tile)) base = _clear_land_sprites_snow_desert[0];
+									break;
+								case TROPICZONE_DESERT:
+									base = _clear_land_sprites_snow_desert[3];
+									break;
+								default: break;
+							}
+							break;
+						}
+					}
+				}
+				DrawGroundSprite(base, PAL_NONE);
+			}
+
 			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
 
 			if (IsAirportTile(ti->tile)) {
@@ -3212,6 +3247,20 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
 }
 
+/** Tile loop for snowy tiles. */
+static void AirportTileSnowLoop(TileIndex tile)
+{
+	int k = GetTileZ(tile) - GetSnowLine() + 1;
+	byte current_density = GetSnowDensityForAirports(tile);
+	byte req_density = (k < 0) ? 0u : min((uint)k, 3);
+
+	if (current_density == req_density) return;
+
+	/* Update snow density. */
+	SetSnowDensityForAirports(tile, current_density + ((current_density < req_density) ? 1 : - 1));
+	MarkTileDirtyByTile(tile);
+}
+
 
 static void TileLoop_Station(TileIndex tile)
 {
@@ -3219,6 +3268,8 @@ static void TileLoop_Station(TileIndex tile)
 	 * hardcoded.....not good */
 	switch (GetStationType(tile)) {
 		case STATION_AIRPORT:
+			if (_settings_game.game_creation.landscape == LT_ARCTIC) AirportTileSnowLoop(tile);
+
 			if (IsTileOnWater(tile)) {
 				TileLoop_Water(tile);
 			} else {

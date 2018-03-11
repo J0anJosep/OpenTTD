@@ -235,6 +235,46 @@ static inline TropicZone GetTropicZone(TileIndex tile)
 }
 
 /**
+ * Get the snow density for airports, abusing GetTropicZone
+ * @param tile the tile to get the snow density of
+ * @pre tile < MapSize()
+ * @return the snow density
+ */
+static inline byte GetSnowDensityForAirports(TileIndex tile)
+{
+	assert(tile < MapSize());
+	assert(!IsTileType(tile, MP_VOID));
+	return (byte)GB(_m[tile].type, 0, 2);
+}
+
+/**
+ * Set the snow density for airports.
+ * @param tile the tile to set the snow density of
+ * @param density the new density
+ * @pre tile < MapSize()
+ */
+static inline void SetSnowDensityForAirports(TileIndex tile, byte density)
+{
+	assert(tile < MapSize());
+	assert(!IsTileType(tile, MP_VOID));
+	assert(density < 4);
+	SB(_m[tile].type, 0, 2, density);
+}
+
+/**
+ * Tests if at least one surrounding tile is desert
+ * @param tile tile to check
+ * @return does this tile have at least one desert tile around?
+ */
+static inline bool NeighbourIsDesert(TileIndex tile)
+{
+	return GetTropicZone(tile + TileDiffXY(  1,  0)) == TROPICZONE_DESERT ||
+			GetTropicZone(tile + TileDiffXY( -1,  0)) == TROPICZONE_DESERT ||
+			GetTropicZone(tile + TileDiffXY(  0,  1)) == TROPICZONE_DESERT ||
+			GetTropicZone(tile + TileDiffXY(  0, -1)) == TROPICZONE_DESERT;
+}
+
+/**
  * Get the current animation frame
  * @param t the tile
  * @pre IsTileType(t, MP_HOUSE) || IsTileType(t, MP_OBJECT) || IsTileType(t, MP_INDUSTRY) ||IsTileType(t, MP_STATION)
