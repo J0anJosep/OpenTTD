@@ -207,19 +207,6 @@ static void TileLoopClearAlps(TileIndex tile)
 	MarkTileDirtyByTile(tile);
 }
 
-/**
- * Tests if at least one surrounding tile is desert
- * @param tile tile to check
- * @return does this tile have at least one desert tile around?
- */
-static inline bool NeighbourIsDesert(TileIndex tile)
-{
-	return GetTropicZone(tile + TileDiffXY(  1,  0)) == TROPICZONE_DESERT ||
-			GetTropicZone(tile + TileDiffXY( -1,  0)) == TROPICZONE_DESERT ||
-			GetTropicZone(tile + TileDiffXY(  0,  1)) == TROPICZONE_DESERT ||
-			GetTropicZone(tile + TileDiffXY(  0, -1)) == TROPICZONE_DESERT;
-}
-
 static void TileLoopClearDesert(TileIndex tile)
 {
 	/* Current desert level - 0 if it is not desert */
