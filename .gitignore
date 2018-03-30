@@ -16,6 +16,7 @@ bin/baseset/*
 !bin/game
 bin/game/*
 !bin/game/compat*.nut
+!bin/baseset/opengfxjj*.tar
 !bin/scripts
 bin/scripts/*
 !bin/scripts/*.example
