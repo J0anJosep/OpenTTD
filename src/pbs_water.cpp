@@ -489,3 +489,100 @@ bool LiftReservations(TileIndex tile)
 
 	return !HasWaterTrackReservation(tile);
 }
+
+/**
+ * Check whether a tile has some preference for water trackdirs.
+ * @param tile Tile to check.
+ * @return true if there is some prefered trackdir.
+ */
+bool HasPreferedWaterTrackdirs(TileIndex tile)
+{
+	assert(WaterTrackMayExist(tile));
+
+	if (IsTileType(tile, MP_STATION)) return GB(_me[tile].m7, 7, 1);
+
+	return GB(_m[tile].m2, 15, 1);
+}
+
+/**
+ * Get the prefered trackdirs for a water tile, if any is set.
+ * @param tile Tile to check.
+ * @return trackdir bits prefered on tile.
+ */
+TrackdirBits GetPreferedWaterTrackdirs(TileIndex tile)
+{
+	assert(WaterTrackMayExist(tile));
+
+	switch (GetTileType(tile)) {
+		case MP_RAILWAY:
+		case MP_WATER:
+			return (TrackdirBits)(GB(_me[tile].m6, 2, 6) << 8 |
+					GB(_me[tile].m6, 0, 2) << 4 | GB(_me[tile].m7, 4, 4));
+		case MP_STATION:
+			if (IsBuoy(tile)) {
+				return (TrackdirBits)(GB(_m[tile].m5, 2, 6) << 8 | GB(_m[tile].m5, 0, 2) << 4 |
+						GB(_me[tile].m6, 0, 3) << 1 | GB(_me[tile].m7, 6, 1));
+			} else {
+				assert(IsDock(tile));
+				return (TrackdirBits)(GB(_m[tile].m4, 2, 2) << 8 | GB(_m[tile].m4, 0, 2));
+			}
+		case MP_TUNNELBRIDGE:
+			return (TrackdirBits)(GB(_m[tile].m2, 6, 6) << 8 | GB(_m[tile].m2, 0, 6));
+		default:
+			NOT_REACHED();
+	}
+}
+
+/**
+ * Set some trackdir bits to a given value (1 prefered, 0 not prefered).
+ * @param tile Tile to modify.
+ * @param change_trackdirs TrackdirBits to modify.
+ * @param preference Value to set (1 prefered, 0 not prefered).
+ */
+void SetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bool preference)
+{
+	assert(WaterTrackMayExist(tile));
+	assert(!HasWaterTrackReservation(tile));
+	TrackdirBits present_trackdirs = GetPreferedWaterTrackdirs(tile);
+
+	if (preference == true) {
+		present_trackdirs |= change_trackdirs;
+	} else {
+		present_trackdirs &= ~change_trackdirs;
+	}
+
+	// Save updated trackdirs.
+	switch (GetTileType(tile)) {
+		case MP_RAILWAY:
+		case MP_WATER:
+			SB(_me[tile].m6, 2, 6, present_trackdirs >> 8);
+			SB(_me[tile].m6, 0, 2, present_trackdirs >> 4);
+			SB(_me[tile].m7, 4, 4, present_trackdirs);
+			break;
+		case MP_STATION:
+			if (IsBuoy(tile)) {
+				SB(_m[tile].m5,  2, 6, present_trackdirs >> 8);
+				SB(_m[tile].m5,  0, 2, present_trackdirs >> 4);
+				SB(_me[tile].m6, 0, 3, present_trackdirs >> 1);
+				SB(_me[tile].m7, 6, 1, present_trackdirs);
+			} else {
+				assert(IsDock(tile));
+				SB(_m[tile].m4,  2, 2, present_trackdirs >> 8);
+				SB(_m[tile].m4,  0, 2, present_trackdirs);
+			}
+			break;
+		case MP_TUNNELBRIDGE:
+			SB(_m[tile].m5,  6, 6, present_trackdirs >> 8);
+			SB(_m[tile].m5,  0, 6, present_trackdirs);
+			break;
+		default:
+			NOT_REACHED();
+	}
+
+	// Update whether tile has prefered water trackdirs.
+	if (IsTileType(tile, MP_STATION)) {
+		SB(_me[tile].m7, 7, 1, present_trackdirs != TRACKDIR_BIT_NONE);
+	} else {
+		SB(_m[tile].m2, 15, 1, present_trackdirs != TRACKDIR_BIT_NONE);
+	}
+}

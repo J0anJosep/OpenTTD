@@ -32,4 +32,9 @@ void LiftPathReservation(TileIndex tile, Trackdir trackdir);
 void LiftReservations(TileIndex tile, TrackdirBits trackdirs);
 bool LiftReservations(TileIndex tile);
 
+/* Routines related to prefered water trackdirs. */
+bool HasPreferedWaterTrackdirs(TileIndex tile);
+TrackdirBits GetPreferedWaterTrackdirs(TileIndex tile);
+void SetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bool preference);
+
 #endif /* PBS_WATER_H */
