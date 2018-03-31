@@ -60,7 +60,7 @@
 #include "../disaster_vehicle.h"
 #include "../ship.h"
 #include "../pathfinder/pathfinder_type.h"
-
+#include "../pbs_water.h"
 
 #include "saveload_internal.h"
 
@@ -3224,6 +3224,15 @@ bool AfterLoadGame()
 			if (IsLockTile(v->tile)) v->Crash();
 			if ((v->state & TrackStatusToTrackBits(GetTileTrackStatus(v->tile, TRANSPORT_WATER, 0))) == 0) {
 				v->Crash();
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(SLV_ADD_WATER_TRACKDIRS)) {
+		/* Ensure all related bits are zeroed (if not already). */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (WaterTrackMayExist(t)) {
+				SetPreferredWaterTrackdirs(t, TRACKDIR_BIT_NONE, false);
 			}
 		}
 	}
