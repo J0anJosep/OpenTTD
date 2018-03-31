@@ -100,7 +100,7 @@ the array so you can quickly see what is used and what is not.
       <td rowspan=3>1</td>
       <td class="caption">rail</td>
       <td class="bits" rowspan=3><span class="free">OOO</span> <span class=used title="Owner">XXXXX</span></td>
-      <td class="bits"><span class="free">OOOO</span> <span class=used title="Reserved tracks">XXXX</span> <span class="free">OOOO OOOO</span></td>
+      <td class="bits"><span class="patch" title="Has water specific trackdirs preferences">X</span><span class="free">O</span><span class="patch" title="Specific water trackdirs preferences (only two bits for railway tiles)">XX</span> <span class=used title="Reserved tracks">XXXX</span> <span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span> </td>
       <td class="bits"><span class="free">OOOO</span> <span class=used title="Ground type: fences, snow, desert">XXXX</span></td>
       <td class="bits"><span class=used title="Rail tile type: rail, rail with signals, depot">OO</span> <span class=used title="Track pieces">XXXXXX</span></td>
@@ -110,7 +110,7 @@ the array so you can quickly see what is used and what is not.
     </tr>
     <tr>
       <td class="caption">rail with signals</td>
-      <td class="bits"><span class="free">OOOO</span> <span class=used title="Reserved tracks">XXXX</span> <span class=used title="Signal types and sempahore/lights">XXXX XXXX</span></td>
+      <td class="bits"><span class="patch" title="Has water specific trackdirs preferences">X</span><span class="free">O</span><span class="patch" title="Specific water trackdirs preferences (only two bits for railway tiles)">XX</span> <span class=used title="Reserved tracks">XXXX</span> <span class=used title="Signal types and sempahore/lights">XXXX XXXX</span></td>
       <td class="bits"><span class=used title="Signals present">XXXX</span> <span class=free>OOOO</span></td>
       <td class="bits"><span class=used title="Signals colors">XXXX</span> <span class=used title="Ground type: fences, snow, desert">XXXX</span></td>
       <td class="bits"><span class=used title="Rail tile type: rail, rail with signals, depot">O1</span> <span class=used title="Track pieces">XXXXXX</span></td>
@@ -205,7 +205,7 @@ the array so you can quickly see what is used and what is not.
       <td class="bits"><span class=used title="Owner of tram">XXXX</span> <span class="free">OOOO</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class="usable" title="Graphics index">OOOO O</span><span class=used title="Graphics index: 00 (exit towards NE), 01 (exit towards SE), 02 (exit towards SW), 03 (exit towards NW), 04 (drive through X), 05 (drive through Y)">XXX</span></td>
-      <td class="bits" rowspan=5><span class="free">OO</span><span class=used title="Station type">XXX</span> <span class="free">OOO</span></td>
+      <td class="bits" rowspan=3><span class="free">OO</span><span class=used title="Station type">XXX</span> <span class="free">OOO</span></td>
       <td class="bits"><span class=used title="Present roadtypes">XX</span><span class="free">O</span> <span class=used title="Owner of road">XXXXX</span></td>
       <td class="bits" rowspan=11><span class=free>OOOO OOOO OOOO OOOO</span></td>
     </tr>
@@ -219,34 +219,36 @@ the array so you can quickly see what is used and what is not.
     <tr>
       <td class="caption">dock</td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX XXXX</span></td>
-      <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class=free>OOOO</span></td>
+      <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="patch" title="Specific water trackdirs preferences (only four bits for docks)">XXXX</span></td>
       <td class="bits"><span class=usable title="Graphics index">OOOO </span><span class=usable title="Graphics index">O</span><span class=used title="Graphics index">XXX</span></td>
-      <td class="bits"><span class="free">OO</span><span class="patch" title="Water tracks that can be crossed on this dock.">XX</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
+      <td class="bits"><span class="patch" title="Has water specific trackdirs preferences">X</span><span class="free">O</span><span class="patch" title="Water tracks that can be crossed on this dock.">XX</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
     </tr>
     <tr>
       <td class="caption">buoy</td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX XXXX</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class=patch title="TrackBits ships can take in this tile (m4[0..3]+m7[4..5])">XXXX</span></td>
-      <td class="bits"><span class="usable">OOOO OOOO</span></td>
-      <td class="bits"><span class="free">OO</span><span class=patch title="TrackBits ships can take in this tile (m4[0..3]+m7[4..5])">XX</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
+      <td class="bits"><span class="patch" title="Specific water trackdirs preferences (m5[0..7]+m6[0..2]+m7[6])">XXXX XXXX</span></td>
+      <td class="bits"><span class="free">OO</span><span class=used title="Station type">XXX</span> <span class="patch" title="Specific water trackdirs preferences (m5[0..7]+m6[0..2]+m7[6])">XXX</span></td>
+      <td class="bits"><span class="patch" title="Has water specific trackdirs preferences">X</span> <span class="patch" title="Specific water trackdirs preferences (m5[0..7]+m6[0..2]+m7[6])">X</span> <span class=patch title="TrackBits ships can take in this tile (m4[0..3]+m7[4..5])">XX</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
     </tr>
     <tr>
       <td class="caption">oilrig</td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class="usable">OOOO OOOO</span></td>
+      <td class="bits"><span class="free">OO</span><span class=used title="Station type">XXX</span> <span class="free">OOO</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>
     </tr>
     <tr>
       <td rowspan=4>6</td>
       <td class="caption">sea, shore</td>
       <td class="bits" rowspan=4><span class="free">O</span><span class="used" title="Water class">XX</span> <span class="used" title="Owner">XXXXX</span></td>
-      <td class="bits" rowspan=2><span class="free">OOOO</span> <span class=patch title="TrackBits ships can take in this tile">XXXXXX</span> <span class=patch title="Shallow water tracks">XXXXXX</span></td>
+      <td class="bits" rowspan=2><span class="patch" title="Has water specific trackdirs preferences">X</span><span class="free">OOO</span> <span class=patch title="TrackBits ships can take in this tile">XXXXXX</span> <span class=patch title="Shallow water tracks">XXXXXX</span></td>
       <td rowspan=4 class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX XXXX</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="free">OOOO</span></td>
       <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">O<span class=usable>OO</span>O</span> <span class=free>OOO</span><span class=used title="Sea shore flag">X</span></td>
-      <td class="bits" rowspan=3><span class="free">OOOO OOOO</span></td>
-      <td class="bits" rowspan=4><span class="free">OOOO</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
+      <td class="bits" rowspan=4><span class="patch" title="Specific water trackdirs preferences (m6[0..7]+m7[4..7])">XXXX XXXX</span></td>
+      <td class="bits" rowspan=4><span class="patch" title="Specific water trackdirs preferences (m6[0..7]+m7[4..7])">XXXX</span> <span class="patch" title="Reserved tracks for water transport.">XXXX</span></td>
     </tr>
     <tr>
       <td class="caption">canal, river</td>
@@ -255,7 +257,7 @@ the array so you can quickly see what is used and what is not.
     </tr>
     <tr>
       <td class="caption">lock</td>
-      <td class="bits"><span class="free">OOOO OOOO OOOO OOOO</span></td>
+      <td class="bits"><span class="patch" title="Has water specific trackdirs preferences">X</span><span class="free">OOO OOOO OOOO OOOO</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="patch" title="Water level for locks.">XXXX</span></td>
       <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">O<span class=usable>OO</span>1</span> <span class=used title="Lock part">XX</span> <span class=used title="Lock orientation m5[1..0]">XX</span></td>
     </tr>
@@ -263,8 +265,7 @@ the array so you can quickly see what is used and what is not.
       <td class="caption">shipdepot</td>
       <td class="bits"><span class="pool" title="Depot index on pool">XXXX XXXX XXXX XXXX</span></td>
       <td class="bits"><span class=patch title="Edges and corners of river (m3+m4[7..4])">XXXX</span> <span class="free">OOOO</span></td>
-      <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">1<span class=usable>OOO</span></span> <span class=free>OO</span><span class=used title="Depot axis">X</span> <span class=used title="Depot part">X</span></td>
-      <td class="bits"><span class="free">OOOO OOOO</span></td>
+      <td class="bits"><span class=used title="Water tile type: coast, clear, lock, depot">1<span class=usable>OOO</span></span> <span class="patch" title="Has water specific trackdirs preferences">X</span><span class=free>O</span><span class=used title="Depot axis">X</span> <span class=used title="Depot part">X</span></td>
     </tr>
     <tr>
       <td rowspan=2>8</td>
@@ -286,7 +287,7 @@ the array so you can quickly see what is used and what is not.
       <td class="caption">tunnel entrance</td>
       <td class="bits" rowspan=2><span class="free">OOO</span> <span class=used title="Owner">XXXXX</span></td>
       <td class="bits" rowspan=2><span class="free">OOOO OOOO OOOO OOOO</span></td>
-      <td class="bits" rowspan=2><span class=rearrange title="Owner of tram (road only; a rearrangement can free some of these bits)">XXXX</span> <span class=free>OOOO</span></td>
+      <td class="bits" rowspan=2><span class=patch title="[4-8] Owner of tram (road only; a rearrangement can free some of these bits)&#10;[8] Has water specific trackdirs preferences (water bridge only; a rearrangement can free some of these bits)&#10;[6-7] Specific water trackdirs preferences (water bridge only; a rearrangement can free some of these bits)">XXXX</span> <span class=free>OOOO</span></td>
       <td class="bits" rowspan=2><span class="free">OOOO OOOO</span></td>
       <td class="bits"><span class=used title="Bridge or tunnel bit">O</span><span class="free">OO</span><span class=rearrange title="PBS reservation (rail and water; a rearrangement can free some of these bits)">X</span> <span class=used title="Transport type">XX</span> <span class=used title="Direction of the tunnel/bridge">XX</span></td>
       <td class="bits"><span class="free">OOOO OOOO</span></td>

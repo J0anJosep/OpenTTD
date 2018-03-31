@@ -69,7 +69,11 @@ static inline RoadStopType GetRoadStopType(TileIndex t)
 static inline StationGfx GetStationGfx(TileIndex t)
 {
 	assert(IsTileType(t, MP_STATION));
-	return _m[t].m5;
+
+	switch (GetStationType(t)) {
+		case STATION_BUOY: return (StationGfx)0;
+		default: return _m[t].m5;
+	}
 }
 
 /**
