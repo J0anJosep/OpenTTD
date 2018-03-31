@@ -37,4 +37,10 @@ bool LiftReservedWaterPaths(TileIndex tile);
 /* Remove all reserved water paths colliding a given tile and some trackdirs. */
 void LiftCollidingReservedWaterPaths(TileIndex tile, TrackdirBits trackdirs);
 
+/* Routines related to preferred water trackdirs. */
+bool HasPreferredWaterTrackdirs(TileIndex tile);
+TrackdirBits GetPreferredWaterTrackdirs(TileIndex tile);
+void SetPreferredWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bool preference);
+void ClearAndSetPreferredWaterTrackdirs(TileIndex tile, TrackdirBits trackdirs);
+
 #endif /* PBS_WATER_H */

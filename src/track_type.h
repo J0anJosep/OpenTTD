@@ -121,6 +121,18 @@ enum TrackdirBits {
 	INVALID_TRACKDIR_BIT  = UINT16_MAX,             ///< Flag for an invalid trackdirbit value
 	TRACKDIR_BIT_MASK     = UINT16_MAX &            ///< Bitmask for bit-operations
                             ~(1 << 6 | 1 << 7 | 1 << 14 | 1 << 15),
+	TRACKDIR_BIT_MASK_ES  = TRACKDIR_BIT_X_NE |     ///< For each track, it tracks only one trackdir:
+                            TRACKDIR_BIT_Y_SE |     ///< The one going east, or the one going
+                            TRACKDIR_BIT_UPPER_E |  ///< south (if track is vertical).
+                            TRACKDIR_BIT_LOWER_E |
+                            TRACKDIR_BIT_LEFT_S |
+                            TRACKDIR_BIT_RIGHT_S,
+	TRACKDIR_BIT_MASK_WN  = TRACKDIR_BIT_X_SW |     ///< For each track, it tracks only one trackdir:
+                            TRACKDIR_BIT_Y_NW |     ///< The one going west, or the one going
+                            TRACKDIR_BIT_UPPER_W |  ///< north (if track is vertical).
+                            TRACKDIR_BIT_LOWER_W |
+                            TRACKDIR_BIT_LEFT_N |
+                            TRACKDIR_BIT_RIGHT_N,
 };
 DECLARE_ENUM_AS_BIT_SET(TrackdirBits)
 typedef SimpleTinyEnumT<TrackdirBits, uint16> TrackdirBitsShort;
