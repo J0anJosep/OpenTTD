@@ -449,3 +449,125 @@ bool LiftShipPathsReservations(TileIndex tile, bool keep_pref_water_trackdirs)
 
 	return !HasWaterTrackReservation(tile);
 }
+
+/**
+ * Check whether a tile has some preference for water trackdirs.
+ * @param tile Tile to check.
+ * @return true if there is some preferred trackdir.
+ */
+bool HasPreferredWaterTrackdirs(TileIndex tile)
+{
+	assert(WaterTrackMayExist(tile));
+
+	switch (GetTileType(tile)) {
+		case MP_STATION: return GB(_me[tile].m7, 7, 1);
+		case MP_TUNNELBRIDGE: return GB(_m[tile].m3, 7, 1);
+		default: return GB(_m[tile].m2, 15, 1);
+	}
+}
+
+/**
+ * Get the preferred trackdirs for a water tile, if any is set.
+ * @param tile Tile to check.
+ * @return trackdir bits preferred on tile.
+ */
+TrackdirBits GetPreferredWaterTrackdirs(TileIndex tile)
+{
+	assert(WaterTrackMayExist(tile));
+
+	switch (GetTileType(tile)) {
+		case MP_RAILWAY:
+			return (HasBit(_m[tile].m2, 12) ? TRACKDIR_BIT_MASK_ES : TRACKDIR_BIT_NONE) |
+					(HasBit(_m[tile].m2, 13) ? TRACKDIR_BIT_MASK_WN : TRACKDIR_BIT_NONE);
+		case MP_WATER:
+			return (TrackdirBits)((GB(_me[tile].m6, 2, 6) << 8) |
+					(GB(_me[tile].m6, 0, 2) << 4) | GB(_me[tile].m7, 4, 4));
+		case MP_STATION:
+			if (IsBuoy(tile)) {
+				return (TrackdirBits)(GB(_m[tile].m5, 2, 6) << 8 | GB(_m[tile].m5, 0, 2) << 4 |
+						GB(_me[tile].m6, 0, 3) << 1 | GB(_me[tile].m7, 6, 1));
+			} else {
+				assert(IsDock(tile));
+				return (TrackdirBits)(GB(_m[tile].m4, 2, 2) << 8 | GB(_m[tile].m4, 0, 2));
+			}
+		case MP_TUNNELBRIDGE: {
+			TrackdirBits trackdirs = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(GetTunnelBridgeDirection(tile)));
+			if (GB(_m[tile].m3, 5, 1) == 0) trackdirs &= TRACKDIR_BIT_MASK_WN;
+			if (GB(_m[tile].m3, 6, 1) == 0) trackdirs &= TRACKDIR_BIT_MASK_ES;
+			return trackdirs;
+		}
+		default:
+			NOT_REACHED();
+	}
+}
+
+/**
+ * Set some trackdir bits to a given value (1 preferred, 0 not preferred).
+ * @param tile Tile to modify.
+ * @param change_trackdirs TrackdirBits to modify.
+ * @param preference Value to set (1 preferred, 0 not preferred).
+ */
+void SetPreferredWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bool preference)
+{
+	assert(WaterTrackMayExist(tile));
+	TrackdirBits present_trackdirs = GetPreferredWaterTrackdirs(tile);
+
+	if (preference == true) {
+		present_trackdirs |= change_trackdirs;
+	} else {
+		present_trackdirs &= ~change_trackdirs;
+	}
+
+	// Save updated trackdirs.
+	switch (GetTileType(tile)) {
+		case MP_RAILWAY:
+			SB(_m[tile].m2, 12, 1, ((present_trackdirs & TRACKDIR_BIT_MASK_ES) != TRACKDIR_BIT_NONE));
+			SB(_m[tile].m2, 13, 1, ((present_trackdirs & TRACKDIR_BIT_MASK_WN) != TRACKDIR_BIT_NONE));
+			break;
+		case MP_WATER:
+			SB(_me[tile].m6, 0, 2, present_trackdirs >> 4);
+			SB(_me[tile].m6, 2, 6, present_trackdirs >> 8);
+			SB(_me[tile].m7, 4, 4, present_trackdirs);
+			break;
+		case MP_STATION:
+			if (IsBuoy(tile)) {
+				SB(_m[tile].m5,  0, 2, present_trackdirs >> 4);
+				SB(_m[tile].m5,  2, 6, present_trackdirs >> 8);
+				SB(_me[tile].m6, 0, 3, present_trackdirs >> 1);
+				SB(_me[tile].m7, 6, 1, present_trackdirs);
+			} else {
+				assert(IsDock(tile));
+				SB(_m[tile].m4,  0, 2, present_trackdirs);
+				SB(_m[tile].m4,  2, 2, present_trackdirs >> 8);
+			}
+			break;
+		case MP_TUNNELBRIDGE:
+			SB(_m[tile].m3,  5, 1, (present_trackdirs & TRACKDIR_BIT_MASK_ES) != TRACKDIR_BIT_NONE);
+			SB(_m[tile].m3,  6, 1, (present_trackdirs & TRACKDIR_BIT_MASK_WN) != TRACKDIR_BIT_NONE);
+			break;
+		default:
+			NOT_REACHED();
+	}
+
+	// Update whether tile has preferred water trackdirs.
+	switch (GetTileType(tile)) {
+		case MP_STATION:
+			SB(_me[tile].m7, 7, 1, present_trackdirs != TRACKDIR_BIT_NONE);
+			return;
+		case MP_TUNNELBRIDGE:
+			SB(_m[tile].m3,  7, 1, present_trackdirs != TRACKDIR_BIT_NONE);
+			return;
+		default:
+			SB(_m[tile].m2, 15, 1, present_trackdirs != TRACKDIR_BIT_NONE);
+			return;
+	}
+}
+
+/**
+ * It clears all preferences on water trackdirs and then establishes the ones
+ * specified in trackdirs. */
+void ClearAndSetPreferredWaterTrackdirs(TileIndex tile, TrackdirBits trackdirs)
+{
+	SetPreferredWaterTrackdirs(tile, TRACKDIR_BIT_MASK, false);
+	if (trackdirs != TRACKDIR_BIT_NONE) SetPreferredWaterTrackdirs(tile, trackdirs, true);
+}
