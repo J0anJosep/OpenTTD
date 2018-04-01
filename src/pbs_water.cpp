@@ -518,6 +518,8 @@ TrackdirBits GetPreferedWaterTrackdirs(TileIndex tile)
 
 	switch (GetTileType(tile)) {
 		case MP_RAILWAY:
+			return (HasBit(_m[tile].m2, 12) TRACKDIR_BIT_MASK_ES ? : TRACKDIR_BIT_NONE) |
+					(HasBit(_m[tile].m2, 13) TRACKDIR_BIT_MASK_NW ? : TRACKDIR_BIT_NONE);
 		case MP_WATER:
 			return (TrackdirBits)(GB(_me[tile].m6, 2, 6) << 8 |
 					GB(_me[tile].m6, 0, 2) << 4 | GB(_me[tile].m7, 4, 4));
@@ -557,6 +559,9 @@ void SetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bo
 	// Save updated trackdirs.
 	switch (GetTileType(tile)) {
 		case MP_RAILWAY:
+			SB(_m[tile].m2, 12, 1, (present_trackdirs & TRACKDIR_BIT_MASK_ES != TRACKDIR_BIT_NONE));
+			SB(_m[tile].m2, 13, 1, (present_trackdirs & TRACKDIR_BIT_MASK_WN != TRACKDIR_BIT_NONE));
+			break;
 		case MP_WATER:
 			SB(_me[tile].m6, 2, 6, present_trackdirs >> 8);
 			SB(_me[tile].m6, 0, 2, present_trackdirs >> 4);
