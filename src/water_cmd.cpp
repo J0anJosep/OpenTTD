@@ -398,12 +398,14 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		if (IsTileType(tile, MP_WATER) && (!IsTileOwner(tile, OWNER_WATER) || wc == WATER_CLASS_SEA)) continue;
 
 		TrackBits reserved_tracks = TRACK_BIT_NONE;
+		TrackdirBits pref_trackdirs = TRACKDIR_BIT_NONE;
 		if (!IsWaterTile(tile)) {
 			ret = DoCommand(tile, 0, 0, flags | DC_FORCE_CLEAR_TILE, CMD_LANDSCAPE_CLEAR);
 			if (ret.Failed()) return ret;
 			cost.AddCost(ret);
 		} else {
 			reserved_tracks = GetReservedWaterTracks(tile);
+			pref_trackdirs = GetPreferedWaterTrackdirs(tile);
 		}
 
 		if (flags & DC_EXEC) {
@@ -432,6 +434,7 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 					break;
 			}
 			SetWaterTrackReservation(tile, reserved_tracks);
+			ClearAndSetPreferedWaterTrackdirs(tile, pref_trackdirs);
 			UpdateWaterTiles(tile, 1);
 		}
 

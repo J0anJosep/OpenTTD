@@ -547,7 +547,6 @@ TrackdirBits GetPreferedWaterTrackdirs(TileIndex tile)
 void SetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bool preference)
 {
 	assert(WaterTrackMayExist(tile));
-	assert(!HasWaterTrackReservation(tile));
 	TrackdirBits present_trackdirs = GetPreferedWaterTrackdirs(tile);
 
 	if (preference == true) {
@@ -593,4 +592,13 @@ void SetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bo
 	} else {
 		SB(_m[tile].m2, 15, 1, present_trackdirs != TRACKDIR_BIT_NONE);
 	}
+}
+
+/**
+ * It clears all preferences on water trackdirs and then establishes the ones
+ * specified in trackdirs. */
+void ClearAndSetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits trackdirs)
+{
+	SetPreferedWaterTrackdirs(tile, TRACKDIR_BIT_MASK, false);
+	if (trackdirs != TRACKDIR_BIT_NONE) SetPreferedWaterTrackdirs(tile, trackdirs, true);
 }

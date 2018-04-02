@@ -2195,6 +2195,8 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		}
 		Company::Get(st->owner)->infrastructure.station += 2;
 
+		TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(tile_cur);
+
 		if (two_tile) {
 			MakeDock(tile, st->owner, st->index, direction, wc);
 			SetDockTracks(tile_cur, (direction % 2) == 0 ? TRACK_BIT_Y : TRACK_BIT_X);
@@ -2203,6 +2205,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			SetDockTracks(tile_cur, TRACK_BIT_CROSS);
 		}
 
+		ClearAndSetPreferedWaterTrackdirs(tile, pref_trackdirs);
 		UpdateWaterTiles(tile_cur, 1);
 
 		st->AfterStationTileSetChange(true, dock_area, STATION_DOCK);
@@ -2284,7 +2287,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 			ta.Add(tile1);
 		}
 
+		TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(tile);
 		MakeWaterKeepingClass(tile2, st->owner);
+		ClearAndSetPreferedWaterTrackdirs(tile, pref_trackdirs);
 		UpdateWaterTiles(tile2, 0);
 		st->rect.AfterRemoveTile(st, tile2);
 

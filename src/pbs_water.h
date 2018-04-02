@@ -36,5 +36,6 @@ bool LiftReservations(TileIndex tile);
 bool HasPreferedWaterTrackdirs(TileIndex tile);
 TrackdirBits GetPreferedWaterTrackdirs(TileIndex tile);
 void SetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits change_trackdirs, bool preference);
+void ClearAndSetPreferedWaterTrackdirs(TileIndex tile, TrackdirBits trackdirs);
 
 #endif /* PBS_WATER_H */

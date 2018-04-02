@@ -530,6 +530,8 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				if (is_new_owner && c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 				MakeAqueductBridgeRamp(tile_start, owner, dir);
 				MakeAqueductBridgeRamp(tile_end,   owner, ReverseDiagDir(dir));
+				/* Note: prefered water trackdirs don't need to be set to zero,
+				 * as m2 is zeroed when making the aqueduct. */
 				UpdateWaterTiles(tile_start, 1);
 				UpdateWaterTiles(tile_end, 1);
 				break;
