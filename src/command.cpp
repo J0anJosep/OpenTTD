@@ -152,6 +152,7 @@ CommandProc CmdMoneyCheat;
 CommandProc CmdChangeBankBalance;
 CommandProc CmdBuildCanal;
 CommandProc CmdBuildLock;
+CommandProc CmdModifyPreferredWaterTrackdir;
 
 CommandProc CmdCreateSubsidy;
 CommandProc CmdCompanyCtrl;
@@ -336,6 +337,7 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdLevelLand, CMD_ALL_TILES | CMD_NO_TEST | CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_LEVEL_LAND; test run might clear tiles multiple times, in execution that only happens once
 
 	DEF_CMD(CmdBuildLock,                               CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_LOCK
+	DEF_CMD(CmdModifyPreferredWaterTrackdir,            CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_MODIFY_PREF_WATER_TRACKDIR
 
 	DEF_CMD(CmdBuildSignalTrack,                        CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_BUILD_SIGNAL_TRACK
 	DEF_CMD(CmdRemoveSignalTrack,                       CMD_AUTO, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_REMOVE_SIGNAL_TRACK

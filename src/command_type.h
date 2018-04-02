@@ -300,6 +300,7 @@ enum Commands {
 	CMD_LEVEL_LAND,                   ///< level land
 
 	CMD_BUILD_LOCK,                   ///< build a lock
+	CMD_MODIFY_PREF_WATER_TRACKDIR,   ///< modify preferred water trackdirs
 
 	CMD_BUILD_SIGNAL_TRACK,           ///< add signals along a track (by dragging)
 	CMD_REMOVE_SIGNAL_TRACK,          ///< remove signals along a track (by dragging)
