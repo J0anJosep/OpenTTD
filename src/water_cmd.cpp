@@ -443,6 +443,96 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 	}
 }
 
+static const TileIndexDiffC _trackdelta[] = {
+	{ -1,  0 }, {  0,  1 }, { -1,  0 }, {  0,  1 }, {  1,  0 }, {  0,  1 },
+	{  0,  0 },
+	{  0,  0 },
+	{  1,  0 }, {  0, -1 }, {  0, -1 }, {  1,  0 }, {  0, -1 }, { -1,  0 },
+	{  0,  0 },
+	{  0,  0 }
+};
+
+extern CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileIndex end);
+
+/**
+ * Define the preferred water trackdirs on a stretch of water tracks.
+ * @param tile start
+ * @param flags type of operation
+ * @param end_tile (p1) end tile
+ * @param p2 various bitstuffed elements
+ * - p2 = (bit 0-2) - track-orientation, valid values: 0-5 (Track enum)
+ * - p2 = (bit 3)   - 0 = build, 1 = remove tracks
+ * @param text unused
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdModifyPreferredWaterTrackdir(TileIndex tile, DoCommandFlag flags, TileIndex end_tile, uint32 p2, const char *text)
+{
+	CommandCost total_cost(EXPENSES_CONSTRUCTION);
+	Track track = Extract<Track, 0, 3>(p2);
+	bool remove = HasBit(p2, 3);
+
+	if (!IsValidTrack(track)) return CMD_ERROR;
+	if (!IsValidTile(end_tile)) return CMD_ERROR;
+	if (end_tile == tile) return CMD_ERROR;
+	Trackdir trackdir = TrackToTrackdir(track);
+
+	CommandCost validate = ValidateAutoDrag(&trackdir, tile, end_tile);
+	if (validate.Failed()) return validate;
+
+	bool had_success = false;
+	CommandCost last_error = CMD_ERROR;
+
+	for (;;) {
+		/* Check may have preferred water trackdirs and owner. */
+		if (WaterTrackMayExist(tile)) {
+			CommandCost ret;
+			/* Check owner for docks. */
+			if (IsDockTile(tile) && _current_company != OWNER_WATER) {
+				CommandCost ret = CheckTileOwnership(tile);
+				if (ret.Failed()) return ret;
+			}
+
+			/* Check already built. */
+			TrackdirBits present_trackdirs = GetPreferredWaterTrackdirs(tile);
+			TrackdirBits change_trackdirs = TrackdirToTrackdirBits(trackdir);
+
+			bool change;
+			if (!remove) {
+				change = (present_trackdirs | change_trackdirs) != present_trackdirs;
+			} else {
+				change = (present_trackdirs & ~change_trackdirs) != present_trackdirs;
+			}
+
+			if (change) {
+				/* Add cost. */
+				had_success = true;
+				total_cost.AddCost(CommandCost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_SIGNALS]));
+
+				/* Do the modifications if exec_flag. */
+				if (flags & DC_EXEC) {
+					SetPreferredWaterTrackdirs(tile, change_trackdirs, !remove);
+					MarkTileDirtyByTile(tile);
+				}
+			} else {
+				last_error = CommandCost(remove ? STR_ERROR_NOT_PRESENT : STR_ERROR_ALREADY_BUILT);
+			}
+		} else {
+			break;
+		}
+
+		if (IsBridgeTile(tile)) break;
+		if (tile == end_tile) break;
+
+		tile += ToTileIndexDiff(_trackdelta[trackdir]);
+
+		/* toggle railbit for the non-diagonal tracks */
+		if (!IsDiagonalTrackdir(trackdir)) ToggleBit(trackdir, 0);
+	}
+
+	if (had_success) return total_cost;
+	return last_error;
+}
+
 static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 {
 	/* If executing the command, no ship is on the tile, as pre-exec command checks so.
