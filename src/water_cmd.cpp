@@ -806,6 +806,11 @@ void UpdateWaterTracks(TileIndex t)
 		SB(_m[t].m2, 6, 6, ts);
 		SB(_m[t].m2, 0, 6, shallow);
 	}
+
+	/* Finally, store water trackdir preferences, if necessary. */
+	TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(t);
+	if ((pref_trackdirs & ~TrackBitsToTrackdirBits(ts)) == TRACKDIR_BIT_NONE) return;
+	ClearAndSetPreferedWaterTrackdirs(t, pref_trackdirs & TrackBitsToTrackdirBits(ts));
 }
 
 /**
