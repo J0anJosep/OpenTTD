@@ -2499,6 +2499,7 @@ STR_WATERWAYS_TOOLBAR_BUILD_DEPOT_TOOLTIP                       :{BLACK}Build sh
 STR_WATERWAYS_TOOLBAR_BUILD_DOCK_TOOLTIP                        :{BLACK}Build ship dock. Ctrl enables joining stations. Shift toggles building/showing cost estimate
 STR_WATERWAYS_TOOLBAR_BUOY_TOOLTIP                              :{BLACK}Place a buoy which can be used as a waypoint. Shift toggles building/showing cost estimate
 STR_WATERWAYS_TOOLBAR_BUILD_AQUEDUCT_TOOLTIP                    :{BLACK}Build aqueduct. Shift toggles building/showing cost estimate
+STR_WATERWAYS_TOOLBAR_DEFINE_PREFERRED_TRACKDIRS_TOOLTIP        :{BLACK}Define the preferred trackdirs for a water tiles. Ctrl toogles remove preferred trackdirs
 STR_WATERWAYS_TOOLBAR_CREATE_LAKE_TOOLTIP                       :{BLACK}Define water area.{}Make a canal, unless Ctrl is held down at sea level, when it will flood the surroundings instead
 STR_WATERWAYS_TOOLBAR_CREATE_RIVER_TOOLTIP                      :{BLACK}Place rivers
 
@@ -4634,6 +4635,8 @@ STR_ERROR_THERE_IS_NO_TRAMWAY                                   :{WHITE}... ther
 STR_ERROR_CAN_T_BUILD_CANALS                                    :{WHITE}Can't build canals here...
 STR_ERROR_CAN_T_BUILD_LOCKS                                     :{WHITE}Can't build locks here...
 STR_ERROR_CAN_T_PLACE_RIVERS                                    :{WHITE}Can't place rivers here...
+STR_ERROR_CAN_T_DEFINE_PREF_WATER_TRACKDIR                      :{WHITE}Can't modify preferred water tracks here...
+STR_ERROR_MUST_BE_APPLIED_ON_WATER                              :{WHITE}... must be applied on watered tiles
 STR_ERROR_MUST_BE_BUILT_ON_WATER                                :{WHITE}... must be built on water
 STR_ERROR_CAN_T_BUILD_ON_WATER                                  :{WHITE}... can't build on water
 STR_ERROR_CAN_T_BUILD_ON_SEA                                    :{WHITE}... can't build on open sea

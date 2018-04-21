@@ -1285,6 +1285,7 @@ public:
 		WID_DT_BUOY                                  = ::WID_DT_BUOY,                                  ///< Build buoy button.
 		WID_DT_RIVER                                 = ::WID_DT_RIVER,                                 ///< Build river button (in scenario editor).
 		WID_DT_BUILD_AQUEDUCT                        = ::WID_DT_BUILD_AQUEDUCT,                        ///< Build aqueduct button.
+		WID_DT_PREF_TRACKDIRS                        = ::WID_DT_PREF_TRACKDIRS,                        ///< Define a preferred trackdir on water tiles.
 
 		WID_DT_INVALID                               = ::WID_DT_INVALID,                               ///< Used to initialize a variable.
 	};
