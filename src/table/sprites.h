@@ -59,9 +59,6 @@ static const SpriteID SPR_LARGE_SMALL_WINDOW = 682;
 /* Base graphics spritenumbers. */
 static const SpriteID SPR_OPENTTD_BASE   = 4896;
 
-/** Extra graphic spritenumbers */
-static const uint16 OPENTTD_SPRITE_COUNT = 177;
-
 /* Halftile-selection sprites */
 static const SpriteID SPR_HALFTILE_SELECTION_FLAT = SPR_OPENTTD_BASE;
 static const SpriteID SPR_HALFTILE_SELECTION_DOWN = SPR_OPENTTD_BASE + 4;
@@ -164,10 +161,16 @@ static const SpriteID SPR_IMG_DELETE_LEFT            = SPR_OPENTTD_BASE + 166;
 static const SpriteID SPR_IMG_DELETE_RIGHT           = SPR_OPENTTD_BASE + 167;
 
 static const SpriteID SPR_WINDOW_DEFSIZE             = SPR_OPENTTD_BASE + 168;
+static const SpriteID SPR_IMG_CARGOFLOW              = SPR_OPENTTD_BASE + 174;
+
 static const SpriteID SPR_FILTER_ICON                = SPR_OPENTTD_BASE + 175;
 static const SpriteID SPR_FILTER_GROUPS_ICON         = SPR_OPENTTD_BASE + 176;
 
-static const SpriteID SPR_IMG_CARGOFLOW              = SPR_OPENTTD_BASE + 174;
+static const SpriteID SPR_PREF_TRACKDIRS_ICON        = SPR_OPENTTD_BASE + 177;
+static const SpriteID SPR_PREF_TRACKDIRS_CURSOR      = SPR_OPENTTD_BASE + 178;
+
+/** Extra graphic spritenumbers */
+static const uint16 OPENTTD_SPRITE_COUNT = 179;
 
 static const SpriteID SPR_SIGNALS_BASE  = SPR_OPENTTD_BASE + OPENTTD_SPRITE_COUNT;
 static const uint16 PRESIGNAL_SPRITE_COUNT                   =  48;
