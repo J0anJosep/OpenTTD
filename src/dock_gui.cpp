@@ -170,6 +170,10 @@ struct BuildDocksToolbarWindow : Window {
 				HandlePlacePushButton(this, WID_DT_BUILD_AQUEDUCT, SPR_CURSOR_AQUEDUCT, HT_SPECIAL);
 				break;
 
+			case WID_DT_PREF_TRACKDIRS: // Modify preferred water trackdirs
+				HandlePlacePushButton(this, WID_DT_PREF_TRACKDIRS, SPR_PREF_TRACKDIRS_CURSOR, HT_RAIL);
+				break;
+
 			default: return;
 		}
 		this->last_clicked_widget = (DockToolbarWidgets)widget;
@@ -207,6 +211,10 @@ struct BuildDocksToolbarWindow : Window {
 
 			case WID_DT_BUILD_AQUEDUCT: // Build aqueduct button
 				VpStartPlaceSizing(tile, VPM_SINGLE_TILE, DDSP_BUILD_BRIDGE);
+				break;
+
+			case WID_DT_PREF_TRACKDIRS:
+				VpStartPlaceSizing(tile, VPM_RAILDIRS, DDSP_PLACE_RAIL);
 				break;
 
 			default: NOT_REACHED();
@@ -276,6 +284,15 @@ struct BuildDocksToolbarWindow : Window {
 							break;
 						default: NOT_REACHED();
 					}
+					break;
+
+				case DDSP_PLACE_RAIL:
+					TouchCommandP(TileVirtXY(_thd.selstart.x, _thd.selstart.y),
+							TileVirtXY(_thd.selend.x, _thd.selend.y),
+							(_thd.drawstyle & HT_DIR_MASK) | (_ctrl_pressed << 3),
+							CMD_MODIFY_PREF_WATER_TRACKDIR | CMD_MSG(STR_ERROR_CAN_T_DEFINE_PREF_WATER_TRACKDIR),
+							CcPlaySound_SPLAT_WATER);
+					break;
 
 				default: break;
 			}
@@ -363,6 +380,7 @@ static const NWidgetPart _nested_build_docks_toolbar_widgets[] = {
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_STATION), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_SHIP_DOCK, STR_WATERWAYS_TOOLBAR_BUILD_DOCK_TOOLTIP),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_BUOY), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_IMG_BUOY, STR_WATERWAYS_TOOLBAR_BUOY_TOOLTIP),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_BUILD_AQUEDUCT), SetMinimalSize(23, 22), SetFill(0, 1), SetDataTip(SPR_IMG_AQUEDUCT, STR_WATERWAYS_TOOLBAR_BUILD_AQUEDUCT_TOOLTIP),
+		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_DT_PREF_TRACKDIRS), SetMinimalSize(22, 22), SetFill(0, 1), SetDataTip(SPR_PREF_TRACKDIRS_ICON, STR_WATERWAYS_TOOLBAR_DEFINE_PREFERRED_TRACKDIRS_TOOLTIP),
 	EndContainer(),
 };
 

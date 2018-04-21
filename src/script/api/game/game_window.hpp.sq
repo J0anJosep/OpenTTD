@@ -438,6 +438,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_BUOY,                               "WID_DT_BUOY");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_RIVER,                              "WID_DT_RIVER");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_BUILD_AQUEDUCT,                     "WID_DT_BUILD_AQUEDUCT");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_PREF_TRACKDIRS,                     "WID_DT_PREF_TRACKDIRS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_INVALID,                            "WID_DT_INVALID");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DM_ITEMS,                              "WID_DM_ITEMS");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DM_SHOW_SCROLL,                        "WID_DM_SHOW_SCROLL");
