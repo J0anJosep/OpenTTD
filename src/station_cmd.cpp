@@ -2541,6 +2541,18 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	/* Get the water class of the water tile before it is cleared.*/
 	WaterClass wc = GetWaterClass(tile_cur);
 
+	/* Store preferred water trackdirs for involved tiles.
+	 * We must clear the tile, and that may clear
+	 * neighbour preferences. Store them before erasing them. */
+	TileArea neighbour_area(tile_cur, 1, 1, 1);
+	TrackdirBits neighbour_tdb[9];
+	uint i = 0;
+	TILE_AREA_LOOP(t, neighbour_area) {
+		if (!WaterTrackMayExist(t)) continue;
+		neighbour_tdb[i] = GetPreferredWaterTrackdirs(t);
+		i++;
+	}
+
 	ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (ret.Failed()) return ret;
 
@@ -2586,6 +2598,12 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 			SetDockTracks(tile_cur, TRACK_BIT_CROSS);
 		}
 
+		i = 0;
+		TILE_AREA_LOOP(t, neighbour_area) {
+			if (!WaterTrackMayExist(t)) continue;
+			ClearAndSetPreferredWaterTrackdirs(t, neighbour_tdb[i]);
+			i++;
+		}
 		UpdateWaterTiles(tile_cur, 1);
 
 		st->AfterStationTileSetChange(true, dock_area, STATION_DOCK);
@@ -2615,6 +2633,16 @@ CommandCost CmdRotateDockTracks(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	if (flags & DC_EXEC) {
 		if (HasWaterTrackReservation(tile)) LiftReservedWaterPaths(tile);
 		RotateDockTracks(tile);
+
+		/* Update water preferred tracks. */
+		if (HasPreferredWaterTrackdirs(tile)) {
+			TrackdirBits tdb = GetPreferredWaterTrackdirs(tile);
+			TrackdirBits dock_trackdirs = TrackBitsToTrackdirBits(GetDockTracks(tile));
+			if (tdb != (tdb & dock_trackdirs)) {
+				SetPreferredWaterTrackdirs(tile, tdb & ~dock_trackdirs, false);
+			}
+		}
+
 		MarkTileDirtyByTile(tile);
 	}
 
@@ -2667,8 +2695,10 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 			ta.Add(tile1);
 		}
 
+		TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(tile2);
 		MakeWaterKeepingClass(tile2, st->owner);
 		UpdateWaterTiles(tile2, 0);
+		ClearAndSetPreferredWaterTrackdirs(tile2, pref_trackdirs);
 		st->rect.AfterRemoveTile(st, tile2);
 
 		st->dock_station.Clear();

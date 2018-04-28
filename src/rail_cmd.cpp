@@ -571,6 +571,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			bool water_ground = IsTileType(tile, MP_WATER) && IsSlopeWithOneCornerRaised(tileh);
 			/* Save water status... */
 			TrackBits reserved_tracks = water_ground ? GetReservedWaterTracks(tile) : TRACK_BIT_NONE;
+			TrackdirBits pref_trackdirs = water_ground ? GetPreferredWaterTrackdirs(tile) : TRACKDIR_BIT_NONE;
 
 
 			if (water_ground) {
@@ -588,6 +589,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 				if (water_ground) {
 					SetRailGroundType(tile, RAIL_GROUND_WATER);
 					SetWaterTrackReservation(tile, reserved_tracks);
+					ClearAndSetPreferredWaterTrackdirs(tile, pref_trackdirs);
 				}
 
 				Company::Get(_current_company)->infrastructure.rail[railtype]++;
@@ -714,8 +716,10 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 					if (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh)) {
 						assert(WaterTrackMayExist(tile));
 						TrackBits reserved_tracks = GetReservedWaterTracks(tile);
+						TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(tile);
 						MakeShore(tile);
 						SetWaterTrackReservation(tile, reserved_tracks);
+						ClearAndSetPreferredWaterTrackdirs(tile, pref_trackdirs);
 						UpdateWaterTiles(tile, 1);
 					} else {
 						DoClearSquare(tile);

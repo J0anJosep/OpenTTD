@@ -41,6 +41,7 @@
 #include "newgrf_generic.h"
 #include "pbs_water.h"
 #include "tilearea_type.h"
+#include "dock_base.h"
 
 #include "table/strings.h"
 
@@ -396,12 +397,14 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		if (IsTileType(tile, MP_WATER) && (!IsTileOwner(tile, OWNER_WATER) || wc == WATER_CLASS_SEA)) continue;
 
 		TrackBits reserved_tracks = TRACK_BIT_NONE;
+		TrackdirBits pref_trackdirs = TRACKDIR_BIT_NONE;
 		if (!IsWaterTile(tile)) {
 			ret = DoCommand(tile, 0, 0, flags | DC_FORCE_CLEAR_TILE, CMD_LANDSCAPE_CLEAR);
 			if (ret.Failed()) return ret;
 			cost.AddCost(ret);
 		} else {
 			reserved_tracks = GetReservedWaterTracks(tile);
+			pref_trackdirs = GetPreferredWaterTrackdirs(tile);
 		}
 
 		if (flags & DC_EXEC) {
@@ -430,6 +433,7 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 					break;
 			}
 			SetWaterTrackReservation(tile, reserved_tracks);
+			ClearAndSetPreferredWaterTrackdirs(tile, pref_trackdirs);
 			UpdateWaterTiles(tile, 1);
 		}
 
@@ -910,6 +914,11 @@ void UpdateWaterTracks(TileIndex t)
 		SB(_m[t].m2, 6, 6, ts);
 		SB(_m[t].m2, 0, 6, shallow);
 	}
+
+	/* Finally, store water trackdir preferences, if necessary. */
+	TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(t);
+	if ((pref_trackdirs & ~TrackBitsToTrackdirBits(ts)) == TRACKDIR_BIT_NONE) return;
+	SetPreferredWaterTrackdirs(t, pref_trackdirs & ~TrackBitsToTrackdirBits(ts), false);
 }
 
 /**
@@ -1242,8 +1251,8 @@ void DrawWaterTracks(TileIndex tile)
 		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
 	}
 
-	if (!HasPreferedWaterTrackdirs(tile)) return;
-	TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(tile);
+	if (!HasPreferredWaterTrackdirs(tile)) return;
+	TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(tile);
 	FOR_EACH_SET_TRACK(track, available) {
 		static const uint trackdir_offset[] = {0, 1, 2, 3, 4, 5, 0, 0, 10, 11, 12, 13, 14, 15};
 		Trackdir trackdir = TrackToTrackdir(track);

@@ -333,8 +333,11 @@ CommandCost CmdBuildBuoy(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		if (wp->town == NULL) MakeDefaultName(wp);
 
 		TrackBits tracks = GetReservedWaterTracks(tile);
+		TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(tile);
 		MakeBuoy(tile, wp->index, GetWaterClass(tile));
 		SetWaterTrackReservation(tile, tracks);
+		ClearAndSetPreferredWaterTrackdirs(tile, pref_trackdirs);
+
 		UpdateWaterTiles(tile, 0);
 		MarkTileDirtyByTile(tile);
 
@@ -376,8 +379,10 @@ CommandCost RemoveBuoy(TileIndex tile, DoCommandFlag flags)
 		 * buoy was placed. Otherwise one could plant a buoy on a canal edge,
 		 * remove it and flood the land (if the canal edge is at level 0) */
 		TrackBits tracks = GetReservedWaterTracks(tile);
+		TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(tile);
 		MakeWaterKeepingClass(tile, GetTileOwner(tile));
 		SetWaterTrackReservation(tile, tracks);
+		ClearAndSetPreferredWaterTrackdirs(tile, pref_trackdirs);
 		UpdateWaterTiles(tile, 0);
 
 		wp->rect.AfterRemoveTile(wp, tile);
