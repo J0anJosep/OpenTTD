@@ -1239,6 +1239,22 @@ void DrawWaterTracks(TileIndex tile)
 	FOR_EACH_SET_TRACK(track, trackbits) {
 		DrawGroundSpriteAt(SPR_AUTORAIL_WATER + track + slope_off, PAL_NONE, 0, 0, TILE_HEIGHT);
 	}
+
+	if (!HasPreferedWaterTrackdirs(tile)) return;
+	TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(tile);
+	FOR_EACH_SET_TRACK(track, available) {
+		static const uint trackdir_offset[] = {0, 1, 2, 3, 4, 5, 0, 0, 10, 11, 12, 13, 14, 15};
+		Trackdir trackdir = TrackToTrackdir(track);
+		if (HasBit(pref_trackdirs, trackdir))
+			DrawGroundSpriteAt(SPR_AUTORAIL_DIR_EN + trackdir_offset[trackdir] + slope_off,
+					PALETTE_SEL_TILE_GREEN,
+					0, 0, TILE_HEIGHT + z_offset);
+		trackdir = ReverseTrackdir(trackdir);
+		if (HasBit(pref_trackdirs, trackdir))
+			DrawGroundSpriteAt(SPR_AUTORAIL_DIR_EN + trackdir_offset[trackdir] + slope_off,
+					PALETTE_SEL_TILE_GREEN,
+					0, 0, TILE_HEIGHT + z_offset);
+	}
 }
 
 static void DrawTile_Water(TileInfo *ti)
