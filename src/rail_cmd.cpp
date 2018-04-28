@@ -559,25 +559,33 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		}
 
 		default: {
-			/* Will there be flat water on the lower halftile? */
-			bool water_ground = IsTileType(tile, MP_WATER) && IsSlopeWithOneCornerRaised(tileh);
-
 			CommandCost ret = CheckRailSlope(tileh, trackbit, TRACK_BIT_NONE, tile);
 			if (ret.Failed()) return ret;
 			cost.AddCost(ret);
 
-			ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-			if (ret.Failed()) return ret;
-			cost.AddCost(ret);
+			/* Will there be flat water on the lower halftile? */
+			bool water_ground = IsTileType(tile, MP_WATER) && IsSlopeWithOneCornerRaised(tileh);
+			/* Save water status... */
+			TrackBits reserved_tracks = water_ground ? GetReservedWaterTracks(tile) : TRACK_BIT_NONE;
+
 
 			if (water_ground) {
-				cost.AddCost(-_price[PR_CLEAR_WATER]);
 				cost.AddCost(_price[PR_CLEAR_ROUGH]);
+			} else {
+				ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+				if (ret.Failed()) return ret;
+				cost.AddCost(ret);
 			}
 
 			if (flags & DC_EXEC) {
 				MakeRailNormal(tile, _current_company, trackbit, railtype);
-				if (water_ground) SetRailGroundType(tile, RAIL_GROUND_WATER);
+
+				/* ... and restore water status. */
+				if (water_ground) {
+					SetRailGroundType(tile, RAIL_GROUND_WATER);
+					SetWaterTrackReservation(tile, reserved_tracks);
+				}
+
 				Company::Get(_current_company)->infrastructure.rail[railtype]++;
 				DirtyCompanyInfrastructureWindows(_current_company);
 			}
@@ -685,8 +693,6 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 					if (v != NULL) FreeTrainTrackReservation(v);
 				}
 
-				if (WaterTrackMayExist(tile)) LiftReservations(tile);
-
 				owner = GetTileOwner(tile);
 
 				/* Subtract old infrastructure count. */
@@ -704,7 +710,10 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 					Slope tileh = GetTileSlope(tile);
 					/* If there is flat water on the lower halftile, convert the tile to shore so the water remains */
 					if (GetRailGroundType(tile) == RAIL_GROUND_WATER && IsSlopeWithOneCornerRaised(tileh)) {
+						assert(WaterTrackMayExist(tile));
+						TrackBits reserved_tracks = GetReservedWaterTracks(tile);
 						MakeShore(tile);
+						SetWaterTrackReservation(tile, reserved_tracks);
 						UpdateWaterTiles(tile, 1);
 					} else {
 						DoClearSquare(tile);
