@@ -519,6 +519,8 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				if (is_new_owner && c != NULL) c->infrastructure.water += (bridge_len + 2) * TUNNELBRIDGE_TRACKBIT_FACTOR;
 				MakeAqueductBridgeRamp(tile_start, owner, dir);
 				MakeAqueductBridgeRamp(tile_end,   owner, ReverseDiagDir(dir));
+				/* Note: preferred water trackdirs don't need to be set to zero,
+				 * as m2 is zeroed when making the aqueduct. */
 				UpdateWaterTiles(tile_start, 1);
 				UpdateWaterTiles(tile_end, 1);
 				break;
@@ -1373,8 +1375,8 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 				AddSortableSpriteToDraw(SPR_AUTORAIL_WATER + track,
 						HasTunnelBridgeReservation(ti->tile) ? PAL_NONE : PALETTE_SEL_TILE_BLUE,
 						ti->x, ti->y, 16, 16, 0, ti->z + 16);
-				if (HasPreferedWaterTrackdirs(ti->tile)) {
-					TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(ti->tile);
+				if (HasPreferredWaterTrackdirs(ti->tile)) {
+					TrackdirBits pref_trackdirs = GetPreferredWaterTrackdirs(ti->tile);
 					static const uint trackdir_offset[] = {0, 1, 2, 3, 4, 5, 0, 0, 10, 11, 12, 13, 14, 15};
 					Trackdir trackdir = TrackToTrackdir(track);
 					if (HasBit(pref_trackdirs, trackdir))
