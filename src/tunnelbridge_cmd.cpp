@@ -40,6 +40,7 @@
 #include "object_base.h"
 #include "water.h"
 #include "company_gui.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 #include "table/bridge_land.h"
@@ -1372,6 +1373,20 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 				AddSortableSpriteToDraw(SPR_AUTORAIL_WATER + track,
 						HasTunnelBridgeReservation(ti->tile) ? PAL_NONE : PALETTE_SEL_TILE_BLUE,
 						ti->x, ti->y, 16, 16, 0, ti->z + 16);
+				if (HasPreferedWaterTrackdirs(ti->tile)) {
+					TrackdirBits pref_trackdirs = GetPreferedWaterTrackdirs(ti->tile);
+					static const uint trackdir_offset[] = {0, 1, 2, 3, 4, 5, 0, 0, 10, 11, 12, 13, 14, 15};
+					Trackdir trackdir = TrackToTrackdir(track);
+					if (HasBit(pref_trackdirs, trackdir))
+						AddSortableSpriteToDraw(SPR_AUTORAIL_DIR_EN + trackdir_offset[trackdir],
+								PALETTE_SEL_TILE_GREEN,
+								ti->x, ti->y, 0, 0, 0, ti->z + 16);
+					trackdir = ReverseTrackdir(trackdir);
+					if (HasBit(pref_trackdirs, trackdir))
+						AddSortableSpriteToDraw(SPR_AUTORAIL_DIR_EN + trackdir_offset[trackdir],
+								PALETTE_SEL_TILE_GREEN,
+								ti->x, ti->y, 0, 0, 0, ti->z + 16);
+				}
 			}
 
 			EndSpriteCombine();
