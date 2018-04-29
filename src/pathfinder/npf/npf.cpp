@@ -79,11 +79,6 @@ static AyStar _npf_aystar;
  * the shorter piece is sqrt(2)/2*NPF_TILE_LENGTH =~ 0.7071
  */
 #define NPF_STRAIGHT_LENGTH (uint)(NPF_TILE_LENGTH * STRAIGHT_TRACK_LENGTH)
-static const uint _trackdir_length[TRACKDIR_END] = {
-	NPF_TILE_LENGTH, NPF_TILE_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH,
-	0, 0,
-	NPF_TILE_LENGTH, NPF_TILE_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH, NPF_STRAIGHT_LENGTH
-};
 
 /**
  * Returns the current value of the given flag on the given AyStarNode.
@@ -303,7 +298,7 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 	int32 cost = 0;
 	Trackdir trackdir = current->direction;
 
-	cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
+	cost = IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH;
 
 	if (IsBuoyTile(current->tile) && IsDiagonalTrackdir(trackdir)) {
 		cost += _settings_game.pf.npf.npf_buoy_penalty; // A small penalty for going over buoys
@@ -393,7 +388,7 @@ static int32 NPFRailPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 			break;
 
 		case MP_RAILWAY:
-			cost = _trackdir_length[trackdir]; // Should be different for diagonal tracks
+			cost = IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH;
 			break;
 
 		case MP_ROAD: // Railway crossing
