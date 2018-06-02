@@ -67,6 +67,8 @@ namespace SQConvert {
 	template <> inline int Return<ScriptWindow::DepotWidgets>(HSQUIRRELVM vm, ScriptWindow::DepotWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
 	template <> inline ScriptWindow::BuildDockDepotWidgets GetParam(ForceType<ScriptWindow::BuildDockDepotWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::BuildDockDepotWidgets)tmp; }
 	template <> inline int Return<ScriptWindow::BuildDockDepotWidgets>(HSQUIRRELVM vm, ScriptWindow::BuildDockDepotWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
+	template <> inline ScriptWindow::BuildLockWidgets GetParam(ForceType<ScriptWindow::BuildLockWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::BuildLockWidgets)tmp; }
+	template <> inline int Return<ScriptWindow::BuildLockWidgets>(HSQUIRRELVM vm, ScriptWindow::BuildLockWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
 	template <> inline ScriptWindow::DockToolbarWidgets GetParam(ForceType<ScriptWindow::DockToolbarWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::DockToolbarWidgets)tmp; }
 	template <> inline int Return<ScriptWindow::DockToolbarWidgets>(HSQUIRRELVM vm, ScriptWindow::DockToolbarWidgets res) { sq_pushinteger(vm, (int32)res); return 1; }
 	template <> inline ScriptWindow::DropdownMenuWidgets GetParam(ForceType<ScriptWindow::DropdownMenuWidgets>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger tmp; sq_getinteger(vm, index, &tmp); return (ScriptWindow::DropdownMenuWidgets)tmp; }

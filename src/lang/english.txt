@@ -2531,6 +2531,13 @@ STR_WATERWAYS_TOOLBAR_CREATE_RIVER_TOOLTIP                      :{BLACK}Place ri
 STR_DEPOT_BUILD_SHIP_CAPTION                                    :{WHITE}Ship Depot Orientation
 STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP                        :{BLACK}Select ship depot orientation
 
+# Water lock construction window
+STR_BUILD_LOCK_CAPTION                                          :{WHITE}Lock length
+STR_BUILD_LOCK_TOOLTIP                                          :{BLACK}Select lock length
+STR_BUILD_LOCK_LENGTH_3                                         :{BLACK}3 tiles
+STR_BUILD_LOCK_LENGTH_5                                         :{BLACK}5 tiles
+STR_BUILD_LOCK_LENGTH_7                                         :{BLACK}7 tiles
+
 # Dock construction window
 STR_STATION_BUILD_DOCK_CAPTION                                  :{WHITE}Dock
 
