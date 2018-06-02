@@ -544,6 +544,12 @@ public:
 		WC_BUILD_DEPOT                               = ::WC_BUILD_DEPOT,
 
 		/**
+		 * Build lock; %Window numbers:
+		 *   - #TRANSPORT_WATER = #BuildLockWidgets
+		 */
+		WC_BUILD_LOCK                                = ::WC_BUILD_LOCK,
+
+		/**
 		 * Build waypoint; %Window numbers:
 		 *   - #TRANSPORT_RAIL = #BuildRailWaypointWidgets
 		 */
@@ -1279,6 +1285,14 @@ public:
 		WID_BDD_BACKGROUND                           = ::WID_BDD_BACKGROUND,                           ///< Background of the window.
 		WID_BDD_X                                    = ::WID_BDD_X,                                    ///< X-direction button.
 		WID_BDD_Y                                    = ::WID_BDD_Y,                                    ///< Y-direction button.
+	};
+
+	/** Widgets of the #BuildLockWindow class. */
+	enum BuildLockWidgets {
+		WID_BLD_BACKGROUND                           = ::WID_BLD_BACKGROUND,                           ///< Background of the window.
+		WID_BLD_3                                    = ::WID_BLD_3,                                    ///< 3 tile-long button.
+		WID_BLD_5                                    = ::WID_BLD_5,                                    ///< 5 tile-long button.
+		WID_BLD_7                                    = ::WID_BLD_7,                                    ///< 7 tile-long button.
 	};
 
 	/** Widgets of the #BuildDocksToolbarWindow class. */

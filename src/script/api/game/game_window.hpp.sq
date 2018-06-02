@@ -104,6 +104,7 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_BUS_STATION,                            "WC_BUS_STATION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_TRUCK_STATION,                          "WC_TRUCK_STATION");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_BUILD_DEPOT,                            "WC_BUILD_DEPOT");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_BUILD_LOCK,                             "WC_BUILD_LOCK");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_BUILD_WAYPOINT,                         "WC_BUILD_WAYPOINT");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_FOUND_TOWN,                             "WC_FOUND_TOWN");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WC_BUILD_INDUSTRY,                         "WC_BUILD_INDUSTRY");
@@ -426,6 +427,10 @@ void SQGSWindow_Register(Squirrel *engine)
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BDD_BACKGROUND,                        "WID_BDD_BACKGROUND");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BDD_X,                                 "WID_BDD_X");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BDD_Y,                                 "WID_BDD_Y");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BLD_BACKGROUND,                        "WID_BLD_BACKGROUND");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BLD_3,                                 "WID_BLD_3");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BLD_5,                                 "WID_BLD_5");
+	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_BLD_7,                                 "WID_BLD_7");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_CANAL,                              "WID_DT_CANAL");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_LOCK,                               "WID_DT_LOCK");
 	SQGSWindow.DefSQConst(engine, ScriptWindow::WID_DT_DEMOLISH,                           "WID_DT_DEMOLISH");
