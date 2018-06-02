@@ -459,6 +459,12 @@ enum WindowClass {
 	WC_BUILD_DEPOT,
 
 	/**
+	 * Build lock; %Window numbers:
+	 *   - #TRANSPORT_WATER = #BuildLockWidgets
+	 */
+	WC_BUILD_LOCK,
+
+	/**
 	 * Build waypoint; %Window numbers:
 	 *   - #TRANSPORT_RAIL = #BuildRailWaypointWidgets
 	 */

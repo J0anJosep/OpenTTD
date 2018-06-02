@@ -39,8 +39,10 @@
 
 static void ShowBuildDockStationPicker(Window *parent);
 static void ShowBuildDocksDepotPicker(Window *parent);
+static void ShowBuildLockPicker(Window *parent);
 
 static Axis _ship_depot_direction;
+static uint8 _lock_length;
 
 void CcBuildDocks(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
@@ -141,7 +143,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_LOCK: // Build lock button
-				HandlePlacePushButton(this, WID_DT_LOCK, SPR_CURSOR_LOCK, HT_SPECIAL);
+				if (HandlePlacePushButton(this, WID_DT_LOCK, SPR_CURSOR_LOCK, HT_SPECIAL)) ShowBuildLockPicker(this);
 				break;
 
 			case WID_DT_DEMOLISH: // Demolish aka dynamite button
@@ -271,7 +273,7 @@ struct BuildDocksToolbarWindow : Window {
 
 				case DDSP_REMOVE_TRUCKSTOP: { // Reusing for locks.
 					TileIndex middle_tile = GetMiddleTile(start_tile, end_tile);
-					TouchCommandP(middle_tile, 3, 0, CMD_BUILD_LOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_LOCKS), CcBuildDocks);
+					TouchCommandP(middle_tile, 3 + 2 * _lock_length, 0, CMD_BUILD_LOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_LOCKS), CcBuildDocks);
 					VpStartPreSizing();
 					break;
 				}
@@ -317,6 +319,7 @@ struct BuildDocksToolbarWindow : Window {
 
 		DeleteWindowById(WC_BUILD_STATION, TRANSPORT_WATER);
 		DeleteWindowById(WC_BUILD_DEPOT, TRANSPORT_WATER);
+		DeleteWindowById(WC_BUILD_LOCK, TRANSPORT_WATER);
 		DeleteWindowById(WC_SELECT_STATION, 0);
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 		EraseQueuedTouchCommand();
@@ -332,10 +335,17 @@ struct BuildDocksToolbarWindow : Window {
 		} else {
 			DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile_from));
 			if (IsValidDiagDirection(dir)) {
-				/* Locks and docks always select the tile "down" the slope. */
-				tile_to = TileAddByDiagDir(tile_from, ReverseDiagDir(dir));
-				/* Locks also select the tile "up" the slope. */
-				if (this->last_clicked_widget == WID_DT_LOCK) tile_from = TileAddByDiagDir(tile_from, dir);
+				if (this->last_clicked_widget == WID_DT_LOCK) {
+					/* Locks select the tile "up" and the tile down the slope. */
+					int offset = TileOffsByDiagDir(dir) * (_lock_length + 1);
+					if (IsValidTile(tile_from + offset) && IsValidTile(tile_from - offset)) {
+						tile_to = tile_from - offset;
+						tile_from = tile_from + offset;
+					}
+				} else {
+					/* Docks always select the tile "down" the slope. */
+					tile_to = TileAddByDiagDir(tile_from, ReverseDiagDir(dir));
+				}
 			}
 		}
 
@@ -679,8 +689,78 @@ static void ShowBuildDocksDepotPicker(Window *parent)
 	new BuildDocksDepotWindow(&_build_docks_depot_desc, parent);
 }
 
+struct BuildLockWindow : public PickerWindowBase {
+public:
+	BuildLockWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	{
+		this->InitNested(TRANSPORT_WATER);
+		this->LowerWidget(_lock_length + WID_BLD_3);
+	}
+
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	{
+		switch (widget) {
+			case WID_BLD_3:
+			case WID_BLD_5:
+			case WID_BLD_7:
+				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
+				size->height = max(size->height, d.height + padding.height);
+				size->width= max(size->width, d.height + padding.height);
+				break;
+		}
+	}
+
+	virtual void OnClick(Point pt, int widget, int click_count)
+	{
+		switch (widget) {
+			case WID_BLD_3:
+			case WID_BLD_5:
+			case WID_BLD_7:
+				this->RaiseWidget(_lock_length + WID_BLD_3);
+				_lock_length = widget - WID_BLD_3;
+				this->LowerWidget(_lock_length + WID_BLD_3);
+				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+				EraseQueuedTouchCommand();
+				this->SetDirty();
+				break;
+		}
+	}
+};
+
+static const NWidgetPart _nested_build_lock_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetDataTip(STR_BUILD_LOCK_CAPTION, STR_BUILD_LOCK_TOOLTIP),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_DARK_GREEN, WID_BLD_BACKGROUND),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
+		NWidget(NWID_HORIZONTAL), SetPIP(14, 0, 14),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BLD_3), SetSizingType(NWST_BUTTON), SetDataTip(STR_BUILD_LOCK_LENGTH_3, STR_BUILD_LOCK_TOOLTIP),
+			NWidget(NWID_SPACER), SetMinimalSize(2, 0),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BLD_5), SetSizingType(NWST_BUTTON), SetDataTip(STR_BUILD_LOCK_LENGTH_5, STR_BUILD_LOCK_TOOLTIP),
+			NWidget(NWID_SPACER), SetMinimalSize(2, 0),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BLD_7), SetSizingType(NWST_BUTTON), SetDataTip(STR_BUILD_LOCK_LENGTH_7, STR_BUILD_LOCK_TOOLTIP),
+		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
+	EndContainer(),
+};
+
+static WindowDesc _build_lock_desc(
+	WDP_AUTO, NULL, 0, 0,
+	WC_BUILD_LOCK, WC_BUILD_TOOLBAR,
+	WDF_CONSTRUCTION,
+	_nested_build_lock_widgets, lengthof(_nested_build_lock_widgets)
+);
+
+
+static void ShowBuildLockPicker(Window *parent)
+{
+	new BuildLockWindow(&_build_lock_desc, parent);
+}
+
 
 void InitializeDockGui()
 {
 	_ship_depot_direction = AXIS_X;
+	_lock_length = 0;
 }

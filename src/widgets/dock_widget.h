@@ -19,6 +19,14 @@ enum BuildDockDepotWidgets {
 	WID_BDD_Y,          ///< Y-direction button.
 };
 
+/** Widgets of the #BuildLockWindow class. */
+enum BuildLockWidgets {
+	WID_BLD_BACKGROUND, ///< Background of the window.
+	WID_BLD_3,          ///< 3 tile-long button.
+	WID_BLD_5,          ///< 5 tile-long button.
+	WID_BLD_7,          ///< 7 tile-long button.
+};
+
 /** Widgets of the #BuildDocksToolbarWindow class. */
 enum DockToolbarWidgets {
 	WID_DT_CANAL,          ///< Build canal button.
