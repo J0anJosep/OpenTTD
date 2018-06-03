@@ -327,18 +327,16 @@ Ship *GetShipForReservation(TileIndex tile, Track track)
 			if (fsoti.best != NULL) return fsoti.best;
 		}
 
-		/* Special case for locks: check the three tiles. */
+		/* Special case for locks: check all lock tiles. */
 		if (IsLockTile(fsoti.res.tile)) {
-			/* Move to middle tile of the lock. */
 			TileIndex t = GetLockMiddleTile(fsoti.res.tile);
-			FindVehicleOnPos(t, &fsoti, FindShipOnTrackEnum);
-			if (fsoti.best != NULL) return fsoti.best;
-			/* Check other tiles. */
-			DiagDirection diagdir = GetLockDirection(t);
-			FindVehicleOnPos(TileAddByDiagDir(t, diagdir), &fsoti, FindShipOnTrackEnum);
-			if (fsoti.best != NULL) return fsoti.best;
-			FindVehicleOnPos(TileAddByDiagDir(t, ReverseDiagDir(diagdir)), &fsoti, FindShipOnTrackEnum);
-			if (fsoti.best != NULL) return fsoti.best;
+			TileIndexDiff tilediff_to_lower = GetLockTileIndexDiffToLastLowerTile(t);
+			TileArea ta(t + tilediff_to_lower, t - tilediff_to_lower);
+
+			TILE_AREA_LOOP(t, ta) {
+				FindVehicleOnPos(t, &fsoti, FindShipOnTrackEnum);
+				if (fsoti.best != NULL) return fsoti.best;
+			}
 		}
 	}
 
