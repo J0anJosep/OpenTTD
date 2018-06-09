@@ -1196,7 +1196,7 @@ static void DrawWaterLock(const TileInfo *ti)
 	if (image < 5) image += water_base;
 	DrawGroundSprite(image, PAL_NONE);
 
-	if (_settings_game.pf.ship_path_reservation) {
+	if (_settings_game.pf.ship_path_reservation && false) {
 		/* Draw lock with gates. */
 		int8 water_level = GetLockWaterLevel(ti->tile);
 		int8 z_offset = water_level - (part == LOCK_PART_UPPER ? 8 : 0);

@@ -744,7 +744,7 @@ static void ShipController(Ship *v)
 				break;
 			}
 			case SLS_SHIP_ENTER:
-				if (gp.new_tile != v->tile) {
+				if (GetLockPart(gp.new_tile) == LOCK_PART_MIDDLE) {
 					/* Do not let it enter next tile yet. */
 					v->lock = SLS_SHIP_UPDOWN;
 				} else {
@@ -756,10 +756,13 @@ static void ShipController(Ship *v)
 			case SLS_SHIP_UPDOWN: {
 				assert(v->tile != gp.new_tile);
 				assert(GetLockPart(v->tile) != LOCK_PART_MIDDLE);
+				assert(GetLockPart(gp.new_tile) == LOCK_PART_MIDDLE);
 				uint8 final_level = (GetLockPart(v->tile) == LOCK_PART_LOWER ? TILE_HEIGHT : 0);
 				uint8 level = GetLockWaterLevel(v->tile);
 				if (final_level != level) {
 					level += level > final_level ? -1 : +1;
+					DEBUG(misc, 0, "On SHIP UPDOWN the water level of a %d lock part on v-tile, and %d on new tile.", GetLockPart(v->tile), GetLockPart(gp.new_tile));
+					DEBUG(misc, 0, "MIDDLE 0, LOWER 1 UPPER 2");
 					SetLockWaterLevel(v->tile, level);
 					SetLockWaterLevel(gp.new_tile, level);
 					MarkTileDirtyByTile(v->tile);
@@ -789,6 +792,8 @@ static void ShipController(Ship *v)
 					v->tile = gp.new_tile;
 					v->lock = SLS_SHIP_LEAVE;
 				} else {
+					DEBUG(misc, 0, "On leave setting the water level of a %d lock part.", GetLockPart(other));
+					DEBUG(misc, 0, "MIDDLE 0, LOWER 1 UPPER 2");
 					SetLockWaterLevel(other, level + (level > final_level ? -1 : 1));
 					MarkTileDirtyByTile(other);
 				}
@@ -963,7 +968,7 @@ getout:
 
 reverse_direction:
 	if (_settings_game.pf.ship_path_reservation &&
-			v->lock == SLS_NO_LOCK && IsLockTile(v->tile)) v->lock = SLS_SHIP_ENTER;
+			v->lock == SLS_NO_LOCK && IsLockTile(v->tile)) v->lock = SLS_SHIP_ENTER; // revise ? no need for prepare?
 	dir = ReverseDir(v->direction);
 	v->direction = dir;
 	goto getout;
