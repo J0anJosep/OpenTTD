@@ -397,6 +397,18 @@ static inline uint8 GetLockDistanceToMiddle(TileIndex t)
 }
 
 /**
+ * Get the tile towards the lower end tile of a lock.
+ * @param t Water tile to query.
+ * @return The TileIndex which is one tile closer to the lower end tile of the lock.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static inline TileIndex GetTileTowardsLowering(TileIndex t)
+{
+	assert(IsLock(t));
+	return TileAddByDiagDir(t, ReverseDiagDir(GetLockDirection(t)));
+}
+
+/**
  * Get the TileIndexDiff towards the middle tile of a lock.
  * @param t Water tile to query.
  * @return The TileIndexDiff to move one tile closer to the middle tile of the lock.
@@ -461,6 +473,27 @@ static inline TileIndex GetLockLastLowerTile(TileIndex t)
 	assert(IsLock(t));
 	assert(GetLockPart(t) == LOCK_PART_MIDDLE);
 	return t + GetLockTileIndexDiffToLastLowerTile(t);
+}
+
+/**
+ * Returns whether the tile is one end of a lock.
+ * @param tile to check
+ * @return whether tile is one of the two ends of a lock.
+ */
+static inline bool IsLastLockTile(TileIndex tile)
+{
+	return GetLockDistanceToMiddle(tile) == GetMaxDistanceFromMiddleLock(GetLockLength(tile));
+}
+
+/**
+ * Returns the other end of a lock.
+ * @param tile one end of a lock.
+ * @return the TileIndex of the other end of a lock.
+ */
+static inline TileIndex GetLockOtherEnd(TileIndex tile)
+{
+	assert(IsLastLockTile(tile));
+	return tile + 2 * GetLockTileIndexDiffToMiddle(tile);
 }
 
 /**

@@ -689,6 +689,59 @@ int GetLockZ(TileIndex tile)
 	return z + GetLockWaterLevel(tile);
 }
 
+/**
+ * Returns the tiles that may not have an appropriate water level
+ * for a ship entering the lock from the given tile.
+ * @param tile the tile where a ship is trying to enter a lock.
+ * @return the tiles that may not have an appropriate water level.
+ */
+TileArea TileAreaToPrepare(TileIndex tile)
+{
+	return TileArea(GetLockMiddleTile(tile), GetLockOtherEnd(tile));
+}
+
+/**
+ * Return the tiles that change their water level
+ * when a ship is being lifted/lowered.
+ * Now it is the whole area of a lock, but lock behaviour
+ * could be changed in the future.
+ * @param tile one tile of the lock.
+ */
+TileArea TileAreaUpDown(TileIndex tile)
+{
+	TileIndex lower = GetLockLastLowerTile(tile);
+	return TileArea(lower, GetLockOtherEnd(lower));
+}
+
+/**
+ * Can a ship enter a lock? Are its tiles ready?
+ * @param tile where a ship is trying to enter.
+ * @param ta TileArea to check.
+ * @return true if lock is prepared;
+ *         false when one tile of the area has an inappropriate water level.
+ */
+bool IsLockPrepared(TileIndex tile, TileArea ta)
+{
+	uint level = GetLockWaterLevel(tile);
+	TILE_AREA_LOOP(t, ta) {
+		uint level_middle = GetLockWaterLevel(t);
+		if (level != level_middle) return false;
+	}
+
+	return true;
+}
+
+/**
+ * Can a ship enter a lock? Are its tiles ready?
+ * @param tile where a ship is trying to enter.
+ * @return true if whole lock is ready;
+ *         false when one tile of the area has an inappropriate water level.
+ */
+bool IsLockPrepared(TileIndex tile)
+{
+	return IsLockPrepared(tile, TileAreaToPrepare(tile));
+}
+
 static void ShipController(Ship *v)
 {
 	uint32 r;
@@ -729,22 +782,25 @@ static void ShipController(Ship *v)
 
 		switch (v->lock) {
 			case SLS_PREPARING_LOCK: {
-				assert(GetLockPart(v->tile) != LOCK_PART_MIDDLE);
-				TileIndex middle = GetLockMiddleTile(v->tile);
-				uint level = GetLockWaterLevel(v->tile);
-				uint level_middle = GetLockWaterLevel(middle);
-				if (level == level_middle) {
+				assert(IsLastLockTile(v->tile));
+				TileArea ta = TileAreaToPrepare(v->tile);
+				if (IsLockPrepared(v->tile, ta)) {
 					v->lock = SLS_SHIP_ENTER;
 					v->cur_speed = 0;
 				} else {
-					SetLockWaterLevel(middle, level_middle + (level_middle > level ? -1 : +1));
-					MarkTileDirtyByTile(middle);
+					uint level = GetLockWaterLevel(v->tile);
+					TILE_AREA_LOOP(tile, ta) {
+						uint level_middle = GetLockWaterLevel(tile);
+						if (level == level_middle) continue;
+						SetLockWaterLevel(tile, level_middle + (level_middle > level ? -1 : +1));
+						MarkTileDirtyByTile(tile);
+					}
 					v->MarkShipAsStuck(false, SHIP_PREPARE_LOCK_TICKS);
 				}
 				break;
 			}
 			case SLS_SHIP_ENTER:
-				if (gp.new_tile != v->tile) {
+				if (GetLockPart(gp.new_tile) == LOCK_PART_MIDDLE) {
 					/* Do not let it enter next tile yet. */
 					v->lock = SLS_SHIP_UPDOWN;
 				} else {
@@ -756,14 +812,15 @@ static void ShipController(Ship *v)
 			case SLS_SHIP_UPDOWN: {
 				assert(v->tile != gp.new_tile);
 				assert(GetLockPart(v->tile) != LOCK_PART_MIDDLE);
+				assert(GetLockPart(gp.new_tile) == LOCK_PART_MIDDLE);
 				uint8 final_level = (GetLockPart(v->tile) == LOCK_PART_LOWER ? TILE_HEIGHT : 0);
 				uint8 level = GetLockWaterLevel(v->tile);
 				if (final_level != level) {
 					level += level > final_level ? -1 : +1;
-					SetLockWaterLevel(v->tile, level);
-					SetLockWaterLevel(gp.new_tile, level);
-					MarkTileDirtyByTile(v->tile);
-					MarkTileDirtyByTile(gp.new_tile);
+					TILE_AREA_LOOP(tile, TileAreaUpDown(gp.new_tile)) {
+						SetLockWaterLevel(tile, level);
+						MarkTileDirtyByTile(tile);
+					}
 					v->z_pos = GetLockZ(gp.new_tile);
 					v->MarkShipAsStuck(false, SHIP_UPDOWN_LOCK_TICKS);
 				} else {
@@ -777,11 +834,11 @@ static void ShipController(Ship *v)
 				v->x_pos = gp.x;
 				v->y_pos = gp.y;
 				v->z_pos = GetLockZ(v->tile);
-				if (v->tile != gp.new_tile) v->lock = SLS_RESET_OTHER_END;
+				if (IsLastLockTile(gp.new_tile)) v->lock = SLS_RESET_OTHER_END;
 				break;
 			}
 			case SLS_RESET_OTHER_END: {
-				TileIndex other = TileAddByDiagDir(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())));
+				TileIndex other = GetLockOtherEnd(gp.new_tile);
 				uint8 final_level = GetLockPart(other) == LOCK_PART_UPPER ? TILE_HEIGHT : 0;
 				uint8 level = GetLockWaterLevel(other);
 				if (level == final_level) {
@@ -789,8 +846,10 @@ static void ShipController(Ship *v)
 					v->tile = gp.new_tile;
 					v->lock = SLS_SHIP_LEAVE;
 				} else {
-					SetLockWaterLevel(other, level + (level > final_level ? -1 : 1));
-					MarkTileDirtyByTile(other);
+					TILE_AREA_LOOP(tile, TileAreaToPrepare(gp.new_tile)) {
+						SetLockWaterLevel(tile, level + (level > final_level ? -1 : 1));
+						MarkTileDirtyByTile(tile);
+					}
 				}
 				v->x_pos = gp.x;
 				v->y_pos = gp.y;
@@ -923,9 +982,7 @@ static void ShipController(Ship *v)
 					}
 
 					if (IsLockTile(gp.new_tile)) {
-						uint level = GetLockWaterLevel(gp.new_tile);
-						uint level_middle = GetLockWaterLevel(GetLockMiddleTile(gp.new_tile));
-						v->lock = level == level_middle ? SLS_SHIP_ENTER : SLS_PREPARING_LOCK;
+						v->lock = IsLockPrepared(gp.new_tile) ? SLS_SHIP_ENTER : SLS_PREPARING_LOCK;
 					}
 				}
 
@@ -963,7 +1020,7 @@ getout:
 
 reverse_direction:
 	if (_settings_game.pf.ship_path_reservation &&
-			v->lock == SLS_NO_LOCK && IsLockTile(v->tile)) v->lock = SLS_SHIP_ENTER;
+			v->lock == SLS_NO_LOCK && IsLockTile(v->tile)) v->lock = SLS_PREPARING_LOCK;
 	dir = ReverseDir(v->direction);
 	v->direction = dir;
 	goto getout;
