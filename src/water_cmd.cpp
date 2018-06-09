@@ -1131,12 +1131,12 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 bool DoesLockPartNeedGate(TileIndex tile)
 {
 	switch (GetLockPart(tile)) {
-		case LOCK_PART_MIDDLE:
-			return GetLockWaterLevel(tile) != GetLockWaterLevel(GetLockLastLowerTile(tile));
 		case LOCK_PART_LOWER:
-			return GetLockWaterLevel(tile) != 0;
+			if (IsLastLockTile(tile)) return GetLockWaterLevel(tile) != 0;
+			FALLTHROUGH;
+		case LOCK_PART_MIDDLE:
 		case LOCK_PART_UPPER:
-			return GetLockWaterLevel(GetLockMiddleTile(tile)) != GetLockWaterLevel(tile);
+			return GetLockWaterLevel(GetTileTowardsLowering(tile)) != GetLockWaterLevel(tile);
 		default: NOT_REACHED();
 	}
 }
@@ -1246,7 +1246,7 @@ static void DrawWaterLock(const TileInfo *ti)
 				SPR_WATER_LOCK_GATE_NE, SPR_WATER_LOCK_GATE_SE, SPR_WATER_LOCK_GATE_SW, SPR_WATER_LOCK_GATE_NW };
 
 		/* Draw gate on upper part of the lock. */
-		if (part == LOCK_PART_UPPER) {
+		if (part == LOCK_PART_UPPER && IsLastLockTile(ti->tile)) {
 			if (GetLockWaterLevel(ti->tile) != 8) {
 				uint8 upper_lock_gate_z = 8;
 				image = gate_sprites[dir];
