@@ -919,11 +919,14 @@ reverse_direction:
 handle_stuck:
 	if (v->IsStuck()) {
 		v->Unstuck();
-		goto reverse_direction;
-	} else {
-		v->MarkShipAsStuck(true, SHIP_BLOCKED_TICKS);
-		goto getout;
+		if (!HasPreferredWaterTrackdirs(v->tile) ||
+				!HasTrackdir(GetPreferredWaterTrackdirs(v->tile), v->GetVehicleTrackdir())) {
+			goto reverse_direction;
+		}
 	}
+
+	v->MarkShipAsStuck(true, SHIP_BLOCKED_TICKS);
+	goto getout;
 }
 
 bool Ship::Tick()
