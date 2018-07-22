@@ -374,11 +374,12 @@ void LiftShipPathReservation(TileIndex tile, Trackdir trackdir)
  * @param ship The ship we want to free the path of.
  * @param tile The tile that asks the path to be freed (see note 2).
  * @param track The track that asks to be freed (see note 2).
- * @param keep_pref_water_trackdirs unused (future feature)
+ * @param keep_pref_water_trackdirs Whether to keep initial reservation for consistence
+ *                                  with preferred water trackdirs.
  * @note 1.- The path will not be freed if the ship tile and track is
  *       the same as the tile and track that ask to free the path.
  * @note 2.- If @param tile is INVALID_TILE, then the algorithm removes the full path
- *       the ship, keeping a consistent path with preferred trackdirs (future feature)
+ *       the ship, keeping a consistent path with preferred trackdirs
  *       if @param keep_pref_water_trackdirs is true.
  */
 void LiftShipPathReservation(Ship *v, TileIndex tile, Track track, bool keep_pref_water_trackdirs)
@@ -400,6 +401,8 @@ void LiftShipPathReservation(Ship *v, TileIndex tile, Track track, bool keep_pre
 	}
 
 	bool check_first = true;
+	keep_pref_water_trackdirs &= HasPreferredWaterTrackdirs(v->tile) &&
+			!HasTrackdir(GetPreferredWaterTrackdirs(v->tile), trackdir);
 
 	while (fs.Follow(tile, trackdir)) {
 		/* Skip 2nd tile of an aqueduct. */
@@ -423,6 +426,14 @@ void LiftShipPathReservation(Ship *v, TileIndex tile, Track track, bool keep_pre
 			check_first = false;
 		}
 
+		if (keep_pref_water_trackdirs) {
+			if (HasPreferredWaterTrackdirs(tile) &&
+					!HasTrackdir(GetPreferredWaterTrackdirs(tile), trackdir)) continue;
+
+			keep_pref_water_trackdirs = false;
+			continue;
+		}
+
 		if (!SetWaterTrackReservation(tile, TrackdirToTrack(trackdir), false)) NOT_REACHED();
 	}
 }
@@ -430,7 +441,7 @@ void LiftShipPathReservation(Ship *v, TileIndex tile, Track track, bool keep_pre
 /**
  * Free ship paths on a tile.
  * @param tile Tile we want to free.
- * @param keep_pref_water_trackdirs unused (future feature)
+ * @param keep_pref_water_trackdirs Whether keep preferred water trackdir paths if possible.
  * @return True if tile has no reservation after the paths have been freed.
  */
 bool LiftShipPathsReservations(TileIndex tile, bool keep_pref_water_trackdirs)
