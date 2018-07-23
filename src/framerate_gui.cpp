@@ -300,10 +300,11 @@ struct FramerateWindow : Window {
 	CachedDecimal times_shortterm[PFE_MAX]; ///< cached short term average times
 	CachedDecimal times_longterm[PFE_MAX];  ///< cached long term average times
 
-	static const int VSPACING = 3; ///< space between column heading and values
+	int v_spacing;    ///< space between column heading and values
 
 	FramerateWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
+		v_spacing = ScaleGUIPixels(3);
 		this->InitNested(number);
 		this->small = this->IsShaded();
 		this->UpdateData();
@@ -392,7 +393,7 @@ struct FramerateWindow : Window {
 			case WID_FRW_TIMES_NAMES: {
 				int linecount = PFE_MAX - PFE_FIRST;
 				size->width = 0;
-				size->height = FONT_HEIGHT_NORMAL * (linecount + 1) + VSPACING;
+				size->height = FONT_HEIGHT_NORMAL * (linecount + 1) + v_spacing;
 				for (int line = 0; line < linecount; line++) {
 					Dimension line_size = GetStringBoundingBox(STR_FRAMERATE_GAMELOOP + line);
 					size->width = max(size->width, line_size.width);
@@ -404,11 +405,11 @@ struct FramerateWindow : Window {
 			case WID_FRW_TIMES_AVERAGE: {
 				int linecount = PFE_MAX - PFE_FIRST;
 				*size = GetStringBoundingBox(STR_FRAMERATE_CURRENT + (widget - WID_FRW_TIMES_CURRENT));
-				SetDParam(0, 999999);
+				SetDParam(0, 99999);
 				SetDParam(1, 2);
 				Dimension item_size = GetStringBoundingBox(STR_FRAMERATE_MS_GOOD);
 				size->width = max(size->width, item_size.width);
-				size->height += FONT_HEIGHT_NORMAL * linecount + VSPACING;
+				size->height += FONT_HEIGHT_NORMAL * linecount + v_spacing;
 				break;
 			}
 		}
@@ -419,7 +420,7 @@ struct FramerateWindow : Window {
 	{
 		int y = r.top;
 		DrawString(r.left, r.right, y, heading_str, TC_FROMSTRING, SA_CENTER, true);
-		y += FONT_HEIGHT_NORMAL + VSPACING;
+		y += FONT_HEIGHT_NORMAL + v_spacing;
 
 		for (PerformanceElement e = PFE_FIRST; e < PFE_MAX; e++) {
 			values[e].InsertDParams(0);
@@ -434,7 +435,7 @@ struct FramerateWindow : Window {
 			case WID_FRW_TIMES_NAMES: {
 				/* Render a column of titles for performance element names */
 				int linecount = PFE_MAX - PFE_FIRST;
-				int y = r.top + FONT_HEIGHT_NORMAL + VSPACING; // first line contains headings in the value columns
+				int y = r.top + FONT_HEIGHT_NORMAL + v_spacing; // first line contains headings in the value columns
 				for (int i = 0; i < linecount; i++) {
 					DrawString(r.left, r.right, y, STR_FRAMERATE_GAMELOOP + i, TC_FROMSTRING, SA_LEFT);
 					y += FONT_HEIGHT_NORMAL;
@@ -459,7 +460,7 @@ struct FramerateWindow : Window {
 			case WID_FRW_TIMES_CURRENT:
 			case WID_FRW_TIMES_AVERAGE: {
 				/* Open time graph windows when clicking detail measurement lines */
-				int line = this->GetRowFromWidget(pt.y, widget, VSPACING, FONT_HEIGHT_NORMAL);
+				int line = this->GetRowFromWidget(pt.y, widget, v_spacing, FONT_HEIGHT_NORMAL);
 				if (line > 0) {
 					line -= 1;
 					ShowFrametimeGraphWindow((PerformanceElement)line);
@@ -532,8 +533,8 @@ struct FrametimeGraphWindow : Window {
 			graph_size.width = 2 * graph_size.height;
 			*size = graph_size;
 
-			size->width += size_ms_label.width + 2;
-			size->height += size_s_label.height + 2;
+			size->width += size_ms_label.width + ScaleGUIPixels(4);
+			size->height += size_s_label.height + ScaleGUIPixels(4);
 		}
 	}
 
@@ -663,24 +664,25 @@ struct FrametimeGraphWindow : Window {
 			/* Draw division lines and labels for the vertical axis */
 			for (uint division = 0; division < vert_divisions; division++) {
 				int y = Scinterlate(y_zero, y_max, 0, (int)vert_divisions, (int)division);
-				GfxDrawLine(x_zero, y, x_max, y, c_grid);
+				GfxDrawLine(x_zero, y, x_max, y, c_grid, WD_GUI_UNIT);
 				if (division % 2 == 0) {
 					if ((TimingMeasurement)this->vertical_scale > TIMESTAMP_PRECISION) {
 						SetDParam(0, this->vertical_scale * division / 10 / TIMESTAMP_PRECISION);
-						DrawString(r.left, x_zero - 2, y - FONT_HEIGHT_SMALL, STR_FRAMERATE_GRAPH_SECONDS, TC_GREY, SA_RIGHT | SA_FORCE, false, FS_SMALL);
+						DrawString(r.left, x_zero - ScaleGUIPixels(2), y - FONT_HEIGHT_SMALL / 2, STR_FRAMERATE_GRAPH_SECONDS, TC_BLACK, SA_RIGHT | SA_FORCE, false, FS_SMALL);
 					} else {
 						SetDParam(0, this->vertical_scale * division / 10 * 1000 / TIMESTAMP_PRECISION);
-						DrawString(r.left, x_zero - 2, y - FONT_HEIGHT_SMALL, STR_FRAMERATE_GRAPH_MILLISECONDS, TC_GREY, SA_RIGHT | SA_FORCE, false, FS_SMALL);
+						DrawString(r.left, x_zero - ScaleGUIPixels(2), y - FONT_HEIGHT_SMALL / 2, STR_FRAMERATE_GRAPH_MILLISECONDS, TC_BLACK, SA_RIGHT | SA_FORCE, false, FS_SMALL);
 					}
 				}
 			}
 			/* Draw divison lines and labels for the horizontal axis */
 			for (uint division = horz_divisions; division > 0; division--) {
 				int x = Scinterlate(x_zero, x_max, 0, (int)horz_divisions, (int)horz_divisions - (int)division);
-				GfxDrawLine(x, y_max, x, y_zero, c_grid);
+				GfxDrawLine(x, y_max, x, y_zero, c_grid, WD_GUI_UNIT);
 				if (division % 2 == 0) {
 					SetDParam(0, division * horz_div_scl / 2);
-					DrawString(x, x_max, y_zero + 2, STR_FRAMERATE_GRAPH_SECONDS, TC_GREY, SA_LEFT | SA_FORCE, false, FS_SMALL);
+					Dimension d = GetStringBoundingBox(STR_FRAMERATE_GRAPH_SECONDS);
+					DrawString(x - d.width / 2, x_max, y_zero + ScaleGUIPixels(4), STR_FRAMERATE_GRAPH_SECONDS, TC_BLACK, SA_LEFT | SA_FORCE, false, FS_SMALL);
 				}
 			}
 
@@ -721,7 +723,7 @@ struct FrametimeGraphWindow : Window {
 					(int)Scinterlate<int64>(y_zero, y_max, 0, (int64)draw_vert_scale, (int64)value)
 				};
 				assert(newpoint.x <= lastpoint.x);
-				GfxDrawLine(lastpoint.x, lastpoint.y, newpoint.x, newpoint.y, c_lines);
+				GfxDrawLine(lastpoint.x, lastpoint.y, newpoint.x, newpoint.y, c_lines, WD_GUI_UNIT);
 				lastpoint = newpoint;
 
 				/* Record peak and average value across graphed data */
@@ -736,13 +738,13 @@ struct FrametimeGraphWindow : Window {
 			/* If the peak value is significantly larger than the average, mark and label it */
 			if (points_drawn > 0 && peak_value > TIMESTAMP_PRECISION / 100 && 2 * peak_value > 3 * value_sum / points_drawn) {
 				TextColour tc_peak = (TextColour)(TC_IS_PALETTE_COLOUR | c_peak);
-				GfxFillRect(peak_point.x - 1, peak_point.y - 1, peak_point.x + 1, peak_point.y + 1, c_peak);
+				GfxFillRect(peak_point.x - WD_GUI_UNIT, peak_point.y - WD_GUI_UNIT, peak_point.x + WD_GUI_UNIT, peak_point.y + WD_GUI_UNIT, c_peak);
 				SetDParam(0, peak_value * 1000 / TIMESTAMP_PRECISION);
 				int label_y = max(y_max, peak_point.y - FONT_HEIGHT_SMALL);
 				if (peak_point.x - x_zero > (int)this->graph_size.width / 2) {
-					DrawString(x_zero, peak_point.x - 2, label_y, STR_FRAMERATE_GRAPH_MILLISECONDS, tc_peak, SA_RIGHT | SA_FORCE, false, FS_SMALL);
+					DrawString(x_zero, peak_point.x - ScaleGUIPixels(2), label_y, STR_FRAMERATE_GRAPH_MILLISECONDS, tc_peak, SA_RIGHT | SA_FORCE, false, FS_SMALL);
 				} else {
-					DrawString(peak_point.x + 2, x_max, label_y, STR_FRAMERATE_GRAPH_MILLISECONDS, tc_peak, SA_LEFT | SA_FORCE, false, FS_SMALL);
+					DrawString(peak_point.x + ScaleGUIPixels(2), x_max, label_y, STR_FRAMERATE_GRAPH_MILLISECONDS, tc_peak, SA_LEFT | SA_FORCE, false, FS_SMALL);
 				}
 			}
 		}
