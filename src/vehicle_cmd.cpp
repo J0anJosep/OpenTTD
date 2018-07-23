@@ -31,6 +31,7 @@
 #include "ship.h"
 #include "newgrf.h"
 #include "company_base.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 
@@ -587,6 +588,7 @@ CommandCost CmdStartStopVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 
 		v->vehstatus ^= VS_STOPPED;
 		if (v->type != VEH_TRAIN) v->cur_speed = 0; // trains can stop 'slowly'
+		if (v->type == VEH_SHIP) LiftShipPathReservation(Ship::From(v), INVALID_TILE, INVALID_TRACK, true);
 		v->MarkDirty();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);
