@@ -53,6 +53,7 @@
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/refresh.h"
 #include "framerate_type.h"
+#include "pbs_water.h"
 
 #include "table/strings.h"
 
@@ -1307,6 +1308,8 @@ bool Vehicle::HandleBreakdown()
 				/* Aircraft just need this flag, the rest is handled elsewhere */
 				this->vehstatus |= VS_AIRCRAFT_BROKEN;
 			} else {
+				if (this->type == VEH_SHIP) LiftShipReservedPath(Ship::From(this));
+
 				this->cur_speed = 0;
 
 				if (!PlayVehicleSound(this, VSE_BREAKDOWN)) {
