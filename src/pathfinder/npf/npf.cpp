@@ -300,6 +300,14 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 
 	cost = IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH;
 
+	if (_settings_game.pf.ship_path_reservation) {
+		/* Apply a penalty for using reserved trackdirs on a tile. */
+		if (HasWaterTrackReservation(current->tile) &&
+				TracksOverlap(TrackToTrackBits(TrackdirToTrack(trackdir)) | GetReservedWaterTracks(current->tile))) {
+			cost += 3 * (IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH);
+		}
+	}
+
 	switch (GetTileType(current->tile)) {
 		default: NOT_REACHED();
 
