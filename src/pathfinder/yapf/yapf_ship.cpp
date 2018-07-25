@@ -73,7 +73,10 @@ public:
 				/* Skip tiles of the same lock. */
 				while (CheckSameLock(tile, node->m_parent->GetTile())) node = node->m_parent;
 			} else if (last_free == NULL) {
-				last_free = node;
+				if (!_settings_game.pf.ship_path_reservation || !HasPreferredWaterTrackdirs(tile) ||
+						HasTrackdir(GetPreferredWaterTrackdirs(tile), node->GetTrackdir())) {
+					last_free = node;
+				}
 			}
 		}
 
@@ -173,6 +176,76 @@ public:
 	}
 };
 
+/** YAPF destination provider for ships. */
+template <class Types>
+class CYapfDestinationTileShipT
+{
+public:
+	typedef typename Types::Tpf Tpf;              ///< the pathfinder class (derived from THIS class)
+	typedef typename Types::NodeList::Titem Node; ///< this will be our node type
+	typedef typename Node::Key Key;               ///< key to hash tables
+
+protected:
+	TileIndex    m_destTile;                      ///< destination tile
+	TrackdirBits m_destTrackdirs;                 ///< destination trackdir mask
+
+public:
+	/** set the destination tile / more trackdirs */
+	void SetDestination(TileIndex tile, TrackdirBits trackdirs)
+	{
+		m_destTile = tile;
+		m_destTrackdirs = trackdirs;
+	}
+
+protected:
+	/** to access inherited path finder */
+	Tpf& Yapf()
+	{
+		return *static_cast<Tpf *>(this);
+	}
+
+public:
+	/** Called by YAPF to detect if node ends in the desired destination */
+	inline bool PfDetectDestination(Node &n)
+	{
+		if (_settings_game.pf.ship_path_reservation && HasPreferredWaterTrackdirs(n.m_key.m_tile) &&
+				!HasBit(GetPreferredWaterTrackdirs(n.m_key.m_tile), n.GetTrackdir())) {
+			return false;
+		}
+
+		return (n.m_key.m_tile == m_destTile) && HasTrackdir(m_destTrackdirs, n.GetTrackdir());
+	}
+
+	/**
+	 * Called by YAPF to calculate cost estimate. Calculates distance to the destination
+	 *  adds it to the actual cost from origin and stores the sum to the Node::m_estimate
+	 */
+	inline bool PfCalcEstimate(Node &n)
+	{
+		static const int dg_dir_to_x_offs[] = {-1, 0, 1, 0};
+		static const int dg_dir_to_y_offs[] = {0, 1, 0, -1};
+		if (PfDetectDestination(n)) {
+			n.m_estimate = n.m_cost;
+			return true;
+		}
+
+		TileIndex tile = n.GetTile();
+		DiagDirection exitdir = TrackdirToExitdir(n.GetTrackdir());
+		int x1 = 2 * TileX(tile) + dg_dir_to_x_offs[(int)exitdir];
+		int y1 = 2 * TileY(tile) + dg_dir_to_y_offs[(int)exitdir];
+		int x2 = 2 * TileX(m_destTile);
+		int y2 = 2 * TileY(m_destTile);
+		int dx = abs(x1 - x2);
+		int dy = abs(y1 - y2);
+		int dmin = min(dx, dy);
+		int dxy = abs(dx - dy);
+		int d = dmin * YAPF_TILE_CORNER_LENGTH + (dxy - 1) * (YAPF_TILE_LENGTH / 2);
+		n.m_estimate = n.m_cost + d;
+		assert(n.m_estimate >= n.m_parent->m_estimate);
+		return true;
+	}
+};
+
 /** Cost Provider module of YAPF for ships */
 template <class Types>
 class CYapfCostShipT
@@ -205,6 +278,12 @@ public:
 		if (_settings_game.pf.ship_path_reservation && HasWaterTrackReservation(n.GetTile()) &&
 				TracksOverlap(TrackToTrackBits(TrackdirToTrack(n.GetTrackdir())) | GetReservedWaterTracks(n.GetTile()))) {
 			c += 3 * (IsDiagonalTrackdir(n.GetTrackdir()) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH);
+		}
+
+		/* Apply a penalty for using non-preferred trackdirs on a tile. */
+		if (HasPreferredWaterTrackdirs(n.GetTile()) &&
+				!HasTrackdir(GetPreferredWaterTrackdirs(n.GetTile()), n.GetTrackdir())) {
+			c += IsDiagonalTrackdir(n.GetTrackdir()) ? YAPF_TILE_LENGTH : YAPF_TILE_CORNER_LENGTH;
 		}
 
 		/* additional penalty for curves */
@@ -250,7 +329,7 @@ struct CYapfShip_TypesT
 	typedef CYapfBaseT<Types>                 PfBase;        // base pathfinder class
 	typedef CYapfFollowShipT<Types>           PfFollow;      // node follower
 	typedef CYapfOriginTileT<Types>           PfOrigin;      // origin provider
-	typedef CYapfDestinationTileT<Types>      PfDestination; // destination/distance provider
+	typedef CYapfDestinationTileShipT<Types>  PfDestination; // destination/distance provider
 	typedef CYapfSegmentCostCacheNoneT<Types> PfCache;       // segment cost cache provider
 	typedef CYapfCostShipT<Types>             PfCost;        // cost provider
 };
