@@ -306,6 +306,12 @@ static int32 NPFWaterPathCost(AyStar *as, AyStarNode *current, OpenListNode *par
 		cost += 3 * (IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH);
 	}
 
+	/* Apply a penalty for using non-preferred trackdirs on a tile. */
+	if (HasPreferredWaterTrackdirs(current->tile) &&
+			!HasTrackdir(GetPreferredWaterTrackdirs(current->tile), trackdir)) {
+		cost += IsDiagonalTrackdir(trackdir) ? NPF_TILE_LENGTH : NPF_STRAIGHT_LENGTH;
+	}
+
 	switch (GetTileType(current->tile)) {
 		default: NOT_REACHED();
 
@@ -566,6 +572,15 @@ static int32 NPFFindStationOrTile(AyStar *as, OpenListNode *current)
 	AyStarNode *node = &current->path.node;
 	TileIndex tile = node->tile;
 
+	/* Check preferred water trackdirs for ships.
+	 * Do not accept reaching the destination with
+	 * a non-preferred water trackdir. */
+	if (_settings_game.pf.ship_path_reservation && fstd->v->type == VEH_SHIP &&
+			HasPreferredWaterTrackdirs(tile) &&
+			!HasBit(GetPreferredWaterTrackdirs(tile), node->direction)) {
+		return AYSTAR_DONE;
+	}
+
 	if (fstd->station_index == INVALID_STATION && tile == fstd->dest_coords) return AYSTAR_FOUND_END_NODE;
 
 	/* Is it a ship heading to an oil rig...
@@ -635,7 +650,10 @@ static const PathNode *FindSafePosition(PathNode *path, const Ship *v)
 			/* Skip tiles of the same lock. */
 			while (CheckSameLock(tile, node->parent->node.tile)) node = node->parent;
 		} else if (last_free == NULL) {
-			last_free = node;
+			if (!_settings_game.pf.ship_path_reservation || !HasPreferredWaterTrackdirs(tile) ||
+					HasTrackdir(GetPreferredWaterTrackdirs(tile), node->node.direction)) {
+				last_free = node;
+			}
 		}
 	}
 
