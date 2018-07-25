@@ -55,18 +55,17 @@ public:
 	 * @param v Ship reserving the path.
 	 * @return Last node to reserve.
 	 */
-	static const Node *FindSafePosition(const Node *path, const Ship *v)
+	static const Node *FindSafePosition(const Node *path, TileIndex src_tile)
 	{
 		const Node *last_free = NULL;
-		assert(v != NULL);
+		assert(IsValidTile(src_tile));
 
 		for (const Node *node = path; node != NULL; node = node->m_parent) {
 			TileIndex tile = node->GetTile();
 
-			/* Special cases on crossing the starting tile. */
-			if (v->tile == node->GetTile()) {
-				if (node->m_parent == NULL) return last_free;
+			if (src_tile == tile && node->m_parent != NULL) {
 				last_free = NULL;
+				continue;
 			}
 
 			if (!IsWaterPositionFree(tile, node->GetTrackdir())) {
@@ -78,7 +77,7 @@ public:
 			}
 		}
 
-		NOT_REACHED();
+		return last_free;
 	}
 
 	/** return debug report character to identify the transportation type */
@@ -89,55 +88,49 @@ public:
 
 	static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, TrackBits tracks, bool &path_found)
 	{
+		/* Get available trackdirs on origin. */
+		TrackdirBits trackdirs = TrackBitsToTrackdirBits(tracks) & DiagdirReachesTrackdirs(enterdir);
+
 		/* handle special case - when next tile is destination tile */
 		if (tile == v->dest_tile) {
-			/* convert tracks to trackdirs */
-			TrackdirBits trackdirs = (TrackdirBits)(tracks | ((int)tracks << 8));
-			/* limit to trackdirs reachable from enterdir */
-			trackdirs &= DiagdirReachesTrackdirs(enterdir);
-
-			/* use vehicle's current direction if that's possible, otherwise use first usable one. */
+			/* Use vehicle's current direction if that's possible, otherwise use first usable one. */
 			Trackdir veh_dir = v->GetVehicleTrackdir();
 			return (HasTrackdir(trackdirs, veh_dir)) ? veh_dir : (Trackdir)FindFirstBit2x64(trackdirs);
 		}
 
-		/* move back to the old tile/trackdir (where ship is coming from) */
-		TileIndex src_tile = TileAddByDiagDir(tile, ReverseDiagDir(enterdir));
-		Trackdir trackdir = v->GetVehicleTrackdir();
-		assert(IsValidTrackdir(trackdir));
-
-		/* convert origin trackdir to TrackdirBits */
-		TrackdirBits trackdirs = TrackdirToTrackdirBits(trackdir);
-		/* get available trackdirs on the destination tile */
+		/* Get available trackdirs on destination tile. */
+		assert(trackdirs != TRACKDIR_BIT_NONE);
 		TrackdirBits dest_trackdirs = TrackStatusToTrackdirBits(GetTileTrackStatus(v->dest_tile, TRANSPORT_WATER, 0));
 
 		/* create pathfinder instance */
 		Tpf pf;
 		/* set origin and destination nodes */
-		pf.SetOrigin(src_tile, trackdirs);
+		pf.SetOrigin(tile, trackdirs);
 		pf.SetDestination(v->dest_tile, dest_trackdirs);
 		/* find best path */
 		path_found = pf.FindPath(v);
 
 		Trackdir next_trackdir = INVALID_TRACKDIR; // this would mean "path not found"
 
-		Node *pNode = pf.GetBestNode();
+		const Node *pNode = pf.GetBestNode();
 		if (pNode != NULL) {
-			/* walk through the path back to the origin */
-			Node *pPrevNode = NULL;
-			while (pNode->m_parent != NULL) {
-				pPrevNode = pNode;
-				pNode = pNode->m_parent;
-			}
-			/* return trackdir from the best next node (direct child of origin) */
-			Node &best_next_node = *pPrevNode;
-			assert(best_next_node.GetTile() == tile);
-			next_trackdir = best_next_node.GetTrackdir();
-			/* Reserve path from origin till last safe waiting tile */
-			for (const Node *cur = FindSafePosition(pf.GetBestNode(), v); cur != NULL; cur = cur->m_parent) {
-				if (v->tile == cur->GetTile()) break;
-				SetWaterTrackReservation(cur->GetTile(), TrackdirToTrack(cur->GetTrackdir()), true);
-				if (IsTileType(cur->GetTile(), MP_TUNNELBRIDGE)) cur = cur->m_parent;
+			/* Walk through the path back to the origin. */
+			while (pNode->m_parent != NULL) pNode = pNode->m_parent;
+
+			assert(pNode->GetTile() == tile);
+			next_trackdir = pNode->GetTrackdir();
+			assert(HasTrackdir(trackdirs, next_trackdir));
+
+			/* Find the last track of the path that can be safely reserved (safe position). */
+			pNode = FindSafePosition(pf.GetBestNode(), tile);
+
+			/* No safe position. */
+			if (pNode == NULL) return INVALID_TRACKDIR;
+
+			/* Reserve path from origin till last safe waiting tile. */
+			for (; pNode != NULL; pNode = pNode->m_parent) {
+				SetWaterTrackReservation(pNode->GetTile(), TrackdirToTrack(pNode->GetTrackdir()), true);
+				if (IsTileType(pNode->GetTile(), MP_TUNNELBRIDGE)) pNode = pNode->m_parent;
 			}
 		}
 		return next_trackdir;
