@@ -220,80 +220,131 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 }
 
 /**
- * Builds a lock.
- * @param tile Central tile of the lock.
- * @param dir Uphill direction.
- * @param flags Operation to perform.
- * @return The cost in case of success, or an error code if it failed.
+ * Make a water lock.
+ * @param t Tile to place the water lock section.
+ * @param o Owner of the lock.
+ * @param d Direction of the water lock.
+ * @param wc_classes of the tiles of the lock (7 tiles at most).
+ * @param length of the lock (3, 5 or 7).
  */
-static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlag flags)
+static inline void MakeLock(TileIndex t, Owner o, DiagDirection d, const WaterClass *w_classes, uint8 length)
 {
+	assert(IsValidLockLength(length));
+
+	TileIndexDiff delta = TileOffsByDiagDir(d);
+
+	int offset = GetMaxDistanceFromMiddleLock(length);
+
+	/* Water classes table is created with a tilearea,
+	 * and now we may look the tiles in a reversed order. */
+	bool reverse_wc = (d == DIAGDIR_NE || d == DIAGDIR_NW);
+
+	/* Keep the current waterclass and owner for the tiles.
+	 * It allows to restore them after the lock is deleted */
+	for (int i = -offset, j = 0; i <= offset; i++, j++) {
+		if (i == 0) {
+			MakeLockTile(t, o, LOCK_PART_MIDDLE, d, w_classes[j], length, 0);
+		} else if (IsInsideMM(i, -offset, offset + 1)) {
+			MakeLockTile(t + i * delta,
+					IsWaterTile(t + i * delta) ? GetTileOwner(t + i * delta) : o,
+					i < 0 ? LOCK_PART_LOWER : LOCK_PART_UPPER, d,
+					w_classes[reverse_wc ? (length - j) : j], length, abs(i));
+		} else {
+			NOT_REACHED();
+		}
+	}
+}
+
+void UpdateWaterTiles(const TileArea ta);
+
+/**
+ * Builds a lock.
+ * @param tile sloped tile where to place the lock
+ * @param flags type of operation
+ * @param p1 length of the lock
+ * @param p2 unused
+ * @param text unused
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	assert(p1 == 3 || p1 == 5 || p1 == 7);
+
+	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
+	if (dir == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
-	int delta = TileOffsByDiagDir(dir);
+	TileIndexDiff offset = TileOffsByDiagDir(dir) * GetMaxDistanceFromMiddleLock(p1);
+	TileIndex tile_last_lower = tile - offset;
+	TileIndex tile_last_upper = tile + offset;
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
-	if (ret.Failed()) return ret;
+	if (!IsValidTile(tile_last_lower) || !IsValidTile(tile_last_upper))
+			return_cmd_error(STR_ERROR_OFF_EDGE_OF_MAP);
+
+	TileArea ta(tile_last_lower, tile_last_upper);
+
+	CommandCost ret;
+	TILE_AREA_LOOP(t, ta) {
+		ret = EnsureNoVehicleOnGround(t);
+		if (ret.Failed()) return ret;
+	}
+
+	WaterClass water_classes[7];
+	uint ta_counter = 0;
+	TILE_AREA_LOOP(t, ta) {
+		water_classes[ta_counter] = IsWaterTile(t) ? GetWaterClass(t) : WATER_CLASS_CANAL;
+		if (t == tile) {
+			/* Middle tile. */
+			ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+			if (ret.Failed()) return ret;
+			cost.AddCost(ret);
+		} else {
+			if (!IsWaterTile(t)) {
+				ret = DoCommand(t, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+				if (ret.Failed()) return ret;
+				cost.AddCost(ret);
+				cost.AddCost(_price[PR_BUILD_CANAL]);
+			}
+			if (!IsTileFlat(t)) {
+				return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+			}
+		}
+		ta_counter++;
+	}
+
+	assert(ta_counter == p1);
+
+	TILE_AREA_LOOP(t, ta) {
+		if (IsBridgeAbove(t)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+	}
+
+	cost.AddCost(_price[PR_BUILD_LOCK]);
 
 	if (flags & DC_EXEC) {
-		/* Lift reservations on involved tiles. */
-		if ((WaterTrackMayExist(tile + delta) && !LiftShipPathsReservations(tile + delta))) NOT_REACHED();
-		if (WaterTrackMayExist(tile) && !LiftShipPathsReservations(tile)) NOT_REACHED();
-		if (WaterTrackMayExist(tile - delta) && !LiftShipPathsReservations(tile - delta)) NOT_REACHED();
-	}
+		/* Reservation cannot be lifted if ship is on this tile. */
+		TILE_AREA_LOOP(t, ta) {
+			if (WaterTrackMayExist(t) && !LiftShipPathsReservations(t)) NOT_REACHED();
+		}
 
-	/* middle tile */
-	WaterClass wc_middle = IsWaterTile(tile) ? GetWaterClass(tile) : WATER_CLASS_CANAL;
-	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
-	cost.AddCost(ret);
-
-	/* lower tile */
-	if (!IsWaterTile(tile - delta)) {
-		ret = DoCommand(tile - delta, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
-		cost.AddCost(_price[PR_BUILD_CANAL]);
-	}
-	if (!IsTileFlat(tile - delta)) {
-		return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-	}
-	WaterClass wc_lower = IsWaterTile(tile - delta) ? GetWaterClass(tile - delta) : WATER_CLASS_CANAL;
-
-	/* upper tile */
-	if (!IsWaterTile(tile + delta)) {
-		ret = DoCommand(tile + delta, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
-		cost.AddCost(_price[PR_BUILD_CANAL]);
-	}
-	if (!IsTileFlat(tile + delta)) {
-		return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-	}
-	WaterClass wc_upper = IsWaterTile(tile + delta) ? GetWaterClass(tile + delta) : WATER_CLASS_CANAL;
-
-	if (IsBridgeAbove(tile) || IsBridgeAbove(tile - delta) || IsBridgeAbove(tile + delta)) {
-		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-	}
-
-	if (flags & DC_EXEC) {
 		/* Update company infrastructure counts. */
 		Company *c = Company::GetIfValid(_current_company);
 		if (c != NULL) {
 			/* Counts for the water. */
-			if (!IsWaterTile(tile - delta)) c->infrastructure.water++;
-			if (!IsWaterTile(tile + delta)) c->infrastructure.water++;
+			TILE_AREA_LOOP(t, ta) {
+				if (!IsWaterTile(t)) c->infrastructure.water++;
+			}
 			/* Count for the lock itself. */
-			c->infrastructure.water += 3 * LOCK_DEPOT_TILE_FACTOR; // Lock is three tiles.
+			c->infrastructure.water += p1 * LOCK_DEPOT_TILE_FACTOR; // Lock has several tiles.
 			DirtyCompanyInfrastructureWindows(_current_company);
 		}
 
-		MakeLock(tile, _current_company, dir, wc_lower, wc_upper, wc_middle);
-		UpdateWaterTiles(tile, 2);
+		MakeLock(tile, _current_company, dir, water_classes, p1);
+
+		/* Update tracks and margins of lock tiles and neighbour tiles. */
+		ta.AddRadius(1);
+		UpdateWaterTiles(ta);
 	}
-	cost.AddCost(_price[PR_BUILD_LOCK]);
 
 	return cost;
 }
@@ -306,55 +357,51 @@ static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlag 
  */
 static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 {
+	assert(IsLock(tile));
+	assert(GetLockPart(tile) == LOCK_PART_MIDDLE);
+
 	if (GetTileOwner(tile) != OWNER_NONE) {
 		CommandCost ret = CheckTileOwnership(tile);
 		if (ret.Failed()) return ret;
 	}
 
-	TileIndexDiff delta = TileOffsByDiagDir(GetLockDirection(tile));
+	TileIndexDiff tilediff_to_lower = GetLockTileIndexDiffToLastLowerTile(tile);
+	TileArea ta(tile + tilediff_to_lower, tile - tilediff_to_lower);
 
-	/* make sure no vehicle is on the tile. */
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
-	if (ret.Failed()) return ret;
+	TILE_AREA_LOOP(t, ta) {
+		/* Make sure no vehicle is on the tile. */
+		CommandCost ret = EnsureNoVehicleOnGround(t);
+		if (ret.Failed()) return ret;
+	}
 
 	if (flags & DC_EXEC) {
 		/* Remove middle part from company infrastructure count. */
 		Company *c = Company::GetIfValid(GetTileOwner(tile));
 		if (c != NULL) {
-			c->infrastructure.water -= 3 * LOCK_DEPOT_TILE_FACTOR; // three parts of the lock.
+			/* Subtract all tiles of the lock from infrastrucutre counter. */
+			c->infrastructure.water -= GetLockLength(tile) * LOCK_DEPOT_TILE_FACTOR;
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
 
-		if (GetWaterClass(tile) == WATER_CLASS_RIVER) {
-			MakeRiver(tile, Random());
-		} else {
-			DoClearSquare(tile);
+		TILE_AREA_LOOP(t, ta) {
+			switch (GetLockPart(t)) {
+				case LOCK_PART_MIDDLE:
+					if (GetWaterClass(t) == WATER_CLASS_RIVER) {
+						MakeRiver(t, Random());
+					} else {
+						DoClearSquare(t);
+					}
+					break;
+				default:
+					MakeWaterKeepingClass(t, GetTileOwner(t));
+					break;
+			}
 		}
-		MakeWaterKeepingClass(tile + delta, GetTileOwner(tile + delta));
-		MakeWaterKeepingClass(tile - delta, GetTileOwner(tile - delta));
-		UpdateWaterTiles(tile, 2);
+		ta.AddRadius(1);
+		UpdateWaterTiles(ta);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_LOCK]);
-}
-
-/**
- * Builds a lock.
- * @param tile tile where to place the lock
- * @param flags type of operation
- * @param p1 unused
- * @param p2 unused
- * @param text unused
- * @return the cost of this operation or an error
- */
-CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
-{
-	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
-	if (dir == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-
-	return DoBuildLock(tile, dir, flags);
 }
 
 /** Callback to create non-desert around a river tile. */
@@ -604,7 +651,7 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 			if (flags & DC_AUTO) return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			if (_current_company == OWNER_WATER) return CMD_ERROR;
 			/* move to the middle tile.. */
-			return RemoveLock(tile + ToTileIndexDiff(_lock_tomiddle_offs[GetLockPart(tile)][GetLockDirection(tile)]), flags);
+			return RemoveLock(GetLockMiddleTile(tile), flags);
 		}
 
 		case WATER_TILE_DEPOT:
@@ -946,13 +993,11 @@ void UpdateWaterTiles()
 
 /**
  * Update banks, tracks and mark tiles dirty.
- * @param tile Tile to check.
+ * @param ta tile area to check.
  * @param rad Radius of the tile area to check.
  */
-void UpdateWaterTiles(TileIndex tile, uint rad)
+void UpdateWaterTiles(const TileArea ta)
 {
-	TileArea ta(tile, 1, 1, rad);
-
 	/* First, edges and dirty. */
 	TILE_AREA_LOOP(tile, ta) {
 		if (HasBanksStoredInMapArray(tile)) {
@@ -967,6 +1012,16 @@ void UpdateWaterTiles(TileIndex tile, uint rad)
 			UpdateWaterTracks(tile);
 		}
 	}
+}
+
+/**
+ * Update banks, tracks and mark tiles dirty.
+ * @param tile Tile to check.
+ * @param rad Radius of the tile area to check.
+ */
+void UpdateWaterTiles(TileIndex tile, uint rad)
+{
+	UpdateWaterTiles(TileArea(tile, 1, 1, rad));
 }
 
 /**
@@ -1077,7 +1132,7 @@ bool DoesLockPartNeedGate(TileIndex tile)
 {
 	switch (GetLockPart(tile)) {
 		case LOCK_PART_MIDDLE:
-			return GetLockWaterLevel(tile) != GetLockWaterLevel(GetLockLowerTile(tile));
+			return GetLockWaterLevel(tile) != GetLockWaterLevel(GetLockLastLowerTile(tile));
 		case LOCK_PART_LOWER:
 			return GetLockWaterLevel(tile) != 0;
 		case LOCK_PART_UPPER:
@@ -1224,7 +1279,7 @@ static void DrawWaterLock(const TileInfo *ti)
 				if (part == LOCK_PART_UPPER) {
 					z_offset = GetLockWaterLevel(GetLockMiddleTile(ti->tile));
 				} else if (part == LOCK_PART_MIDDLE) {
-					z_offset += GetLockWaterLevel(GetLockLowerTile(ti->tile));
+					z_offset += GetLockWaterLevel(GetLockLastLowerTile(ti->tile));
 				}
 				image += z_offset;
 				AddSortableSpriteToDraw(image, PAL_NONE,

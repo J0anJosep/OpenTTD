@@ -270,9 +270,8 @@ struct BuildDocksToolbarWindow : Window {
 					break;
 
 				case DDSP_REMOVE_TRUCKSTOP: { // Reusing for locks.
-					TileIndex middle_tile = start_tile;
-					if (start_tile != end_tile) middle_tile = TileAddByDiagDir(start_tile, DiagdirBetweenTiles(start_tile, end_tile));
-					TouchCommandP(middle_tile, 0, 0, CMD_BUILD_LOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_LOCKS), CcBuildDocks);
+					TileIndex middle_tile = GetMiddleTile(start_tile, end_tile);
+					TouchCommandP(middle_tile, 3, 0, CMD_BUILD_LOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_LOCKS), CcBuildDocks);
 					VpStartPreSizing();
 					break;
 				}
