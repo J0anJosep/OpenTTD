@@ -325,6 +325,30 @@ static inline TileIndexDiffC TileIndexToTileIndexDiffC(TileIndex tile_a, TileInd
 	return difference;
 }
 
+/**
+ * Returns the tile in the middle of two tiles that are
+ * in the same x coordinate or in the same y coordinate.
+ *
+ * @param tile_a tile 1
+ * @param tile_b tile 2
+ * @return the tile between between tila_a and tile_b
+ */
+static inline TileIndex GetMiddleTile(TileIndex tile_a, TileIndex tile_b)
+{
+	TileIndexDiffC difference;
+	difference.x = TileX(tile_a) - TileX(tile_b);
+	difference.y = TileY(tile_a) - TileY(tile_b);
+
+	assert(difference.x % 2 == 0);
+	assert(difference.y % 2 == 0);
+	assert(difference.x == 0 || difference.y == 0);
+
+	difference.x /= 2;
+	difference.y /= 2;
+
+	return tile_b + ToTileIndexDiff(difference);;
+}
+
 /* Functions to calculate distances */
 uint DistanceManhattan(TileIndex, TileIndex); ///< also known as L1-Norm. Is the shortest distance one could go over diagonal tracks (or roads)
 uint DistanceSquare(TileIndex, TileIndex); ///< euclidian- or L2-Norm squared

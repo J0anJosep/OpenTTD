@@ -3169,6 +3169,15 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SL_MULTILENGTH_LOCKS)) {
+		/* Store lock length and distance from the middle tile of the lock. */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (IsLockTile(t)) {
+				SB(_m[t].m2, 0, 5, 3 | ((GetLockPart(t) == LOCK_PART_MIDDLE ? 0 : 1) << 3));
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(SL_USE_DEPOT_IDS)) {
 		for (TileIndex t = 0; t < map_size; t++) {
 			if (IsRoadDepotTile(t)) {
