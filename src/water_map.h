@@ -345,7 +345,86 @@ static inline byte GetLockPart(TileIndex t)
 }
 
 /**
- * Get middle tile of a lock.
+ * Check that the provided length for a lock is correct.
+ * @param length of a lock.
+ * @return true if length is valid for a lock.
+ */
+static inline bool IsValidLockLength(uint8 length)
+{
+	return length == 3 || length == 5 || length == 7;
+}
+
+/**
+ * Get the distance between the middle tile
+ * of a lock and one of its ends.
+ * @param length of the lock.
+ * @return the distance between the middle tile and one of its ends.
+ */
+static inline uint8 GetMaxDistanceFromMiddleLock(uint8 length)
+{
+	assert(IsValidLockLength(length));
+	return (length - 1) / 2;
+}
+
+/**
+ * Get the length of a lock.
+ * @param t Water tile to query.
+ * @return The length.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static inline uint8 GetLockLength(TileIndex t)
+{
+	assert(IsLock(t));
+	uint8 length = GB(_m[t].m2, 0, 3);
+	assert(IsValidLockLength(length));
+
+	return length;
+}
+
+/**
+ * Get tile distance to lock middle.
+ * @param t Water tile to query.
+ * @return The distance between the current tile of a lock and the middle tile.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static inline uint8 GetLockDistanceToMiddle(TileIndex t)
+{
+	assert(IsLock(t));
+	uint8 distance = GB(_m[t].m2, 3, 2);
+	assert(distance <= GetLockLength(t));
+
+	return distance;
+}
+
+/**
+ * Get the TileIndexDiff towards the middle tile of a lock.
+ * @param t Water tile to query.
+ * @return The TileIndexDiff to move one tile closer to the middle tile of the lock.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ */
+static inline TileIndexDiff GetLockTileIndexDiffTowardsMiddle(TileIndex t)
+{
+	assert(IsLock(t));
+	return ToTileIndexDiff(_lock_tomiddle_offs[GetLockPart(t)][GetLockDirection(t)]);
+}
+
+/**
+ * Get the TileIndexDiff to get to the middle tile of a lock.
+ * @param t Water tile to query.
+ * @return The TileIndexDiff to move exactly to the middle tile of the lock.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t)
+ * @see GetLockTileIndexDiffTowardsMiddle
+ */
+static inline TileIndexDiff GetLockTileIndexDiffToMiddle(TileIndex t)
+{
+	assert(IsLock(t));
+	uint8 distance = GetLockDistanceToMiddle(t);
+
+	return distance * GetLockTileIndexDiffTowardsMiddle(t);
+}
+
+/**
+ * Get the middle tile of a lock.
  * @param t Water tile to query.
  * @return The middle part tile.
  * @pre IsTileType(t, MP_WATER) && IsLock(t)
@@ -353,7 +432,22 @@ static inline byte GetLockPart(TileIndex t)
 static inline TileIndex GetLockMiddleTile(TileIndex t)
 {
 	assert(IsLock(t));
-	return t + ToTileIndexDiff(_lock_tomiddle_offs[GetLockPart(t)][GetLockDirection(t)]);
+	return t + GetLockTileIndexDiffToMiddle(t);
+}
+
+/**
+ * Get TileIndexDiff to lower tile of a lock.
+ * @param t Water tile to query.
+ * @return The TileIndexDiff to lower part tile.
+ * @pre IsTileType(t, MP_WATER) && IsLock(t) && GetLockPart(t) == LOCK_PART_MIDDLE
+ */
+static inline TileIndex GetLockTileIndexDiffToLastLowerTile(TileIndex t)
+{
+	assert(IsLock(t));
+	assert(GetLockPart(t) == LOCK_PART_MIDDLE);
+	uint8 distance = GetMaxDistanceFromMiddleLock(GetLockLength(t));
+
+	return distance * ToTileIndexDiff(_lock_tomiddle_offs[LOCK_PART_UPPER][GetLockDirection(t)]);
 }
 
 /**
@@ -362,11 +456,11 @@ static inline TileIndex GetLockMiddleTile(TileIndex t)
  * @return The lower part tile.
  * @pre IsTileType(t, MP_WATER) && IsLock(t) && GetLockPart(t) == LOCK_PART_MIDDLE
  */
-static inline TileIndex GetLockLowerTile(TileIndex t)
+static inline TileIndex GetLockLastLowerTile(TileIndex t)
 {
 	assert(IsLock(t));
 	assert(GetLockPart(t) == LOCK_PART_MIDDLE);
-	return t + ToTileIndexDiff(_lock_tomiddle_offs[LOCK_PART_UPPER][GetLockDirection(t)]);
+	return t + GetLockTileIndexDiffToLastLowerTile(t);
 }
 
 /**
@@ -561,38 +655,21 @@ static inline void SetReservationAsDepot(TileIndex t, bool value)
  * @param original_water_class Original water class.
  * @see MakeLock
  */
-static inline void MakeLockTile(TileIndex t, Owner o, LockPart part, DiagDirection dir, WaterClass original_water_class)
+static inline void MakeLockTile(TileIndex t, Owner o, LockPart part, DiagDirection dir, WaterClass original_water_class, uint8 length, uint8 distance)
 {
+	assert(IsValidLockLength(length));
+	assert(distance < 4);
+
 	SetTileType(t, MP_WATER);
 	SetTileOwner(t, o);
 	SetWaterClass(t, original_water_class);
-	_m[t].m2 = 0;
+	_m[t].m2 = length | (distance << 3);
 	_m[t].m3 = 0;
 	_m[t].m4 = 0;
 	_m[t].m5 = WBL_TYPE_LOCK << WBL_TYPE_BEGIN | part << WBL_LOCK_PART_BEGIN | dir << WBL_LOCK_ORIENT_BEGIN;
 	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = 0;
 	if (part == LOCK_PART_UPPER) SetLockWaterLevel(t, TILE_HEIGHT);
-}
-
-/**
- * Make a water lock.
- * @param t Tile to place the water lock section.
- * @param o Owner of the lock.
- * @param d Direction of the water lock.
- * @param wc_lower Original water class of the lower part.
- * @param wc_upper Original water class of the upper part.
- * @param wc_middle Original water class of the middle part.
- */
-static inline void MakeLock(TileIndex t, Owner o, DiagDirection d, WaterClass wc_lower, WaterClass wc_upper, WaterClass wc_middle)
-{
-	TileIndexDiff delta = TileOffsByDiagDir(d);
-
-	/* Keep the current waterclass and owner for the tiles.
-	 * It allows to restore them after the lock is deleted */
-	MakeLockTile(t, o, LOCK_PART_MIDDLE, d, wc_middle);
-	MakeLockTile(t - delta, IsWaterTile(t - delta) ? GetTileOwner(t - delta) : o, LOCK_PART_LOWER, d, wc_lower);
-	MakeLockTile(t + delta, IsWaterTile(t + delta) ? GetTileOwner(t + delta) : o, LOCK_PART_UPPER, d, wc_upper);
 }
 
 #endif /* WATER_MAP_H */
