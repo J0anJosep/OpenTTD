@@ -1335,6 +1335,17 @@ bool AfterLoadGame()
 			if (!IsTileType(t, MP_TUNNELBRIDGE)) continue;
 			SB(_m[t].m3, 0, 4, GB(_me[t].m6, 2, 4)); // bridge type
 			SB(_me[t].m6, 2, 4, 0);
+
+			/* Make sure map array is clean. */
+			assert(_m[t].m2 == 0);
+			assert(_m[t].m4 == 0);
+			assert(_me[t].m6 == 0);
+
+			/* Store the other tile of a tunnel/bridge on the map array. */
+			TileIndex end_tile = FindOtherTunnelBridgeEnd(t);
+			_m[t].m2  = GB(end_tile, 16, 16);
+			_m[t].m4  = GB(end_tile,  8,  8);
+			_me[t].m6 = GB(end_tile,  0,  8);
 		}
 	}
 
