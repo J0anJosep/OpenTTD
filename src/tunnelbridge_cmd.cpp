@@ -541,6 +541,8 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 				NOT_REACHED();
 		}
 
+		StoreStartEndTunnelBridge(tile_start, tile_end);
+
 		/* Mark all tiles dirty */
 		MarkBridgeDirty(tile_start, tile_end, AxisToDiagDir(direction), z_start);
 		DirtyCompanyInfrastructureWindows(company);
@@ -759,6 +761,7 @@ CommandCost CmdBuildTunnel(TileIndex start_tile, DoCommandFlag flags, uint32 p1,
 			MakeRoadTunnel(start_tile, company, direction,                 rts);
 			MakeRoadTunnel(end_tile,   company, ReverseDiagDir(direction), rts);
 		}
+		StoreStartEndTunnelBridge(start_tile, end_tile);
 		DirtyCompanyInfrastructureWindows(company);
 	}
 

@@ -72,7 +72,7 @@ static inline void SetTunnelBridgeSnowOrDesert(TileIndex t, bool snow_or_desert)
 }
 
 /**
- * Determines type of the wormhole and returns its other end
+ * Returns its other end looking in the cached value in the map array.
  * @param t one end
  * @pre IsTileType(t, MP_TUNNELBRIDGE)
  * @return other end
@@ -80,7 +80,37 @@ static inline void SetTunnelBridgeSnowOrDesert(TileIndex t, bool snow_or_desert)
 static inline TileIndex GetOtherTunnelBridgeEnd(TileIndex t)
 {
 	assert(IsTileType(t, MP_TUNNELBRIDGE));
-	return IsTunnel(t) ? GetOtherTunnelEnd(t) : GetOtherBridgeEnd(t);
+	return (TileIndex)(_m[t].m2 << 16 | _m[t].m4 << 8 | _me[t].m6);
+}
+
+/**
+ * Determines type of the wormhole and returns its other end
+ * looking in the right direction until it finds it.
+ * @param t one end
+ * @pre IsTileType(t, MP_TUNNELBRIDGE)
+ * @return other end
+ */
+static inline TileIndex FindOtherTunnelBridgeEnd(TileIndex t)
+{
+	assert(IsTileType(t, MP_TUNNELBRIDGE));
+	return IsTunnel(t) ? FindOtherTunnelEnd(t) : FindOtherBridgeEnd(t);
+}
+
+/**
+ * Stores the other tile of a bridge/tunnel on the map array.
+ * @param start_tile one of the tiles of the bridge/tunnel.
+ * @param end_tile the other tile of the bridge/tunnel.
+ */
+static inline void StoreStartEndTunnelBridge(TileIndex start_tile, TileIndex end_tile)
+{
+	SB(_m[start_tile].m2,  0, 16, GB(end_tile,   16, 16));
+	SB(_m[start_tile].m4,  0,  8, GB(end_tile,    8,  8));
+	SB(_me[start_tile].m6, 0,  8, GB(end_tile,    0,  8));
+
+	SB(_m[end_tile].m2,    0, 16, GB(start_tile, 16, 16));
+	SB(_m[end_tile].m4,    0,  8, GB(start_tile,  8,  8));
+	SB(_me[end_tile].m6,   0,  8, GB(start_tile,  0,  8));
+
 }
 
 
