@@ -73,7 +73,13 @@ static inline Axis GetBridgeAxis(TileIndex t)
 
 TileIndex GetNorthernBridgeEnd(TileIndex t);
 TileIndex GetSouthernBridgeEnd(TileIndex t);
-TileIndex GetOtherBridgeEnd(TileIndex t);
+TileIndex FindOtherBridgeEnd(TileIndex t);
+
+static inline TileIndex GetOtherBridgeEnd(TileIndex t)
+{
+	assert(IsBridgeTile(t));
+	return (TileIndex)(_m[t].m2 << 16 | _m[t].m4 << 8 | _me[t].m6);
+}
 
 int GetBridgeHeight(TileIndex tile);
 /**

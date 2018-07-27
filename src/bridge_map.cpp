@@ -58,7 +58,7 @@ TileIndex GetSouthernBridgeEnd(TileIndex t)
  * Starting at one bridge end finds the other bridge end
  * @param t the bridge ramp tile to find the other bridge ramp for
  */
-TileIndex GetOtherBridgeEnd(TileIndex tile)
+TileIndex FindOtherBridgeEnd(TileIndex tile)
 {
 	assert(IsBridgeTile(tile));
 	return GetBridgeEnd(tile, GetTunnelBridgeDirection(tile));

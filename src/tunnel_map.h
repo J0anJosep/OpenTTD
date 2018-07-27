@@ -37,7 +37,13 @@ static inline bool IsTunnelTile(TileIndex t)
 	return IsTileType(t, MP_TUNNELBRIDGE) && IsTunnel(t);
 }
 
-TileIndex GetOtherTunnelEnd(TileIndex);
+static inline TileIndex GetOtherTunnelEnd(TileIndex t)
+{
+	assert(IsTunnelTile(t));
+	return (TileIndex)(_m[t].m2 << 16 | _m[t].m4 << 8 | _me[t].m6);
+}
+
+TileIndex FindOtherTunnelEnd(TileIndex);
 bool IsTunnelInWay(TileIndex, int z);
 bool IsTunnelInWayDir(TileIndex tile, int z, DiagDirection dir);
 

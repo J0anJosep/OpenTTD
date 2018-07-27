@@ -15,13 +15,14 @@
 #include "safeguards.h"
 
 
+
 /**
- * Gets the other end of the tunnel. Where a vehicle would reappear when it
- * enters at the given tile.
+ * Finds the other end of the tunnel. Where a vehicle would reappear when it
+ * enters at the given tile, looking through all the tiles in the right direction.
  * @param tile the tile to search from.
  * @return the tile of the other end of the tunnel.
  */
-TileIndex GetOtherTunnelEnd(TileIndex tile)
+TileIndex FindOtherTunnelEnd(TileIndex tile)
 {
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
 	TileIndexDiff delta = TileOffsByDiagDir(dir);
