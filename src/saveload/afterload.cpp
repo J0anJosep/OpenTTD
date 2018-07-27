@@ -1328,6 +1328,16 @@ bool AfterLoadGame()
 
 	}
 
+	if (IsSavegameVersionBefore(SLV_STORE_OTHER_TUNNELBRIDGE)) {
+		/* Move bridge type in order to free m6 so it can be used
+		 * for storing the tile index of the other end of the tunnel or the bridge. */
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (!IsTileType(t, MP_TUNNELBRIDGE)) continue;
+			SB(_m[t].m3, 0, 4, GB(_me[t].m6, 2, 4)); // bridge type
+			SB(_me[t].m6, 2, 4, 0);
+		}
+	}
+
 	/* In version 16.1 of the savegame a company can decide if trains, which get
 	 * replaced, shall keep their old length. In all prior versions, just default
 	 * to false */
