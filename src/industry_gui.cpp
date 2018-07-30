@@ -506,22 +506,23 @@ public:
 		switch (widget) {
 			case WID_DPI_MATRIX_WIDGET: {
 				uint text_left, text_right, icon_left, icon_right;
-				uint square_size = FONT_HEIGHT_NORMAL - 2 * WD_GUI_UNIT;
-				uint text_offset = FONT_HEIGHT_NORMAL * 5 / 4;
+				uint square_size = this->resize.step_height - ScaleGUIPixels(6);
+				uint offset = ScaleGUIPixels(3);
 				if (_current_text_dir == TD_RTL) {
-					icon_right = r.right    - SWD_MATRIX_RIGHT;
-					icon_left  = icon_right - square_size;
-					text_right = icon_right - text_offset;
-					text_left  = r.left     + SWD_MATRIX_LEFT;
+					icon_right = r.right    - offset;
+					icon_left  = icon_right - square_size + 1;
+					text_right = icon_left - offset;
+					text_left  = r.left     - offset;
 				} else {
-					icon_left  = r.left     + SWD_MATRIX_LEFT;
-					icon_right = icon_left  + square_size;
-					text_left  = icon_left  + text_offset;
-					text_right = r.right    - SWD_MATRIX_RIGHT;
+					icon_left  = r.left     + offset;
+					icon_right = icon_left  + square_size - 1;
+					text_left  = icon_right  + offset;
+					text_right = r.right    - offset;
 				}
 
-				int y = Center(r.top, this->resize.step_height);
-				for (byte i = 0; i < this->vscroll->GetCapacity() && i + this->vscroll->GetPosition() < this->count; i++, y += this->resize.step_height) {
+				int y_text = Center(r.top, this->resize.step_height);
+				int y = r.top + offset;
+				for (byte i = 0; i < this->vscroll->GetCapacity() && i + this->vscroll->GetPosition() < this->count; i++) {
 					bool selected = this->selected_index == i + this->vscroll->GetPosition();
 
 					if (this->index[i + this->vscroll->GetPosition()] == INVALID_INDUSTRYTYPE) {
@@ -531,9 +532,11 @@ public:
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i + this->vscroll->GetPosition()]);
 
 					/* Draw the name of the industry in white is selected, otherwise, in orange */
-					DrawString(text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
-					GfxFillRect(icon_left,     y + WD_GUI_UNIT, icon_right,     y + square_size, selected ? PC_WHITE : PC_BLACK);
-					GfxFillRect(icon_left + WD_GUI_UNIT, y + 2 * WD_GUI_UNIT, icon_right - WD_GUI_UNIT, y + square_size - WD_GUI_UNIT, indsp->map_colour);
+					DrawString(text_left, text_right, y_text, indsp->name, selected ? TC_WHITE : TC_ORANGE);
+					GfxFillRect(icon_left,     y, icon_right,     y + square_size - 1, selected ? PC_WHITE : PC_BLACK);
+					GfxFillRect(icon_left + WD_GUI_UNIT, y + WD_GUI_UNIT, icon_right - WD_GUI_UNIT, y + square_size - WD_GUI_UNIT - 1, indsp->map_colour);
+					y += this->resize.step_height;
+					y_text += this->resize.step_height;
 				}
 				break;
 			}
