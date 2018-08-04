@@ -110,7 +110,7 @@ struct FilterWindowBase : Window, FilterLists {
 		const int margin_right = rtl ? right - sqr_width - 4 : right;
 		const GUIListForFilter &list = only_active ? this->active->lists[list_type] : this->lists[list_type];
 		int x;
-		int sqr_offset = WD_FRAMERECT_TOP;
+		int sqr_offset = Center(0, this->tiny_step, sqr_width);
 
 		if (list_type == LT_STATIONS && this->HideStationsForCatchment()) return;
 
@@ -215,12 +215,12 @@ struct FilterWindowBase : Window, FilterLists {
 				default: NOT_REACHED();
 			}
 
-			DrawString(left_rect, right_rect, y + WD_FRAMERECT_TOP, mark, colour_mark, SA_CENTER);
-			x = DrawString(margin_left, margin_right, y + WD_FRAMERECT_TOP, str,  colour_mark);
+			DrawString(left_rect, right_rect, Center(y, this->tiny_step), mark, colour_mark, SA_CENTER);
+			x = DrawString(margin_left, margin_right, Center(y, this->tiny_step), str,  colour_mark);
 
 			if (list_type == LT_STATIONS) {
 				const Station *st = Station::GetIfValid(element_is.GetElement());
-				StationsWndShowStationRating(st, left, right, x, FONT_HEIGHT_NORMAL + 2, y + WD_FRAMERECT_TOP);
+				StationsWndShowStationRating(st, left, right, x, FONT_HEIGHT_NORMAL + 2, Center(y, this->tiny_step));
 			}
 			n++;
 			y += this->tiny_step;
