@@ -91,6 +91,8 @@ struct CompanyProperties {
 	 */
 	bool is_ai;
 
+	byte auto_group[VEH_COMPANY_END]; ///< How to automatically group vehicles for each transport type.
+
 	Money yearly_expenses[3][EXPENSES_END];                ///< Expenses of the company for the last three years, in every #ExpensesType category.
 	CompanyEconomyEntry cur_economy;                       ///< Economic data of the company of this quarter.
 	CompanyEconomyEntry old_economy[MAX_HISTORY_QUARTERS]; ///< Economic data of the company of the last #MAX_HISTORY_QUARTERS quarters.
@@ -102,7 +104,7 @@ struct CompanyProperties {
 		  face(0), money(0), money_fraction(0), current_loan(0), colour(0), block_preview(0),
 		  location_of_HQ(0), last_build_coordinate(0), share_owners(), inaugurated_year(0),
 		  months_of_bankruptcy(0), bankrupt_asked(0), bankrupt_timeout(0), bankrupt_value(0),
-		  terraform_limit(0), clear_limit(0), tree_limit(0), is_ai(false) {}
+		  terraform_limit(0), clear_limit(0), tree_limit(0), is_ai(false), auto_group{0} {}
 
 	~CompanyProperties()
 	{
