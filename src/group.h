@@ -150,6 +150,7 @@ void RemoveAllGroupsForCompany(const CompanyID company);
 bool GroupIsInGroup(GroupID search, GroupID group);
 bool GroupInheritsFromGroup(GroupID search, GroupID group);
 void MoveVehiclesToVoidAndRemoveGroups(CompanyID company, VehicleType type);
+bool AreGroupsAutoManaged(VehicleType veh_type, CompanyID company);
 
 extern GroupID _new_group_id;
 

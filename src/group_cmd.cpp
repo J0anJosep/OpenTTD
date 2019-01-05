@@ -563,6 +563,7 @@ CommandCost CmdCreateGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 {
 	VehicleType vt = Extract<VehicleType, 0, 3>(p1);
 	if (!IsCompanyBuildableVehicleType(vt)) return CMD_ERROR;
+	if (AreGroupsAutoManaged(vt, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 
 	if (!Group::CanAllocateItem()) return CMD_ERROR;
 
@@ -612,6 +613,7 @@ CommandCost CmdDeleteGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 {
 	Group *g = Group::GetIfValid(p1);
 	if (g == NULL || g->owner != _current_company) return CMD_ERROR;
+	if (AreGroupsAutoManaged(g->vehicle_type, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 
 	/* Remove all vehicles from the group */
 	DoCommand(0, p1, 0, flags, CMD_REMOVE_ALL_VEHICLES_GROUP);
@@ -689,6 +691,7 @@ CommandCost CmdDefaultName(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	VehicleListIdentifier vli;
 	if (!vli.UnpackIfValid(p1)) return CMD_ERROR;
 	if (vli.company != _current_company) return CMD_ERROR;
+	if (AreGroupsAutoManaged(vli.vtype, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 
 	if (flags & DC_EXEC) {
 		Group *g;
@@ -731,6 +734,7 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 
 	Group *g = Group::GetIfValid(GB(p1, 0, 16));
 	if (g == NULL || g->owner != _current_company) return CMD_ERROR;
+	if (AreGroupsAutoManaged(g->vehicle_type, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 
 	if (p2 == 0) {
 		// just rename this group
@@ -849,6 +853,7 @@ CommandCost CmdAddVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	GroupID new_g = p1;
 
 	if (v == NULL || (!Group::IsValidID(new_g) && !IsDefaultGroupID(new_g) && new_g != NEW_GROUP)) return CMD_ERROR;
+	if (AreGroupsAutoManaged(v->type, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 
 	if (Group::IsValidID(new_g)) {
 		Group *g = Group::Get(new_g);
@@ -902,6 +907,8 @@ CommandCost CmdAddVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 CommandCost CmdAddSharedVehicleGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	VehicleType type = Extract<VehicleType, 0, 3>(p2);
+	if (AreGroupsAutoManaged(type, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
+
 	GroupID id_g = p1;
 	if (!(Group::IsValidID(id_g) || IsDefaultGroupID(id_g)) || !IsCompanyBuildableVehicleType(type)) return CMD_ERROR;
 	if (!IsDefaultGroupID(id_g)) {
@@ -943,6 +950,7 @@ CommandCost CmdRemoveAllVehiclesGroup(TileIndex tile, DoCommandFlag flags, uint3
 	GroupID old_g = p1;
 	Group *g = Group::GetIfValid(old_g);
 
+	if (AreGroupsAutoManaged(g->vehicle_type, _current_company)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 	if (g == NULL || g->owner != _current_company) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
@@ -1313,11 +1321,20 @@ void AddDestinationsString(char *buffer, char *last, Vehicle *v)
 	}
 }
 
+bool AreGroupsAutoManaged(VehicleType veh_type, CompanyID company)
+{
+	return Company::Get(company)->auto_group[veh_type] != GBT_DO_NOTHING;
+}
+
+
 /**
  * Rebuilds groups for a vehicle type given a certain criteria.
  * @param tile unused
  * @param flags type of operation
  * @param p1 vehicle type
+ * - bits 0..2: vehicle type
+ * - bit     3: performed by autogroups
+
  * @param p2 how to group vehicles (@see #GroupedByType enum)
  * @param text unused
  */
@@ -1327,6 +1344,9 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 	GroupedByType grouped_by_type = (GroupedByType)p2;
 
 	if (!IsCompanyBuildableVehicleType(vt)) return CMD_ERROR;
+	if (grouped_by_type == GBT_DO_NOTHING) return CommandCost();
+
+	if (AreGroupsAutoManaged(vt, _current_company) && !HasBit(p1, 3)) return_cmd_error(STR_ERROR_AUTOGROUPS);
 
 	/* We must check if we can allocate enough groups.
 	 * It can be done roughly as twice

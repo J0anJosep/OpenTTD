@@ -318,14 +318,15 @@ private:
 			for (uint iter = _local_company == this->owner ? ADIG_BEGIN : ADIG_BEGIN_ONLY_LOCAL; iter < ADIG_END; iter++) *list->Append() = new DropDownListStringItem(STR_GROUP_MANAGE_BUILD_ORDER_SIMPLE + iter, ADIG_BEGIN + iter, false);
 		} else {
 			if (_local_company == this->vli.company && this->vehicles.Length() != 0) {
+				bool auto_managed = AreGroupsAutoManaged(this->vli.vtype, this->owner);
 				*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_REPLACE_VEHICLES, ADI_REPLACE, false);
 				*list->Append() = new DropDownListStringItem(STR_VEHICLE_LIST_SEND_FOR_SERVICING, ADI_SERVICE, false);
 				*list->Append() = new DropDownListStringItem(this->vehicle_depot_name[this->vli.vtype], ADI_DEPOT, false);
 				if (Group::IsValidID(this->vli.index) || IsDefaultGroupID(this->vli.index)) {
-					*list->Append() = new DropDownListStringItem(STR_GROUP_ADD_SHARED_VEHICLE, ADI_ADD_SHARED, false);
+					*list->Append() = new DropDownListStringItem(STR_GROUP_ADD_SHARED_VEHICLE, ADI_ADD_SHARED, auto_managed);
 				}
 				if (Group::IsValidID(this->vli.index)) {
-					*list->Append() = new DropDownListStringItem(STR_GROUP_REMOVE_ALL_VEHICLES, ADI_REMOVE_ALL, false);
+					*list->Append() = new DropDownListStringItem(STR_GROUP_REMOVE_ALL_VEHICLES, ADI_REMOVE_ALL, auto_managed);
 				}
 			}
 		}
@@ -563,6 +564,17 @@ public:
 				WID_GL_CREATE_GROUP,
 				WID_GL_AVAILABLE_VEHICLES,
 				WIDGET_LIST_END);
+
+		/* Disable buttons if automanagement of groups
+		 * is enabled.
+		 */
+		if (AreGroupsAutoManaged(this->vli.vtype, _local_company)) {
+			this->SetWidgetsDisabledState(true,
+					WID_GL_CREATE_GROUP,
+					WID_GL_DELETE_GROUP,
+					WID_GL_RENAME_GROUP,
+					WIDGET_LIST_END);
+		}
 
 		/* If not a default group and the group has replace protection, show an enabled replace sprite. */
 		uint16 protect_sprite = SPR_GROUP_REPLACE_OFF_TRAIN;
