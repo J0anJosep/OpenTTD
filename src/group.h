@@ -152,6 +152,14 @@ bool GroupInheritsFromGroup(GroupID search, GroupID group);
 void MoveVehiclesToVoidAndRemoveGroups(CompanyID company, VehicleType type);
 bool AreGroupsAutoManaged(VehicleType veh_type, CompanyID company);
 
+void DispatchAutoGroupByCompaniesMerged(CompanyID company_id);
+void DispatchAutoGroupByNewVehicle(VehicleID v_id); //done
+void DispatchAutoGroupByVehicleReplaced(VehicleID v_id);
+void DispatchAutoGroupByVehicleDeleted(VehicleID v_id); //done
+void DispatchAutoGroupByVehicleRefitted(Vehicle v_id); //done
+void DispatchAutoGroupByOrdersChanged(VehicleID v_id);
+void DispatchAutoGroupByOrdersDeleted(VehicleID v_id);
+
 extern GroupID _new_group_id;
 
 #endif /* GROUP_H */

@@ -23,6 +23,8 @@
 #include "order_backup.h"
 #include "strings_func.h"
 #include "window_gui.h"
+#include "order_type.h"
+#include "debug.h"
 
 #include "table/strings.h"
 
@@ -1553,3 +1555,145 @@ CommandCost CmdAutoGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uint
 
 	return CommandCost();
 }
+
+/**
+ * When two companies merge because one buys the other one,
+ * trigger a massive rebuilding of groups for each vehicle
+ * type if buyer company has the corresponding setting enabled.
+ * @param company_id company id of the new bigger company.
+ */
+void DispatchAutoGroupByCompaniesMerged(CompanyID company_id)
+{
+	Company *c = Company::GetIfValid(company_id);
+	assert(c != NULL);
+
+for (VehicleType veh_type = VEH_BEGIN; veh_type < VEH_COMPANY_END; veh_type++) {
+		GroupedByType grouping_type = (GroupedByType)c->auto_group[veh_type];
+		if (grouping_type != GBT_DO_NOTHING) {
+			uint32 p1 = veh_type | (1 << 3);
+			if (CmdBuildGroupsOfVehicleType(0, DC_NONE, p1, grouping_type, NULL).Succeeded()) {
+				CmdBuildGroupsOfVehicleType(0, DC_EXEC, p1, grouping_type, NULL);
+			}
+		}
+	}
+}
+
+enum AutoGroupGameEvent {
+	AGGE_BEGIN,
+	AGGE_VEH_NEW = AGGE_BEGIN,
+	AGGE_VEH_REPLACED,
+	AGGE_VEH_DELETED,
+	AGGE_VEH_REFFITED,
+	AGGE_ORDERS_CHANGED,
+	AGGE_ORDERS_DELETED,
+	AGGE_END
+};
+
+bool IsAutoGroupsAffectedByEvent(AutoGroupGameEvent event, GroupedByType grouping_type)
+{
+	switch (grouping_type) {
+		case GBT_DO_NOTHING:
+			return false;
+		case GBT_ORDER_SIMPLE:
+		case GBT_ORDER_STATIONS:
+			return  event == AGGE_ORDERS_CHANGED ||
+					event == AGGE_ORDERS_DELETED;
+		case GBT_1ST_ENGINE_CLASS_CARGO:
+		case GBT_CARGO:
+		case GBT_CARGO_ORDER:
+			return true;
+		case GBT_1ST_ENGINE:
+			return  event == AGGE_VEH_NEW ||
+					event == AGGE_VEH_REPLACED ||
+					event == AGGE_VEH_DELETED;
+		default:
+			NOT_REACHED();
+	}
+}
+
+/**
+ */
+void DispatchAutoGroupByNewVehicle(VehicleID v_id)
+{
+	Vehicle *v = Vehicle::GetIfValid(v_id);
+	assert(v != NULL);
+
+	Company *c = Company::Get(v->owner);
+	assert(c != NULL);
+
+	GroupedByType grouping_type = (GroupedByType)c->auto_group[v->type];
+	if (!IsAutoGroupsAffectedByEvent(AGGE_VEH_NEW, grouping_type)) return;
+
+	DEBUG(misc, 0, "New event new vehicle, with ID %d", v->index);
+}
+
+/**
+ */
+void DispatchAutoGroupByVehicleReplaced(VehicleID v_id)
+{
+	Vehicle *v = Vehicle::GetIfValid(v_id);
+	assert(v != NULL);
+
+	Company *c = Company::Get(v->owner);
+	assert(c != NULL);
+
+	GroupedByType grouping_type = (GroupedByType)c->auto_group[v->type];
+	if (!IsAutoGroupsAffectedByEvent(AGGE_VEH_REPLACED, grouping_type)) return;
+
+	DEBUG(misc, 0, "Dispatching autogroup by vehicle replaced for %u", v_id);
+}
+
+/**
+ */
+void DispatchAutoGroupByVehicleDeleted(VehicleID v_id)
+{
+	Vehicle *v = Vehicle::GetIfValid(v_id);
+	assert(v != NULL);
+
+	Company *c = Company::Get(v->owner);
+	assert(c != NULL);
+
+	GroupedByType grouping_type = (GroupedByType)c->auto_group[v->type];
+	if (!IsAutoGroupsAffectedByEvent(AGGE_VEH_DELETED, grouping_type)) return;
+
+	DEBUG(misc, 0, "Dispatching autogroup by vehicle deleted for %u", v_id);
+}
+
+/**
+ */
+void DispatchAutoGroupByVehicleReffited(VehicleID v_id)
+{
+	Vehicle *v = Vehicle::GetIfValid(v_id);
+	assert(v != NULL);
+
+	Company *c = Company::Get(v->owner);
+	assert(c != NULL);
+
+	GroupedByType grouping_type = (GroupedByType)c->auto_group[v->type];
+	if (!IsAutoGroupsAffectedByEvent(AGGE_VEH_REFFITED, grouping_type)) return;
+
+	DEBUG(misc, 0, "Dispatching autogroup by vehicle refitted for %u", v_id);
+}
+
+/**
+ */
+void DispatchAutoGroupByOrdersChanged(VehicleID v_id)
+{
+	Vehicle *v = Vehicle::GetIfValid(v_id);
+	assert(v != NULL);
+
+	Company *c = Company::Get(v->owner);
+	assert(c != NULL);
+
+	GroupedByType grouping_type = (GroupedByType)c->auto_group[v->type];
+	if (!IsAutoGroupsAffectedByEvent(AGGE_VEH_REFFITED, grouping_type)) return;
+
+	DEBUG(misc, 0, "Dispatching autogroup by vehicle refitted for %u", v_id);
+}
+
+/**
+ */
+void DispatchAutoGroupByOrdersDeleted(VehicleID v_id)
+{
+}
+

@@ -153,6 +153,7 @@ CommandCost CmdBuildVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		if (v->IsPrimaryVehicle()) {
 			GroupStatistics::CountVehicle(v, 1);
 			OrderBackup::Restore(v, p2);
+			DispatchAutoGroupByNewVehicle(v->index);
 		}
 	}
 
@@ -418,6 +419,7 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 				if (w->cargo.TotalCount() > w->refit_cap) w->cargo.Truncate(w->cargo.TotalCount() - w->refit_cap);
 			}
 		}
+		//DispatchAutoGroupByVehicleRefitted(v->index);
 	}
 
 	refit_result.Clear();

@@ -571,6 +571,8 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 	/* Change colour of existing windows */
 	if (new_owner != INVALID_OWNER) ChangeWindowOwner(old_owner, new_owner);
 
+	if (new_owner != INVALID_OWNER) DispatchAutoGroupByCompaniesMerged(new_owner);
+
 	cur_company.Restore();
 
 	MarkWholeScreenDirty();
