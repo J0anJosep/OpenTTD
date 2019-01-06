@@ -3616,6 +3616,14 @@ STR_GROUP_MANAGE_BUILD_1ST_ENGINE                               :Group by: 1st e
 STR_GROUP_MANAGE_BUILD_CARGO_ORDER                              :Group by: Cargo{NORMAL_ICONS}{SMALL_RIGHT_ARROW}{NORMAL_FONT}Shared orders
 STR_GROUP_MANAGE_DEFAULT_GROUP_NAMES                            :Default group names
 STR_GROUP_MANAGE_UPDATE_CARGO                                   :Update cargo for groups of this class
+STR_GROUP_MANAGE_AUTOMATED_DO_NOTHING                           :Do not automatically manage groups
+STR_GROUP_MANAGE_AUTOMATED_ORDER_SIMPLE                         :Automatically group by: Shared orders
+STR_GROUP_MANAGE_AUTOMATED_ORDER_STATIONS                       :Automatically group by: Stations visited (slow)
+STR_GROUP_MANAGE_AUTOMATED_CARGO                                :Automatically group by: Cargo
+STR_GROUP_MANAGE_AUTOMATED_1ST_ENGINE_CLASS_CARGO               :Automatically group by: 1st engine class{NORMAL_ICONS}{SMALL_RIGHT_ARROW}{NORMAL_FONT}Cargo
+STR_GROUP_MANAGE_AUTOMATED_1ST_ENGINE                           :Automatically group by: 1st engine
+STR_GROUP_MANAGE_AUTOMATED_CARGO_ORDER                          :Automatically group by: Cargo{NORMAL_ICONS}{SMALL_RIGHT_ARROW}{NORMAL_FONT}Shared orders
+
 STR_GROUP_SCHEDULE                                              :L-{COMMA}:{NBSP}
 
 # Group info window
@@ -4784,6 +4792,7 @@ STR_ERROR_GROUP_CAN_T_REMOVE_ALL_VEHICLES                       :{WHITE}Can't re
 STR_ERROR_GROUP_CAN_T_ADD_VEHICLE                               :{WHITE}Can't add the vehicle to this group...
 STR_ERROR_GROUP_CAN_T_ADD_SHARED_VEHICLE                        :{WHITE}Can't add shared vehicles to group...
 STR_ERROR_GROUP_CAN_T_BUILD_GROUPS                              :{WHITE}When building groups for the given vehicle type...
+STR_ERROR_GROUP_CAN_T_AUTOGROUPS                                :{WHITE}When setting automated management of groups for the given vehicle type...
 STR_ERROR_AUTOGROUPS                                            :{WHITE}... automatic management of groups is enabled for this vehicle type.
 
 # Generic vehicle errors

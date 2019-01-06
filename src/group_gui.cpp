@@ -310,12 +310,28 @@ private:
 	/**
 	 * Display the dropdowns for group window
 	 */
-	DropDownList *BuildActionDropdownGroups(bool groups) const
+	DropDownList *BuildActionDropdownGroups(bool groups, int *selected = NULL) const
 	{
 		DropDownList *list = new DropDownList();
 
 		if (groups) {
-			for (uint iter = _local_company == this->owner ? ADIG_BEGIN : ADIG_BEGIN_ONLY_LOCAL; iter < ADIG_END; iter++) *list->Append() = new DropDownListStringItem(STR_GROUP_MANAGE_BUILD_ORDER_SIMPLE + iter, ADIG_BEGIN + iter, false);
+			bool shade = false;
+			const uint start_item = _local_company == this->owner ?
+					(_ctrl_pressed ? ADIG_BEGIN_AUTOMATED : ADIG_BEGIN) : ADIG_BEGIN_ONLY_LOCAL;
+			const uint end_item = (_ctrl_pressed && _local_company == this->owner) ?
+					ADIG_END_AUTOMATED : ADIG_END_NON_AUTOMATED;
+			if (_local_company == this->owner) {
+				int sel = Company::Get(this->owner)->auto_group[this->vli.vtype];
+				if (!_ctrl_pressed) shade = (sel != 0);
+				if (sel > 0 && !_ctrl_pressed) sel--;
+				if (selected != NULL) *selected = start_item + sel;
+			}
+
+			for (uint iter = start_item; iter < end_item; iter++) {
+				*list->Append() = new DropDownListStringItem(iter + STR_GROUP_MANAGE_BUILD_ORDER_SIMPLE,
+						iter,
+						shade && (iter < ADIG_BEGIN_ONLY_LOCAL));
+			}
 		} else {
 			if (_local_company == this->vli.company && this->vehicles.Length() != 0) {
 				bool auto_managed = AreGroupsAutoManaged(this->vli.vtype, this->owner);
@@ -766,8 +782,9 @@ public:
 			}
 
 			case WID_GL_MANAGE_GROUPS_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownGroups(true);
-				ShowDropDownList(this, list, 0, WID_GL_MANAGE_GROUPS_DROPDOWN, 0, true);
+				int selected = 0;
+				DropDownList *list = this->BuildActionDropdownGroups(true, &selected);
+				ShowDropDownList(this, list, selected, WID_GL_MANAGE_GROUPS_DROPDOWN, 0, true);
 				break;
 			}
 
@@ -1011,7 +1028,7 @@ public:
 					case ADIG_GROUP_MANAGE_BUILD_1ST_ENGINE_CLASS_CARGO:
 					case ADIG_GROUP_MANAGE_BUILD_1ST_ENGINE:
 					case ADIG_GROUP_MANAGE_BUILD_CARGO_ORDERS:
-						DoCommandP(0, this->vli.vtype, index - ADIG_GROUP_MANAGE_BUILD_ORDERS_SIMPLE, CMD_BUILD_GROUPS_OF_VEHICLE_TYPE | CMD_MSG(STR_ERROR_GROUP_CAN_T_BUILD_GROUPS));
+						DoCommandP(0, this->vli.vtype, index + GBT_ORDER_SIMPLE - ADIG_GROUP_MANAGE_BUILD_ORDERS_SIMPLE, CMD_BUILD_GROUPS_OF_VEHICLE_TYPE | CMD_MSG(STR_ERROR_GROUP_CAN_T_BUILD_GROUPS));
 						/* The dropdown could be over the group list and
 						 * would redraw an old list with invalid indexes */
 						this->groups.ForceRebuild();
@@ -1022,6 +1039,20 @@ public:
 						break;
 					case ADIG_UPDATE_CARGO:
 						GroupStatistics::UpdateCargoForVehicleType(this->owner, this->vli.vtype);
+						break;
+
+					case ADIG_GROUP_AUTOMATED_DO_NOTHING:
+					case ADIG_GROUP_AUTOMATED_BUILD_ORDERS_SIMPLE:
+					case ADIG_GROUP_AUTOMATED_BUILD_ORDERS_STATIONS:
+					case ADIG_GROUP_AUTOMATED_BUILD_CARGO:
+					case ADIG_GROUP_AUTOMATED_BUILD_1ST_ENGINE_CLASS_CARGO:
+					case ADIG_GROUP_AUTOMATED_BUILD_1ST_ENGINE:
+					case ADIG_GROUP_AUTOMATED_BUILD_CARGO_ORDERS:
+						DoCommandP(0, this->vli.vtype, index - ADIG_BEGIN_AUTOMATED, CMD_AUTOGROUPS_OF_VEHICLE_TYPE | CMD_MSG(STR_ERROR_GROUP_CAN_T_AUTOGROUPS));
+						/* The dropdown could be over the group list and
+						 * would redraw an old list with invalid indexes */
+						this->groups.ForceRebuild();
+						this->BuildGroupList();
 						break;
 
 					default: NOT_REACHED();

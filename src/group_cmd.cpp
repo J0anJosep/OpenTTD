@@ -1529,3 +1529,27 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 
 	return CommandCost();
 }
+
+
+/**
+ * Rebuilds groups for a vehicle type given a certain criteria.
+ * @param tile unused
+ * @param flags type of operation
+ * @param p1 vehicle type
+ * @param p2 how to group vehicles (@see #GroupedByType enum)
+ * @param text unused
+ */
+CommandCost CmdAutoGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
+{
+	assert(p1 < VEH_COMPANY_END);
+	assert(p2 < GBT_END);
+
+	CommandCost check;
+	if (Company::Get(_current_company)->auto_group[p1] == p2) return check;
+	if (p2 != GBT_DO_NOTHING) check = CmdBuildGroupsOfVehicleType(tile, flags, p1 | (1 << 3), p2, text);
+	if (check.Failed()) return check;
+
+	if (flags & DC_EXEC) Company::Get(_current_company)->auto_group[p1] = p2;
+
+	return CommandCost();
+}
