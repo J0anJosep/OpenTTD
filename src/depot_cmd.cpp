@@ -11,6 +11,7 @@
 #include "command_func.h"
 #include "depot_base.h"
 #include "company_func.h"
+#include "date_func.h"
 #include "string_func.h"
 #include "town.h"
 #include "vehicle_gui.h"
@@ -47,7 +48,7 @@ static bool IsUniqueDepotName(const std::string &name)
 CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
 {
 	Depot *d = Depot::GetIfValid(p1);
-	if (d == nullptr) return CMD_ERROR;
+	if (d == nullptr || !d->IsInUse()) return CMD_ERROR;
 
 	CommandCost ret = CheckTileOwnership(d->xy);
 	if (ret.Failed()) return ret;
@@ -76,4 +77,15 @@ CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		SetWindowDirty(GetWindowClassForVehicleType(vt), VehicleListIdentifier(VL_DEPOT_LIST, vt, GetTileOwner(d->xy), d->index).Pack());
 	}
 	return CommandCost();
+}
+
+void OnTick_Depot()
+{
+	if (_game_mode == GM_EDITOR) return;
+
+	/* Clean up demolished depots. */
+	for (Depot *d : Depot::Iterate()) {
+		if ((_tick_counter + d->index) % DEPOT_REMOVAL_TICKS != 0) continue;
+		if (!d->IsInUse() && --d->delete_ctr == 0) delete d;
+	}
 }

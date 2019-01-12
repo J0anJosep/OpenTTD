@@ -1508,6 +1508,7 @@ void GenerateLandscape(byte mode)
 void OnTick_Town();
 void OnTick_Trees();
 void OnTick_Station();
+void OnTick_Depot();
 void OnTick_Industry();
 
 void OnTick_Companies();
@@ -1521,6 +1522,7 @@ void CallLandscapeTick()
 		OnTick_Town();
 		OnTick_Trees();
 		OnTick_Station();
+		OnTick_Depot();
 		OnTick_Industry();
 	}
 
