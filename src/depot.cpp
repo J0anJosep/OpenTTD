@@ -13,6 +13,7 @@
 #include "order_func.h"
 #include "window_func.h"
 #include "core/pool_func.hpp"
+#include "vehicle_base.h"
 #include "vehicle_gui.h"
 #include "vehiclelist.h"
 
@@ -55,4 +56,11 @@ void Depot::Disuse()
 
 	/* Mark that the depot is demolished and start the countdown. */
 	this->delete_ctr = 8;
+
+	/* Make sure no vehicle is going to the old depot. */
+	for (Vehicle *v : Vehicle::Iterate()) {
+		if (v->dest_tile == this->xy && v->First() == v && v->current_order.IsType(OT_GOTO_DEPOT)) {
+			v->SetDestTile(v->GetOrderDepotLocation(this->index));
+		}
+	}
 }
