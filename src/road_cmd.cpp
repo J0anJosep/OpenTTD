@@ -1185,18 +1185,22 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 	if (IsBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
-	if (!Depot::CanAllocateItem()) return CMD_ERROR;
+	Depot *dep = FindDeletedDepotCloseTo(tile, VEH_ROAD, _current_company);
+	if (dep == nullptr && !Depot::CanAllocateItem()) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		Depot *dep = new Depot(tile, VEH_ROAD, _current_company);
-		dep->build_date = _date;
-
+		if (dep == nullptr) {
+			dep = new Depot(tile, VEH_ROAD, _current_company);
+			dep->build_date = _date;
+			MakeDefaultName(dep);
+		} else {
+			dep->Reuse(tile);
+		}
 		/* A road depot has two road bits. */
 		UpdateCompanyRoadInfrastructure(rt, _current_company, ROAD_DEPOT_TRACKBIT_FACTOR);
 
 		MakeRoadDepot(tile, _current_company, dep->index, dir, rt);
 		MarkTileDirtyByTile(tile);
-		MakeDefaultName(dep);
 	}
 	cost.AddCost(_price[PR_BUILD_DEPOT_ROAD]);
 	return cost;

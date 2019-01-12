@@ -37,6 +37,32 @@ static bool IsUniqueDepotName(const std::string &name)
 }
 
 /**
+ * Find a demolished depot close to a tile.
+ * @param tile Tile to search from.
+ * @param type Depot type.
+ * @param cid Previous owner of the depot.
+ * @return The demolished nearby depot.
+ */
+Depot *FindDeletedDepotCloseTo(TileIndex tile, VehicleType type, CompanyID cid)
+{
+	Depot *best_depot = nullptr;
+	uint best_dist = 8;
+
+	for (Depot *depot : Depot::Iterate()) {
+		if (!depot->IsInUse() && depot->type == type && depot->owner == cid) {
+			uint cur_dist = DistanceManhattan(tile, depot->xy);
+
+			if (cur_dist < best_dist) {
+				best_dist = cur_dist;
+				best_depot = depot;
+			}
+		}
+	}
+
+	return best_depot;
+}
+
+/**
  * Rename a depot.
  * @param tile unused
  * @param flags type of operation
