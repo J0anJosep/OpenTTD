@@ -16,13 +16,12 @@
 
 ScriptDepotList::ScriptDepotList(ScriptTile::TransportType transport_type)
 {
-	::TileType tile_type;
 	switch (transport_type) {
 		default: return;
 
-		case ScriptTile::TRANSPORT_ROAD:  tile_type = ::MP_ROAD; break;
-		case ScriptTile::TRANSPORT_RAIL:  tile_type = ::MP_RAILWAY; break;
-		case ScriptTile::TRANSPORT_WATER: tile_type = ::MP_WATER; break;
+		case ScriptTile::TRANSPORT_ROAD:  break;
+		case ScriptTile::TRANSPORT_RAIL:  break;
+		case ScriptTile::TRANSPORT_WATER: break;
 
 		case ScriptTile::TRANSPORT_AIR: {
 			/* Hangars are not seen as real depots by the depot code. */
@@ -36,6 +35,10 @@ ScriptDepotList::ScriptDepotList(ScriptTile::TransportType transport_type)
 			return;
 		}
 	}
+
+	static_assert(VEH_TRAIN == (int)ScriptTile::TRANSPORT_RAIL);
+	static_assert(VEH_ROAD  == (int)ScriptTile::TRANSPORT_ROAD);
+	static_assert(VEH_SHIP  == (int)ScriptTile::TRANSPORT_WATER);
 
 	/* Handle 'standard' depots. */
 	for (const Depot *depot : Depot::Iterate()) {

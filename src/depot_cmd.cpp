@@ -76,7 +76,7 @@ CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 	Depot *d = Depot::GetIfValid(p1);
 	if (d == nullptr || !d->IsInUse()) return CMD_ERROR;
 
-	CommandCost ret = CheckTileOwnership(d->xy);
+	CommandCost ret = CheckOwnership(d->owner);
 	if (ret.Failed()) return ret;
 
 	bool reset = text.empty();
@@ -99,8 +99,7 @@ CommandCost CmdRenameDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		SetWindowDirty(WC_VEHICLE_DEPOT, d->xy);
 
 		/* Update the depot list */
-		VehicleType vt = GetDepotVehicleType(d->xy);
-		SetWindowDirty(GetWindowClassForVehicleType(vt), VehicleListIdentifier(VL_DEPOT_LIST, vt, GetTileOwner(d->xy), d->index).Pack());
+		SetWindowDirty(GetWindowClassForVehicleType(d->type), VehicleListIdentifier(VL_DEPOT_LIST, d->type, d->owner, d->index).Pack());
 	}
 	return CommandCost();
 }
