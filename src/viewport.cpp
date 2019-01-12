@@ -979,6 +979,7 @@ static void DrawAutorailSelection(const TileInfo *ti, uint autorail_type)
 
 extern const byte _slope_to_sprite_offset[32];
 
+byte _zoning_byte;
 /**
  * Draw the the zoning on the tile.
  * @param TileInfo of the tile to draw on.
@@ -988,14 +989,14 @@ void DrawTileZoning(const TileInfo *ti)
 	if (ti->tile == INVALID_TILE) return;
 	if (IsTileType(ti->tile, MP_VOID)) return;
 
-	if (HasBitMapBit(_ca_layer, ti->tile)) {
+	if (HasBit(_zoning_byte, 0) && HasBitMapBit(_ca_layer, ti->tile)) {
 		/* Tile is zoned */
 		DrawSelectionSprite(SPR_SELECT_TILE + _slope_to_sprite_offset[ti->tileh], IsTileType(ti->tile, MP_STATION) ? PAL_NONE : PALETTE_SEL_TILE_BLUE, ti, 7, FOUNDATION_PART_NORMAL);
 	} else {
 		/* Tile is not zoned */
-		if (_ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_ALL_UNCAUGHT_TILES))
-				|| (GetTileType(ti->tile) == MP_HOUSE && _ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_UNCAUGHT_BUILDINGS)))
-				|| (GetTileType(ti->tile) == MP_INDUSTRY && _ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_UNCAUGHT_INDUSTRIES)))) {
+		if (HasBit(_zoning_byte, 1)
+				|| (GetTileType(ti->tile) == MP_HOUSE && HasBit(_zoning_byte, 2))
+				|| (GetTileType(ti->tile) == MP_INDUSTRY && HasBit(_zoning_byte, 3))) {
 			DrawSelectionSprite(SPR_SELECT_TILE + _slope_to_sprite_offset[ti->tileh], PALETTE_SEL_TILE_RED, ti, 7, FOUNDATION_PART_NORMAL);
 		}
 	}

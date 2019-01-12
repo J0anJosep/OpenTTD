@@ -118,6 +118,12 @@ struct CatchmentAreaWindow : FilterWindowBase {
 
 		if (list_type == LT_STATIONS) id = this->lists[LT_STATIONS][id].GetElement();
 		UpdateCALayer(list_type, id);
+
+		extern byte _zoning_byte;
+		_zoning_byte = (_ca_controller.lists[LT_STATIONS].Length() != 0) |
+				(_ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_ALL_UNCAUGHT_TILES)) << 1) |
+				(_ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_UNCAUGHT_BUILDINGS)) << 2) |
+				(_ca_controller.lists[LT_CATCHMENT_AREA_PROPERTIES].Contains(FilterElement(ZW_SHOW_UNCAUGHT_INDUSTRIES)) << 3);
 	}
 };
 
