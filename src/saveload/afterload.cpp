@@ -3150,6 +3150,23 @@ bool AfterLoadGame()
 	/* Compute station catchment areas. This is needed here in case UpdateStationAcceptance is called below. */
 	Station::RecomputeCatchmentForAll();
 
+	/* Since savegame version SLV_MOVEABLE_DEPOTS removed depots are kept in the cache for
+	 * a while so they can be placed again without messing vehicle orders. */
+	if (IsSavegameVersionBefore(SLV_MOVEABLE_DEPOTS)) {
+		for (Depot *d : Depot::Iterate()) {
+			if (!IsDepotTile(d->xy) || GetDepotIndex(d->xy) != d->index) {
+				/* It can happen there is no depot here anymore (TTO/TTD savegames). */
+				d->type = VEH_INVALID;
+				d->owner = OWNER_NONE;
+				d->Disuse();
+				delete d;
+			} else {
+				d->type = GetDepotVehicleType(d->xy);
+				d->owner = GetTileOwner(d->xy);
+			}
+		}
+	}
+
 	/* Station acceptance is some kind of cache */
 	if (IsSavegameVersionBefore(SLV_127)) {
 		for (Station *st : Station::Iterate()) UpdateStationAcceptance(st, false);
