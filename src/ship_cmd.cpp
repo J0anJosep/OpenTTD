@@ -473,12 +473,27 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 		}
 		path_found = false;
 	} else {
+		/* Attempt to follow cached path. */
+		if (v->path_dest == v->dest_tile && !v->path.empty()) {
+			track = TrackdirToTrack(v->path.front());
+
+			if (HasBit(tracks, track)) {
+				v->path.pop_front();
+				/* HandlePathfindResult() is not called here because this is not a new pathfinder result. */
+				return track;
+			}
+
+			/* Cached path is invalid so continue with pathfinder. */
+		}
+
+		v->path.clear();
 		switch (_settings_game.pf.pathfinder_for_ships) {
 			case VPF_OPF: track = OPFShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
 			case VPF_NPF: track = NPFShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
-			case VPF_YAPF: track = YapfShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
+			case VPF_YAPF: track = YapfShipChooseTrack(v, tile, enterdir, tracks, path_found, v->path); break;
 			default: NOT_REACHED();
 		}
+		v->path_dest = v->dest_tile;
 	}
 
 	v->HandlePathfindingResult(path_found);
@@ -665,6 +680,7 @@ getout:
 reverse_direction:
 	dir = ReverseDir(v->direction);
 	v->direction = dir;
+	v->path_dest = INVALID_TILE;
 	goto getout;
 }
 
