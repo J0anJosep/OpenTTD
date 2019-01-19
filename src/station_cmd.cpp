@@ -2605,6 +2605,7 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 			if (s->dest_tile == docking_location) {
 				s->dest_tile = 0;
+				s->path.clear();
 				s->current_order.Free();
 			}
 		}

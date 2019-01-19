@@ -2155,11 +2155,14 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
  * Handle the orders of a vehicle and determine the next place
  * to go to if needed.
  * @param v the vehicle to do this for.
+ * @param has_new_dest whether the vehicle destination tile has changed.
  * @return true *if* the vehicle is eligible for reversing
  *              (basically only when leaving a station).
  */
-bool ProcessOrders(Vehicle *v)
+bool ProcessOrders(Vehicle *v, bool *has_new_dest)
 {
+	if (has_new_dest != NULL) *has_new_dest = false;
+
 	switch (v->current_order.GetType()) {
 		case OT_GOTO_DEPOT:
 			/* Let a depot order in the orderlist interrupt. */
@@ -2220,6 +2223,7 @@ bool ProcessOrders(Vehicle *v)
 
 		v->current_order.Free();
 		v->dest_tile = 0;
+		if (has_new_dest != NULL) *has_new_dest = true; // unnecessary for ships: no order, it may keep its path
 		return false;
 	}
 
@@ -2247,7 +2251,10 @@ bool ProcessOrders(Vehicle *v)
 			break;
 	}
 
-	return UpdateOrderDest(v, order) && may_reverse;
+	TileIndex old_dest = v->dest_tile;
+	may_reverse &= UpdateOrderDest(v, order);
+	if (has_new_dest != NULL && old_dest != v->dest_tile) *has_new_dest = true;
+	return may_reverse;
 }
 
 /**

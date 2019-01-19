@@ -166,7 +166,7 @@ static const Depot *FindClosestShipDepot(const Vehicle *v, uint max_distance)
 	return best_depot;
 }
 
-static void CheckIfShipNeedsService(Vehicle *v)
+static void CheckIfShipNeedsService(Ship *v)
 {
 	if (Company::Get(v->owner)->settings.vehicle.servint_ships == 0 || !v->NeedsAutomaticServicing()) return;
 	if (v->IsChainInDepot()) {
@@ -192,6 +192,7 @@ static void CheckIfShipNeedsService(Vehicle *v)
 		return;
 	}
 
+	if (depot->xy != v->dest_tile) v->path.clear();
 	v->current_order.MakeGoToDepot(depot->index, ODTFB_SERVICE);
 	v->dest_tile = depot->xy;
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
@@ -474,7 +475,7 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 		path_found = false;
 	} else {
 		/* Attempt to follow cached path. */
-		if (v->path_dest == v->dest_tile && !v->path.empty()) {
+		if (!v->path.empty()) {
 			track = TrackdirToTrack(v->path.front());
 
 			if (HasBit(tracks, track)) {
@@ -484,16 +485,15 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 			}
 
 			/* Cached path is invalid so continue with pathfinder. */
+			v->path.clear();
 		}
 
-		v->path.clear();
 		switch (_settings_game.pf.pathfinder_for_ships) {
 			case VPF_OPF: track = OPFShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
 			case VPF_NPF: track = NPFShipChooseTrack(v, tile, enterdir, tracks, path_found); break;
 			case VPF_YAPF: track = YapfShipChooseTrack(v, tile, enterdir, tracks, path_found, v->path); break;
 			default: NOT_REACHED();
 		}
-		v->path_dest = v->dest_tile;
 	}
 
 	v->HandlePathfindingResult(path_found);
@@ -555,7 +555,10 @@ static void ShipController(Ship *v)
 
 	if (v->vehstatus & VS_STOPPED) return;
 
-	ProcessOrders(v);
+	bool has_new_dest = false;
+	ProcessOrders(v, &has_new_dest);
+	if (has_new_dest) v->path.clear();
+
 	v->HandleLoading();
 
 	if (v->current_order.IsType(OT_LOADING)) return;
@@ -680,7 +683,7 @@ getout:
 reverse_direction:
 	dir = ReverseDir(v->direction);
 	v->direction = dir;
-	v->path_dest = INVALID_TILE;
+	v->path.clear();
 	goto getout;
 }
 

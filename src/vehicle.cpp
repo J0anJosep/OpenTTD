@@ -2337,6 +2337,9 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 			SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 		}
 
+		/* Clear cached path for ships. */
+		if (this->type == VEH_SHIP && location != this->dest_tile) Ship::From(this)->path.clear();
+
 		this->dest_tile = location;
 		this->current_order.MakeGoToDepot(destination, ODTF_MANUAL);
 		if (!(command & DEPOT_SERVICE)) this->current_order.SetDepotActionType(ODATFB_HALT);
