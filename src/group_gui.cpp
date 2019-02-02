@@ -30,7 +30,6 @@
 #include "timetable.h"
 #include "group_details_gui.h"
 #include "filters/filter_window_gui.h"
-
 #include "widgets/group_widget.h"
 
 #include "table/sprites.h"
@@ -246,29 +245,39 @@ private:
 			}
 		}
 
-		int x = rtl ? right - ScaleGUIPixels(WD_FRAMERECT_RIGHT + 8) - this->column_size[VGC_NAME].width - longer_name + 1 : left + ScaleGUIPixels(WD_FRAMERECT_LEFT + 8);
-		DrawString(x + rtl ? 0: ScaleGUIPixels(indent), x + this->column_size[VGC_NAME].width + longer_name - 1 - (rtl ? ScaleGUIPixels(indent) : 0), Center(y, this->tiny_step_height, this->column_size[VGC_NAME].height), str, colour);
+		int used_space = rtl ? SWD_FRAMERECT_LEFT : SWD_FRAMERECT_RIGHT;
+		int elem_length = ScaleGUIPixels(8) + this->column_size[VGC_NAME].width;
+		DrawString(rtl ? right - used_space - elem_length - longer_name : left + used_space + ScaleGUIPixels(indent), rtl ? right - used_space - ScaleGUIPixels(indent) : left + used_space + elem_length + longer_name,
+				Center(y, this->tiny_step_height, this->column_size[VGC_NAME].height), str, colour);
 
 		/* draw autoreplace protection */
-		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_PROTECT].width : x + ScaleGUIPixels(2) + this->column_size[VGC_NAME].width;
-		if (protection) DrawSprite(SPR_GROUP_REPLACE_PROTECT, PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_PROTECT].height));
+		used_space += elem_length;
+		elem_length = ScaleGUIPixels(2) + this->column_size[VGC_PROTECT].width;
+		if (protection) DrawSprite(SPR_GROUP_REPLACE_PROTECT, PAL_NONE, rtl ? right - used_space : left + used_space, Center(y, this->tiny_step_height, this->column_size[VGC_PROTECT].height));
 
 		/* draw autoreplace status */
-		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_AUTOREPLACE].width : x + ScaleGUIPixels(2) + this->column_size[VGC_PROTECT].width;
-		if (stats.autoreplace_defined) DrawSprite(SPR_GROUP_REPLACE_ACTIVE, stats.autoreplace_finished ? PALETTE_CRASH : PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_AUTOREPLACE].height));
+		used_space += elem_length;
+		elem_length = ScaleGUIPixels(2) + this->column_size[VGC_AUTOREPLACE].width;
+		if (stats.autoreplace_defined) DrawSprite(SPR_GROUP_REPLACE_ACTIVE, stats.autoreplace_finished ? PALETTE_CRASH : PAL_NONE,
+				rtl ? right - used_space : left + used_space, Center(y, this->tiny_step_height, this->column_size[VGC_AUTOREPLACE].height));
 
 		/* draw the profit icon */
-		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_PROFIT].width : x + ScaleGUIPixels(2) + this->column_size[VGC_AUTOREPLACE].width;
-		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, x, Center(y, this->tiny_step_height, this->column_size[VGC_PROFIT].height));
+		used_space += elem_length;
+		elem_length = ScaleGUIPixels(2) + this->column_size[VGC_PROFIT].width;
+		DrawSprite(stats.SetGroupProfitSpriteID(), PAL_NONE, rtl ? right - used_space : left + used_space, Center(y, this->tiny_step_height, this->column_size[VGC_PROFIT].height));
 
 		/* draw a timetable state indicator */
-		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_TIMETABLE].width : x + ScaleGUIPixels(2) + this->column_size[VGC_PROFIT].width;
-		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(x, x + this->column_size[VGC_TIMETABLE].width - 1, Center(y, this->tiny_step_height, this->column_size[VGC_TIMETABLE].height), STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, colour);
+		used_space += elem_length;
+		elem_length = ScaleGUIPixels(2) + this->column_size[VGC_TIMETABLE].width;
+		if (!IsAllGroupID(g_id) && !IsDefaultGroupID(g_id)) DrawString(rtl ? right - used_space - elem_length : left + used_space,
+				rtl ? right - used_space : left + used_space + elem_length,
+				Center(y, this->tiny_step_height, this->column_size[VGC_TIMETABLE].height), STR_GROUP_LIST_TIMETABLE_ABBREV_INVALID + stats.ol_type, colour);
 
 		/* draw the number of vehicles of the group */
-		x = rtl ? x - ScaleGUIPixels(2) - this->column_size[VGC_NUMBER].width : x + ScaleGUIPixels(2) + this->column_size[VGC_TIMETABLE].width;
+		used_space += elem_length;
+		elem_length = ScaleGUIPixels(2) + this->column_size[VGC_NUMBER].width;
 		SetDParam(0, stats.num_vehicle);
-		DrawString(x, x + this->column_size[VGC_NUMBER].width - 1, Center(y, this->tiny_step_height, this->column_size[VGC_NUMBER].height), STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
+		DrawString(rtl ? right - used_space - elem_length : left + used_space, rtl ? right - used_space : left + used_space + elem_length, Center(y, this->tiny_step_height, this->column_size[VGC_NUMBER].height), STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
 	}
 
 	/**
