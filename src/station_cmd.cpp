@@ -666,7 +666,7 @@ static void DeleteStationIfEmpty(BaseStation *st)
  * @param ta Tiles of the station that may have changed.
  * @param type StationType being modified.
  */
-void Station::AfterStationTileSetChange(bool adding, StationType type)
+void Station::AfterStationTileSetChange(bool adding, TileArea ta, StationType type)
 {
 	TileArea affected_ta;
 	affected_ta.CopyAndExtend(ta, Station::GetCatchmentRadius(type));
