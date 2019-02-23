@@ -546,14 +546,18 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 			}
 			track = FindFirstTrack(tracks);
 		}
+		Trackdir trackdir = TrackEnterdirToTrackdir(track, enterdir);
+		assert(IsWaterPositionFree(tile, trackdir));
+		SetWaterTrackReservation(tile, track, true);
 		path_found = false;
 	} else {
 		/* Attempt to follow cached path. */
 		if (!v->path.empty()) {
 			track = TrackdirToTrack(v->path.front());
 
-			if (HasBit(tracks, track)) {
+			if (HasBit(tracks, track) && IsWaterPositionFree(tile, TrackEnterdirToTrackdir(track, enterdir))) {
 				v->path.pop_front();
+				SetWaterTrackReservation(tile, track, true);
 				/* HandlePathfindResult() is not called here because this is not a new pathfinder result. */
 				return track;
 			}
@@ -570,6 +574,8 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 		}
 	}
 
+	if (IsValidTrack(track) && !HasTrack(tracks, track)) track = INVALID_TRACK;
+
 	/* A path is being found */
 	v->HandlePathfindingResult(path_found);
 
@@ -577,11 +583,12 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 
 	/* Check that the track is reserved. */
 	if (_settings_game.pf.ship_path_reservation && !HasWaterTracksReserved(tile, TrackToTrackBits(track))) {
-		/* Track couldn't be reserved, so if there are alternatives, take them. */
-		track = FindFirstTrack(tracks);
 		Trackdir trackdir = TrackEnterdirToTrackdir(track, enterdir);
-		assert(IsWaterPositionFree(tile, trackdir));
-		if (!SetWaterTrackReservation(tile, track, true)) NOT_REACHED();
+		if (IsWaterPositionFree(tile, trackdir)) {
+			SetWaterTrackReservation(tile, track, true);
+		} else {
+			return INVALID_TRACK;
+		}
 	}
 
 	return track;
@@ -825,9 +832,16 @@ static void ShipController(Ship *v)
 			if (tracks == TRACK_BIT_NONE) goto reverse_direction;
 
 			/* If we can continue path, do it */
-			if (tracks & GetReservedWaterTracks(gp.new_tile)) {
+			if ((tracks & GetReservedWaterTracks(gp.new_tile)) != TRACK_BIT_NONE) {
 				tracks &= GetReservedWaterTracks(gp.new_tile);
 				track = TrackBitsToTrack(tracks);
+				if (!v->path.empty()) {
+					if (track != TrackdirToTrack(v->path.front())) {
+						v->path.clear();
+					} else {
+						v->path.pop_front();
+					}
+				}
 			} else {
 				TrackdirBits trackdirs = TrackBitsToTrackdirBits(tracks) & DiagdirReachesTrackdirs(diagdir);
 
