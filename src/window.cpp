@@ -1914,8 +1914,10 @@ void CheckWindowMinSizings(bool close)
 		uint zoom_level = 0; // Normal zoom level;
 		if (_freetype.fonts[FS_NORMAL].size > 23) zoom_level++;
 		if (_freetype.fonts[FS_NORMAL].size > 47) zoom_level++;
-		if (_gui_zoom != (ZoomLevel)(ZOOM_LVL_OUT_4X - zoom_level)) {
-			_gui_zoom = (ZoomLevel)(ZOOM_LVL_OUT_4X - zoom_level);
+		ZoomLevel new_zoom = (ZoomLevel)(ZOOM_LVL_OUT_4X - zoom_level);
+		if (_gui_zoom != new_zoom || _font_zoom != new_zoom) {
+			_gui_zoom = new_zoom;
+			_font_zoom = new_zoom;
 			GfxClearSpriteCache();
 			UpdateCursorSize();
 			LoadStringWidthTable();

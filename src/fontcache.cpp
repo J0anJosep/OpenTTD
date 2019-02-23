@@ -318,9 +318,8 @@ void FreeTypeFontCache::SetFontSize(FontSize fs, FT_Face face, int pixels)
 			int diff = scaled_height - ScaleFontTrad(_default_font_height[FS_SMALL]);
 			pixels = Clamp(min(head->Lowest_Rec_PPEM, 20) + diff, scaled_height, MAX_FONT_SIZE);
 		}
-	} else {
-		pixels = ScaleFontTrad(pixels);
 	}
+
 	this->used_size = pixels;
 
 	FT_Error err = FT_Set_Pixel_Sizes(this->face, 0, pixels);
