@@ -67,6 +67,7 @@
 #include "industry.h"
 #include "autoreplace_base.h"
 #include "zoning.h"
+#include "pbs_water.h"
 
 #include "void_map.h"
 #include "station_base.h"
@@ -1380,6 +1381,7 @@ static bool InvalidateShipPathCache(int32 p1)
 	Ship *s;
 	FOR_ALL_SHIPS(s) {
 		s->path.clear();
+		LiftShipReservedPath(s);
 	}
 	return true;
 }
