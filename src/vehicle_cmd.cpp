@@ -419,7 +419,7 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 				if (w->cargo.TotalCount() > w->refit_cap) w->cargo.Truncate(w->cargo.TotalCount() - w->refit_cap);
 			}
 		}
-		//DispatchAutoGroupByVehicleRefitted(v->index);
+		DispatchAutoGroupByVehicleRefitted(v->index);
 	}
 
 	refit_result.Clear();

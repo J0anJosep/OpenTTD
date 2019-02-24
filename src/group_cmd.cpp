@@ -1348,7 +1348,9 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 	if (!IsCompanyBuildableVehicleType(vt)) return CMD_ERROR;
 	if (grouped_by_type == GBT_DO_NOTHING) return CommandCost();
 
+	DEBUG(misc, 0, "Auto trigger");
 	if (AreGroupsAutoManaged(vt, _current_company) && !HasBit(p1, 3)) return_cmd_error(STR_ERROR_AUTOGROUPS);
+	DEBUG(misc, 0, "Auto yes & %u", flags & DC_EXEC);
 
 	/* We must check if we can allocate enough groups.
 	 * It can be done roughly as twice
@@ -1379,6 +1381,7 @@ CommandCost CmdBuildGroupsOfVehicleType(TileIndex tile, DoCommandFlag flags, uin
 	Group *g;
 	uint i = 0; // Number of vehicles already checked.
 	uint j = 0; // Number of already created groups.
+	DEBUG(misc, 0, "Continuing");
 
 	FOR_ALL_VEHICLES(v) {
 		if (v->type != vt || v->owner != _current_company || v->group_id != DEFAULT_GROUP || !v->IsPrimaryVehicle()) {
@@ -1585,7 +1588,6 @@ enum AutoGroupGameEvent {
 	AGGE_VEH_DELETED,
 	AGGE_VEH_REFFITED,
 	AGGE_ORDERS_CHANGED,
-	AGGE_ORDERS_DELETED,
 	AGGE_END
 };
 
@@ -1596,8 +1598,7 @@ bool IsAutoGroupsAffectedByEvent(AutoGroupGameEvent event, GroupedByType groupin
 			return false;
 		case GBT_ORDER_SIMPLE:
 		case GBT_ORDER_STATIONS:
-			return  event == AGGE_ORDERS_CHANGED ||
-					event == AGGE_ORDERS_DELETED;
+			return  event == AGGE_ORDERS_CHANGED;
 		case GBT_1ST_ENGINE_CLASS_CARGO:
 		case GBT_CARGO:
 		case GBT_CARGO_ORDER:
@@ -1661,7 +1662,7 @@ void DispatchAutoGroupByVehicleDeleted(VehicleID v_id)
 
 /**
  */
-void DispatchAutoGroupByVehicleReffited(VehicleID v_id)
+void DispatchAutoGroupByVehicleRefitted(VehicleID v_id)
 {
 	Vehicle *v = Vehicle::GetIfValid(v_id);
 	assert(v != NULL);
@@ -1686,14 +1687,9 @@ void DispatchAutoGroupByOrdersChanged(VehicleID v_id)
 	assert(c != NULL);
 
 	GroupedByType grouping_type = (GroupedByType)c->auto_group[v->type];
-	if (!IsAutoGroupsAffectedByEvent(AGGE_VEH_REFFITED, grouping_type)) return;
+	if (!IsAutoGroupsAffectedByEvent(AGGE_ORDERS_CHANGED, grouping_type)) return;
 
-	DEBUG(misc, 0, "Dispatching autogroup by vehicle refitted for %u", v_id);
+	DEBUG(misc, 0, "Dispatching autogroup by orders changed for %u", v_id);
 }
 
-/**
- */
-void DispatchAutoGroupByOrdersDeleted(VehicleID v_id)
-{
-}
 

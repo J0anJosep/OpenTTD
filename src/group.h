@@ -153,12 +153,12 @@ void MoveVehiclesToVoidAndRemoveGroups(CompanyID company, VehicleType type);
 bool AreGroupsAutoManaged(VehicleType veh_type, CompanyID company);
 
 void DispatchAutoGroupByCompaniesMerged(CompanyID company_id);
+void DispatchAutoGroupByVehicleChange(VehicleID v_new, GroupID g_modified);
 void DispatchAutoGroupByNewVehicle(VehicleID v_id); //done
-void DispatchAutoGroupByVehicleReplaced(VehicleID v_id);
+void DispatchAutoGroupByVehicleReplaced(VehicleID v_id); //done
 void DispatchAutoGroupByVehicleDeleted(VehicleID v_id); //done
-void DispatchAutoGroupByVehicleRefitted(Vehicle v_id); //done
-void DispatchAutoGroupByOrdersChanged(VehicleID v_id);
-void DispatchAutoGroupByOrdersDeleted(VehicleID v_id);
+void DispatchAutoGroupByVehicleRefitted(VehicleID v_id); //done
+void DispatchAutoGroupByOrdersChanged(VehicleID v_id); //done
 
 extern GroupID _new_group_id;
 

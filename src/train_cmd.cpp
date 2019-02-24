@@ -1417,6 +1417,7 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 		/* We are undoubtedly changing something in the depot and train list. */
 		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(src->tile));
 		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
+		DispatchAutoGroupByNewVehicle(src_head->index);
 	} else {
 		/* We don't want to execute what we're just tried. */
 		RestoreTrainBackup(original_src);

@@ -750,6 +750,7 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 			GroupStatistics::Get(v->owner, ALL_GROUP, v->type).UpdateMinProfit(v, ALL_GROUP);
 			GroupStatistics::Get(v->owner, v->group_id, v->type).UpdateMinProfit(v, v->group_id);
 		}
+		DispatchAutoGroupByVehicleReplaced(v->index);
 	} else {
 		RestoreRandomSeeds(saved_seeds);
 	}

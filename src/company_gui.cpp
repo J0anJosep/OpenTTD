@@ -2355,6 +2355,13 @@ struct CompanyWindow : Window
 				break;
 			}
 
+			case WID_C_FACE_TITLE: {
+				SetDParam(0, Company::Get((CompanyID)this->window_number)->index);
+				Dimension d = GetStringMultiLineBoundingBox(STR_COMPANY_VIEW_PRESIDENT_MANAGER_TITLE, *size);
+				*size = maxdim(d, *size);
+				break;
+			}
+
 			case WID_C_DESC_COLOUR_SCHEME_EXAMPLE: {
 				Point offset;
 				Dimension d = GetSpriteSize(SPR_VEH_BUS_SW_VIEW, &offset);
@@ -2384,6 +2391,7 @@ struct CompanyWindow : Window
 				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_VIEW_INFRASTRUCTURE_STATION).width);
 				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT).width);
 				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_VIEW_INFRASTRUCTURE_NONE).width);
+				size->height = 5 * FONT_HEIGHT_NORMAL;
 				break;
 
 			case WID_C_DESC_OWNERS: {
@@ -2395,6 +2403,7 @@ struct CompanyWindow : Window
 
 					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_VIEW_SHARES_OWNED_BY).width);
 				}
+				size->height = 4 * FONT_HEIGHT_NORMAL;
 				break;
 			}
 

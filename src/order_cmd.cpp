@@ -260,6 +260,7 @@ void InvalidateVehicleOrder(const Vehicle *v, int data)
 
 	if (data != 0) {
 		/* Calls SetDirty() too */
+		DispatchAutoGroupByOrdersChanged(v->index);
 		InvalidateWindowData(WC_VEHICLE_ORDERS,    v->index, data);
 		InvalidateWindowData(WC_VEHICLE_TIMETABLE, v->index, data);
 		return;
@@ -1908,6 +1909,7 @@ CommandCost CmdOrderRefit(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 				u->current_order.SetRefit(cargo);
 			}
 		}
+		DispatchAutoGroupByVehicleRefitted(v->index);
 	}
 
 	return CommandCost();
