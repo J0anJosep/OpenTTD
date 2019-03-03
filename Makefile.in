@@ -169,7 +169,7 @@ run-prof: all
 	$(Q)cd !!BIN_DIR!! && ./!!TTD!! $(OPENTTD_ARGS) && gprof !!TTD!! | less
 
 regression: all
-	$(Q)cd !!BIN_DIR!! && sh ai/regression/run.sh
+	#$(Q)cd !!BIN_DIR!! && sh ai/regression/run.sh
 test: regression
 
 %.o:
