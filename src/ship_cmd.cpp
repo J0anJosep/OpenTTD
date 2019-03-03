@@ -474,7 +474,14 @@ static Track ChooseShipTrack(Ship *v, TileIndex tile, DiagDirection enterdir, Tr
 		/* No destination or destination too far, don't invoke pathfinder. */
 		track = TrackBitsToTrack(v->state);
 		if (!IsDiagonalTrack(track)) track = TrackToOppositeTrack(track);
-		if (!HasBit(tracks, track)) track = FindFirstTrack(tracks);
+		if (!HasBit(tracks, track)) {
+			/* Can't continue in same direction so pick first available track. */
+			if (_settings_game.pf.forbid_90_deg_ships) {
+				tracks &= ~TrackCrossesTracks(TrackdirToTrack(v->GetVehicleTrackdir()));
+				if (tracks == TRACK_BIT_NONE) return INVALID_TRACK;
+			}
+			track = FindFirstTrack(tracks);
+		}
 		path_found = false;
 	} else {
 		/* Attempt to follow cached path. */
@@ -515,7 +522,7 @@ static inline TrackBits GetAvailShipTracks(TileIndex tile, DiagDirection dir, Tr
 	TrackBits tracks = GetTileShipTrackStatus(tile) & DiagdirReachesTracks(dir);
 
 	/* Do not remove 90 degree turns for OPF, as it isn't able to find paths taking it into account. */
-	if (_settings_game.pf.forbid_90_deg && _settings_game.pf.pathfinder_for_ships != VPF_OPF) tracks &= ~TrackCrossesTracks(TrackdirToTrack(trackdir));
+	if (_settings_game.pf.forbid_90_deg_ships && _settings_game.pf.pathfinder_for_ships != VPF_OPF) tracks &= ~TrackCrossesTracks(TrackdirToTrack(trackdir));
 
 	return tracks;
 }
