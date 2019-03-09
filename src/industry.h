@@ -18,11 +18,12 @@
 #include "industry_map.h"
 #include "industrytype.h"
 #include "tilearea_type.h"
-#include "station_base.h"
 
 
 typedef Pool<Industry, IndustryID, 64, 64000> IndustryPool;
 extern IndustryPool _industry_pool;
+
+struct Station;
 
 /**
  * Production level maximum, minimum and default values.
