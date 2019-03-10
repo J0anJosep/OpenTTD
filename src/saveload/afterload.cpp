@@ -287,6 +287,7 @@ static void InitializeWindowsAndCaches()
 
 	GroupStatistics::UpdateAfterLoad();
 
+	Station::RecomputeIndustriesNearForAll();
 	RebuildSubsidisedSourceAndDestinationCache();
 
 	/* Towns have a noise controlled number of airports system
@@ -3110,9 +3111,6 @@ bool AfterLoadGame()
 		Industry *ind;
 		FOR_ALL_INDUSTRIES(ind) if (ind->neutral_station != NULL) ind->neutral_station->industry = ind;
 	}
-
-	/* Compute station catchment areas. This is needed here in case UpdateStationAcceptance is called below. */
-	Station::RecomputeCatchmentForAll();
 
 	/* Station acceptance is some kind of cache */
 	if (IsSavegameVersionBefore(SLV_127)) {

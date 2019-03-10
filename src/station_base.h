@@ -19,7 +19,6 @@
 #include "industry_type.h"
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
-#include "bitmap_type.h"
 #include <map>
 #include <set>
 
@@ -468,8 +467,6 @@ public:
 
 	IndustryType indtype;   ///< Industry type to get the name from
 
-	BitmapTileArea catchment_tiles; ///< NOSAVE: Set of individual tiles covered by catchment area
-
 	StationHadVehicleOfTypeByte had_vehicle_of_type;
 
 	byte time_since_load;
@@ -496,18 +493,11 @@ public:
 
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
 	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
-	void RecomputeCatchment();
-	static void RecomputeCatchmentForAll();
+	void RecomputeIndustriesNear();
+	static void RecomputeIndustriesNearForAll();
 
 	uint GetCatchmentRadius() const;
 	Rect GetCatchmentRect() const;
-	bool CatchmentCoversTown(TownID t) const;
-	void RemoveFromAllNearbyLists();
-
-	inline bool TileIsInCatchment(TileIndex tile) const
-	{
-		return this->catchment_tiles.HasTile(tile);
-	}
 
 	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
 	{
