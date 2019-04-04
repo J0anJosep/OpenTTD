@@ -65,6 +65,7 @@
 #include "viewport_func.h"
 #include "station_base.h"
 #include "waypoint_base.h"
+#include "depot_base.h"
 #include "town.h"
 #include "signs_base.h"
 #include "signs_func.h"
@@ -1348,15 +1349,18 @@ static void ViewportAddKdtreeSigns(DrawPixelInfo *dpi)
 	bool show_waypoints = HasBit(_display_opt, DO_SHOW_WAYPOINT_NAMES) && _game_mode != GM_MENU;
 	bool show_towns = HasBit(_display_opt, DO_SHOW_TOWN_NAMES) && _game_mode != GM_MENU;
 	bool show_signs = HasBit(_display_opt, DO_SHOW_SIGNS) && !IsInvisibilitySet(TO_SIGNS);
+	bool show_depotsigns = _game_mode != GM_MENU;
 	bool show_competitors = HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS);
 
 	const BaseStation *st;
 	const Sign *si;
+	const Depot *depot;
 
 	/* Collect all the items first and draw afterwards, to ensure layering */
 	std::vector<const BaseStation *> stations;
 	std::vector<const Town *> towns;
 	std::vector<const Sign *> signs;
+	std::vector<const Depot *> depots;
 
 	_viewport_sign_kdtree.FindContained(search_rect.left, search_rect.top, search_rect.right, search_rect.bottom, [&](const ViewportSignKdtreeItem & item) {
 		switch (item.type) {
@@ -1390,11 +1394,23 @@ static void ViewportAddKdtreeSigns(DrawPixelInfo *dpi)
 				si = Sign::Get(item.id.sign);
 
 				/* Don't draw if sign is owned by another company and competitor signs should be hidden.
-				* Note: It is intentional that also signs owned by OWNER_NONE are hidden. Bankrupt
-				* companies can leave OWNER_NONE signs after them. */
+				 * Note: It is intentional that also signs owned by OWNER_NONE are hidden. Bankrupt
+				 * companies can leave OWNER_NONE signs after them. */
 				if (!show_competitors && _local_company != si->owner && si->owner != OWNER_DEITY) break;
 
 				signs.push_back(si);
+				break;
+
+			case ViewportSignKdtreeItem::VKI_DEPOT:
+				if (!show_depotsigns) break;
+				depot = Depot::Get(item.id.depot);
+
+				/* Only show depot name after the depot is removed. */
+				if (depot->IsInUse()) break;
+				/* Don't draw if depot is owned by another company and competitor signs are hidden. */
+				if (!show_competitors && _local_company != depot->owner) break;
+
+				depots.push_back(depot);
 				break;
 
 			default:
@@ -1416,6 +1432,11 @@ static void ViewportAddKdtreeSigns(DrawPixelInfo *dpi)
 			STR_WHITE_SIGN,
 			(IsTransparencySet(TO_SIGNS) || si->owner == OWNER_DEITY) ? STR_VIEWPORT_SIGN_SMALL_WHITE : STR_VIEWPORT_SIGN_SMALL_BLACK, STR_NULL,
 			si->index, 0, (si->owner == OWNER_NONE) ? COLOUR_GREY : (si->owner == OWNER_DEITY ? INVALID_COLOUR : _company_colours[si->owner]));
+	}
+
+	for (const auto *d : depots) {
+		ViewportAddString(dpi, ZOOM_LVL_OUT_16X, &d->sign, STR_VIEWPORT_DEPOT,
+			STR_VIEWPORT_DEPOT_TINY, STR_NULL, d->type, d->index, COLOUR_GREY);
 	}
 
 	for (const auto *st : stations) {
@@ -2195,6 +2216,9 @@ static bool CheckClickOnViewportSign(const Viewport *vp, int x, int y)
 				if (CheckClickOnViewportSign(vp, x, y, &si->sign)) last_si = si;
 				break;
 
+			case ViewportSignKdtreeItem::VKI_DEPOT:
+				break;
+
 			default:
 				NOT_REACHED();
 		}
@@ -2288,6 +2312,23 @@ ViewportSignKdtreeItem ViewportSignKdtreeItem::MakeSign(SignID id)
 	return item;
 }
 
+ViewportSignKdtreeItem ViewportSignKdtreeItem::MakeDepot(DepotID id)
+{
+	ViewportSignKdtreeItem item;
+	item.type = VKI_DEPOT;
+	item.id.depot = id;
+
+	const Depot* depot = Depot::Get(id);
+
+	item.center = depot->sign.center;
+	item.top = depot->sign.top;
+
+	/* Assume the sign can be a candidate for drawing, so measure its width */
+	_viewport_sign_maxwidth = std::max<int>(_viewport_sign_maxwidth, depot->sign.width_normal);
+
+	return item;
+}
+
 void RebuildViewportKdtree()
 {
 	/* Reset biggest size sign seen */
@@ -2310,6 +2351,11 @@ void RebuildViewportKdtree()
 
 	for (const Sign *sign : Sign::Iterate()) {
 		if (sign->sign.kdtree_valid) items.push_back(ViewportSignKdtreeItem::MakeSign(sign->index));
+	}
+
+	for (const Depot *depot : Depot::Iterate()) {
+		if (depot->IsInUse()) continue;
+		items.push_back(ViewportSignKdtreeItem::MakeDepot(depot->index));
 	}
 
 	_viewport_sign_kdtree.Build(items.begin(), items.end());

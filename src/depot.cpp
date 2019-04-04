@@ -16,6 +16,7 @@
 #include "vehicle_base.h"
 #include "vehicle_gui.h"
 #include "vehiclelist.h"
+#include "viewport_kdtree.h"
 
 #include "safeguards.h"
 
@@ -32,6 +33,9 @@ Depot::~Depot()
 
 	/* Clear the depot from all order-lists */
 	RemoveOrderFromAllVehicles(OT_GOTO_DEPOT, this->index);
+
+	/* The sign will now disappear. */
+	this->sign.MarkDirty();
 }
 
 /**
@@ -44,6 +48,9 @@ void Depot::Reuse(TileIndex xy)
 {
 	this->delete_ctr = 0;
 	this->xy = xy;
+	/* Ensure the sign is not drawn */
+	_viewport_sign_kdtree.Remove(ViewportSignKdtreeItem::MakeDepot(this->index));
+	this->sign.MarkDirty();
 }
 
 /**
@@ -76,4 +83,8 @@ void Depot::Disuse()
 			v->SetDestTile(v->GetOrderDepotLocation(this->index));
 		}
 	}
+
+	/* Update the sign, it will be visible from now. */
+	this->UpdateVirtCoord();
+	_viewport_sign_kdtree.Insert(ViewportSignKdtreeItem::MakeDepot(this->index));
 }

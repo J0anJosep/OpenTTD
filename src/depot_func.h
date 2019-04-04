@@ -19,6 +19,8 @@ void ShowDepotWindow(TileIndex tile, VehicleType type);
 
 void DeleteDepotHighlightOfVehicle(const Vehicle *v);
 
+void UpdateAllDepotVirtCoords();
+
 Depot *FindDeletedDepotCloseTo(TileIndex tile, VehicleType type, CompanyID cid);
 
 /**
