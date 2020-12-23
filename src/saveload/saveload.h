@@ -325,7 +325,10 @@ enum SaveLoadVersion : uint16 {
 	SLV_VEH_MOTION_COUNTER,                 ///< 288  PR#8591 Desync safe motion counter
 	SLV_INDUSTRY_TEXT,                      ///< 289  PR#8576 v1.11.0-RC1  Additional GS text for industries.
 	SLV_MAPGEN_SETTINGS_REVAMP,             ///< 290  PR#8891 v1.11  Revamp of some mapgen settings (snow coverage, desert coverage, heightmap height, custom terrain type).
+	SLV_MULTITILE_DEPOTS,                   ///< 291  PR#8480 Multi-tile depots for rail, road and water transport.
 
+	SLV_PATCHED = UINT16_MAX - 4,           ///<      Make it difficult to load any savegame made with
+			// this patched version in any other version of OpenTTD (unless it uses the same saveload version trick).
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 
