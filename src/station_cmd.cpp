@@ -60,6 +60,7 @@
 #include "waypoint_cmd.h"
 #include "landscape_cmd.h"
 #include "rail_cmd.h"
+#include "depot_base.h"
 
 #include "table/strings.h"
 
@@ -2218,6 +2219,8 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, byte airport_ty
 
 	/* Check if a valid, buildable airport was chosen for construction */
 	const AirportSpec *as = AirportSpec::Get(airport_type);
+
+	if (as->nof_depots > 0 && !Depot::CanAllocateItem()) return CMD_ERROR;
 	if (!as->IsAvailable() || layout >= as->num_table) return CMD_ERROR;
 	if (!as->IsWithinMapBounds(layout, tile)) return CMD_ERROR;
 
@@ -2310,6 +2313,8 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, byte airport_ty
 			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
 		}
 
+		if (as->nof_depots > 0) st->airport.SetHangar(true);
+
 		UpdateAirplanesOnNewStation(st);
 
 		Company::Get(st->owner)->infrastructure.airport++;
@@ -2357,6 +2362,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 			OrderBackup::Reset(tile_cur, false);
 			CloseWindowById(WC_VEHICLE_DEPOT, tile_cur);
 		}
+		st->airport.SetHangar(false);
 
 		const AirportSpec *as = st->airport.GetSpec();
 		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
