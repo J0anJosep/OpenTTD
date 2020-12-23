@@ -1136,6 +1136,19 @@ static bool SpriteZoomMinChanged(int32 p1) {
 	return true;
 }
 
+static bool InvalidateReplacements(int32 p1)
+{
+	if (_game_mode == GM_NORMAL) {
+		if (p1 == 0) {
+			ShowErrorMessage(STR_CONFIG_SETTING_REPLACEMENTS_DIFF_TYPE, INVALID_STRING_ID, WL_ERROR);
+			return false;
+		}
+	}
+
+	InvalidateWindowClassesData(WC_REPLACE_VEHICLE);
+	return true;
+}
+
 /**
  * Update any possible saveload window and delete any newgrf dialogue as
  * its widget parts might change. Reinit all windows as it allows access to the
