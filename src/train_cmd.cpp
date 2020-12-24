@@ -3140,6 +3140,18 @@ uint Train::Crash(bool flooded)
 		/* Remove the reserved path in front of the train if it is not stuck.
 		 * Also clear all reserved tracks the train is currently on. */
 		if (!HasBit(this->flags, VRF_TRAIN_STUCK)) FreeTrainTrackReservation(this);
+
+		if (IsBigRailDepotTile(this->tile) && this->IsInDepot()) {
+			if (this->track & ~TRACK_BIT_DEPOT) {
+				for (Train *v = this; v != nullptr; v = v->Next()) {
+					v->track &= ~TRACK_BIT_DEPOT;
+				}
+			}
+
+			SetPlatformReservation(this->tile, false);
+			InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(this->tile));
+		}
+
 		for (const Train *v = this; v != nullptr; v = v->Next()) {
 			ClearPathReservation(v, v->tile, v->GetVehicleTrackdir());
 			if (IsTileType(v->tile, MP_TUNNELBRIDGE)) {
