@@ -36,6 +36,7 @@
 #include "sortlist_type.h"
 #include "stringfilter_type.h"
 #include "string_func.h"
+#include "depot_func.h"
 
 #include "station_map.h"
 #include "tunnelbridge_map.h"
@@ -441,6 +442,7 @@ struct BuildRailToolbarWindow : Window {
 	{
 		if (this->IsWidgetLowered(WID_RAT_BUILD_STATION)) SetViewportCatchmentStation(nullptr, true);
 		if (_settings_client.gui.link_terraform_toolbar) CloseWindowById(WC_SCEN_LAND_GEN, 0, false);
+		if (this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
 		this->Window::Close();
 	}
 
@@ -741,6 +743,8 @@ struct BuildRailToolbarWindow : Window {
 	void OnPlaceObjectAbort() override
 	{
 		if (this->IsWidgetLowered(WID_RAT_BUILD_STATION)) SetViewportCatchmentStation(nullptr, true);
+
+		if (this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
 
 		this->RaiseButtons();
 		this->DisableWidget(WID_RAT_REMOVE);
@@ -1966,6 +1970,11 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 				this->SetDirty();
 				break;
 		}
+	}
+
+	void OnRealtimeTick(uint delta_ms) override
+	{
+		CheckRedrawDepotHighlight(this, VEH_TRAIN);
 	}
 };
 
