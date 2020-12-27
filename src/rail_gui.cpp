@@ -317,7 +317,7 @@ static bool RailToolbar_CtrlChanged(Window *w)
 
 	/* allow ctrl to switch remove mode only for these widgets */
 	for (uint i = WID_RAT_BUILD_NS; i <= WID_RAT_BUILD_STATION; i++) {
-		if ((i <= WID_RAT_AUTORAIL || i >= WID_RAT_BUILD_DEPOT) && w->IsWidgetLowered(i)) {
+		if ((i <= WID_RAT_AUTORAIL || i >= WID_RAT_BUILD_DEPOT) && w->HasWidget(i) && w->IsWidgetLowered(i)) {
 			ToggleRailButton_Remove(w);
 			return true;
 		}
@@ -446,7 +446,12 @@ struct BuildRailToolbarWindow : Window {
 	{
 		if (this->IsWidgetLowered(WID_RAT_BUILD_STATION)) SetViewportCatchmentStation(nullptr, true);
 		if (_settings_client.gui.link_terraform_toolbar) CloseWindowById(WC_SCEN_LAND_GEN, 0, false);
-		if (this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
+
+		if ((this->HasWidget(WID_RAT_BUILD_DEPOT) && this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) ||
+				(this->HasWidget(WID_RAT_BUILD_EXTENDED_DEPOT) && this->IsWidgetLowered(WID_RAT_BUILD_EXTENDED_DEPOT))) {
+			SetViewportHighlightDepot(INVALID_DEPOT, true);
+		}
+
 		this->Window::Close();
 	}
 
@@ -465,7 +470,8 @@ struct BuildRailToolbarWindow : Window {
 		this->GetWidget<NWidgetCore>(WID_RAT_BUILD_EW)->widget_data     = rti->gui_sprites.build_ew_rail;
 		this->GetWidget<NWidgetCore>(WID_RAT_BUILD_Y)->widget_data      = rti->gui_sprites.build_y_rail;
 		this->GetWidget<NWidgetCore>(WID_RAT_AUTORAIL)->widget_data     = rti->gui_sprites.auto_rail;
-		this->GetWidget<NWidgetCore>(WID_RAT_BUILD_DEPOT)->widget_data  = rti->gui_sprites.build_depot;
+		if (this->HasWidget(WID_RAT_BUILD_DEPOT)) this->GetWidget<NWidgetCore>(WID_RAT_BUILD_DEPOT)->widget_data  = rti->gui_sprites.build_depot;
+		if (this->HasWidget(WID_RAT_BUILD_EXTENDED_DEPOT)) this->GetWidget<NWidgetCore>(WID_RAT_BUILD_EXTENDED_DEPOT)->widget_data  = rti->gui_sprites.build_depot;
 		this->GetWidget<NWidgetCore>(WID_RAT_CONVERT_RAIL)->widget_data = rti->gui_sprites.convert_rail;
 		this->GetWidget<NWidgetCore>(WID_RAT_BUILD_TUNNEL)->widget_data = rti->gui_sprites.build_tunnel;
 	}
@@ -494,6 +500,7 @@ struct BuildRailToolbarWindow : Window {
 			case WID_RAT_BUILD_Y:
 			case WID_RAT_AUTORAIL:
 			case WID_RAT_BUILD_DEPOT:
+			case WID_RAT_BUILD_EXTENDED_DEPOT:
 			case WID_RAT_BUILD_WAYPOINT:
 			case WID_RAT_BUILD_STATION:
 			case WID_RAT_BUILD_SIGNALS:
@@ -762,7 +769,10 @@ struct BuildRailToolbarWindow : Window {
 	{
 		if (this->IsWidgetLowered(WID_RAT_BUILD_STATION)) SetViewportCatchmentStation(nullptr, true);
 
-		if (this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
+		if ((this->HasWidget(WID_RAT_BUILD_DEPOT) && this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) ||
+				(this->HasWidget(WID_RAT_BUILD_EXTENDED_DEPOT) && this->IsWidgetLowered(WID_RAT_BUILD_EXTENDED_DEPOT))) {
+			SetViewportHighlightDepot(INVALID_DEPOT, true);
+		}
 
 		this->RaiseButtons();
 		this->DisableWidget(WID_RAT_REMOVE);
@@ -788,7 +798,8 @@ struct BuildRailToolbarWindow : Window {
 		/* do not toggle Remove button by Ctrl when placing station or depot */
 		if (!this->IsWidgetLowered(WID_RAT_BUILD_STATION) &&
 			!this->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT) &&
-			!this->IsWidgetLowered(WID_RAT_BUILD_DEPOT) &&
+			!(this->HasWidget(WID_RAT_BUILD_DEPOT) && this->IsWidgetLowered(WID_RAT_BUILD_DEPOT)) &&
+			!(this->HasWidget(WID_RAT_BUILD_EXTENDED_DEPOT) && this->IsWidgetLowered(WID_RAT_BUILD_EXTENDED_DEPOT)) &&
 			RailToolbar_CtrlChanged(this)) return ES_HANDLED;
 		return ES_NOT_HANDLED;
 	}
@@ -831,6 +842,30 @@ static Hotkey railtoolbar_hotkeys[] = {
 };
 HotkeyList BuildRailToolbarWindow::hotkeys("railtoolbar", railtoolbar_hotkeys, RailToolbarGlobalHotkeys);
 
+/**
+ * Add the depot icons depending on availability of construction.
+ * @param biggest_index Storage for collecting the biggest index used in the returned tree.
+ * @return Panel with company buttons.
+ * @post \c *biggest_index contains the largest used index in the tree.
+ */
+static NWidgetBase *MakeNWidgetRailDepot(int *biggest_index)
+{
+	NWidgetHorizontal *hor = new NWidgetHorizontal();
+
+	if (HasBit(_settings_game.depot.rail_depot_types, 0)) {
+		// small depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_RAT_BUILD_DEPOT, SPR_IMG_DEPOT_RAIL, STR_RAIL_TOOLBAR_TOOLTIP_BUILD_TRAIN_DEPOT_FOR_BUILDING));
+	}
+
+	if (HasBit(_settings_game.depot.rail_depot_types, 1)) {
+		// big depot
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_RAT_BUILD_EXTENDED_DEPOT, SPR_IMG_DEPOT_RAIL, STR_RAIL_TOOLBAR_TOOLTIP_BUILD_EXTENDED_TRAIN_DEPOT));
+	}
+
+	*biggest_index = WID_RAT_BUILD_EXTENDED_DEPOT;
+	return hor;
+}
+
 static const NWidgetPart _nested_build_rail_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
@@ -853,8 +888,7 @@ static const NWidgetPart _nested_build_rail_widgets[] = {
 
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_RAT_DEMOLISH),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_RAT_BUILD_DEPOT),
-						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DEPOT_RAIL, STR_RAIL_TOOLBAR_TOOLTIP_BUILD_TRAIN_DEPOT_FOR_BUILDING),
+		NWidgetFunction(MakeNWidgetRailDepot),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_RAT_BUILD_WAYPOINT),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_WAYPOINT, STR_RAIL_TOOLBAR_TOOLTIP_CONVERT_RAIL_TO_WAYPOINT),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_RAT_BUILD_STATION),
