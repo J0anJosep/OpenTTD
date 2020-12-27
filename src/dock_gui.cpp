@@ -25,6 +25,7 @@
 #include "hotkeys.h"
 #include "gui.h"
 #include "zoom_func.h"
+#include "depot_func.h"
 
 #include "widgets/dock_widget.h"
 
@@ -104,6 +105,9 @@ struct BuildDocksToolbarWindow : Window {
 	~BuildDocksToolbarWindow()
 	{
 		if (_game_mode == GM_NORMAL && this->IsWidgetLowered(WID_DT_STATION)) SetViewportCatchmentStation(nullptr, true);
+
+		if (_game_mode == GM_NORMAL && this->IsWidgetLowered(WID_DT_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
+
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
 
@@ -258,6 +262,8 @@ struct BuildDocksToolbarWindow : Window {
 	void OnPlaceObjectAbort() override
 	{
 		if (_game_mode != GM_EDITOR && this->IsWidgetLowered(WID_DT_STATION)) SetViewportCatchmentStation(nullptr, true);
+
+		if (_game_mode != GM_EDITOR && this->IsWidgetLowered(WID_DT_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
 
 		this->RaiseButtons();
 
@@ -562,6 +568,11 @@ public:
 				this->SetDirty();
 				break;
 		}
+	}
+
+	void OnRealtimeTick(uint delta_ms) override
+	{
+		CheckRedrawDepotHighlight(this, VEH_SHIP);
 	}
 };
 

@@ -31,6 +31,7 @@
 #include "strings_func.h"
 #include "core/geometry_func.hpp"
 #include "date_func.h"
+#include "depot_func.h"
 
 #include "widgets/road_widget.h"
 
@@ -292,6 +293,9 @@ struct BuildRoadToolbarWindow : Window {
 	~BuildRoadToolbarWindow()
 	{
 		if (_game_mode == GM_NORMAL && (this->IsWidgetLowered(WID_ROT_BUS_STATION) || this->IsWidgetLowered(WID_ROT_TRUCK_STATION))) SetViewportCatchmentStation(nullptr, true);
+
+		if (_game_mode == GM_NORMAL && this->IsWidgetLowered(WID_ROT_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
+
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
 
@@ -581,6 +585,8 @@ struct BuildRoadToolbarWindow : Window {
 	void OnPlaceObjectAbort() override
 	{
 		if (_game_mode != GM_EDITOR && (this->IsWidgetLowered(WID_ROT_BUS_STATION) || this->IsWidgetLowered(WID_ROT_TRUCK_STATION))) SetViewportCatchmentStation(nullptr, true);
+
+		if (_game_mode == GM_NORMAL && this->IsWidgetLowered(WID_ROT_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
 
 		this->RaiseButtons();
 		this->SetWidgetDisabledState(WID_ROT_REMOVE, true);
@@ -982,6 +988,7 @@ Window *ShowBuildRoadScenToolbar(RoadType roadtype)
 }
 
 struct BuildRoadDepotWindow : public PickerWindowBase {
+
 	BuildRoadDepotWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
@@ -1032,6 +1039,11 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 			default:
 				break;
 		}
+	}
+
+	void OnRealtimeTick(uint delta_ms) override
+	{
+		CheckRedrawDepotHighlight(this, VEH_ROAD);
 	}
 };
 
