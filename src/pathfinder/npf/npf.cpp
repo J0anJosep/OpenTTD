@@ -368,7 +368,25 @@ static int32 NPFRoadPathCost(AyStar *as, AyStarNode *current, OpenListNode *pare
 		case MP_ROAD:
 			cost = NPF_TILE_LENGTH;
 			/* Increase the cost for level crossings */
-			if (IsLevelCrossing(tile)) cost += _settings_game.pf.npf.npf_crossing_penalty;
+			if (IsLevelCrossing(tile)) {
+				cost += _settings_game.pf.npf.npf_crossing_penalty;
+			} else if (IsRoadDepot(tile) && IsBigDepot(tile)) {
+				/* Check if vehicle is heading towards this depot. */
+				NPFFindStationOrTileData *fstd = (NPFFindStationOrTileData*)as->user_target;
+				bool dest_depot = fstd->v->current_order.IsType(OT_GOTO_DEPOT) && GetDepotIndex(tile) == fstd->v->current_order.GetDestination();
+				switch (GetDepotReservation(tile)) {
+					case DEPOT_RESERVATION_FULL_STOPPED_VEH:
+						cost += dest_depot ? NPF_INFINITE_PENALTY : (8 * NPF_TILE_LENGTH);
+						break;
+					case DEPOT_RESERVATION_IN_USE:
+						cost += 4 * NPF_TILE_LENGTH;
+						break;
+					case DEPOT_RESERVATION_EMPTY:
+						cost += NPF_TILE_LENGTH;
+						break;
+					default: NOT_REACHED();
+				}
+			}
 			break;
 
 		case MP_STATION: {
@@ -643,7 +661,7 @@ static int32 NPFFindStationOrTile(const AyStar *as, const OpenListNode *current)
 				(fstd->not_articulated || IsDriveThroughStopTile(tile)))
 			return AYSTAR_FOUND_END_NODE;
 	} else if (IsDepotTypeTile(tile, user->type) && GetDepotIndex(tile) == fstd->depot_index) {
-		return AYSTAR_FOUND_END_NODE;
+		if (fstd->v->type != VEH_ROAD || !IsFullDepot(tile)) return AYSTAR_FOUND_END_NODE;
 	}
 
 	return AYSTAR_DONE;
@@ -825,7 +843,7 @@ static DiagDirection GetSingleTramBit(TileIndex tile)
  */
 static DiagDirection GetTileSingleEntry(TileIndex tile, TransportType type, uint subtype)
 {
-	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type) && !IsBigRailDepotTile(tile)) return GetDepotDirection(tile, type);
+	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type) && !IsBigDepotTile(tile)) return GetDepotDirection(tile, type);
 
 	if (type == TRANSPORT_ROAD) {
 		if (IsStandardRoadStopTile(tile)) return GetRoadStopDir(tile);

@@ -792,21 +792,19 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	CommandCost ret = EnsureNoVehicleOnGround(tile);
 	if (ret.Failed()) return ret;
 
-	int z;
-	Slope tileh = GetTileSlope(tile, &z);
-
 	/* Prohibit building if
 	 *   1) The tile is "steep" (i.e. stretches two height levels).
 	 *   2) The tile is non-flat and the build_on_slopes switch is disabled.
 	 */
-	if ((!allow_steep && IsSteepSlope(tileh)) ||
-			((!_settings_game.construction.build_on_slopes) && tileh != SLOPE_FLAT)) {
-		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
-	}
-
+	int z;
+	Slope tileh = GetTileSlope(tile, &z);
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int flat_z = z + GetSlopeMaxZ(tileh);
+
 	if (tileh != SLOPE_FLAT) {
+		if ((!allow_steep && IsSteepSlope(tileh)) ||
+			!_settings_game.construction.build_on_slopes) {
+			return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
+		}
 		/* Forbid building if the tile faces a slope in a invalid direction. */
 		for (DiagDirection dir = DIAGDIR_BEGIN; dir != DIAGDIR_END; dir++) {
 			if (HasBit(invalid_dirs, dir) && !CanBuildDepotByTileh(dir, tileh)) {
@@ -817,6 +815,7 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	}
 
 	/* The level of this tile must be equal to allowed_z. */
+	int flat_z = z + GetSlopeMaxZ(tileh);
 	if (allowed_z < 0) {
 		/* First tile. */
 		allowed_z = flat_z;

@@ -260,20 +260,32 @@ CommandCost FindDepotTileForPlacingEngine(TileIndex &tile, const Engine *e, DoCo
 	if ((dep->r_types.road_types & rti->powered_roadtypes) == 0) return_cmd_error(STR_ERROR_DEPOT_WRONG_DEPOT_TYPE);
 
 	/* Use same tile if possible when replacing. */
-	if (flags & DC_AUTOREPLACE) {
-		/* Use same tile if possible when replacing. */
-		if (HasTileAnyRoadType(tile, rti->powered_roadtypes)) return CommandCost();
-	}
+	//if (flags & DC_AUTOREPLACE)
+	if (HasTileAnyRoadType(tile, rti->powered_roadtypes)) return CommandCost();
 
 	TileIndex best_tile = INVALID_TILE;
 	for (std::vector<TileIndex>::iterator it = dep->depot_tiles.begin(); it != dep->depot_tiles.end(); ++it) {
 		tile = *it;
 		if (!HasTileAnyRoadType(tile, rti->powered_roadtypes)) continue;
+		if (!IsBigDepot(tile)) return CommandCost();
+		if (IsFullDepot(tile)) continue;
 		best_tile = *it;
 	}
 
+	if (best_tile == INVALID_TILE) return_cmd_error(STR_ERROR_DEPOT_FULL_DEPOT);
 	tile = best_tile;
 	return CommandCost();
+}
+
+DiagDirection GetRoadDepotExit(TileIndex tile, RoadTramType rtt)
+{
+	assert(IsRoadDepot(tile));
+	RoadBits rb = GetRoadBits(tile, rtt);
+	if (rb & ROAD_SE) return DIAGDIR_SE;
+	if (rb & ROAD_SW) return DIAGDIR_SW;
+	if (rb & ROAD_NE) return DIAGDIR_NE;
+	if (rb & ROAD_NW) return DIAGDIR_NW;
+	return INVALID_DIAGDIR;
 }
 
 /**
@@ -299,7 +311,8 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 
 		RoadVehicle *v = new RoadVehicle();
 		*ret = v;
-		v->direction = DiagDirToDir(GetRoadDepotDirection(tile));
+		DiagDirection exit_dir = GetRoadDepotExit(tile, RoadTramType(rt));
+		v->direction = DiagDirToDir(exit_dir == INVALID_DIAGDIR ? GetRoadDepotDirection(tile) : exit_dir);
 		v->owner = _current_company;
 
 		v->tile = tile;
@@ -358,6 +371,11 @@ CommandCost CmdBuildRoadVehicle(TileIndex tile, DoCommandFlag flags, const Engin
 		if (_settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) v->CargoChanged();
 
 		v->UpdatePosition();
+
+		if (IsBigDepot(v->tile) && (flags & DC_AUTOREPLACE) == 0) {
+			ChangeNumDepotVehicles(v->tile, 1);
+			SetBigDepotReservation(v, true);
+		}
 
 		CheckConsistencyOfArticulatedVehicle(v);
 	}
@@ -918,9 +936,17 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 	TrackdirBits trackdirs = TrackStatusToTrackdirBits(ts);
 
 	if (IsTileType(tile, MP_ROAD)) {
-		if (IsRoadDepot(tile) && (!IsTileOwner(tile, v->owner) || GetRoadDepotDirection(tile) == enterdir)) {
-			/* Road depot owned by another company or with the wrong orientation */
-			trackdirs = TRACKDIR_BIT_NONE;
+		if (IsRoadDepot(tile)) {
+			if (!IsTileOwner(tile, v->owner)) {
+				trackdirs = TRACKDIR_BIT_NONE;
+			} else if (IsBigRoadDepotTile(tile)) {
+				if (tile != v->tile) {
+					RoadBits rb = GetRoadBits(tile, GetRoadTramType(v->roadtype)) & DiagDirToRoadBits(ReverseDiagDir(enterdir));
+					if (rb == ROAD_NONE) trackdirs = TRACKDIR_BIT_NONE;
+				}
+			} else if (GetRoadDepotDirection(tile) == enterdir) { // Standard depot
+				trackdirs = TRACKDIR_BIT_NONE;
+			}
 		}
 	} else if (IsTileType(tile, MP_STATION) && IsStandardRoadStopTile(tile)) {
 		/* Standard road stop (drive-through stops are treated as normal road) */
@@ -1032,6 +1058,34 @@ struct RoadDriveEntry {
 
 #include "table/roadveh_movement.h"
 
+static const uint16 JUST_REVERSE_ON_DEPOT = UINT16_MAX - 2;
+
+void HandleRoadVehicleEnterDepot(RoadVehicle *v)
+{
+	assert(IsRoadDepotTile(v->tile));
+
+	if (IsBigRoadDepot(v->tile)) {
+		assert(GetNumDepotVehicles(v->tile) <= ROAD_DEPOT_CAPACITY);
+		v->cur_speed = 0;
+		v->UpdateViewport(true, true);
+		SetWindowClassesDirty(WC_ROADVEH_LIST);
+		SetWindowDirty(WC_VEHICLE_VIEW, v->index);
+
+		InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
+		if (!IsFullDepot(v->tile)) {
+			v->StartService();
+			if (IsBigDepot(v->tile)) {
+				ChangeNumDepotVehicles(v->tile, 1);
+				SetBigDepotReservation(v, true);
+			}
+		} else {
+			v->wait_counter = JUST_REVERSE_ON_DEPOT;
+		}
+	} else {
+		VehicleEnterDepot(v);
+	}
+}
+
 static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 {
 	/* Don't leave unless v and following wagons are in the depot. */
@@ -1039,7 +1093,22 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 		if (u->state != RVSB_IN_DEPOT || u->tile != v->tile) return false;
 	}
 
-	DiagDirection dir = GetRoadDepotDirection(v->tile);
+	bool stop_here = (v->wait_counter != JUST_REVERSE_ON_DEPOT);
+
+	TileIndex new_tile = v->tile;
+	TileIndex old_tile = v->tile;
+	CommandCost cost = FindDepotTileForPlacingEngine(new_tile, Engine::Get(v->engine_type), DC_EXEC);
+	if (cost.Failed()) return false;
+	DiagDirection dir = GetRoadDepotExit(new_tile, RoadTramType(v->roadtype));
+	assert(dir != INVALID_DIAGDIR);
+	if (new_tile != old_tile) {
+		ChangeNumDepotVehicles(old_tile, -1);
+		SetBigDepotReservation(v, false);
+		v->tile = new_tile;
+		ChangeNumDepotVehicles(new_tile, 1);
+		SetBigDepotReservation(v, true);
+	}
+	v->tile = new_tile;
 	v->direction = DiagDirToDir(dir);
 
 	Trackdir tdir = DiagDirToDiagTrackdir(dir);
@@ -1050,18 +1119,23 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 
 	if (first) {
 		/* We are leaving a depot, but have to go to the exact same one; re-enter */
-		if (v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
-			VehicleEnterDepot(v);
+		if (stop_here && v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
+			if (IsBigRoadDepot(v->tile)) {
+				v->StartService();
+			} else {
+				VehicleEnterDepot(v);
+			}
 			return true;
 		}
 
 		if (RoadVehFindCloseTo(v, x, y, v->direction, false) != nullptr) return true;
 
-		VehicleServiceInDepot(v);
+		if (stop_here) {
+			VehicleServiceInDepot(v);
+			StartRoadVehSound(v);
+		}
 
-		StartRoadVehSound(v);
-
-		/* Vehicle is about to leave a depot */
+		/* Vehicle is about to leave a depot. */
 		v->cur_speed = 0;
 	}
 
@@ -1074,6 +1148,11 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	v->UpdatePosition();
 	v->UpdateInclination(true, true);
 
+	if (v->IsPrimaryVehicle() && stop_here && IsBigDepot(v->tile)) {
+		ChangeNumDepotVehicles(v->tile, -1);
+		SetBigDepotReservation(v, false);
+	}
+
 	InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
 
 	return true;
@@ -1084,6 +1163,7 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 	if (prev->tile == v->tile && !already_reversed) {
 		/* If the previous vehicle is on the same tile as this vehicle is
 		 * then it must have reversed. */
+		DEBUG(misc, 0, "Lookup");
 		return _road_reverse_table[entry_dir];
 	}
 
@@ -1096,7 +1176,11 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 		if (IsTileType(tile, MP_TUNNELBRIDGE)) {
 			diag_dir = GetTunnelBridgeDirection(tile);
 		} else if (IsRoadDepotTile(tile)) {
-			diag_dir = ReverseDiagDir(GetRoadDepotDirection(tile));
+			if (IsBigRoadDepot(tile)) {
+				diag_dir = ReverseDiagDir(DirToDiagDir(v->direction));
+			} else {
+				diag_dir = ReverseDiagDir(GetRoadDepotDirection(tile));
+			}
 		}
 
 		if (diag_dir == INVALID_DIAGDIR) return INVALID_TRACKDIR;
@@ -1163,6 +1247,7 @@ static bool CanBuildTramTrackOnTile(CompanyID c, TileIndex t, RoadType rt, RoadB
 	cur_company.Restore();
 	return ret.Succeeded();
 }
+#include "debug.h"
 
 bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 {
@@ -1226,9 +1311,10 @@ bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 
 		if (v->IsFrontEngine()) {
 			/* If this is the front engine, look for the right path. */
-			if (HasTileAnyRoadType(tile, v->compatible_roadtypes)) {
+			if (HasTileAnyRoadType(tile, v->compatible_roadtypes) && (!IsRoadDepotTile(v->tile) || (GetRoadBits(v->tile, RoadTramType(v->roadtype)) & DiagDirToRoadBits((DiagDirection)(rd.x & 3))) != ROAD_NONE)) {
 				dir = RoadFindPathToDest(v, tile, (DiagDirection)(rd.x & 3));
 			} else {
+				DEBUG(misc, 0, "Reversing table");
 				dir = _road_reverse_table[(DiagDirection)(rd.x & 3)];
 			}
 		} else {
@@ -1260,7 +1346,7 @@ again:
 					case TRACKDIR_RVREV_NW: needed = ROAD_SE; break;
 				}
 				if ((v->Previous() != nullptr && v->Previous()->tile == tile) ||
-						(v->IsFrontEngine() && IsNormalRoadTile(tile) && !HasRoadWorks(tile) &&
+						(v->IsFrontEngine() && ((IsNormalRoadTile(tile) && !HasRoadWorks(tile)) || IsBigRoadDepotTile(tile)) &&
 							HasTileAnyRoadType(tile, v->compatible_roadtypes) &&
 							(needed & GetRoadBits(tile, RTT_TRAM)) != ROAD_NONE)) {
 					/*
@@ -1295,6 +1381,8 @@ again:
 			} else if (IsNormalRoadTile(v->tile) && GetDisallowedRoadDirections(v->tile) != DRD_NONE) {
 				v->cur_speed = 0;
 				return false;
+			} else if (IsBigRoadDepotTile(v->tile) && (GetRoadBits(v->tile, RTT_ROAD) & DiagDirToRoadBits(DirToDiagDir(v->direction))) == ROAD_NONE) {
+				tile = v->tile;
 			} else {
 				tile = v->tile;
 			}
@@ -1382,7 +1470,7 @@ again:
 		Trackdir dir;
 		uint turn_around_start_frame = RVC_TURN_AROUND_START_FRAME;
 
-		if (RoadTypeIsTram(v->roadtype) && !IsRoadDepotTile(v->tile) && HasExactlyOneBit(GetAnyRoadBits(v->tile, RTT_TRAM, true))) {
+		if (RoadTypeIsTram(v->roadtype) && !IsRoadDepotTile(v->tile) && !IsBigRoadDepotTile(v->tile) && HasExactlyOneBit(GetAnyRoadBits(v->tile, RTT_TRAM, true))) {
 			/*
 			 * The tram is turning around with one tram 'roadbit'. This means that
 			 * it is using the 'big' corner 'drive data'. However, to support the
@@ -1403,6 +1491,7 @@ again:
 		} else {
 			if (v->IsFrontEngine()) {
 				/* If this is the front engine, look for the right path. */
+				DEBUG(misc, 0, "Findpath");
 				dir = RoadFindPathToDest(v, v->tile, (DiagDirection)(rd.x & 3));
 			} else {
 				dir = FollowPreviousRoadVehicle(v, prev, v->tile, (DiagDirection)(rd.x & 3), true);
@@ -1607,6 +1696,8 @@ static bool RoadVehController(RoadVehicle *v)
 		return true;
 	}
 
+	if (v->ContinueServicing()) return true;
+
 	ProcessOrders(v);
 	v->HandleLoading();
 
@@ -1763,6 +1854,9 @@ Trackdir RoadVehicle::GetVehicleTrackdir() const
 
 	if (this->IsInDepot()) {
 		/* We'll assume the road vehicle is facing outwards */
+		if (IsBigRoadDepot(this->tile)) {
+			return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
+		}
 		return DiagDirToDiagTrackdir(GetRoadDepotDirection(this->tile));
 	}
 

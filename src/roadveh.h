@@ -319,4 +319,6 @@ protected: // These functions should not be called outside acceleration code.
 	}
 };
 
+void HandleRoadVehicleEnterDepot(RoadVehicle *v);
+
 #endif /* ROADVEH_H */

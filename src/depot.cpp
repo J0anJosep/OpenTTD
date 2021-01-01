@@ -169,6 +169,31 @@ void Depot::RescanDepotTiles()
 	}
 }
 
+DepotReservation GetDepotReservationStatus(TileIndex tile) {
+	assert(IsBigDepotTile(tile) && IsRoadDepot(tile));
+	uint num_veh = GetNumDepotVehicles(tile);
+	switch (num_veh) {
+		case 0:
+			return DEPOT_RESERVATION_EMPTY;
+		default:
+			assert(num_veh < ROAD_DEPOT_CAPACITY);
+			return DEPOT_RESERVATION_IN_USE;
+		case ROAD_DEPOT_CAPACITY:
+			num_veh = 0;
+			for (const Vehicle *u : Vehicle::Iterate()) {
+				if (u->type != VEH_ROAD) continue;
+				if (!u->IsFrontEngine()) continue;
+				if (!u->IsInDepot()) continue;
+				if (u->tile != tile) continue;
+				if ((u->vehstatus & VS_STOPPED) == 0) continue;
+				num_veh++;
+			}
+			assert(num_veh <= ROAD_DEPOT_CAPACITY);
+			return num_veh == ROAD_DEPOT_CAPACITY ?
+					DEPOT_RESERVATION_FULL_STOPPED_VEH : DEPOT_RESERVATION_IN_USE;
+	}
+}
+
 /**
  * Fix tile reservations on big depots and vehicle changes.
  * @param v Vehicle to be revised.
@@ -180,11 +205,15 @@ void SetBigDepotReservation(Vehicle *v, bool reserve)
 	assert(IsBigDepotTile(v->tile));
 	DepotReservation res_type = DEPOT_RESERVATION_EMPTY;
 
-	res_type = (v->vehstatus & VS_STOPPED) ?
-			DEPOT_RESERVATION_FULL_STOPPED_VEH : DEPOT_RESERVATION_IN_USE;
+	if (reserve && v->type != VEH_ROAD) {
+		res_type = (v->vehstatus & VS_STOPPED) ?
+				DEPOT_RESERVATION_FULL_STOPPED_VEH : DEPOT_RESERVATION_IN_USE;
+	}
 
 	switch (v->type) {
 		case VEH_ROAD:
+			res_type = GetDepotReservationStatus(v->tile);
+			SetDepotReservation(v->tile, res_type);
 			break;
 
 		case VEH_SHIP:

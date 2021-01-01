@@ -239,6 +239,10 @@ CommandCost CmdSellVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		ret = CommandCost(EXPENSES_NEW_VEHICLES, -front->value);
 
 		if (flags & DC_EXEC) {
+			if (front->type == VEH_ROAD && IsBigDepot(v->tile) && (flags & DC_AUTOREPLACE) == 0) {
+				ChangeNumDepotVehicles(v->tile, -1);
+				SetBigDepotReservation(v, false);
+			}
 			if (front->IsPrimaryVehicle() && p1 & MAKE_ORDER_BACKUP_FLAG) OrderBackup::Backup(front, p2);
 			delete front;
 		}

@@ -805,6 +805,7 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 	if (v->type == VEH_TRAIN) {
 		train_placement.LiftTrain(Train::From(v), flags);
 	} else if (IsBigDepotTile(v->tile)) {
+		if (v->type == VEH_ROAD) ChangeNumDepotVehicles(v->tile, -1);
 		SetBigDepotReservation(v, false);
 	}
 
@@ -853,6 +854,7 @@ CommandCost CmdAutoreplaceVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1
 		}
 		train_placement.PlaceTrain(Train::From(v), flags);
 	} else if (IsBigDepotTile(v->tile)) {
+		if (v->type == VEH_ROAD) ChangeNumDepotVehicles(v->tile, 1);
 		SetBigDepotReservation(v, true);
 	}
 

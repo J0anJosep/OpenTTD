@@ -118,6 +118,87 @@ static inline bool IsRoadDepotTile(TileIndex t)
 }
 
 /**
+ * Return whether a road depot tile is a big one.
+ * @param t Tile to query.
+ * @return True if big road depot tile.
+ */
+static inline bool IsBigRoadDepot(TileIndex t)
+{
+	assert(IsTileType(t, MP_ROAD));
+	assert(IsRoadDepot(t));
+	return HasBit(_m[t].m5, 5);
+}
+
+/**
+ * Return whether a tile is a big road depot tile.
+ * @param t Tile to query.
+ * @return True if big road depot tile.
+ */
+static inline bool IsBigRoadDepotTile(TileIndex t)
+{
+	return IsTileType(t, MP_ROAD) && IsRoadDepot(t) && IsBigRoadDepot(t);
+}
+
+const int ROAD_DEPOT_CAPACITY = 3;
+
+/**
+ * Get the number of vehicles inside this depot.
+ * @param t  The tile to query.
+ * @pre IsBigRoadDepotTile(t)
+ * @return The number of vehicles (at most 3 per tile).
+ */
+static inline int GetNumDepotVehicles(TileIndex t)
+{
+	assert(IsBigRoadDepotTile(t));
+	return GB(_me[t].m6, 3, 3);
+}
+
+/**
+ * Modify the number of vehicles inside this depot.
+ * @param t  The tile to query.
+ * @param delta 1 if add a vehicle, -1 if remove a vehicle
+ * @pre IsRoadDepotTile(t) && (delta == 1 || delta == -1)
+ * @note No effect for small depots
+ */
+static inline void ChangeNumDepotVehicles(TileIndex t, int delta)
+{
+	assert(IsRoadDepotTile(t));
+	assert(delta == 1 || delta == -1);
+	if (!IsBigRoadDepot(t)) return;
+	int num = GetNumDepotVehicles(t);
+	assert(num > 0 || delta > 0);
+	num +=delta;
+	assert(num <= ROAD_DEPOT_CAPACITY);
+	SB(_me[t].m6, 3, 3, num);
+}
+
+/**
+ * Check if depot has reached its maximum capacity.
+ * @param t  The tile to query.
+ * @return true if depot is full.
+ */
+static inline bool IsFullDepot(TileIndex t)
+{
+	assert(IsRoadDepotTile(t));
+	if (!IsBigRoadDepot(t)) return false;
+	assert(GetNumDepotVehicles(t) <= ROAD_DEPOT_CAPACITY);
+	return GetNumDepotVehicles(t) == ROAD_DEPOT_CAPACITY;
+}
+
+/**
+ * Check if depot is empty.
+ * @param t  The tile to query.
+ * @return true if depot is empty.
+ */
+static inline bool IsEmptyDepot(TileIndex t)
+{
+	assert(IsRoadDepotTile(t));
+	if (!IsBigRoadDepot(t)) return false;
+	assert(GetNumDepotVehicles(t) <= ROAD_DEPOT_CAPACITY);
+	return GetNumDepotVehicles(t) == 0;
+}
+
+/**
  * Get the present road bits for a specific road type.
  * @param t  The tile to query.
  * @param rt Road type.
@@ -126,7 +207,7 @@ static inline bool IsRoadDepotTile(TileIndex t)
  */
 static inline RoadBits GetRoadBits(TileIndex t, RoadTramType rtt)
 {
-	assert(IsNormalRoad(t));
+	assert(IsNormalRoad(t) || IsRoadDepotTile(t));
 	if (rtt == RTT_TRAM) return (RoadBits)GB(_m[t].m3, 0, 4);
 	return (RoadBits)GB(_m[t].m5, 0, 4);
 }
@@ -151,7 +232,7 @@ static inline RoadBits GetAllRoadBits(TileIndex tile)
  */
 static inline void SetRoadBits(TileIndex t, RoadBits r, RoadTramType rtt)
 {
-	assert(IsNormalRoad(t)); // XXX incomplete
+	assert(IsNormalRoad(t) || IsRoadDepotTile(t));
 	if (rtt == RTT_TRAM) {
 		SB(_m[t].m3, 0, 4, r);
 	} else {
@@ -556,18 +637,27 @@ static inline void TerminateRoadWorks(TileIndex t)
 	SB(_me[t].m7, 0, 4, 0);
 }
 
+/**
+ * Set the direction of the exit of a road depot for extended road depots.
+ * @param t The tile to query.
+ * @return Diagonal direction of the depot exit.
+ */
+static inline void SetRoadDepotDirection(TileIndex t, DiagDirection dir)
+{
+	assert(IsBigRoadDepot(t));
+	SB(_me[t].m6, 6, 2, dir);
+}
 
 /**
- * Get the direction of the exit of a road depot.
+ * Get the direction of the exit of a road depot (or the image of the depot for extended road depots).
  * @param t The tile to query.
  * @return Diagonal direction of the depot exit.
  */
 static inline DiagDirection GetRoadDepotDirection(TileIndex t)
 {
 	assert(IsRoadDepot(t));
-	return (DiagDirection)GB(_m[t].m5, 0, 2);
+	return (DiagDirection)GB(_me[t].m6, 6, 2);
 }
-
 
 RoadBits GetAnyRoadBits(TileIndex tile, RoadTramType rtt, bool straight_tunnel_bridge_entrance = false);
 
@@ -687,8 +777,9 @@ static inline void MakeRoadDepot(TileIndex t, Owner owner, DepotID did, DiagDire
 	_m[t].m2 = did;
 	_m[t].m3 = 0;
 	_m[t].m4 = INVALID_ROADTYPE;
-	_m[t].m5 = ROAD_TILE_DEPOT << 6 | dir;
-	SB(_me[t].m6, 2, 4, 0);
+	_m[t].m5 = ROAD_TILE_DEPOT << 6;
+	SB(_me[t].m6, 0, 6, 0);
+	SB(_me[t].m6, 6, 2, dir);
 	_me[t].m7 = owner;
 	_me[t].m8 = INVALID_ROADTYPE << 6;
 	SetRoadType(t, GetRoadTramType(rt), rt);
