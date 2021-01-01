@@ -11,6 +11,7 @@
 #include "../order_backup.h"
 #include "../settings_type.h"
 #include "../network/network.h"
+#include "../depot_map.h"
 
 #include "saveload_internal.h"
 
@@ -233,11 +234,14 @@ static void Ptrs_ORDL()
 	}
 }
 
+static TileIndex _tile;
+
 const SaveLoad *GetOrderBackupDescription()
 {
 	static const SaveLoad _order_backup_desc[] = {
 		     SLE_VAR(OrderBackup, user,                     SLE_UINT32),
-		     SLE_VAR(OrderBackup, tile,                     SLE_UINT32),
+		SLEG_CONDVAR(_tile,                                 SLE_UINT32,         SL_MIN_VERSION, SLV_MULTITILE_DEPOTS),
+		 SLE_CONDVAR(OrderBackup, depot_id,                 SLE_UINT16,      SLV_MULTITILE_DEPOTS, SL_MAX_VERSION),
 		     SLE_VAR(OrderBackup, group,                    SLE_UINT16),
 		 SLE_CONDVAR(OrderBackup, service_interval,         SLE_FILE_U32 | SLE_VAR_U16,  SL_MIN_VERSION, SLV_192),
 		 SLE_CONDVAR(OrderBackup, service_interval,         SLE_UINT16,                SLV_192, SL_MAX_VERSION),
@@ -280,6 +284,8 @@ void Load_BKOR()
 		OrderBackup *ob = new (index) OrderBackup();
 		SlObject(ob, GetOrderBackupDescription());
 	}
+
+	if (IsSavegameVersionBefore(SLV_MULTITILE_DEPOTS)) _order_backup_pool.CleanPool();
 }
 
 static void Ptrs_BKOR()
