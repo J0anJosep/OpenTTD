@@ -255,9 +255,9 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
  */
 int GetTrainStopLocation(StationID station_id, TileIndex tile, const Train *v, int *station_ahead, int *station_length)
 {
-	const Station *st = Station::Get(station_id);
-	*station_ahead  = st->GetPlatformLength(tile, DirToDiagDir(v->direction)) * TILE_SIZE;
-	*station_length = st->GetPlatformLength(tile) * TILE_SIZE;
+	assert(IsRailStationTile(tile));
+	*station_ahead  = BaseStation::GetPlatformLength(tile, DirToDiagDir(v->direction)) * TILE_SIZE;
+	*station_length = BaseStation::GetPlatformLength(tile) * TILE_SIZE;
 
 	/* Default to the middle of the station for stations stops that are not in
 	 * the order list like intermediate stations when non-stop is disabled */
