@@ -41,6 +41,7 @@
 #include "order_cmd.h"
 #include "roadveh_cmd.h"
 #include "train_cmd.h"
+#include "depot_base.h"
 
 #include "safeguards.h"
 
@@ -2859,7 +2860,7 @@ public:
 
 				case OT_GOTO_DEPOT: {
 					SetDParam(0, v->type);
-					SetDParam(1, v->current_order.GetDestination());
+					SetDParam(1, GetTargetDestination(v, &(v->current_order)));
 					SetDParam(2, v->GetDisplaySpeed());
 					if (v->current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) {
 						/* This case *only* happens when multiple nearest depot orders
