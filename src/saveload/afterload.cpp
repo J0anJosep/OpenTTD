@@ -2759,6 +2759,22 @@ bool AfterLoadGame()
 				st->airport.SetHangar(true);
 			}
 		}
+
+		/* Update go to hangar orders so they store the DepotID instead of StationID. */
+		for (Aircraft *a : Aircraft::Iterate()) {
+			if (!a->IsNormalAircraft()) continue;
+			if (a->orders.list == nullptr) continue;
+			if (a->orders.list->GetFirstSharedVehicle() != a) continue;
+
+			for (Order *order : a->Orders()) {
+				if (!order->IsType(OT_GOTO_DEPOT)) continue;
+				StationID station_id = order->GetDestination();
+				assert(Station::IsValidID(station_id));
+				Station *st = Station::Get(station_id);
+				assert(st->airport.depot_id != INVALID_DEPOT);
+				order->SetDestination(st->airport.depot_id);
+			}
+		}
 	}
 
 	/* In old versions it was possible to remove an airport while a plane was
