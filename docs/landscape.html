@@ -547,6 +547,11 @@
         </table>
        </li>
        <li>m5 bit 4: pbs reservation state</li>
+       <li>m5 bit 5 clear: small depot</li>
+       <li>m5 bit 5 set: big depot
+        <ul>
+         <li>m4 bits 6..7: depot reservation state</li>
+        </ul>
       </ul>
      </li>
     </ul>
@@ -688,6 +693,13 @@
           <td>NW</td>
          </tr>
         </table>
+       </li>
+       <li>m5 bit 5 clear: small depot</li>
+       <li>m5 bit 5 set: big depot
+        <ul>
+         <li>m4 bits 6..7: depot reservation state</li>
+         <li>m5 bits 2..4: number of vehicles inside this depot tile</li>
+        </ul>
        </li>
        <li>m7 bits 4..0: <a href="#OwnershipInfo">owner</a> of the road type 0 (normal road)</li>
       </ul>
@@ -1108,6 +1120,11 @@
        </tr>
       </table>
      </li>
+     <li>m5 bit 5 clear: small depot (for depots only)</li>
+     <li>m5 bit 5 set: big depot
+      <ul>
+       <li>m4 bits 6..7: depot reservation state (for depots only)</li>
+      </ul>
     </ul>
    </td>
   </tr>
