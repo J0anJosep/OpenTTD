@@ -10,8 +10,11 @@
 #ifndef DEPOT_FUNC_H
 #define DEPOT_FUNC_H
 
+#include "depot_type.h"
 #include "vehicle_type.h"
 #include "slope_func.h"
+#include "command_type.h"
+#include <functional>
 
 void ShowDepotWindow(DepotID depot_id);
 
@@ -31,5 +34,11 @@ static inline bool CanBuildDepotByTileh(DiagDirection direction, Slope tileh)
 	 * For non-steep slopes at least one corner must be raised. */
 	return IsSteepSlope(tileh) ? (tileh & entrance_corners) == entrance_corners : (tileh & entrance_corners) != 0;
 }
+
+struct Depot;
+CommandCost FindJoiningDepot(TileArea ta, VehicleType veh_type, DepotID &join_to, Depot *&depot, bool adjacent, DoCommandFlag flags);
+
+using DepotPickerCmdProc = std::function<bool(DepotID join_to)>;
+void ShowSelectDepotIfNeeded(TileArea ta, DepotPickerCmdProc proc, VehicleType veh_type);
 
 #endif /* DEPOT_FUNC_H */
