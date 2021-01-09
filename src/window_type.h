@@ -234,6 +234,12 @@ enum WindowClass {
 	WC_SELECT_STATION,
 
 	/**
+	 * Select depot (when joining depots); %Window numbers:
+	 *   - #Vehicle type = #JoinDepotWidgets
+	 */
+	WC_SELECT_DEPOT,
+
+	/**
 	 * News window; %Window numbers:
 	 *   - 0 = #NewsWidgets
 	 */
