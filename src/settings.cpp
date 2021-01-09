@@ -893,6 +893,7 @@ static bool InvalidateDetailsWindow(int32 p1)
 
 static bool StationSpreadChanged(int32 p1)
 {
+	InvalidateWindowClassesData(WC_SELECT_DEPOT, 0);
 	InvalidateWindowData(WC_SELECT_STATION, 0);
 	InvalidateWindowData(WC_BUILD_STATION, 0);
 	return true;

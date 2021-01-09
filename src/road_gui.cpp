@@ -595,6 +595,7 @@ struct BuildRoadToolbarWindow : Window {
 		DeleteWindowById(WC_TRUCK_STATION, TRANSPORT_ROAD);
 		DeleteWindowById(WC_BUILD_DEPOT, TRANSPORT_ROAD);
 		DeleteWindowById(WC_SELECT_STATION, 0);
+		DeleteWindowById(WC_SELECT_DEPOT, VEH_ROAD);
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 	}
 
@@ -994,6 +995,10 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 		this->FinishInitNested(TRANSPORT_ROAD);
 	}
 
+	virtual ~BuildRoadDepotWindow() {
+		DeleteWindowById(WC_SELECT_DEPOT, VEH_ROAD);
+	}
+
 	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
@@ -1016,6 +1021,7 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 			case WID_BROD_DEPOT_NE:
 			case WID_BROD_DEPOT_SW:
 			case WID_BROD_DEPOT_SE:
+				DeleteWindowById(WC_SELECT_DEPOT, VEH_ROAD);
 				this->RaiseWidget(_road_depot_orientation + WID_BROD_DEPOT_NE);
 				_road_depot_orientation = (DiagDirection)(widget - WID_BROD_DEPOT_NE);
 				this->LowerWidget(_road_depot_orientation + WID_BROD_DEPOT_NE);
