@@ -41,6 +41,8 @@
 #include <sstream>
 #include <iomanip>
 #include "depot_base.h"
+#include "train_placement.h"
+#include "strings_func.h"
 
 #include "table/strings.h"
 
@@ -497,6 +499,11 @@ std::tuple<CommandCost, uint, uint16> CmdRefitVehicle(DoCommandFlag flags, Vehic
 	/* For ships and aircraft there is always only one. */
 	only_this |= front->type == VEH_SHIP || front->type == VEH_AIRCRAFT;
 
+	/* If it is a train on a depot, lift it. New length of the vehicle won't be checked. */
+	Train *train = (v->type == VEH_TRAIN && IsDepotTile(front->tile)) ? Train::From(front) : nullptr;
+	TrainPlacement train_placement;
+	train_placement.LiftTrain(train, flags);
+
 	auto [cost, refit_capacity, mail_capacity] = RefitVehicle(v, only_this, num_vehicles, new_cid, new_subtype, flags, auto_refit);
 
 	if (flags & DC_EXEC) {
@@ -534,6 +541,9 @@ std::tuple<CommandCost, uint, uint16> CmdRefitVehicle(DoCommandFlag flags, Vehic
 		v->InvalidateNewGRFCacheOfChain();
 	}
 
+	/* If it is a train on an extended depot, try placing it. */
+	train_placement.PlaceTrain(train, flags);
+
 	return { cost, refit_capacity, mail_capacity };
 }
 
@@ -558,9 +568,20 @@ CommandCost CmdStartStopVehicle(DoCommandFlag flags, VehicleID veh_id, bool eval
 	if (v->vehstatus & VS_CRASHED) return_cmd_error(STR_ERROR_VEHICLE_IS_DESTROYED);
 
 	switch (v->type) {
-		case VEH_TRAIN:
-			if ((v->vehstatus & VS_STOPPED) && Train::From(v)->gcache.cached_power == 0) return_cmd_error(STR_ERROR_TRAIN_START_NO_POWER);
+		case VEH_TRAIN: {
+			Train *t = Train::From(v);
+			if ((v->vehstatus & VS_STOPPED) && t->gcache.cached_power == 0) return_cmd_error(STR_ERROR_TRAIN_START_NO_POWER);
+
+			/* Train cannot leave until changing the depot. Stop the train and send a message. */
+			if (!(flags & DC_AUTOREPLACE) && v->IsStoppedInDepot() && CheckIfTrainNeedsPlacement(t)) {
+				TrainPlacement train_placement;
+				if (!train_placement.CanFindAppropriatePlatform(t, (flags & DC_EXEC) != 0)) {
+					SetDParam(0, v->index);
+					return_cmd_error(STR_ERROR_CAN_T_START_PLATFORM_TYPE + train_placement.info - PI_FAILED_PLATFORM_TYPE);
+				}
+			}
 			break;
+		}
 
 		case VEH_SHIP:
 		case VEH_ROAD:
@@ -608,6 +629,11 @@ CommandCost CmdStartStopVehicle(DoCommandFlag flags, VehicleID veh_id, bool eval
 
 		v->vehstatus ^= VS_STOPPED;
 		if (v->type != VEH_TRAIN) v->cur_speed = 0; // trains can stop 'slowly'
+		if (v->type == VEH_TRAIN && v->IsInDepot() && IsExtendedDepotTile(v->tile)) {
+			if ((v->vehstatus & VS_STOPPED) != 0) FreeTrainTrackReservation(Train::From(v));
+			UpdateExtendedDepotReservation(v, true);
+		}
+
 		v->MarkDirty();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		if (IsDepotTile(v->tile)) SetWindowDirty(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
@@ -648,7 +674,17 @@ CommandCost CmdMassStartStopVehicle(DoCommandFlag flags, TileIndex tile, bool do
 		if (!vehicle_list_window && !v->IsChainInDepot()) continue;
 
 		/* Just try and don't care if some vehicle's can't be stopped. */
-		Command<CMD_START_STOP_VEHICLE>::Do(flags, v->index, false);
+		CommandCost ret = Command<CMD_START_STOP_VEHICLE>::Do(flags, v->index, false);
+		if (ret.Failed()) {
+			switch (ret.GetErrorMessage()) {
+				case STR_ERROR_CAN_T_START_PLATFORM_TYPE:
+				case STR_ERROR_CAN_T_START_PLATFORM_LONG:
+					SetDParam(0, v->index);
+					return ret;
+				default:
+					break;
+			}
+		}
 	}
 
 	return CommandCost();
