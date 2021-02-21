@@ -38,6 +38,7 @@
 #include "company_gui.h"
 #include "newgrf_generic.h"
 #include "industry.h"
+#include "platform_func.h"
 
 #include "table/strings.h"
 
@@ -1054,16 +1055,20 @@ static void FloodVehicles(TileIndex tile)
 		return;
 	}
 
-	if (!IsBridgeTile(tile)) {
+	if (IsBridgeTile(tile)) {
+		TileIndex end = GetOtherBridgeEnd(tile);
+		z = GetBridgePixelHeight(tile);
+
 		FindVehicleOnPos(tile, &z, &FloodVehicleProc);
-		return;
+		FindVehicleOnPos(end, &z, &FloodVehicleProc);
+	} else if (IsBigRailDepotTile(tile)) {
+		TileArea platform_area = GetPlatformTileArea(tile);
+		TILE_AREA_LOOP(tile, platform_area) {
+			FindVehicleOnPos(tile, &z, &FloodVehicleProc);
+		}
+	} else {
+		FindVehicleOnPos(tile, &z, &FloodVehicleProc);
 	}
-
-	TileIndex end = GetOtherBridgeEnd(tile);
-	z = GetBridgePixelHeight(tile);
-
-	FindVehicleOnPos(tile, &z, &FloodVehicleProc);
-	FindVehicleOnPos(end, &z, &FloodVehicleProc);
 }
 
 /**
