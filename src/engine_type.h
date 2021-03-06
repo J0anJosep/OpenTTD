@@ -11,6 +11,7 @@
 #define ENGINE_TYPE_H
 
 #include "economy_type.h"
+#include "air_type.h"
 #include "rail_type.h"
 #include "road_type.h"
 #include "cargo_type.h"
@@ -106,6 +107,7 @@ struct AircraftVehicleInfo {
 	byte mail_capacity;         ///< Mail capacity (bags).
 	uint16 passenger_capacity;  ///< Passenger capacity (persons).
 	uint16 max_range;           ///< Maximum range of this aircraft.
+	AirType airtype;            ///< Airport tile types this aircraft can use.
 };
 
 /** Information about a road vehicle. */
