@@ -10,7 +10,9 @@
 #ifndef AIRPORT_DEFAULTS_H
 #define AIRPORT_DEFAULTS_H
 
-#include "timer/timer_game_calendar.h"
+#include "../track_type.h"
+#include "../air_type.h"
+#include "airporttile_ids.h"
 
 /**
  * Definition of an airport tiles layout.
@@ -411,5 +413,486 @@ const AirportSpec AirportSpec::dummy = AS_GENERIC(&_airportfta_dummy, {}, {}, 0,
 #undef AS
 #undef AS_ND
 #undef AS_GENERIC
+
+struct TileDescription {
+	const AirType ground;        // The ground type for this tile.
+	const bool tracks;           // The tile can contain tracks for aircraft.
+	const AirportTileType type;  // Use this tile will have (terminal, tracks,...).
+	const TerminalType terminal_type; // Subtype of terminal.
+	const DiagDirection dir;     // Direction of runway or exit direction of hangars.
+	const TrackBits trackbits;   // Tracks for this tile.
+	const Direction runway_directions; // Directions of the runways present on this tile.
+                                 // Maps a direction into the diagonal directions of the runways.
+	const AirportTiles gfx_id;   // Sprite for this tile.
+
+	/* Description for simple track tiles. */
+	TileDescription(AirType at, AirportTileType att, TrackBits trackbits) :
+			ground(at),
+			tracks(true),
+			type(att),
+			terminal_type(HTT_INVALID),
+			dir(INVALID_DIAGDIR),
+			trackbits(trackbits),
+			runway_directions(INVALID_DIR),
+			gfx_id((AirportTiles)0)
+	{
+		assert(tracks);
+		assert(att == ATT_SIMPLE_TRACK);
+	}
+
+	/* Description for terminals. */
+	TileDescription(AirType at, AirportTileType att, TrackBits trackbits, TerminalType type) :
+			ground(at),
+			tracks(true),
+			type(att),
+			terminal_type(type),
+			dir(INVALID_DIAGDIR),
+			trackbits(trackbits),
+			runway_directions(INVALID_DIR),
+			gfx_id((AirportTiles)0)
+	{
+		assert(tracks);
+	}
+
+	/* Description for hangars and runway end and start. */
+	TileDescription(AirType at, AirportTileType att, TrackBits trackbits, DiagDirection dir) :
+			ground(at),
+			tracks(true),
+			type(att),
+			terminal_type(HTT_INVALID),
+			dir(dir),
+			trackbits(trackbits),
+			runway_directions(INVALID_DIR),
+			gfx_id((AirportTiles)0)
+	{
+		assert(att == ATT_HANGAR_STANDARD ||
+				att == ATT_HANGAR_EXTENDED ||
+				att == ATT_RUNWAY_END ||
+				att == ATT_RUNWAY_START_ALLOW_LANDING ||
+				att == ATT_RUNWAY_START_NO_LANDING);
+	}
+
+	/* Description for runway (not end, not start). */
+	TileDescription(AirType at, AirportTileType att, TrackBits trackbits, Direction runway_directions) :
+			ground(at),
+			tracks(true),
+			type(att),
+			terminal_type(HTT_INVALID),
+			dir(INVALID_DIAGDIR),
+			trackbits(trackbits),
+			runway_directions(runway_directions),
+			gfx_id((AirportTiles)0)
+	{
+		assert(tracks);
+		assert(att == ATT_RUNWAY_MIDDLE);
+		assert(IsValidDirection(runway_directions));
+	}
+
+	/* Description for infrastructure. */
+	TileDescription(AirType at, AirportTileType att, AirportTiles gfx_id) :
+			ground(at),
+			tracks(false),
+			type(att),
+			terminal_type(HTT_INVALID),
+			dir(INVALID_DIAGDIR),
+			trackbits(TRACK_BIT_NONE),
+			runway_directions(INVALID_DIR),
+			gfx_id(gfx_id)
+	{
+		assert(att == ATT_INFRASTRUCTURE_WITH_CATCH || att == ATT_INFRASTRUCTURE_NO_CATCH);
+	}
+
+	/* Description for a non-airport tile. */
+	TileDescription(AirType at) :
+			ground(at),
+			tracks(false),
+			type(ATT_INVALID),
+			terminal_type(HTT_INVALID),
+			dir(INVALID_DIAGDIR),
+			trackbits(TRACK_BIT_NONE),
+			runway_directions(INVALID_DIR),
+			gfx_id((AirportTiles)0) {}
+};
+
+/** Tiles for Country Airfield (small) */
+static const TileDescription _description_country_0[] = {
+	TileDescription(AIRTYPE_GRAVEL,		ATT_INFRASTRUCTURE_WITH_CATCH,	APT_SMALL_BUILDING_1									),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_INFRASTRUCTURE_WITH_CATCH,	APT_SMALL_BUILDING_2									),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_INFRASTRUCTURE_WITH_CATCH,	APT_SMALL_BUILDING_3									),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_GRAVEL,		ATT_INFRASTRUCTURE_NO_CATCH,	APT_GRASS_FENCE_NE_FLAG									),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_RIGHT						),
+
+	TileDescription(AIRTYPE_GRAVEL,		ATT_RUNWAY_END, 				TRACK_BIT_X,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_RUNWAY_MIDDLE,				TRACK_BIT_CROSS | TRACK_BIT_LEFT,		DIR_NE			),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_RUNWAY_MIDDLE,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SE,		DIR_NE			),
+	TileDescription(AIRTYPE_GRAVEL,		ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_CROSS | TRACK_BIT_UPPER,		DIAGDIR_NE		),
+};
+
+/** Tiles for Commuter Airfield (small) */
+static const TileDescription _description_commuter_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_TOWER												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_3											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_Y,							HTT_HELIPAD		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_Y,							HTT_HELIPAD		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_LOWER											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_UPPER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_LEFT							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_RIGHT						),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y | TRACK_BIT_LOWER							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SW						),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_Y,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_Y,							DIAGDIR_NE		),
+};
+
+/** Tiles for City Airport (large) */
+static const TileDescription _description_city_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_1											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_APRON_FENCE_NW										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_X,							HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_2											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_PIER												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_ROUND_TERMINAL										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_3											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_Y,							HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_PIER_NW_NE											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_UPPER											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_APRON_N_FENCE_SW									),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADIO_TOWER_FENCE_NE								),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT | TRACK_BIT_LOWER | TRACK_BIT_X			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_ARPON_N												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_TOWER_FENCE_SW										),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_EMPTY_FENCE_NE										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_LOWER | TRACK_BIT_Y							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_UPPER | TRACK_BIT_LEFT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT | TRACK_BIT_Y							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_APRON_E												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADAR_GRASS_FENCE_SW								),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_X,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_CROSS,						DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_CROSS,						DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_X,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_X,							DIAGDIR_NE		),
+};
+
+/** Tiles for Metropolitan Airport (large) - 2 runways */
+static const TileDescription _description_metropolitan_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_1											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_APRON_FENCE_NW										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_X,							HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_2											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_PIER												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_ROUND_TERMINAL										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_3											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_Y,							HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_PIER_NW_NE											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y | TRACK_BIT_LOWER							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y | TRACK_BIT_UPPER							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_APRON_N_FENCE_SW									),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADAR_FENCE_NE										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_HORZ							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_TOWER_FENCE_SW										),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_NONE,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_LOWER | TRACK_BIT_Y,			DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_UPPER,						DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_LEFT,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_CROSS,						DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_NO_LANDING,	TRACK_BIT_X,							DIAGDIR_NE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_X,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_CROSS,						DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_NONE,							DIAGDIR_NE		),
+};
+
+/** Tiles for International Airport (large) - 2 runways */
+static const TileDescription _description_international_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_NO_LANDING,	TRACK_BIT_X,							DIAGDIR_SW		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_CROSS,						DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_RIGHT,						DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_NONE,							DIAGDIR_SW		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADIO_TOWER_FENCE_NE								),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NE						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_RIGHT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_X												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LOWER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT | TRACK_BIT_CROSS						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_3											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NE						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_2											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_LEFT							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_RIGHT						),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NE						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_2											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_CROSS,						HTT_HELIPAD		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LOWER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_UPPER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_TOWER												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_LOWER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_CROSS,						HTT_HELIPAD		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y | TRACK_BIT_LOWER | TRACK_BIT_LEFT			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SE						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_UPPER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_X												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LEFT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_UPPER | TRACK_BIT_CROSS						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADAR_FENCE_SW										),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_Y,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_NONE,							DIAGDIR_NE		),
+};
+
+/** Tiles for Intercontinental Airport (large) - 4 runways */
+static const TileDescription _description_intercontinental_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADAR_FENCE_NE										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_NONE,							DIAGDIR_SW		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_Y,							DIAGDIR_SW		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_NO_LANDING,	TRACK_BIT_Y,							DIAGDIR_SW		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_SW			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_NONE,							DIAGDIR_SW		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y												),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_EMPTY												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_X												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LOWER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT | TRACK_BIT_CROSS						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_RADIO_TOWER_FENCE_NE								),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y												),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_RIGHT | TRACK_BIT_X							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_TOWER												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_Y,							HTT_HELIPAD		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_CROSS,						HTT_HELIPAD		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_RIGHT		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_X												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_LEFT											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_LEFT | TRACK_BIT_X							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_HORZ						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_1											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_LOW_BUILDING										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_LOW_BUILDING										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NE						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_2											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_LEFT							),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_RIGHT						),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LOWER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_NW						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_UPPER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_BUILDING_3											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SW						),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LEFT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SE						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_ALL & ~TRACK_BIT_RIGHT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_ROUND_TERMINAL										),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_NORMAL,			TRACK_BIT_CROSS,						HTT_TERMINAL	),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_VERT | TRACK_BIT_UPPER		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_LEFT | TRACK_BIT_X | TRACK_BIT_UPPER			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_GRASS_FENCE_NE_FLAG_2								),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_LEFT | TRACK_BIT_CROSS						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_UPPER						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_X												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LEFT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_UPPER | TRACK_BIT_CROSS						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_EMPTY												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y												),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_Y												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_NONE,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_NO_LANDING, 	TRACK_BIT_Y,							DIAGDIR_NE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_END,					TRACK_BIT_Y,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_MIDDLE,				TRACK_BIT_NONE,							DIR_NE			),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_RUNWAY_START_ALLOW_LANDING,	TRACK_BIT_NONE,							DIAGDIR_NE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_EMPTY												),
+};
+
+/** Tiles for Heliport */
+static const TileDescription _description_heliport_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPORT,			TRACK_BIT_NONE,							HTT_HELIPORT	),
+};
+
+/** Tiles for Helidepot */
+static const TileDescription _description_helidepot_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_NO_CATCH,	APT_LOW_BUILDING_FENCE_N								),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_X,							HTT_HELIPAD		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+};
+
+/** Tiles for Helistation */
+static const TileDescription _description_helistation_0[] = {
+	TileDescription(AIRTYPE_ASPHALT,	ATT_HANGAR_STANDARD,			TRACK_BIT_Y,							DIAGDIR_SE		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_INFRASTRUCTURE_WITH_CATCH,	APT_LOW_BUILDING_FENCE_NW								),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_Y | TRACK_BIT_LOWER,			HTT_HELIPAD		),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_CROSS,						HTT_HELIPAD		),
+
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS											),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_X												),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_SIMPLE_TRACK,				TRACK_BIT_CROSS | TRACK_BIT_LEFT						),
+	TileDescription(AIRTYPE_ASPHALT,	ATT_TERMINAL_HELIPAD,			TRACK_BIT_X | TRACK_BIT_UPPER,			HTT_HELIPAD		),
+};
+
+/** Tiles for Oil rig */
+static const TileDescription _description_oilrig_0[] = {
+	TileDescription(AIRTYPE_WATER,		ATT_TERMINAL_BUILTIN_HELIPORT,	TRACK_BIT_NONE,							HTT_BUILTIN_HELIPORT),
+};
+
+static const TileDescription *_description_airport_specs[] = {
+	_description_country_0,
+	_description_city_0,
+	_description_heliport_0,
+	_description_metropolitan_0,
+	_description_international_0,
+	_description_commuter_0,
+	_description_helidepot_0,
+	_description_intercontinental_0,
+	_description_helistation_0,
+	_description_oilrig_0,
+};
+
+static const bool _description_airport_hangars[] = {
+	1,
+	1,
+	0,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	0,
+};
+
+static const bool _description_airport_heliport[] = {
+	0,
+	0,
+	1,
+	0,
+	0,
+	0,
+	1,
+	0,
+	1,
+	0,
+};
+
+static_assert(NEW_AIRPORT_OFFSET == lengthof(_description_airport_hangars));
+static_assert(NEW_AIRPORT_OFFSET == lengthof(_description_airport_specs));
 
 #endif /* AIRPORT_DEFAULTS_H */
