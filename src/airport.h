@@ -11,6 +11,7 @@
 #define AIRPORT_H
 
 #include "direction_type.h"
+#include "track_type.h"
 #include "tile_type.h"
 
 /** Some airport-related constants */
@@ -197,5 +198,7 @@ struct AirportFTA {
 
 const AirportFTAClass *GetAirport(const byte airport_type);
 byte GetVehiclePosOnBuild(TileIndex hangar_tile);
+
+TrackBits GetAllowedTracks(TileIndex tile);
 
 #endif /* AIRPORT_H */

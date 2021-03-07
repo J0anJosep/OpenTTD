@@ -19,8 +19,6 @@ static const byte DEPOT_TYPE = 0x02;
  */
 static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
 {
-	if (type == TRANSPORT_AIR) return IsHangarTile(tile);
-
 	if (GB(_m[tile].m5, 6, 2) != DEPOT_TYPE) return false;
 
 	switch (type) {
@@ -31,6 +29,8 @@ static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
 			return IsTileType(tile, MP_ROAD);
 		case TRANSPORT_WATER:
 			return IsTileType(tile, MP_WATER);
+		case TRANSPORT_AIR:
+			return IsAirportTile(tile);
 	}
 }
 
@@ -41,11 +41,9 @@ static inline bool IsDepotTypeTile(TileIndex tile, TransportType type)
  */
 static inline bool IsDepotTile(TileIndex tile)
 {
-	TileType type = GetTileType(tile);
-	if (type == MP_STATION && IsAirport(tile)) return IsHangar(tile);
 	if (GB(_m[tile].m5, 6, 2) != DEPOT_TYPE) return false;
-
-	return type == MP_RAILWAY || type == MP_ROAD || type == MP_WATER;
+	TileType type = GetTileType(tile);
+	return type == MP_RAILWAY || type == MP_ROAD || type == MP_WATER || IsAirportTile(tile);
 }
 
 /**
@@ -86,7 +84,6 @@ static inline VehicleType GetDepotVehicleType(TileIndex t)
 static inline bool IsExtendedDepot(TileIndex tile) {
 	assert(IsValidTile(tile));
 	assert(IsDepotTile(tile));
-	if (IsAirportTile(tile)) return false;
 	return HasBit(_m[tile].m5, 5);
 }
 

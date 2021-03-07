@@ -62,6 +62,7 @@
 #include "rail_cmd.h"
 #include "depot_base.h"
 #include "platform_func.h"
+#include "table/airport_defaults.h"
 
 #include "table/strings.h"
 
@@ -382,7 +383,6 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 			return;
 
 		case STATION_DOCK:
-		case STATION_OILRIG:
 			*ta = this->docking_station;
 			return;
 
@@ -2199,7 +2199,7 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, byte airport_ty
 	/* Check if a valid, buildable airport was chosen for construction */
 	const AirportSpec *as = AirportSpec::Get(airport_type);
 
-	if (as->nof_depots > 0 && !Depot::CanAllocateItem()) return CMD_ERROR;
+	if (_description_airport_hangars[airport_type] && !Depot::CanAllocateItem()) return CMD_ERROR;
 	if (!as->IsAvailable() || layout >= as->num_table) return CMD_ERROR;
 	if (!as->IsWithinMapBounds(layout, tile)) return CMD_ERROR;
 
@@ -2283,7 +2283,11 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, byte airport_ty
 			MakeAirport(iter, st->owner, st->index, iter.GetStationGfx(), WATER_CLASS_INVALID);
 			SetStationTileRandomBits(iter, GB(Random(), 0, 4));
 			st->airport.Add(iter);
+		}
 
+		st->UpdateToMultitileAirport();
+
+		for (AirportTileTableIterator iter(as->table[layout], tile); iter != INVALID_TILE; ++iter) {
 			if (AirportTileSpec::Get(GetTranslatedAirportTileID(iter.GetStationGfx()))->animation.status != ANIM_STATUS_NO_ANIMATION) AddAnimatedTile(iter);
 		}
 
@@ -2291,8 +2295,6 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, byte airport_ty
 		for (AirportTileTableIterator iter(as->table[layout], tile); iter != INVALID_TILE; ++iter) {
 			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
 		}
-
-		if (as->nof_depots > 0) st->airport.SetHangar(true);
 
 		UpdateAirplanesOnNewStation(st);
 
@@ -2338,7 +2340,6 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 	if (flags & DC_EXEC) {
 		CloseWindowById(WC_VEHICLE_DEPOT, st->airport.depot_id);
 		if (st->airport.depot_id != INVALID_DEPOT) OrderBackup::Reset(st->airport.depot_id, false);
-		st->airport.SetHangar(false);
 
 		const AirportSpec *as = st->airport.GetSpec();
 		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
@@ -2375,6 +2376,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 
 		st->rect.AfterRemoveRect(st, st->airport);
 
+		st->UpdateAirportDataStructure();
 		st->airport.Clear();
 		st->facilities &= ~FACIL_AIRPORT;
 
@@ -3149,18 +3151,11 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 		default: NOT_REACHED();
 		case STATION_RAIL:     str = STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION; break;
 		case STATION_AIRPORT:
-			str = (IsHangar(tile) ? STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR : STR_LAI_STATION_DESCRIPTION_AIRPORT);
+			str = IsBuiltInHeliportTile(tile) ? STR_INDUSTRY_NAME_OIL_RIG :
+					STR_LAI_STATION_DESCRIPTION_AIRPORT;
 			break;
 		case STATION_TRUCK:    str = STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA; break;
 		case STATION_BUS:      str = STR_LAI_STATION_DESCRIPTION_BUS_STATION; break;
-		case STATION_OILRIG: {
-			const Industry *i = Station::GetByTile(tile)->industry;
-			const IndustrySpec *is = GetIndustrySpec(i->type);
-			td->owner[0] = i->owner;
-			str = is->name;
-			if (is->grf_prop.grffile != nullptr) td->grf = GetGRFConfig(is->grf_prop.grffile->grfid)->GetName();
-			break;
-		}
 		case STATION_DOCK:     str = STR_LAI_STATION_DESCRIPTION_SHIP_DOCK; break;
 		case STATION_BUOY:     str = STR_LAI_STATION_DESCRIPTION_BUOY; break;
 		case STATION_WAYPOINT: str = STR_LAI_STATION_DESCRIPTION_WAYPOINT; break;
@@ -3221,6 +3216,7 @@ static void TileLoop_Station(TileIndex tile)
 	 * hardcoded.....not good */
 	switch (GetStationType(tile)) {
 		case STATION_AIRPORT:
+			if (IsTileOnWater(tile)) TileLoop_Water(tile);
 			AirportTileAnimationTrigger(Station::GetByTile(tile), tile, AAT_TILELOOP);
 			break;
 
@@ -3228,7 +3224,6 @@ static void TileLoop_Station(TileIndex tile)
 			if (!IsTileFlat(tile)) break; // only handle water part
 			FALLTHROUGH;
 
-		case STATION_OILRIG: //(station part)
 		case STATION_BUOY:
 			TileLoop_Water(tile);
 			break;
@@ -4078,7 +4073,16 @@ void BuildBuiltInHeliport(TileIndex tile)
 	st->industry = Industry::GetByTile(tile);
 	st->industry->neutral_station = st;
 	DeleteAnimatedTile(tile);
-	MakeBuiltInHeliport(tile, st->index, GetWaterClass(tile));
+	MakeStation(tile, OWNER_NONE, st->index, STATION_AIRPORT, 0, GetWaterClass(tile));
+
+	const TileDescription *description = &_description_oilrig_0[0];
+	SetAirtype(tile, description->ground);
+	SetAirportTileType(tile, description->type);
+	_m[tile].m4 = 0;
+	_m[tile].m5 = 0;
+	SetAirportTileTracks(tile, description->trackbits);
+	SetTerminalType(tile, description->terminal_type);
+	st->airport.flags = 0;
 
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
@@ -4086,6 +4090,7 @@ void BuildBuiltInHeliport(TileIndex tile)
 	st->ship_station.Add(tile);
 	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
 	st->build_date = _date;
+	st->UpdateAirportDataStructure();
 	UpdateStationDockingTiles(st);
 
 	st->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);
@@ -4237,9 +4242,6 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags)
 			case STATION_BUS:      return_cmd_error(HasTileRoadType(tile, RTT_TRAM) ? STR_ERROR_MUST_DEMOLISH_PASSENGER_TRAM_STATION_FIRST : STR_ERROR_MUST_DEMOLISH_BUS_STATION_FIRST);
 			case STATION_BUOY:     return_cmd_error(STR_ERROR_BUOY_IN_THE_WAY);
 			case STATION_DOCK:     return_cmd_error(STR_ERROR_MUST_DEMOLISH_DOCK_FIRST);
-			case STATION_OILRIG:
-				SetDParam(1, STR_INDUSTRY_NAME_OIL_RIG);
-				return_cmd_error(STR_ERROR_GENERIC_OBJECT_IN_THE_WAY);
 		}
 	}
 

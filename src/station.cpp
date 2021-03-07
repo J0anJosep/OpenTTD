@@ -258,7 +258,6 @@ static uint GetTileCatchmentRadius(TileIndex tile, const Station *st)
 	if (_settings_game.station.modified_catchment) {
 		switch (GetStationType(tile)) {
 			case STATION_RAIL:    return CA_TRAIN;
-			case STATION_OILRIG:  return CA_UNMODIFIED;
 			case STATION_AIRPORT: return st->airport.GetSpec()->catchment;
 			case STATION_TRUCK:   return CA_TRUCK;
 			case STATION_BUS:     return CA_BUS;
@@ -625,40 +624,6 @@ Money AirportMaintenanceCost(Owner owner)
 	}
 	/* 3 bits fraction for the maintenance cost factor. */
 	return total_cost >> 3;
-}
-
-/**
- * Create or delete the hangar corresponding to this airport.
- * @param create if true, create a depot associated to this airport;
- *               if false, delete the hangar corresponding to this airport.
- */
-void Airport::SetHangar(bool create)
-{
-	if (create) {
-		assert(this->depot_id == INVALID_DEPOT);
-		assert(Depot::CanAllocateItem());
-		assert(this->GetNumHangars() > 0);
-		Station *st = Station::GetByTile(this->GetHangarTile(0));
-		Depot *dep = new Depot(this->GetHangarTile(0));
-		this->depot_id = dep->index;
-		dep->build_date = st->build_date;
-		dep->town = st->town;
-		dep->company = GetTileOwner(dep->xy);
-		dep->veh_type = VEH_AIRCRAFT;
-		dep->ta.tile = st->airport.tile;
-		dep->ta.w = st->airport.w;
-		dep->ta.h = st->airport.h;
-		for (uint i = 0; i < this->GetNumHangars(); i++) {
-			dep->depot_tiles.push_back(this->GetHangarTile(i));
-		}
-	} else {
-		if (this->depot_id == INVALID_DEPOT) return;
-		assert(Depot::IsValidID(this->depot_id));
-		Depot *dep = Depot::Get(this->depot_id);
-		dep->Disuse();
-		delete Depot::GetIfValid(this->depot_id);
-		this->depot_id = INVALID_DEPOT;
-	}
 }
 
 DepotID GetHangarIndex(TileIndex t) {

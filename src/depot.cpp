@@ -226,6 +226,9 @@ void Depot::RescanDepotTiles()
 				break;
 			case VEH_TRAIN:
 				this->r_types.rail_types |= (RailTypes)(1 << GetRailType(tile));
+				break;
+			case VEH_AIRCRAFT:
+				NOT_REACHED();
 			default: break;
 		}
 	}

@@ -302,7 +302,7 @@ struct GoodsEntry {
 
 /** All airport-related information. Only valid if tile != INVALID_TILE. */
 struct Airport : public TileArea {
-	Airport() : TileArea(INVALID_TILE, 0, 0), depot_id(INVALID_DEPOT) {}
+	Airport() : TileArea(), depot_id(INVALID_DEPOT) {}
 
 	uint64 flags;       ///< stores which blocks on the airport are taken. was 16 bit earlier on, then 32
 	byte type;          ///< Type of this airport, @see AirportTypes
@@ -310,6 +310,11 @@ struct Airport : public TileArea {
 	Direction rotation; ///< How this airport is rotated.
 	AirType air_type;   ///< NOSAVE: airport type.
 	DepotID depot_id;   ///< The corresponding DepotID for the hangar of this airport, if any.
+
+	std::vector<TileIndex> aprons;     ///< NOSAVE: aprons this airport has.
+	std::vector<TileIndex> helipads;   ///< NOSAVE: helipads of this airport.
+	std::vector<TileIndex> heliports;  ///< NOSAVE: heliports of this airport (cannot move through the airport without flying)
+	std::vector<TileIndex> runways;    ///< NOSAVE: runways of this airport.
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
@@ -422,8 +427,6 @@ struct Airport : public TileArea {
 		return num;
 	}
 
-	void SetHangar(bool create);
-
 private:
 	/**
 	 * Retrieve hangar information of a hangar at a given tile.
@@ -505,6 +508,10 @@ public:
 	bool CatchmentCoversTown(TownID t) const;
 	void AddIndustryToDeliver(Industry *ind);
 	void RemoveFromAllNearbyLists();
+
+	void LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation = DIAGDIR_NE, AirType airtype = INVALID_AIRTYPE);
+	void ClearAirportDataInfrastructure();
+	void UpdateAirportDataStructure();
 
 	inline bool TileIsInCatchment(TileIndex tile) const
 	{
