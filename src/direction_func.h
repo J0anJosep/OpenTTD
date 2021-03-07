@@ -108,6 +108,19 @@ inline Direction ChangeDir(Direction d, DirDiff delta)
 	return static_cast<Direction>((static_cast<uint>(d) + static_cast<uint>(delta)) % 8);
 }
 
+/**
+ * Calculate the non-oriented difference between two Direction values
+ *
+ * @param d0 The first direction as the base
+ * @param d1 The second direction as the offset from the base
+ * @return The number of non-oriented 45 degrees difference.
+ */
+static inline DirDiff NonOrientedDirDifference(Direction d0, Direction d1)
+{
+	assert(IsValidDirection(d0));
+	assert(IsValidDirection(d1));
+	return std::min(DirDifference(d0, d1), DirDifference(d1, d0));
+}
 
 /**
  * Returns the reverse direction of the given DiagDirection
