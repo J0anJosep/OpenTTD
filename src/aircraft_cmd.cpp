@@ -1333,7 +1333,7 @@ static void CrashAirplane(Aircraft *v)
 	StringID newsitem;
 	TileIndex vt;
 	if (st == nullptr) {
-		newsitem = STR_NEWS_PLANE_CRASH_OUT_OF_FUEL;
+		newsitem = STR_NEWS_AIRCRAFT_CRASH_OUT_OF_FUEL;
 		vt = TileVirtXY(v->x_pos, v->y_pos);
 	} else {
 		SetDParam(1, st->index);
