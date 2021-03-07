@@ -3254,6 +3254,13 @@ bool AfterLoadGame()
 		for (Station *st : Station::Iterate()) UpdateStationAcceptance(st, false);
 	}
 
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		/* We have to destroy all aircraft to completely restart from scratch. */
+		for (Aircraft *v : Aircraft::Iterate()) {
+			if ((v->vehstatus & VS_CRASHED) == 0) v->Crash();
+		}
+	}
+
 	/* Road stops is 'only' updating some caches */
 	AfterLoadRoadStops();
 	AfterLoadLabelMaps();
