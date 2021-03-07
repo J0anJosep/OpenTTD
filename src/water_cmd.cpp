@@ -1266,6 +1266,7 @@ void TileLoop_Water(TileIndex tile)
 				if (!IsValidTile(dest)) continue;
 				/* do not try to flood water tiles - increases performance a lot */
 				if (IsTileType(dest, MP_WATER)) continue;
+				if (IsAirportTile(dest) && IsTileOnWater(dest)) continue;
 
 				/* TREE_GROUND_SHORE is the sign of a previous flood. */
 				if (IsTileType(dest, MP_TREES) && GetTreeGround(dest) == TREE_GROUND_SHORE) continue;
