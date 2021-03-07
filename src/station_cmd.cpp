@@ -4715,7 +4715,9 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags)
 	switch (GetStationType(tile)) {
 		case STATION_RAIL:     return RemoveRailStation(tile, flags);
 		case STATION_WAYPOINT: return RemoveRailWaypoint(tile, flags);
-		case STATION_AIRPORT:  return RemoveAirport(tile, flags);
+		case STATION_AIRPORT: // airport can be built on water
+			if (_current_company == OWNER_WATER && IsTileOnWater(tile)) break;
+			return RemoveAirport(tile, flags);
 		case STATION_TRUCK:    [[fallthrough]];
 		case STATION_BUS:
 			if (IsDriveThroughStopTile(tile)) {
