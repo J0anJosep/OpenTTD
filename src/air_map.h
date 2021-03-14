@@ -635,6 +635,7 @@ static inline bool RemovePlainRunwayDirections(Tile t, DiagDirection dir)
  */
 static inline void SetAirportTileTracks(Tile t, TrackBits tracks)
 {
+	assert(IsAirportTile(t));
 	assert(MayHaveAirTracks(t));
 
 	SB(t.m8(), 0, 6, tracks);
