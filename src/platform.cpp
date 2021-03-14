@@ -61,6 +61,29 @@ void SetRailDepotPlatformReservation(TileIndex start, DiagDirection dir, bool b)
 }
 
 /**
+ * Set the reservation for a complete station platform.
+ * @pre IsRailStationTile(start)
+ * @param start starting tile of the platform
+ * @param dir the direction in which to follow the platform
+ * @param b the state the reservation should be set to
+ */
+void SetRunwayReservation(TileIndex tile, DiagDirection dir, bool b)
+{
+	assert(IsRunwayExtreme(tile));
+	TileIndexDiff diff = TileOffsByDiagDir(dir);
+
+	do {
+		assert(!HasAirportTrackReserved(tile));
+		SetReservationAsRunway(tile, b);
+		MarkTileDirtyByTile(tile);
+		tile = TILE_ADD(tile, diff);
+	} while (!IsRunwayExtreme(tile));
+
+	SetReservationAsRunway(tile, b);
+	MarkTileDirtyByTile(tile);
+}
+
+/**
  * Set the reservation for a complete platform in a given direction.
  * @param start starting tile of the platform
  * @param dir the direction in which to follow the platform
@@ -77,6 +100,9 @@ void SetPlatformReservation(TileIndex start, DiagDirection dir, bool b)
 			return;
 		case PT_RAIL_DEPOT:
 			SetRailDepotPlatformReservation(start, dir, b);
+			return;
+		case PT_RUNWAY:
+			SetRunwayReservation(start, dir, b);
 			return;
 		default: NOT_REACHED();
 	}
@@ -101,6 +127,13 @@ void SetPlatformReservation(TileIndex start, bool b)
 			SetRailDepotPlatformReservation(start, dir, b);
 			SetRailDepotPlatformReservation(start, ReverseDiagDir(dir), b);
 			return;
+		case PT_RUNWAY: {
+			assert(IsRunwayExtreme(start));
+			DiagDirection dir = GetRunwayExtremeDirection(start);
+			if (IsRunwayEnd(start)) dir = ReverseDiagDir(dir);
+			SetPlatformReservation(start, dir, b);
+			break;
+		}
 		default: NOT_REACHED();
 	}
 }
@@ -216,6 +249,48 @@ uint GetRoadDepotPlatformLength(TileIndex tile, RoadTramType rtt)
 	return len - 1;
 }
 
+uint GetRunwayLength(TileIndex tile)
+{
+	TileIndex start_tile = tile;
+	uint length = 1;
+	assert(IsAirport(tile) && IsRunwayStart(tile));
+	DiagDirection dir = GetRunwayExtremeDirection(tile);
+	assert(dir < DIAGDIR_END);
+
+	do {
+		length++;
+		tile += TileOffsByDiagDir(dir);
+	} while (IsCompatibleRunwayTile(tile, start_tile) && !IsRunwayEnd(tile));
+
+	assert(IsRunwayEnd(tile));
+
+	return length;
+}
+
+TileIndex GetRunwayExtreme(TileIndex tile, DiagDirection dir);
+
+uint GetRunwayLength(TileIndex tile, DiagDirection dir)
+{
+	uint length = 1;
+	assert(IsAirport(tile) && IsRunway(tile));
+	assert(dir < DIAGDIR_END);
+	if (IsRunwayExtreme(tile)) {
+		assert(dir == GetRunwayExtremeDirection(tile));
+	} else {
+		// revise: create an assert for directions present in this tile and the direction given.
+	}
+
+	TileIndex start_tile = IsRunwayStart(tile) ? tile : GetRunwayExtreme(tile, ReverseDiagDir(dir));
+
+	do {
+		length++;
+		tile += TileOffsByDiagDir(dir);
+	} while (IsCompatibleRunwayTile(tile, start_tile) && !IsRunwayEnd(tile));
+
+	assert(IsRunwayEnd(tile));
+
+	return length;
+}
 
 /**
  * Get the length of a rail depot platform in a given direction.
@@ -280,6 +355,8 @@ uint GetPlatformLength(TileIndex tile, RoadTramType rtt)
 			return GetRailDepotPlatformLength(tile);
 		case PT_ROAD_DEPOT:
 			return GetRoadDepotPlatformLength(tile, rtt);
+		case PT_RUNWAY:
+			return GetRunwayLength(tile);
 		default: NOT_REACHED();
 	}
 }
@@ -303,6 +380,8 @@ uint GetPlatformLength(TileIndex tile, DiagDirection dir, RoadTramType rtt)
 			return GetRailDepotPlatformLength(tile, dir);
 		case PT_ROAD_DEPOT:
 			return GetRoadDepotPlatformLength(tile, dir, rtt);
+		case PT_RUNWAY:
+			return GetRunwayLength(tile, dir);
 		default: NOT_REACHED();
 	}
 }
@@ -354,6 +433,36 @@ TileIndex GetRailDepotExtreme(TileIndex tile, DiagDirection dir)
 }
 
 /**
+ * Get the start or end of a runway.
+ * @param tile Tile belonging a runway.
+ * @param end If true, it will return the end tile of the runway.
+ *                 If false, it will return the start tile of the runway.
+ */
+TileIndex GetRunwayExtreme(TileIndex tile, DiagDirection dir)
+{
+	assert(IsAirportTile(tile) && IsRunway(tile));
+
+	TileIndexDiff delta = TileOffsByDiagDir(dir);
+	TileIndex t = tile;
+
+	for (;;) {
+		assert(IsRunway(t));
+		if (IsRunwayExtreme(t)) {
+			DiagDirection last_dir = GetRunwayExtremeDirection(t);
+			if (IsRunwayEnd(t)) {
+				if (last_dir == dir) return t;
+				assert(last_dir == ReverseDiagDir(dir));
+			} else {
+				assert(IsRunwayStart(t));
+				if (last_dir == ReverseDiagDir(dir)) return t;
+				assert(last_dir == dir);
+			}
+		}
+		t += delta;
+	}
+}
+
+/**
  * Get a tile where a platform begins or ends.
  * @param tile Tile to check
  * @param dir Direction to check
@@ -368,6 +477,8 @@ TileIndex GetPlatformExtremeTile(TileIndex tile, DiagDirection dir)
 			return tile;
 		case PT_RAIL_DEPOT:
 			return GetRailDepotExtreme(tile, dir);
+		case PT_RUNWAY:
+			return GetRunwayExtreme(tile, dir);
 		default: NOT_REACHED();
 	}
 }
@@ -391,6 +502,11 @@ TileArea GetPlatformTileArea(TileIndex tile)
 			assert(IsExtendedRailDepotTile(tile));
 			DiagDirection dir = GetRailDepotDirection(tile);
 			return TileArea(GetRailDepotExtreme(tile, dir), GetRailDepotExtreme(tile, ReverseDiagDir(dir)));
+		}
+		case PT_RUNWAY: {
+			assert(IsRunwayExtreme(tile));
+			DiagDirection dir = GetRunwayExtremeDirection(tile);
+			return TileArea(GetRunwayExtreme(tile, dir), GetRunwayExtreme(tile, ReverseDiagDir(dir)));
 		}
 		default: NOT_REACHED();
 	}

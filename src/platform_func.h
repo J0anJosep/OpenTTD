@@ -10,6 +10,7 @@
 #ifndef PLATFORM_FUNC_H
 #define PLATFORM_FUNC_H
 
+#include "air_map.h"
 #include "station_map.h"
 #include "depot_map.h"
 #include "platform_type.h"
@@ -84,6 +85,25 @@ static inline bool IsCompatibleRoadDepotTile(TileIndex test_tile, TileIndex depo
 }
 
 /**
+ * Check if a tile is a valid continuation of a runway.
+ * The tile \a test_tile is a valid continuation to \a runway, if all of the following are true:
+ * \li \a test_tile is an airport tile
+ * \li \a test_tile and \a start_tile are in the same station
+ * \li the tracks on \a test_tile and \a start_tile are in the same direction
+ * @param test_tile Tile to test
+ * @param start_tile Depot tile to compare with
+ * @pre IsAirport && IsRunwayStart(start_tile)
+ * @return true if the two tiles are compatible
+ */
+static inline bool IsCompatibleRunwayTile(TileIndex test_tile, TileIndex start_tile)
+{
+	assert(IsAirportTile(start_tile) && IsRunwayStart(start_tile));
+	return IsAirportTile(test_tile) &&
+			GetStationIndex(test_tile) == GetStationIndex(start_tile) &&
+			(GetRunwayTrackdirs(start_tile) & GetRunwayTrackdirs(test_tile)) != TRACKDIR_BIT_NONE;
+}
+
+/**
  * Returns the type of platform of a given tile.
  * @param tile Tile to check
  * @return the type of platform (rail station, rail waypoint...)
@@ -94,6 +114,7 @@ static inline PlatformType GetPlatformType(TileIndex tile)
 		case MP_STATION:
 			if (IsRailStation(tile)) return PT_RAIL_STATION;
 			if (IsRailWaypoint(tile)) return PT_RAIL_WAYPOINT;
+			if (IsAirport(tile) && IsRunway(tile)) return PT_RUNWAY;
 			break;
 		case MP_RAILWAY:
 			if (IsExtendedRailDepotTile(tile)) return PT_RAIL_DEPOT;
