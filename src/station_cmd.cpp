@@ -3065,6 +3065,10 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 			}
 			break;
 
+		case TRANSPORT_AIR:
+			if (IsAirportTile(tile) && MayHaveAirTracks(tile)) trackbits = GetAirportTileTracks(tile);
+			break;
+
 		default:
 			break;
 	}
