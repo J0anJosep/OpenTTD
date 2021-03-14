@@ -127,6 +127,11 @@ struct Aircraft final : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 		return this->subtype <= AIR_AIRCRAFT;
 	}
 
+	inline bool IsHelicopter() const
+	{
+		return this->subtype == AIR_HELICOPTER;
+	}
+
 	/**
 	 * Get the range of this aircraft.
 	 * @return Range in tiles or 0 if unlimited range.

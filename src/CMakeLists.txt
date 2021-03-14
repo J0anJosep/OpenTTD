@@ -347,6 +347,8 @@ add_files(
     palette_func.h
     pbs.cpp
     pbs.h
+    pbs_air.cpp
+    pbs_air.h
     picker_func.h
     picker_gui.cpp
     picker_gui.h
