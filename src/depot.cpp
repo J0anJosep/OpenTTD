@@ -18,6 +18,7 @@
 #include "command_func.h"
 #include "vehicle_base.h"
 #include "viewport_kdtree.h"
+#include "platform_func.h"
 
 #include "safeguards.h"
 
@@ -193,6 +194,20 @@ void Depot::AfterAddRemove(TileArea ta, bool adding)
 	InvalidateWindowData(WC_SELECT_DEPOT, veh_type);
 }
 
+bool IsDepotDestTile(Depot *dep, TileIndex tile)
+{
+	switch (dep->veh_type) {
+		case VEH_TRAIN:
+			assert(IsRailDepotTile(tile));
+			return !IsExtendedRailDepot(tile) || IsAnyStartPlatformTile(tile);
+		case VEH_ROAD:
+		case VEH_SHIP:
+		case VEH_AIRCRAFT:
+			return true;
+		default: NOT_REACHED();
+	}
+}
+
 /* Rescan depot_tiles. Done after AfterAddRemove and SaveLoad. */
 void Depot::RescanDepotTiles()
 {
@@ -203,7 +218,7 @@ void Depot::RescanDepotTiles()
 	for (TileIndex tile : this->ta) {
 		if (!IsDepotTile(tile)) continue;
 		if (GetDepotIndex(tile) != this->index) continue;
-		this->depot_tiles.push_back(tile);
+		if (IsDepotDestTile(this, tile)) this->depot_tiles.push_back(tile);
 		switch (veh_type) {
 			case VEH_ROAD:
 				this->r_types.road_types |= GetPresentRoadTypes(tile);
@@ -241,8 +256,12 @@ void UpdateExtendedDepotReservation(Vehicle *v, bool reserve)
 			SetDepotReservation(v->tile, res_type);
 			break;
 
-		case VEH_TRAIN:
+		case VEH_TRAIN: {
+			DiagDirection dir = GetRailDepotDirection(v->tile);
+			SetDepotReservation(GetPlatformExtremeTile(v->tile, dir), res_type);
+			SetDepotReservation(GetPlatformExtremeTile(v->tile, ReverseDiagDir(dir)), res_type);
 			break;
+		}
 
 		case VEH_AIRCRAFT:
 			break;
