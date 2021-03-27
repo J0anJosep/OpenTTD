@@ -134,6 +134,9 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 {
 	if (result.Failed()) return;
 
+	/* Do not create additional tracks for extended depots. */
+	if (HasBit(p1, 9)) return;
+
 	DiagDirection dir = (DiagDirection)GB(p1, 6, 2);
 
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_20_CONSTRUCTION_RAIL, tile);
@@ -569,7 +572,8 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_DEPOT, GetRailTypeInfo(_cur_railtype)->cursor.depot, HT_RECT)) {
+			case WID_RAT_BUILD_EXTENDED_DEPOT:
+				if (HandlePlacePushButton(this, widget, GetRailTypeInfo(_cur_railtype)->cursor.depot, HT_RECT)) {
 					ShowBuildTrainDepotPicker(this);
 					this->last_user_action = widget;
 				}
@@ -657,8 +661,12 @@ struct BuildRailToolbarWindow : Window {
 				PlaceProc_DemolishArea(tile);
 				break;
 
-			case WID_RAT_BUILD_DEPOT: {
-				ViewportPlaceMethod vpm = (DiagDirToAxis(_build_depot_direction) == 0) ? VPM_X_LIMITED : VPM_Y_LIMITED;
+			case WID_RAT_BUILD_DEPOT:
+			case WID_RAT_BUILD_EXTENDED_DEPOT: {
+				ViewportPlaceMethod vpm = VPM_X_AND_Y_LIMITED;
+				if (this->last_user_action == WID_RAT_BUILD_DEPOT) {
+					vpm = (DiagDirToAxis(_build_depot_direction) == 0) ? VPM_X_LIMITED : VPM_Y_LIMITED;
+				}
 				VpStartPlaceSizing(tile, vpm, _remove_button_clicked ? DDSP_REMOVE_DEPOT : DDSP_BUILD_DEPOT);
 				VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 				break;
@@ -751,11 +759,12 @@ struct BuildRailToolbarWindow : Window {
 					break;
 
 				case DDSP_BUILD_DEPOT:
+				case DDSP_REMOVE_DEPOT:
 					if (_remove_button_clicked) {
 						DoCommandP(start_tile, end_tile, 0, CMD_REMOVE_TRAIN_DEPOT | CMD_MSG(STR_ERROR_CAN_T_REMOVE_TRAIN_DEPOT), CcPlaySound_CONSTRUCTION_RAIL);
 					} else {
 						CommandContainer cmdcont = { start_tile, (uint32)(_cur_railtype | (_build_depot_direction << 6) |
-								(_ctrl_pressed << 8) | (INVALID_DEPOT << 16)),
+								(_ctrl_pressed << 8) | ((this->last_user_action == WID_RAT_BUILD_EXTENDED_DEPOT) << 9) | (INVALID_DEPOT << 16)),
 								end_tile, CMD_BUILD_TRAIN_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT), CcRailDepot, "" };
 
 						ShowSelectDepotIfNeeded(cmdcont, TileArea(start_tile, end_tile), VEH_TRAIN);
