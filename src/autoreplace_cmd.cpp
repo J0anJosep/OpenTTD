@@ -773,6 +773,8 @@ CommandCost CmdAutoreplaceVehicle(DoCommandFlag flags, VehicleID veh_id)
 
 	assert(free_wagon || v->IsStoppedInDepot());
 
+	if (IsExtendedDepotTile(v->tile)) SetExtendedDepotReservation(v, false);
+
 	/* We have to construct the new vehicle chain to test whether it is valid.
 	 * Vehicle construction needs random bits, so we have to save the random seeds
 	 * to prevent desyncs and to replay newgrf callbacks during DC_EXEC */
@@ -796,6 +798,8 @@ CommandCost CmdAutoreplaceVehicle(DoCommandFlag flags, VehicleID veh_id)
 		assert(ret.Succeeded());
 		assert(ret.GetCost() == cost.GetCost());
 	}
+
+	if (IsExtendedDepotTile(v->tile)) SetExtendedDepotReservation(v, true);
 
 	/* Restart the vehicle */
 	if (!was_stopped) cost.AddCost(DoCmdStartStopVehicle(v, false));
