@@ -147,6 +147,15 @@
 	return ScriptObject::Command<CMD_BUILD_TRAIN_DEPOT>::Do(tile, (::RailType)ScriptObject::GetRailType(), entrance_dir, false, NEW_DEPOT, tile);
 }
 
+/* static */ bool ScriptRail::RemoveRailDepot(TileIndex start_tile, TileIndex end_tile)
+{
+	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
+	EnforcePrecondition(false, ::IsValidTile(start_tile));
+	EnforcePrecondition(false, ::IsValidTile(end_tile));
+
+	return ScriptObject::Command<CMD_REMOVE_TRAIN_DEPOT>::Do(start_tile, end_tile);
+}
+
 /* static */ bool ScriptRail::BuildRailStation(TileIndex tile, RailTrack direction, uint num_platforms, uint platform_length, StationID station_id)
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
