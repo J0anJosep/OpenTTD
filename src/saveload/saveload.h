@@ -341,6 +341,8 @@ enum SaveLoadVersion : uint16 {
 	SLV_DOCK_DOCKINGTILES,                  ///< 298  PR#9578 v12.0  All tiles around docks may be docking tiles.
 	SLV_MULTITILE_DEPOTS,                   ///< 299  PR#9577 Multi-tile depots for rail, road and water transport.
 
+	SLV_PATCHED = UINT16_MAX - 6,           ///< Make it difficult to load any savegame made with
+			// this patched version in any other version of OpenTTD (unless it uses the same saveload version trick).
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 
