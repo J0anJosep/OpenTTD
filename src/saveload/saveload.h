@@ -344,6 +344,8 @@ enum SaveLoadVersion : uint16 {
 	SLV_MULTITILE_DEPOTS,                   ///< 300  PR#9577 Multi-tile depots for rail, road and water transport.
 	SLV_EXTENDED_DEPOTS,                    ///< 301  PR#8480 Extended depots for rail, road and water transport.
 
+	SLV_PATCHED = UINT16_MAX - 6,           ///< Make it difficult to load any savegame made with
+			// this patched version in any other version of OpenTTD (unless it uses the same saveload version trick).
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 
