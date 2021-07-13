@@ -1,0 +1,43 @@
+// This file is part of OpenTTD.
+// OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation version 2.
+// OpenTTD is distributed in the hope that it will be useful but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not see <http://www.gnu.org/licenses/>.
+//
+   -1 * 0	 0C "Airport preview graphics"
+   -1 * 0	 05 16 24
+   -1 sprites/preview_small_temperate.png 8bpp         20   20 224 130  0  0 normal
+   -1 sprites/preview_small_temperate.png 8bpp         20  166 224 130  0  0 normal
+   -1 sprites/preview_small_temperate.png 8bpp         20  312 224 130  0  0 normal
+   -1 sprites/preview_small_temperate.png 8bpp         20  458 224 130  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20   20 192 114  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20  150 192 114  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20  280 192 114  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20  410 192 114  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp                20   20  64  87  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp               100   20  64  87  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp               180   20  64  87  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp               260   20  64  87  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20   20 192 114  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20  150 192 114  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20  280 192 114  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20  410 192 114  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20   20 225 138  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20  174 225 138  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20  328 225 138  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20  482 225 138  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20   20 144  99  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20  129 144  99  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20  238 144  99  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20  347 144  99  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp               20   20 128  69  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp              150   20 128  85  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp               20  109 128  67  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp              150  107 128  69  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20   20 160  85  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20  121 160  85  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20  222 160  85  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20  323 160  85  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp             20   20 192 117  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp            214   38 192  99  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp             20  139 192  99  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp            214  139 192 101  0  0 normal

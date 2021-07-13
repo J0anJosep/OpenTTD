@@ -94,7 +94,7 @@
 #include "autorail.nfo"
 #include "flags.nfo"
 #include "openttdgui.nfo"
-#include "airport_preview.nfo"
+#include "preview_airports.nfo"
 #include "chars.nfo"
 #include "mono.nfo"
 #include "tunnel_portals.nfo"
