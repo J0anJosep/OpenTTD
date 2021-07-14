@@ -3245,7 +3245,7 @@ draw_default_foundation:
 		DrawWaterClassGround(ti);
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
+	} else if (IsDock(ti->tile) || (IsBuiltInHeliportTile(ti->tile) && IsTileOnWater(ti->tile))) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
 		} else {
@@ -4502,10 +4502,10 @@ void UpdateStationDockingTiles(Station *st)
 	}
 }
 
-void BuildOilRig(TileIndex tile)
+void BuildBuiltInHeliport(TileIndex tile)
 {
 	if (!Station::CanAllocateItem()) {
-		Debug(misc, 0, "Can't allocate station for oilrig at 0x{:X}, reverting to oilrig only", tile);
+		Debug(misc, 0, "Can't allocate built in station for industry at 0x{:X}. Built in station won't be built.", tile);
 		return;
 	}
 
@@ -4520,7 +4520,7 @@ void BuildOilRig(TileIndex tile)
 	st->industry = Industry::GetByTile(tile);
 	st->industry->neutral_station = st;
 	DeleteAnimatedTile(tile);
-	MakeOilrig(tile, st->index, GetWaterClass(tile));
+	MakeBuiltInHeliport(tile, st->index, GetWaterClass(tile));
 
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
@@ -4550,7 +4550,7 @@ void BuildOilRig(TileIndex tile)
 	UpdateStationAcceptance(st, false);
 }
 
-void DeleteOilRig(TileIndex tile)
+void DeleteBuiltInHeliport(TileIndex tile)
 {
 	Station *st = Station::GetByTile(tile);
 

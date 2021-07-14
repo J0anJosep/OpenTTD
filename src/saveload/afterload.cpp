@@ -994,7 +994,7 @@ bool AfterLoadGame()
 					case STATION_OILRIG: {
 						/* The internal encoding of oil rigs was changed twice.
 						 * It was 3 (till 2.2) and later 5 (till 5.1).
-						 * DeleteOilRig asserts on the correct type, and
+						 * DeleteBuiltInHeliport asserts on the correct type, and
 						 * setting it unconditionally does not hurt.
 						 */
 						Station::GetByTile(t)->airport.type = AT_OILRIG;
@@ -1005,7 +1005,7 @@ bool AfterLoadGame()
 						 */
 						TileIndex t1 = TileAddXY(t, 0, 1);
 						if (!IsTileType(t1, MP_INDUSTRY) || GetIndustryGfx(t1) != GFX_OILRIG_1) {
-							DeleteOilRig(t);
+							DeleteBuiltInHeliport(t);
 						}
 						break;
 					}
@@ -1971,7 +1971,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_99)) {
 		for (auto t : Map::Iterate()) {
 			/* Set newly introduced WaterClass of industry tiles */
-			if (IsTileType(t, MP_STATION) && IsOilRig(t)) {
+			if (IsBuiltInHeliportTile(t)) {
 				SetWaterClassDependingOnSurroundings(t, true);
 			}
 			if (IsTileType(t, MP_INDUSTRY)) {
@@ -2505,7 +2505,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_149)) {
 		for (auto t : Map::Iterate()) {
 			if (!IsTileType(t, MP_STATION)) continue;
-			if (!IsBuoy(t) && !IsOilRig(t) && !(IsDock(t) && IsTileFlat(t))) {
+			if (!IsBuoy(t) && !IsBuiltInHeliportTile(t) && !(IsDock(t) && IsTileFlat(t))) {
 				SetWaterClass(t, WATER_CLASS_INVALID);
 			}
 		}
@@ -3209,7 +3209,7 @@ bool AfterLoadGame()
 
 		/* Link oil rigs to their industry and back. */
 		for (Station *st : Station::Iterate()) {
-			if (IsTileType(st->xy, MP_STATION) && IsOilRig(st->xy)) {
+			if (IsBuiltInHeliportTile(st->xy)) {
 				/* Industry tile is always adjacent during construction by TileDiffXY(0, 1) */
 				st->industry = Industry::GetByTile(st->xy + TileDiffXY(0, 1));
 				st->industry->neutral_station = st;
@@ -3237,7 +3237,7 @@ bool AfterLoadGame()
 			}
 			/* Add docks and oilrigs to Station::ship_station. */
 			if (IsTileType(t, MP_STATION)) {
-				if (IsDock(t) || IsOilRig(t)) Station::GetByTile(t)->ship_station.Add(t);
+				if (IsDock(t) || IsBuiltInHeliportTile(t)) Station::GetByTile(t)->ship_station.Add(t);
 			}
 		}
 	}
