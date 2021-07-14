@@ -262,7 +262,7 @@ static int ScriptOrderPositionToRealOrderPosition(VehicleID vehicle_id, ScriptOr
 				}
 			} else if (st->ship_station.tile != INVALID_TILE) {
 				for (TileIndex t : st->ship_station) {
-					if (IsTileType(t, MP_STATION) && (IsDock(t) || IsOilRig(t)) && GetStationIndex(t) == st->index) return t;
+					if (IsTileType(t, MP_STATION) && (IsDock(t) || IsBuiltInHeliportTile(t)) && GetStationIndex(t) == st->index) return t;
 				}
 			} else if (st->bus_stops != nullptr) {
 				return st->bus_stops->xy;

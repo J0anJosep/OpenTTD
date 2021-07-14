@@ -353,17 +353,6 @@ inline DiagDirection GetRoadStopDir(Tile t)
 }
 
 /**
- * Is tile \a t part of an oilrig?
- * @param t Tile to check
- * @pre IsTileType(t, MP_STATION)
- * @return \c true if the tile is an oilrig tile
- */
-inline bool IsOilRig(Tile t)
-{
-	return GetStationType(t) == STATION_OILRIG;
-}
-
-/**
  * Is tile \a t a dock tile?
  * @param t Tile to check
  * @pre IsTileType(t, MP_STATION)
@@ -818,9 +807,9 @@ inline void MakeDock(Tile t, Owner o, StationID sid, DiagDirection d, WaterClass
  * @param sid the station to which this tile belongs
  * @param wc the type of water on this tile
  */
-inline void MakeOilrig(Tile t, StationID sid, WaterClass wc)
+inline void MakeBuiltInHeliport(Tile t, StationID sid, WaterClass wc)
 {
-	MakeStation(t, OWNER_NONE, sid, STATION_OILRIG, 0, wc);
+	MakeStation(t, OWNER_NONE, sid, STATION_AIRPORT, 0, wc);
 }
 
 #endif /* STATION_MAP_H */
