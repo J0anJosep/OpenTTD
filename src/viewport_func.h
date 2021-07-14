@@ -18,6 +18,14 @@
 #include "vehicle_type.h"
 #include "depot_type.h"
 
+/** Enumeration of multi-part foundations */
+enum FoundationPart {
+	FOUNDATION_PART_NONE     = 0xFF,  ///< Neither foundation nor groundsprite drawn yet.
+	FOUNDATION_PART_NORMAL   = 0,     ///< First part (normal foundation or no foundation)
+	FOUNDATION_PART_HALFTILE = 1,     ///< Second part (halftile foundation)
+	FOUNDATION_PART_END
+};
+
 static const int TILE_HEIGHT_STEP = 50; ///< One Z unit tile height difference is displayed as 50m.
 
 void SetSelectionRed(bool);
@@ -57,6 +65,9 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 void AddChildSpriteScreen(SpriteID image, PaletteID pal, int x, int y, bool transparent = false, const SubSprite *sub = nullptr, bool scale = true, bool relative = true);
 void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, Colours colour = INVALID_COLOUR);
 
+struct TileInfo;
+
+void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part, int extra_offs_x = 0, int extra_offs_y = 0);
 
 void StartSpriteCombine();
 void EndSpriteCombine();

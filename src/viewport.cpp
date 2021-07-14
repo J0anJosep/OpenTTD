@@ -141,14 +141,6 @@ struct ChildScreenSpriteToDraw {
 	int next;                       ///< next child to draw (-1 at the end)
 };
 
-/** Enumeration of multi-part foundations */
-enum FoundationPart {
-	FOUNDATION_PART_NONE     = 0xFF,  ///< Neither foundation nor groundsprite drawn yet.
-	FOUNDATION_PART_NORMAL   = 0,     ///< First part (normal foundation or no foundation)
-	FOUNDATION_PART_HALFTILE = 1,     ///< Second part (halftile foundation)
-	FOUNDATION_PART_END
-};
-
 /**
  * Mode of "sprite combining"
  * @see StartSpriteCombine
@@ -887,7 +879,7 @@ static void AddStringToDraw(int x, int y, StringID string, Colours colour, uint1
  * @param extra_offs_x Pixel X offset for the sprite position.
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
-static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part, int extra_offs_x = 0, int extra_offs_y = 0)
+void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part, int extra_offs_x, int extra_offs_y)
 {
 	/* FIXME: This is not totally valid for some autorail highlights that extend over the edges of the tile. */
 	if (_vd.foundation[foundation_part] == -1) {
