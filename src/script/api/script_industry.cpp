@@ -188,7 +188,7 @@
 
 	const Industry *ind = ::Industry::Get(industry_id);
 	for (TileIndex tile_cur : ind->location) {
-		if (IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) {
+		if (IsBuiltInHeliportTile(tile_cur)) {
 			return tile_cur;
 		}
 	}
@@ -210,7 +210,7 @@
 
 	const Industry *ind = ::Industry::Get(industry_id);
 	for (TileIndex tile_cur : ind->location) {
-		if (IsTileType(tile_cur, MP_STATION) && IsOilRig(tile_cur)) {
+		if (IsWateredBuiltInHeliportTile(tile_cur)) {
 			return tile_cur;
 		}
 	}

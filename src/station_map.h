@@ -266,17 +266,6 @@ static inline DiagDirection GetRoadStopDir(TileIndex t)
 }
 
 /**
- * Is tile \a t part of an oilrig?
- * @param t Tile to check
- * @pre IsTileType(t, MP_STATION)
- * @return \c true if the tile is an oilrig tile
- */
-static inline bool IsOilRig(TileIndex t)
-{
-	return GetStationType(t) == STATION_OILRIG;
-}
-
-/**
  * Is tile \a t a dock tile?
  * @param t Tile to check
  * @pre IsTileType(t, MP_STATION)
@@ -415,7 +404,7 @@ static inline DiagDirection GetDockDirection(TileIndex t)
  * Get the tileoffset from this tile a ship should target to get to this dock.
  * @param t Tile to query
  * @pre IsTileType(t, MP_STATION)
- * @pre IsBuoy(t) || IsOilRig(t) || IsDock(t)
+ * @pre IsBuoy(t) || IsBuiltInHeliport(t) || IsDock(t)
  * @return The offset from this tile that should be used as destination for ships.
  */
 static inline TileIndexDiffC GetDockOffset(TileIndex t)
@@ -431,7 +420,7 @@ static inline TileIndexDiffC GetDockOffset(TileIndex t)
 	assert(IsTileType(t, MP_STATION));
 
 	if (IsBuoy(t)) return buoy_offset;
-	if (IsOilRig(t)) return oilrig_offset;
+	if (IsBuiltInHeliportTile(t)) return oilrig_offset;
 
 	assert(IsDock(t));
 
@@ -640,9 +629,9 @@ static inline void MakeDock(TileIndex t, Owner o, StationID sid, DiagDirection d
  * @param sid the station to which this tile belongs
  * @param wc the type of water on this tile
  */
-static inline void MakeOilrig(TileIndex t, StationID sid, WaterClass wc)
+static inline void MakeBuiltInHeliport(TileIndex t, StationID sid, WaterClass wc)
 {
-	MakeStation(t, OWNER_NONE, sid, STATION_OILRIG, 0, wc);
+	MakeStation(t, OWNER_NONE, sid, STATION_AIRPORT, 0, wc);
 }
 
 #endif /* STATION_MAP_H */
