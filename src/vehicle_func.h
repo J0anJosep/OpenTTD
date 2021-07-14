@@ -167,6 +167,7 @@ inline StringID GetCmdSendToDepotMsg(const BaseVehicle *v)
 CommandCost EnsureNoVehicleOnGround(TileIndex tile);
 CommandCost EnsureNoVisibleVehicleOnGround(TileIndex tile);
 CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits);
+CommandCost EnsureFreeHangar(TileIndex tile);
 
 bool CanVehicleUseStation(EngineID engine_type, const struct Station *st);
 bool CanVehicleUseStation(const Vehicle *v, const struct Station *st);
