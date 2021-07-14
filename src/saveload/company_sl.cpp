@@ -98,13 +98,6 @@ void AfterLoadCompanyStats()
 	/* Reset infrastructure statistics to zero. */
 	for (Company *c : Company::Iterate()) MemSetT(&c->infrastructure, 0);
 
-	/* Collect airport count. */
-	for (const Station *st : Station::Iterate()) {
-		if ((st->facilities & FACIL_AIRPORT) && Company::IsValidID(st->owner)) {
-			Company::Get(st->owner)->infrastructure.airport++;
-		}
-	}
-
 	Company *c;
 	for (TileIndex tile = 0; tile < MapSize(); tile++) {
 		switch (GetTileType(tile)) {
@@ -142,7 +135,7 @@ void AfterLoadCompanyStats()
 
 			case MP_STATION:
 				c = Company::GetIfValid(GetTileOwner(tile));
-				if (c != nullptr && GetStationType(tile) != STATION_AIRPORT && !IsBuoy(tile)) c->infrastructure.station++;
+				if (c != nullptr && !IsBuoy(tile)) c->infrastructure.station++;
 
 				switch (GetStationType(tile)) {
 					case STATION_RAIL:
@@ -161,6 +154,10 @@ void AfterLoadCompanyStats()
 						}
 						break;
 					}
+
+					case STATION_AIRPORT:
+						if (c != nullptr) c->infrastructure.airport++;
+						break;
 
 					case STATION_DOCK:
 					case STATION_BUOY:
