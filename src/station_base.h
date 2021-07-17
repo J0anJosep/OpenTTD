@@ -318,6 +318,8 @@ struct Airport : public TileArea {
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
+	CatchmentArea AirportCatchmentRadius() const;
+
 	/**
 	 * Get the AirportSpec that from the airport type of this airport. If there
 	 * is no airport (\c tile == INVALID_TILE) then return the dummy AirportSpec.
