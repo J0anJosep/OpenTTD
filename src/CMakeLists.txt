@@ -36,6 +36,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
 endif()
 
 add_files(
+    air.h
+    air.cpp
     air_type.h
     aircraft.h
     aircraft_cmd.cpp

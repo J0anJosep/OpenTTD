@@ -26,6 +26,7 @@
 #include "strings_func.h"
 #include "date_func.h"
 #include "sound_func.h"
+#include "air.h"
 #include "rail.h"
 #include "core/pool_func.hpp"
 #include "settings_func.h"
@@ -562,6 +563,7 @@ Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY)
 
 	c->avail_railtypes = GetCompanyRailtypes(c->index);
 	c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+	c->avail_airtypes = GetCompanyAirtypes(c->index);
 	c->inaugurated_year = _cur_year;
 	RandomCompanyManagerFaceBits(c->face, (GenderEthnicity)Random(), false, false); // create a random company manager face
 
