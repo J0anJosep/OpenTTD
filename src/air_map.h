@@ -18,6 +18,7 @@
 #include "viewport_func.h"
 #include "table/airporttile_ids.h"
 
+extern bool _show_airport_tracks;
 
 /**
  * Set the airport type of an airport tile.
@@ -840,6 +841,7 @@ static inline bool SetAirportTracksReservation(TileIndex t, TrackBits tracks)
 
 	SB(_me[t].m8, 6, 6, tracks);
 
+	if (_show_airport_tracks) MarkTileDirtyByTile(t);
 	return true;
 }
 
@@ -876,6 +878,7 @@ static inline bool RemoveAirportTrackReservation(TileIndex t, Track track)
 	reserved &= ~tracks;
 
 	SB(_me[t].m8, 6, 6, reserved);
+	if (_show_airport_tracks) MarkTileDirtyByTile(t);
 
 	return true;
 }
