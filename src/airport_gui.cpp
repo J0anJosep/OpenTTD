@@ -42,7 +42,8 @@
 
 static AirportClassID _selected_airport_class; ///< the currently visible airport class
 static int _selected_airport_index;            ///< the index of the selected airport in the current class or -1
-static uint8_t _selected_airport_layout;          ///< selected airport layout number.
+static uint8_t _selected_airport_layout;       ///< selected airport layout number.
+bool _show_airport_tracks = 0;                 ///< whether to show the airport tracks on viewports.
 
 static void ShowBuildAirportPicker(Window *parent);
 
@@ -89,10 +90,15 @@ struct BuildAirToolbarWindow : Window {
 		this->OnInvalidateData();
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 		this->last_user_action = INVALID_WID_AT;
+		_show_airport_tracks = true;
+		MarkWholeScreenDirty();
 	}
 
 	void Close([[maybe_unused]] int data = 0) override
 	{
+		_show_airport_tracks = false;
+		MarkWholeScreenDirty();
+
 		if (this->IsWidgetLowered(WID_AT_AIRPORT)) SetViewportCatchmentStation(nullptr, true);
 		if (_settings_client.gui.link_terraform_toolbar) CloseWindowById(WC_SCEN_LAND_GEN, 0, false);
 		this->Window::Close();
