@@ -14,6 +14,7 @@
 #include "newgrf_text.h"
 #include "station_base.h"
 #include "newgrf_class_func.h"
+#include "table/airport_defaults.h"
 
 #include "safeguards.h"
 
