@@ -285,7 +285,8 @@ static uint GetTileCatchmentRadius(TileIndex tile, const Station *st)
 	if (_settings_game.station.modified_catchment) {
 		switch (GetStationType(tile)) {
 			case STATION_RAIL:    return CA_TRAIN;
-			case STATION_AIRPORT: return st->airport.GetSpec()->catchment;
+			case STATION_AIRPORT:
+				return HasAirportCatchment(tile) ? st->airport.AirportCatchmentRadius() : CA_NONE;
 			case STATION_TRUCK:   return CA_TRUCK;
 			case STATION_BUS:     return CA_BUS;
 			case STATION_DOCK:    return CA_DOCK;
@@ -318,7 +319,7 @@ uint Station::GetCatchmentRadius() const
 		if (this->truck_stops        != nullptr)      ret = std::max<uint>(ret, CA_TRUCK);
 		if (this->train_station.tile != INVALID_TILE) ret = std::max<uint>(ret, CA_TRAIN);
 		if (this->ship_station.tile  != INVALID_TILE) ret = std::max<uint>(ret, CA_DOCK);
-		if (this->airport.tile       != INVALID_TILE) ret = std::max<uint>(ret, this->airport.GetSpec()->catchment);
+		if (this->airport.tile       != INVALID_TILE) ret = std::max<uint>(ret, this->airport.AirportCatchmentRadius());
 	} else {
 		if (this->bus_stops != nullptr || this->truck_stops != nullptr || this->train_station.tile != INVALID_TILE || this->ship_station.tile != INVALID_TILE || this->airport.tile != INVALID_TILE) {
 			ret = CA_UNMODIFIED;
@@ -701,4 +702,15 @@ DepotID GetHangarIndex(TileIndex t) {
 bool StationCompare::operator() (const Station *lhs, const Station *rhs) const
 {
 	return lhs->index < rhs->index;
+}
+
+/**
+ * Get the corresponent catchment radius for each infrastructure tile of this airport.
+ * @return the catchment radius.
+ */
+CatchmentArea Airport::AirportCatchmentRadius() const
+{
+	const AirTypeInfo *ati = GetAirTypeInfo(this->air_type);
+	assert(ati->catchment_radius <= MAX_CATCHMENT);
+	return (CatchmentArea)ati->catchment_radius;
 }
