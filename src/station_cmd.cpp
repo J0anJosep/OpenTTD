@@ -75,29 +75,6 @@
 /* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
 
 /**
- * Check whether the given tile is a hangar.
- * @param t the tile to of whether it is a hangar.
- * @pre IsTileType(t, MP_STATION)
- * @return true if and only if the tile is a hangar.
- */
-bool IsHangar(TileIndex t)
-{
-	assert(IsTileType(t, MP_STATION));
-
-	/* If the tile isn't an airport there's no chance it's a hangar. */
-	if (!IsAirport(t)) return false;
-
-	const Station *st = Station::GetByTile(t);
-	const AirportSpec *as = st->airport.GetSpec();
-
-	for (uint i = 0; i < as->nof_depots; i++) {
-		if (st->airport.GetHangarTile(i) == t) return true;
-	}
-
-	return false;
-}
-
-/**
  * Look for a station owned by the given company around the given tile area.
  * @param ta the area to search over
  * @param closest_station the closest owned station found so far
@@ -2780,6 +2757,7 @@ static void DrawTile_Station(TileInfo *ti)
 	BaseStation *st = nullptr;
 	const StationSpec *statspec = nullptr;
 	uint tile_layout = 0;
+	StationGfx gfx;
 
 	if (HasStationRail(ti->tile)) {
 		rti = GetRailTypeInfo(GetRailType(ti->tile));
@@ -2812,7 +2790,6 @@ static void DrawTile_Station(TileInfo *ti)
 		total_offset = 0;
 	}
 
-	StationGfx gfx = GetStationGfx(ti->tile);
 	if (IsAirport(ti->tile)) {
 		gfx = GetAirportGfx(ti->tile);
 		if (gfx >= NEW_AIRPORTTILE_OFFSET) {
@@ -2842,6 +2819,8 @@ static void DrawTile_Station(TileInfo *ti)
 				t = &_station_display_datas_airport_flag_grass_fence_ne_2[GetAnimationFrame(ti->tile)];
 				break;
 		}
+	} else {
+		gfx = GetStationGfx(ti->tile);
 	}
 
 	Owner owner = GetTileOwner(ti->tile);
