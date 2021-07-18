@@ -17,6 +17,7 @@
 #include "engine_base.h"
 #include "bridge.h"
 #include "town.h"
+#include "air.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
 #include "fontcache.h"
@@ -324,6 +325,7 @@ struct GRFTempEngineData {
 	uint16 cargo_allowed;
 	uint16 cargo_disallowed;
 	RailTypeLabel railtypelabel;
+	AirTypeLabel airtypelabel;
 	uint8 roadtramtype;
 	const GRFFile *defaultcargo_grf; ///< GRF defining the cargo translation table to use if the default cargo is the 'first refittable'.
 	Refittability refittability;     ///< Did the newgrf set any refittability property? If not, default refittability will be applied.
@@ -4683,6 +4685,13 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 	return ret;
 }
 
+static ChangeInfoResult AirTypeChangeInfo(uint airtid, int numinfo, int prop, ByteReader *buf)
+{
+	ChangeInfoResult ret = CIR_SUCCESS;
+
+	return ret;
+}
+
 static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uint8 feature, uint8 property)
 {
 	switch (cir) {
@@ -4747,6 +4756,7 @@ static void FeatureChangeInfo(ByteReader *buf)
 		/* GSF_AIRPORTTILES */  AirportTilesChangeInfo,
 		/* GSF_ROADTYPES */     RoadTypeChangeInfo,
 		/* GSF_TRAMTYPES */     TramTypeChangeInfo,
+		/* GSF_AIRTYPES */      AirTypeChangeInfo,
 	};
 	static_assert(GSF_END == lengthof(handler));
 
@@ -5154,6 +5164,7 @@ static void NewSpriteGroup(ByteReader *buf)
 				case GSF_CARGOES:
 				case GSF_AIRPORTS:
 				case GSF_RAILTYPES:
+				case GSF_AIRTYPES:
 				case GSF_ROADTYPES:
 				case GSF_TRAMTYPES:
 				{
@@ -8580,12 +8591,21 @@ void ResetNewGRFData()
 	/* Copy/reset original road type info data */
 	ResetRoadTypes();
 
+	/* Reset air type information */
+	ResetAirTypes();
+
 	/* Allocate temporary refit/cargo class data */
 	_gted = CallocT<GRFTempEngineData>(Engine::GetPoolSize());
 
 	/* Fill rail type label temporary data for default trains */
 	for (const Engine *e : Engine::IterateType(VEH_TRAIN)) {
 		_gted[e->index].railtypelabel = GetRailTypeInfo(e->u.rail.railtype)->label;
+	}
+
+	/* Fill air type label temporary data for default trains */
+	for (const Engine *e : Engine::IterateType(VEH_AIRCRAFT)) {
+		assert(e->u.air.airtype < AIRTYPE_END);
+		_gted[e->index].airtypelabel = GetAirtypeInfo(e->u.air.airtype)->label;
 	}
 
 	/* Reset GRM reservations */
@@ -9717,9 +9737,10 @@ static void AfterLoadGRFs()
 	/* Load old tram depot sprites in new position, if no new ones are present */
 	ActivateOldTramDepot();
 
-	/* Set up custom rail types */
+	/* Set up custom rail, road and air types */
 	InitRailTypes();
 	InitRoadTypes();
+	InitAirTypes();
 
 	for (Engine *e : Engine::IterateType(VEH_ROAD)) {
 		if (_gted[e->index].rv_max_speed != 0) {

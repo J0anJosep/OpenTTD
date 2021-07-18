@@ -10,6 +10,7 @@
 #include "../air_map.h"
 #include "../newgrf_house.h"
 #include "../newgrf_engine.h"
+#include "../newgrf_airtype.h"
 #include "../newgrf_roadtype.h"
 
 /* Helper for filling property tables */
@@ -607,6 +608,41 @@ static const NIFeature _nif_tramtype = {
 	new NIHRoadType(),
 };
 
+/*** NewGRF air types ***/
+
+static const NIVariable _niv_airtypes[] = {
+	NIV(0x40, "terrain type"),
+	NIV(0x41, "enhanced tunnels"),
+	NIV(0x42, "level crossing status"),
+	NIV(0x43, "construction date"),
+	NIV(0x44, "town zone"),
+	NIV_END()
+};
+
+class NIHAirType : public NIHelper {
+	bool IsInspectable(uint index) const override        { return true; }
+	uint GetParent(uint index) const override            { return UINT32_MAX; }
+	const void *GetInstance(uint index) const override   { return nullptr; }
+	const void *GetSpec(uint index) const override       { return nullptr; }
+	void SetStringParameters(uint index) const override  { this->SetObjectAtStringParameters(STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_RAIL_TYPE, INVALID_STRING_ID, index); }
+	uint32 GetGRFID(uint index) const override           { return 0; }
+
+	uint Resolve(uint index, uint var, uint param, bool *avail) const override
+	{
+		/* There is no unique GRFFile for the tile. Multiple GRFs can define different parts of the airtype.
+		 * However, currently the NewGRF Debug GUI does not display variables depending on the GRF (like 0x7F) anyway. */
+		AirTypeResolverObject ro(nullptr, index, TCX_NORMAL, ATSG_END);
+		return ro.GetScope(VSG_SCOPE_SELF)->GetVariable(var, param, avail);
+	}
+};
+
+static const NIFeature _nif_airtype = {
+	nullptr,
+	nullptr,
+	_niv_airtypes,
+	new NIHAirType(),
+};
+
 /** Table with all NIFeatures. */
 static const NIFeature * const _nifeatures[] = {
 	&_nif_vehicle,      // GSF_TRAINS
@@ -629,6 +665,7 @@ static const NIFeature * const _nifeatures[] = {
 	&_nif_airporttile,  // GSF_AIRPORTTILES
 	&_nif_roadtype,     // GSF_ROADTYPES
 	&_nif_tramtype,     // GSF_TRAMTYPES
+	&_nif_airtype,      // GSF_AIRTYPES
 	&_nif_town,         // GSF_FAKE_TOWNS
 };
 static_assert(lengthof(_nifeatures) == GSF_FAKE_END);
