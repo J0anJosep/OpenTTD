@@ -25,6 +25,8 @@ static const uint NUM_AIRPORTTILES       = 256;              ///< Total number o
 static const uint NEW_AIRPORTTILE_OFFSET = 195;              ///< offset of first newgrf airport tile
 static const uint INVALID_AIRPORTTILE    = NUM_AIRPORTTILES; ///< id for an invalid airport tile
 
+static const uint LONG_RUNWAY_LENGTH     = 6;                ///< Runways with 5 or less tiles are considered short.
+
 /** Airport types */
 enum AirportTypes {
 	AT_SMALL           =   0, ///< Small airport.
@@ -200,5 +202,41 @@ const AirportFTAClass *GetAirport(const byte airport_type);
 byte GetVehiclePosOnBuild(TileIndex hangar_tile);
 
 TrackBits GetAllowedTracks(TileIndex tile);
+
+
+enum AirportFlagBits : byte {
+	AFB_CLOSED_DESIGN         = 0,   ///< Airport closed: wrong design.
+	AFB_CLOSED_MANUAL         = 1,   ///< Airport closed: manually closed.
+	AFB_HELIPADS              = 2,   ///< Airport has helipads.
+	AFB_HELIPORTS             = 3,   ///< Airport has heliports.
+	AFB_SHORT_TAKE_OFF        = 4,   ///< Airport has a short takeoff runway.
+	AFB_LONG_TAKE_OFF         = 5,   ///< Airport has a long takeoff runway.
+	AFB_SHORT_LANDING         = 6,   ///< Airport has a short landing runway.
+	AFB_LONG_LANDING          = 7,   ///< Airport has a long landing runway.
+};
+
+enum AirportFlags : uint16 {
+	AF_NONE                =  0,       ///< No flag.
+	AF_CLOSED_DESIGN       =  1 <<  AFB_CLOSED_DESIGN,
+
+	AF_CLOSED_MANUAL       =  1 <<  AFB_CLOSED_MANUAL,
+	AF_CLOSED              =  AF_CLOSED_MANUAL | AF_CLOSED_DESIGN,
+
+	AF_HELIPADS            =  1 <<  AFB_HELIPADS,
+	AF_HELIPORTS           =  1 <<  AFB_HELIPORTS,
+	AF_HELICOPTERS         =  AF_HELIPADS | AF_HELIPORTS,
+
+	/* Short: 5 or less tiles. */
+	AF_SHORT_TAKEOFF       =  1 << AFB_SHORT_TAKE_OFF,
+	AF_LONG_TAKEOFF        =  1 << AFB_LONG_TAKE_OFF,
+	AF_TAKEOFF             =  AF_SHORT_TAKEOFF | AF_LONG_TAKEOFF,
+
+	AF_SHORT_LANDING       =  1 << AFB_SHORT_LANDING,
+	AF_LONG_LANDING        =  1 << AFB_LONG_LANDING,
+	AF_LANDING             =  AF_SHORT_LANDING | AF_LONG_LANDING,
+
+	AF_STRUCTURE_MASK      =  AF_HELICOPTERS | AF_TAKEOFF | AF_LANDING,
+};
+DECLARE_ENUM_AS_BIT_SET(AirportFlags)
 
 #endif /* AIRPORT_H */

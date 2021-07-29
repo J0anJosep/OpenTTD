@@ -1348,7 +1348,7 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, byte airport_ty
 		st->AddFacility(FACIL_AIRPORT, tile);
 		st->airport.type = airport_type;
 		st->airport.layout = layout;
-		st->airport.flags = 0;
+		st->airport.flags = AF_NONE;
 
 		st->rect.BeforeAddRect(tile, w, h, StationRect::ADD_TRY);
 
@@ -1525,7 +1525,7 @@ void BuildBuiltInHeliport(TileIndex tile)
 	SetAirportTileType(tile, tile_desc->type);
 	SetAirportTileTracks(tile, tile_desc->trackbits);
 	SetApronType(tile, tile_desc->apron_type);
-	st->airport.flags = 0;
+	st->airport.flags = AF_NONE;
 
 	st->owner = OWNER_NONE;
 	st->airport.type = AT_OILRIG;
@@ -1621,7 +1621,7 @@ CommandCost CmdOpenCloseAirport(DoCommandFlag flags, StationID station_id)
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
-		st->airport.flags ^= AIRPORT_CLOSED_block;
+		st->airport.flags ^= AF_CLOSED_MANUAL;
 		SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_CLOSE_AIRPORT);
 		UpdateAircraftOnUpdatedStation(st);
 	}

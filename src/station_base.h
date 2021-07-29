@@ -347,6 +347,11 @@ struct Airport : public TileArea {
 	{
 		return this->depot_id != INVALID_DEPOT;
 	}
+
+	inline bool IsClosed() const
+	{
+		return (this->flags & AF_CLOSED) != 0;
+	}
 };
 
 struct IndustryCompare {
