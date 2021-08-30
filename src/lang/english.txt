@@ -3782,8 +3782,7 @@ STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT                      :{GOLD}Water til
 STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS                          :{WHITE}Canals
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT                    :{GOLD}Stations:
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS                        :{WHITE}Station tiles
-STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS                        :{WHITE}Airport tiles
-STR_COMPANY_INFRASTRUCTURE_VIEW_COST                            :{WHITE}{1:CURRENCY_LONG}/yr ({0:COMMA})
+STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORT_SECT                    :{GOLD}Airport pieces:
 STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL                           :{WHITE}{CURRENCY_LONG}/yr
 
 # Industry directory

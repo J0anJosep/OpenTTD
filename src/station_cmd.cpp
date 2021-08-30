@@ -3909,6 +3909,11 @@ static void ChangeTileOwner_Station(TileIndex tile, Owner old_owner, Owner new_o
 				}
 				break;
 
+			case STATION_AIRPORT:
+				old_company->infrastructure.air[GetAirtype(tile)]--;
+				new_company->infrastructure.air[GetAirtype(tile)]++;
+				break;
+
 			case STATION_BUS:
 			case STATION_TRUCK:
 				/* Road stops were already handled above. */

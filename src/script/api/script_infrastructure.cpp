@@ -13,6 +13,7 @@
 #include "../../rail.h"
 #include "../../road_func.h"
 #include "../../water.h"
+#include "../../air.h"
 #include "../../station_func.h"
 
 #include "../../safeguards.h"
@@ -41,24 +42,14 @@
 
 	::Company *c = ::Company::Get((::CompanyID)company);
 	switch (infra_type) {
-		case INFRASTRUCTURE_RAIL: {
-			uint32 count = 0;
-			for (::RailType rt = ::RAILTYPE_BEGIN; rt != ::RAILTYPE_END; rt++) {
-				count += c->infrastructure.rail[rt];
-			}
-			return count;
-		}
+		case INFRASTRUCTURE_RAIL:
+			return c->infrastructure.GetRailTotal();
 
 		case INFRASTRUCTURE_SIGNALS:
 			return c->infrastructure.signal;
 
-		case INFRASTRUCTURE_ROAD: {
-			uint32 count = 0;
-			for (::RoadType rt = ::ROADTYPE_BEGIN; rt != ::ROADTYPE_END; rt++) {
-				count += c->infrastructure.road[rt];
-			}
-			return count;
-		}
+		case INFRASTRUCTURE_ROAD:
+			return c->infrastructure.GetRoadTotal() + c->infrastructure.GetTramTotal();
 
 		case INFRASTRUCTURE_CANAL:
 			return c->infrastructure.water;
@@ -67,7 +58,7 @@
 			return c->infrastructure.station;
 
 		case INFRASTRUCTURE_AIRPORT:
-			return c->infrastructure.airport;
+			return c->infrastructure.GetAirTotal();
 
 		default:
 			return 0;
@@ -126,9 +117,14 @@
 		case INFRASTRUCTURE_STATION:
 			return StationMaintenanceCost(c->infrastructure.station);
 
-		case INFRASTRUCTURE_AIRPORT:
-			return AirportMaintenanceCost(c->index);
-
+		case INFRASTRUCTURE_AIRPORT: {
+			Money cost;
+			uint32 air_total = c->infrastructure.GetAirTotal();
+			for (::AirType at = ::AIRTYPE_BEGIN; at != ::AIRTYPE_END; at++) {
+				cost += AirMaintenanceCost(at, c->infrastructure.air[at], air_total);
+			}
+			return cost;
+		}
 		default:
 			return 0;
 	}

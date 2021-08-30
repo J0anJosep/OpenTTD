@@ -19,6 +19,7 @@
 #include "../tunnelbridge.h"
 #include "../station_base.h"
 #include "../strings_func.h"
+#include "../air_map.h"
 
 #include "table/strings.h"
 
@@ -156,7 +157,7 @@ void AfterLoadCompanyStats()
 					}
 
 					case STATION_AIRPORT:
-						if (c != nullptr) c->infrastructure.airport++;
+						if (c != nullptr) c->infrastructure.air[GetAirtype(tile)]++;
 						break;
 
 					case STATION_DOCK:
