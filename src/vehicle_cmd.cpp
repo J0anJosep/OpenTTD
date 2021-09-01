@@ -40,6 +40,7 @@
 #include "depot_base.h"
 #include "train_placement.h"
 #include "strings_func.h"
+#include "air_map.h"
 #include <sstream>
 #include <iomanip>
 
@@ -253,8 +254,19 @@ CommandCost CmdSellVehicle(DoCommandFlag flags, VehicleID v_id, bool sell_chain,
 		ret = CommandCost(EXPENSES_NEW_VEHICLES, -front->value);
 
 		if (flags & DC_EXEC) {
-			if (front->type == VEH_ROAD && IsExtendedDepot(v->tile) && (flags & DC_AUTOREPLACE) == 0) {
-				UpdateExtendedDepotReservation(v, false);
+			if (IsExtendedDepot(v->tile) && (flags & DC_AUTOREPLACE) == 0) {
+				switch (front->type) {
+					case VEH_ROAD:
+						UpdateExtendedDepotReservation(v, false);
+						break;
+					case VEH_AIRCRAFT:
+						assert(IsHangar(front->tile));
+						RemoveAirportTrackReservation(front->tile, DiagDirToDiagTrack(GetHangarDirection(front->tile)));
+						MarkTileDirtyByTile(front->tile);
+						break;
+					default:
+						break;
+				}
 			}
 			if (front->IsPrimaryVehicle() && backup_order) OrderBackup::Backup(front, client_id);
 			delete front;

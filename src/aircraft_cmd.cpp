@@ -43,6 +43,7 @@
 #include "vehicle_cmd.h"
 #include "depot_base.h"
 #include "air_map.h"
+#include "pbs_air.h"
 
 #include "table/strings.h"
 
@@ -241,6 +242,30 @@ void GetAircraftSpriteSize(EngineID engine, uint &width, uint &height, int &xoff
 }
 
 /**
+ * Return a tile for placing a newly bought aircraft.
+ * @param depot a depot.
+ * @return a hangar tile where the new aircraft can be placed, or INVALID_TILE if no hangar available.
+ */
+TileIndex GetHangarTileForNewAircraft(const Depot *depot)
+{
+	assert(depot->veh_type == VEH_AIRCRAFT);
+
+	for (const auto &tile : depot->depot_tiles) {
+		switch (GetAirportTileType(tile)) {
+			case ATT_HANGAR_STANDARD:
+				return tile;
+			case ATT_HANGAR_EXTENDED:
+				if (IsAirportPositionFree(tile, DiagDirToDiagTrack(GetHangarDirection(tile)))) return tile;
+				break;
+			default:
+				NOT_REACHED();
+		}
+	}
+
+	return INVALID_TILE;
+}
+
+/**
  * Build an aircraft.
  * @param flags    type of operation.
  * @param tile     tile of the depot where aircraft is built.
@@ -257,24 +282,31 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 	if (!CanVehicleUseStation(e->index, st)) return CMD_ERROR;
 
 	if (!st->airport.HasHangar()) return CMD_ERROR;
-	Depot *depot = Depot::Get(st->airport.depot_id);
 
-	/* Make sure all aircraft end up in the first tile of the hangar. */
-	tile = depot->depot_tiles[0];
+	/* Make sure all aircraft ends up in an appropriate hangar. */
+	if ((flags & DC_AUTOREPLACE) == 0) {
+		tile = GetHangarTileForNewAircraft(st->airport.hangar);
+		if (tile == INVALID_TILE) return_cmd_error(STR_ERROR_NO_FREE_HANGAR);
+	}
+
+	bool extended_hangar = IsExtendedHangar(tile);
 
 	if (flags & DC_EXEC) {
 		Aircraft *v = new Aircraft(); // aircraft
 		Aircraft *u = new Aircraft(); // shadow
 		*ret = v;
 
-		v->direction = DIR_SE;
+		v->tile = tile;
+		v->dest_tile = 0;
+		v->next_trackdir = INVALID_TRACKDIR;
+		v->direction = u->direction = DiagDirToDir(GetHangarDirection(tile));
+		v->trackdir = DiagDirToDiagTrackdir(GetHangarDirection(tile));
+		v->wait_counter = 0;
 
 		v->owner = u->owner = _current_company;
 
-		v->tile = tile;
-
-		uint x = TileX(tile) * TILE_SIZE + 5;
-		uint y = TileY(tile) * TILE_SIZE + 3;
+		uint x = TileX(tile) * TILE_SIZE + 8;
+		uint y = TileY(tile) * TILE_SIZE + 8;
 
 		v->x_pos = u->x_pos = x;
 		v->y_pos = u->y_pos = y;
@@ -282,8 +314,16 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 		u->z_pos = GetSlopePixelZ(x, y);
 		v->z_pos = u->z_pos + 1;
 
-		v->vehstatus = VS_HIDDEN | VS_STOPPED | VS_DEFPAL;
-		u->vehstatus = VS_HIDDEN | VS_UNCLICKABLE | VS_SHADOW;
+		v->vehstatus = VS_STOPPED | VS_DEFPAL;
+		u->vehstatus = VS_UNCLICKABLE | VS_SHADOW;
+
+		if (!extended_hangar) {
+			v->vehstatus |= VS_HIDDEN;
+			u->vehstatus |= VS_HIDDEN;
+		} else {
+			assert(IsValidTrackdir(v->trackdir));
+			SetAirportTrackReservation(tile, TrackdirToTrack(v->trackdir));
+		}
 
 		v->spritenum = avi->image_index;
 
@@ -359,7 +399,8 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 			w->x_pos = v->x_pos;
 			w->y_pos = v->y_pos;
 			w->z_pos = v->z_pos + ROTOR_Z_OFFSET;
-			w->vehstatus = VS_HIDDEN | VS_UNCLICKABLE;
+			w->vehstatus = VS_UNCLICKABLE;
+			if (!extended_hangar) w->vehstatus |= VS_HIDDEN;
 			w->spritenum = 0xFF;
 			w->subtype = AIR_ROTOR;
 			w->sprite_cache.sprite_seq.Set(SPR_ROTOR_STOPPED);
@@ -370,6 +411,11 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 
 			u->SetNext(w);
 			w->UpdatePosition();
+		}
+
+		if (extended_hangar) {
+			SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
+			v->MarkDirty();
 		}
 	}
 
