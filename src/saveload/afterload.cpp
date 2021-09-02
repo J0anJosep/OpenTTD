@@ -66,6 +66,7 @@
 #include "../timer/timer_game_economy.h"
 #include "../timer/timer_game_tick.h"
 #include "../air.h"
+#include "../air_map.h"
 
 #include "saveload_internal.h"
 
@@ -3387,9 +3388,50 @@ bool AfterLoadGame()
 		/* Delete already crashed zeppelins. */
 		DeleteCrashedZeppelins();
 
-		/* We have to destroy all aircraft to completely restart from scratch. */
+		/* We have to redeploy aircraft. */
 		for (Aircraft *v : Aircraft::Iterate()) {
-			if ((v->vehstatus & VS_CRASHED) == 0) v->Crash();
+			if (!v->IsPrimaryVehicle()) continue;
+
+			Aircraft *u = v->Next(); // shadow
+			assert(u != nullptr);
+			v->flags = 0;
+
+			/* Assign dest_tile. */
+			v->dest_tile = 0;
+
+			int z = v->z_pos;
+			if ((v->vehstatus & VS_HIDDEN) != 0) {
+				assert(IsHangarTile(v->tile));
+				/* Keep aircraft in hangars. */
+				v->state = AS_HANGAR;
+				v->dest_tile = v->tile;
+				v->direction = u->direction = DiagDirToDir(GetHangarDirection(v->tile));
+				v->trackdir = u->trackdir = DiagDirToDiagTrackdir(GetHangarDirection(v->tile));
+				v->next_trackdir = INVALID_TRACKDIR;
+				v->wait_counter = 0;
+				v->x_pos = (v->x_pos & ~0xF) + 8;
+				v->y_pos = (v->y_pos & ~0xF) + 8;
+				v->current_order.Free();
+				ProcessOrders(v);
+			} else {
+				if (v->current_order.IsType(OT_LOADING)) {
+					ClrBit(v->vehicle_flags, VF_LOADING_FINISHED);
+					v->LeaveStation();
+				}
+				v->current_order.Free();
+				v->state = AS_FLYING_NO_DEST;
+				v->next_trackdir = INVALID_TRACKDIR;
+				v->trackdir = v->Next()->trackdir = TRACKDIR_X_NE;
+				v->direction = u->direction = DIR_NE;
+				v->x_pos = (v->x_pos & ~0xF) + 8;
+				v->y_pos = (v->y_pos & ~0xF) + 8;
+				v->tile = TileVirtXY(v->x_pos, v->y_pos);
+				GetAircraftFlightLevelBounds(v, nullptr, &z);
+				ProcessOrders(v);
+				AircraftUpdateNextPos(v);
+			}
+
+			SetAircraftPosition(v, v->x_pos, v->y_pos, z);
 		}
 
 		InitializeAirportGui();
