@@ -174,6 +174,7 @@ bool CanVehicleUseStation(const Vehicle *v, const struct Station *st);
 StringID GetVehicleCannotUseStationReason(const Vehicle *v, const Station *st);
 
 void ReleaseDisasterVehicle(VehicleID vehicle);
+void DeleteCrashedZeppelins();
 
 typedef std::vector<VehicleID> VehicleSet;
 void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8_t num_vehicles);
