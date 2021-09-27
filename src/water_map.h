@@ -24,6 +24,8 @@ enum WaterTileTypeBitLayout {
 	WBL_TYPE_LOCK         = 0x1, ///< Lock ('type' bitfield).
 	WBL_TYPE_DEPOT        = 0x2, ///< Depot ('type' bitfield).
 
+	WBL_DEPOT_EXTENDED    = 5,   ///< Bit for the standard/extended depot flag.
+
 	WBL_COAST_FLAG        = 0,   ///< Flag for coast.
 
 	WBL_LOCK_ORIENT_BEGIN = 0,   ///< Start of lock orientation bitfield.
@@ -455,11 +457,12 @@ static inline void MakeCanal(TileIndex t, Owner o, uint8 random_bits)
  * @param t    Tile to place the ship depot section.
  * @param o    Owner of the depot.
  * @param did  Depot ID.
+ * @param extended  True if building an extended depot.
  * @param part Depot part (either #DEPOT_PART_NORTH or #DEPOT_PART_SOUTH).
  * @param a    Axis of the depot.
  * @param original_water_class Original water class.
  */
-static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, DepotPart part, Axis a, WaterClass original_water_class)
+static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, bool extended, DepotPart part, Axis a, WaterClass original_water_class)
 {
 	SetTileType(t, MP_WATER);
 	SetTileOwner(t, o);
@@ -468,7 +471,7 @@ static inline void MakeShipDepot(TileIndex t, Owner o, DepotID did, DepotPart pa
 	_m[t].m2 = did;
 	_m[t].m3 = 0;
 	_m[t].m4 = 0;
-	_m[t].m5 = WBL_TYPE_DEPOT << WBL_TYPE_BEGIN | part << WBL_DEPOT_PART | a << WBL_DEPOT_AXIS;
+	_m[t].m5 = WBL_TYPE_DEPOT << WBL_TYPE_BEGIN | extended << WBL_DEPOT_EXTENDED | part << WBL_DEPOT_PART | a << WBL_DEPOT_AXIS;
 	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = 0;
 }
