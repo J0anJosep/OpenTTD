@@ -2835,6 +2835,15 @@ bool AfterLoadGame()
 					break;
 			}
 		}
+
+		for (TileIndex t = 0; t < map_size; t++) {
+			if (!IsRoadDepotTile(t)) continue;
+			DiagDirection dir = (DiagDirection)GB(_m[t].m5, 0, 2);
+			SB(_m[t].m5, 0, 6, 0);
+			RoadBits rb = DiagDirToRoadBits(dir);
+			SetRoadBits(t, rb, HasRoadTypeRoad(t) ? RTT_ROAD : RTT_TRAM);
+			SB(_me[t].m6, 6, 2, dir);
+		}
 	}
 
 	/* In old versions it was possible to remove an airport while a plane was

@@ -43,7 +43,7 @@
 #include "safeguards.h"
 
 static void ShowRVStationPicker(Window *parent, RoadStopType rs);
-static void ShowRoadDepotPicker(Window *parent);
+static void ShowRoadDepotPicker(Window *parent, bool extended_depot);
 
 static bool _remove_button_clicked;
 static bool _one_way_button_clicked;
@@ -118,16 +118,45 @@ void ConnectRoadToStructure(TileIndex tile, DiagDirection direction)
 	}
 }
 
-void CcRoadDepot(Commands cmd, const CommandCost &result, TileIndex start_tile, RoadType rt, DiagDirection dir, bool adjacent, DepotID depot_id, TileIndex end_tile)
+void CcRoadDepot(Commands cmd, const CommandCost &result, TileIndex start_tile, RoadType rt, DiagDirection orig_dir, bool adjacent, bool extended, bool half_start, bool half_end, DepotID depot_id, TileIndex end_tile)
 {
 	if (result.Failed()) return;
 
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_CONSTRUCTION_OTHER, start_tile);
 	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
 
+	Axis axis = DiagDirToAxis(orig_dir);
+	uint start_coord;
+	uint end_coord;
+	bool build_start = true;
+	bool build_end = false;
+
+	DiagDirection dir = orig_dir;
+	if (extended) {
+		build_start = half_end;
+		build_end = !half_start;
+		start_coord = axis == AXIS_X ? TileX(start_tile) : TileY(start_tile);
+		end_coord   = axis == AXIS_X ? TileX(end_tile) : TileY(end_tile);
+
+		dir = AxisToDiagDir(axis);
+
+		/* Swap direction, also the half-tile drag var (bit 0 and 1) */
+		if (start_coord > end_coord || start_coord == end_coord) {
+			dir = ReverseDiagDir(dir);
+			build_start = !build_start;
+			build_end = !build_end;
+		}
+	}
+
+
 	TileArea ta(start_tile, end_tile);
 	for (TileIndex tile : ta) {
-		ConnectRoadToStructure(tile, dir);
+		if (build_start && !ta.Contains(tile + TileOffsByDiagDir(dir))) {
+			ConnectRoadToStructure(tile, dir);
+		}
+		if (build_end && !ta.Contains(tile + TileOffsByDiagDir(ReverseDiagDir(dir)))) {
+			ConnectRoadToStructure(tile, ReverseDiagDir(dir));
+		}
 	}
 }
 
@@ -281,7 +310,13 @@ struct BuildRoadToolbarWindow : Window {
 	{
 		if (_game_mode == GM_NORMAL && (this->IsWidgetLowered(WID_ROT_BUS_STATION) || this->IsWidgetLowered(WID_ROT_TRUCK_STATION))) SetViewportCatchmentStation(nullptr, true);
 		if (_settings_client.gui.link_terraform_toolbar) CloseWindowById(WC_SCEN_LAND_GEN, 0, false);
-		if (_game_mode == GM_NORMAL && this->IsWidgetLowered(WID_ROT_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
+
+		if (_game_mode == GM_NORMAL &&
+				((this->HasWidget(WID_ROT_DEPOT) && this->IsWidgetLowered(WID_ROT_DEPOT)) ||
+				(this->HasWidget(WID_ROT_EXTENDED_DEPOT) && this->IsWidgetLowered(WID_ROT_EXTENDED_DEPOT)))) {
+			SetViewportHighlightDepot(INVALID_DEPOT, true);
+		}
+
 		this->Window::Close();
 	}
 
@@ -298,6 +333,7 @@ struct BuildRoadToolbarWindow : Window {
 		bool can_build = CanBuildVehicleInfrastructure(VEH_ROAD, rtt);
 		this->SetWidgetsDisabledState(!can_build,
 			WID_ROT_DEPOT,
+			WID_ROT_EXTENDED_DEPOT,
 			WID_ROT_BUS_STATION,
 			WID_ROT_TRUCK_STATION,
 			WIDGET_LIST_END);
@@ -310,11 +346,13 @@ struct BuildRoadToolbarWindow : Window {
 		if (_game_mode != GM_EDITOR) {
 			if (!can_build) {
 				/* Show in the tooltip why this button is disabled. */
-				this->GetWidget<NWidgetCore>(WID_ROT_DEPOT)->SetToolTip(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+				if (this->HasWidget(WID_ROT_DEPOT)) this->GetWidget<NWidgetCore>(WID_ROT_DEPOT)->SetToolTip(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+				if (this->HasWidget(WID_ROT_EXTENDED_DEPOT)) this->GetWidget<NWidgetCore>(WID_ROT_EXTENDED_DEPOT)->SetToolTip(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
 				this->GetWidget<NWidgetCore>(WID_ROT_BUS_STATION)->SetToolTip(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
 				this->GetWidget<NWidgetCore>(WID_ROT_TRUCK_STATION)->SetToolTip(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
 			} else {
-				this->GetWidget<NWidgetCore>(WID_ROT_DEPOT)->SetToolTip(rtt == RTT_ROAD ? STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT : STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT);
+				if (this->HasWidget(WID_ROT_DEPOT)) this->GetWidget<NWidgetCore>(WID_ROT_DEPOT)->SetToolTip(rtt == RTT_ROAD ? STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT : STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT);
+				if (this->HasWidget(WID_ROT_EXTENDED_DEPOT)) this->GetWidget<NWidgetCore>(WID_ROT_EXTENDED_DEPOT)->SetToolTip(rtt == RTT_ROAD ? STR_ROAD_TOOLBAR_TOOLTIP_BUILD_EXTENDED_ROAD_VEHICLE_DEPOT : STR_ROAD_TOOLBAR_TOOLTIP_BUILD_EXTENDED_TRAM_VEHICLE_DEPOT);
 				this->GetWidget<NWidgetCore>(WID_ROT_BUS_STATION)->SetToolTip(rtt == RTT_ROAD ? STR_ROAD_TOOLBAR_TOOLTIP_BUILD_BUS_STATION : STR_ROAD_TOOLBAR_TOOLTIP_BUILD_PASSENGER_TRAM_STATION);
 				this->GetWidget<NWidgetCore>(WID_ROT_TRUCK_STATION)->SetToolTip(rtt == RTT_ROAD ? STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRUCK_LOADING_BAY : STR_ROAD_TOOLBAR_TOOLTIP_BUILD_CARGO_TRAM_STATION);
 			}
@@ -338,7 +376,8 @@ struct BuildRoadToolbarWindow : Window {
 		this->GetWidget<NWidgetCore>(WID_ROT_ROAD_Y)->widget_data = rti->gui_sprites.build_y_road;
 		this->GetWidget<NWidgetCore>(WID_ROT_AUTOROAD)->widget_data = rti->gui_sprites.auto_road;
 		if (_game_mode != GM_EDITOR) {
-			this->GetWidget<NWidgetCore>(WID_ROT_DEPOT)->widget_data = rti->gui_sprites.build_depot;
+			if (this->HasWidget(WID_ROT_DEPOT)) this->GetWidget<NWidgetCore>(WID_ROT_DEPOT)->widget_data = rti->gui_sprites.build_depot;
+			if (this->HasWidget(WID_ROT_EXTENDED_DEPOT)) this->GetWidget<NWidgetCore>(WID_ROT_EXTENDED_DEPOT)->widget_data = rti->gui_sprites.build_depot;
 		}
 		this->GetWidget<NWidgetCore>(WID_ROT_CONVERT_ROAD)->widget_data = rti->gui_sprites.convert_road;
 		this->GetWidget<NWidgetCore>(WID_ROT_BUILD_TUNNEL)->widget_data = rti->gui_sprites.build_tunnel;
@@ -448,8 +487,9 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEPOT:
-				if (HandlePlacePushButton(this, WID_ROT_DEPOT, this->rti->cursor.depot, HT_RECT)) {
-					ShowRoadDepotPicker(this);
+			case WID_ROT_EXTENDED_DEPOT:
+				if (HandlePlacePushButton(this, widget, this->rti->cursor.depot, HT_RECT)) {
+					ShowRoadDepotPicker(this, widget == WID_ROT_EXTENDED_DEPOT);
 					this->last_started_action = widget;
 				}
 				break;
@@ -539,11 +579,19 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEPOT:
+			case WID_ROT_EXTENDED_DEPOT: {
 				CloseWindowById(WC_SELECT_DEPOT, VEH_ROAD);
 
+				_place_road_dir = DiagDirToAxis(_road_depot_orientation);
+				_place_road_start_half_x = (_place_road_dir == AXIS_X) && (_tile_fract_coords.x >= 8);
+				_place_road_start_half_y = (_place_road_dir == AXIS_Y) && (_tile_fract_coords.y >= 8);
+
 				VpSetPlaceSizingLimit(_settings_game.depot.depot_spread);
-				VpStartPlaceSizing(tile, (DiagDirToAxis(_road_depot_orientation) == 0) ? VPM_X_LIMITED : VPM_Y_LIMITED, DDSP_BUILD_DEPOT);
+				ViewportPlaceMethod vpm = VPM_X_AND_Y_LIMITED;
+				if (this->last_started_action == WID_ROT_DEPOT) vpm = (DiagDirToAxis(_road_depot_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED;
+				VpStartPlaceSizing(tile, vpm, DDSP_BUILD_DEPOT);
 				break;
+			}
 
 			case WID_ROT_BUS_STATION:
 				PlaceRoad_BusStation(tile);
@@ -574,7 +622,11 @@ struct BuildRoadToolbarWindow : Window {
 	{
 		if (_game_mode != GM_EDITOR && (this->IsWidgetLowered(WID_ROT_BUS_STATION) || this->IsWidgetLowered(WID_ROT_TRUCK_STATION))) SetViewportCatchmentStation(nullptr, true);
 
-		if (_game_mode == GM_NORMAL && this->IsWidgetLowered(WID_ROT_DEPOT)) SetViewportHighlightDepot(INVALID_DEPOT, true);
+		if (_game_mode == GM_NORMAL &&
+				((this->HasWidget(WID_ROT_DEPOT) && this->IsWidgetLowered(WID_ROT_DEPOT)) ||
+				(this->HasWidget(WID_ROT_EXTENDED_DEPOT) && this->IsWidgetLowered(WID_ROT_EXTENDED_DEPOT)))) {
+			SetViewportHighlightDepot(INVALID_DEPOT, true);
+		}
 
 		this->RaiseButtons();
 		this->SetWidgetDisabledState(WID_ROT_REMOVE, true);
@@ -622,7 +674,14 @@ struct BuildRoadToolbarWindow : Window {
 					_place_road_dir = AXIS_Y;
 					_place_road_end_half = pt.y & 8;
 				}
+				break;
 
+			case DDSP_BUILD_DEPOT:
+				if (_place_road_dir == AXIS_X) {
+					_place_road_end_half = pt.x & 8;
+				} else {
+					_place_road_end_half = pt.y & 8;
+				}
 				break;
 
 			default:
@@ -687,8 +746,12 @@ struct BuildRoadToolbarWindow : Window {
 
 				case DDSP_BUILD_DEPOT: {
 					bool adjacent = _ctrl_pressed;
+					bool extended = last_started_action == WID_ROT_EXTENDED_DEPOT;
+					bool half_start = _place_road_start_half_x || _place_road_start_half_y;
+					bool half_end = _place_road_end_half;
+
 					auto proc = [=](DepotID join_to) -> bool {
-						return Command<CMD_BUILD_ROAD_DEPOT>::Post(this->rti->strings.err_depot, CcRoadDepot, start_tile, _cur_roadtype, _road_depot_orientation, adjacent, join_to, end_tile);
+						return Command<CMD_BUILD_ROAD_DEPOT>::Post(this->rti->strings.err_depot, CcRoadDepot, start_tile, _cur_roadtype, _road_depot_orientation, adjacent, extended, half_start, half_end, join_to, end_tile);
 					};
 
 					ShowSelectDepotIfNeeded(TileArea(start_tile, end_tile), proc, VEH_ROAD);
@@ -790,6 +853,29 @@ static Hotkey tramtoolbar_hotkeys[] = {
 };
 HotkeyList BuildRoadToolbarWindow::tram_hotkeys("tramtoolbar", tramtoolbar_hotkeys, TramToolbarGlobalHotkeys);
 
+/**
+ * Add the depot icons depending on availability of construction.
+ * @param biggest_index Storage for collecting the biggest index used in the returned tree.
+ * @return Panel with company buttons.
+ * @post \c *biggest_index contains the largest used index in the tree.
+ */
+static NWidgetBase *MakeNWidgetRoadDepot(int *biggest_index)
+{
+	NWidgetHorizontal *hor = new NWidgetHorizontal();
+
+	if (HasBit(_settings_game.depot.road_depot_types, 0)) {
+		/* Add the widget for building standard road depots. */
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEPOT, SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT));
+	}
+
+	if (HasBit(_settings_game.depot.road_depot_types, 1)) {
+		/* Add the widget for building extended road depots. */
+		hor->Add(new NWidgetLeaf(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_EXTENDED_DEPOT, SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_EXTENDED_ROAD_VEHICLE_DEPOT));
+	}
+
+	*biggest_index = WID_ROT_EXTENDED_DEPOT;
+	return hor;
+}
 
 static const NWidgetPart _nested_build_road_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
@@ -806,8 +892,7 @@ static const NWidgetPart _nested_build_road_widgets[] = {
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_AUTOROAD, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOROAD),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEMOLISH),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEPOT),
-						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT),
+		NWidgetFunction(MakeNWidgetRoadDepot),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUS_STATION),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_BUS_STATION, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_BUS_STATION),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRUCK_STATION),
@@ -849,8 +934,7 @@ static const NWidgetPart _nested_build_tramway_widgets[] = {
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_AUTOTRAM, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOTRAM),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEMOLISH),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_DEPOT),
-						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_ROAD_DEPOT, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT),
+		NWidgetFunction(MakeNWidgetRoadDepot),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_BUS_STATION),
 						SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_BUS_STATION, STR_ROAD_TOOLBAR_TOOLTIP_BUILD_PASSENGER_TRAM_STATION),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_ROT_TRUCK_STATION),
@@ -978,14 +1062,27 @@ Window *ShowBuildRoadScenToolbar(RoadType roadtype)
 }
 
 struct BuildRoadDepotWindow : public PickerWindowBase {
-	BuildRoadDepotWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRoadDepotWindow(WindowDesc *desc, Window *parent, bool extended_depot) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
+
+		/* Fix direction for extended depots. */
+		if (extended_depot) {
+			switch (_road_depot_orientation) {
+				case DIAGDIR_NE:
+					_road_depot_orientation++;
+					break;
+				case DIAGDIR_NW:
+					_road_depot_orientation--;
+					break;
+				default: break;
+			}
+		}
 
 		this->LowerWidget(_road_depot_orientation + WID_BROD_DEPOT_NE);
 		if (RoadTypeIsTram(_cur_roadtype)) {
 			this->GetWidget<NWidgetCore>(WID_BROD_CAPTION)->widget_data = STR_BUILD_DEPOT_TRAM_ORIENTATION_CAPTION;
-			for (int i = WID_BROD_DEPOT_NE; i <= WID_BROD_DEPOT_NW; i++) this->GetWidget<NWidgetCore>(i)->tool_tip = STR_BUILD_DEPOT_TRAM_ORIENTATION_SELECT_TOOLTIP;
+			for (int i = WID_BROD_DEPOT_NE; i <= WID_BROD_DEPOT_NW; i++) if (this->HasWidget(i)) this->GetWidget<NWidgetCore>(i)->tool_tip = STR_BUILD_DEPOT_TRAM_ORIENTATION_SELECT_TOOLTIP;
 		}
 
 		this->FinishInitNested(TRANSPORT_ROAD);
@@ -1075,9 +1172,36 @@ static WindowDesc _build_road_depot_desc(
 	_nested_build_road_depot_widgets, lengthof(_nested_build_road_depot_widgets)
 );
 
-static void ShowRoadDepotPicker(Window *parent)
+static const NWidgetPart _nested_build_extended_road_depot_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN, WID_BROD_CAPTION), SetDataTip(STR_BUILD_DEPOT_ROAD_ORIENTATION_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_DARK_GREEN),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
+		NWidget(NWID_HORIZONTAL_LTR),
+			NWidget(NWID_SPACER), SetMinimalSize(3, 0), SetFill(1, 0),
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_BROD_DEPOT_SW), SetMinimalSize(66, 50), SetDataTip(0x0, STR_BUILD_DEPOT_ROAD_ORIENTATION_SELECT_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_SPACER), SetMinimalSize(2, 0),
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_BROD_DEPOT_SE), SetMinimalSize(66, 50), SetDataTip(0x0, STR_BUILD_DEPOT_ROAD_ORIENTATION_SELECT_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_SPACER), SetMinimalSize(3, 0), SetFill(1, 0),
+		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 3),
+	EndContainer(),
+};
+
+static WindowDesc _build_extended_road_depot_desc(
+	WDP_AUTO, nullptr, 0, 0,
+	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
+	WDF_CONSTRUCTION,
+	_nested_build_extended_road_depot_widgets, lengthof(_nested_build_extended_road_depot_widgets)
+);
+
+static void ShowRoadDepotPicker(Window *parent, bool extended_depot)
 {
-	new BuildRoadDepotWindow(&_build_road_depot_desc, parent);
+	new BuildRoadDepotWindow(extended_depot ? &_build_extended_road_depot_desc : &_build_road_depot_desc, parent, extended_depot);
 }
 
 struct BuildRoadStationWindow : public PickerWindowBase {
