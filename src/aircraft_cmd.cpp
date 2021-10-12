@@ -1243,6 +1243,7 @@ static void HandleAircraftSmoke(Aircraft *v, bool mode)
 		return;
 	}
 
+
 	/* Spawn effect et most once per Tick, i.e. !mode */
 	if (!mode && (v->tick_counter & 0x0F) == 0) {
 		CreateEffectVehicleRel(v,
