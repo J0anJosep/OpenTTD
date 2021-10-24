@@ -770,6 +770,9 @@ bool AfterLoadGame()
 		_settings_game.depot.depot_spread = 1;
 		_settings_game.depot.adjacent_depots = true;
 		_settings_game.depot.distant_join_depots = true;
+
+		_settings_game.depot.allow_no_comp_railtype_replacements = false;
+		_settings_game.depot.allow_no_comp_roadtype_replacements = false;
 	}
 
 	/* Load the sprites */
