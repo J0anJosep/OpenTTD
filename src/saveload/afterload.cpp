@@ -829,6 +829,7 @@ bool AfterLoadGame()
 
 	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
 		_settings_game.station.allow_modify_airports = false;
+		_settings_game.depot.hangar_types = 1;
 	}
 
 	/* Load the sprites */

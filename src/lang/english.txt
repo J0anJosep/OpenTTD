@@ -1633,6 +1633,8 @@ STR_CONFIG_SETTING_ROAD_DEPOT_TYPES                             :Road depot type
 STR_CONFIG_SETTING_ROAD_DEPOT_TYPES_HELPTEXT                    :Available road depot types for construction for human players
 STR_CONFIG_SETTING_WATER_DEPOT_TYPES                            :Water depot types: {STRING2}
 STR_CONFIG_SETTING_WATER_DEPOT_TYPES_HELPTEXT                   :Available water depot types for construction for human players
+STR_CONFIG_SETTING_HANGAR_TYPES                                 :Hangar types: {STRING2}
+STR_CONFIG_SETTING_HANGAR_TYPES_HELPTEXT                        :Available hangar types for construction for human players
 ###length 3
 STR_CONFIG_SETTING_ONLY_STANDARD_DEPOT                          :Standard depots
 STR_CONFIG_SETTING_ONLY_EXTENDED_DEPOT                          :Extended depots
