@@ -2154,6 +2154,7 @@ static SettingsContainer &GetSettingsTree()
 				depots->Add(new SettingEntry("depot.rail_depot_types"));
 				depots->Add(new SettingEntry("depot.road_depot_types"));
 				depots->Add(new SettingEntry("depot.water_depot_types"));
+				depots->Add(new SettingEntry("depot.hangar_types"));
 
 				depots->Add(new SettingEntry("depot.allow_no_comp_railtype_replacements"));
 				depots->Add(new SettingEntry("depot.allow_no_comp_roadtype_replacements"));
