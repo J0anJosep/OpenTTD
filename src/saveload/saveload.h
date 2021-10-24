@@ -342,6 +342,7 @@ enum SaveLoadVersion : uint16 {
 	SLV_REPAIR_OBJECT_DOCKING_TILES,        ///< 299  PR#9594 v12.0  Fixing issue with docking tiles overlapping objects.
 
 	SLV_MULTITILE_DEPOTS,                   ///< 300  PR#9577 Multi-tile depots for rail, road and water transport.
+	SLV_EXTENDED_DEPOTS,                    ///< 301  PR#8480 Extended depots for rail, road and water transport.
 
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
