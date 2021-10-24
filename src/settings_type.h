@@ -569,6 +569,7 @@ struct DepotSettings {
 	byte   rail_depot_types;        ///< allowed rail depot types for contruction
 	byte   road_depot_types;        ///< allowed road depot types for contruction
 	byte   water_depot_types;       ///< allowed water depot types for contruction
+	byte   hangar_types;            ///< allowed hangar types for contruction
 
 	bool   allow_no_comp_railtype_replacements;  ///< allow replacing rail vehicles even if rail type is not compatible
 	bool   allow_no_comp_roadtype_replacements;  ///< allow replacing road vehicles even if road type is not compatible
