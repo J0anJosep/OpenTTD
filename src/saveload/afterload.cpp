@@ -762,6 +762,12 @@ bool AfterLoadGame()
 		_settings_game.game_creation.ending_year = DEF_END_YEAR;
 	}
 
+	if (IsSavegameVersionBefore(SLV_MULTITILE_DEPOTS)) {
+		_settings_game.depot.depot_spread = 1;
+		_settings_game.depot.adjacent_depots = true;
+		_settings_game.depot.distant_join_depots = true;
+	}
+
 	/* Load the sprites */
 	GfxLoadSprites();
 	LoadStringWidthTable();
