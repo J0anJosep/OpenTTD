@@ -1133,46 +1133,56 @@ std::tuple<CommandCost, Money> CmdRemoveLongRoad(DoCommandFlag flags, TileIndex 
  * @param flags operation to perform
  * @param rt road type
  * @param dir entrance direction
+ * @param adjacent allow adjacent depots
+ * @param depot_id depot to join to
+ * @param end_tile end tile of the depot to be built
  * @return the cost of this operation or an error
  *
  * @todo When checking for the tile slope,
  * distinguish between "Flat land required" and "land sloped in wrong direction"
  */
-CommandCost CmdBuildRoadDepot(DoCommandFlag flags, TileIndex tile, RoadType rt, DiagDirection dir)
+CommandCost CmdBuildRoadDepot(DoCommandFlag flags, TileIndex tile, RoadType rt, DiagDirection dir, bool adjacent, DepotID join_to, TileIndex end_tile)
 {
 	if (!ValParamRoadType(rt) || !IsEnumValid(dir)) return CMD_ERROR;
 
-	CommandCost cost(EXPENSES_CONSTRUCTION);
+	TileArea ta(tile, end_tile);
+	assert(ta.w == 1 || ta.h == 1);
 
-	Slope tileh = GetTileSlope(tile);
-	if (tileh != SLOPE_FLAT) {
-		if (!_settings_game.construction.build_on_slopes || !CanBuildDepotByTileh(dir, tileh)) {
-			return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
+	/* Create a new depot or find a depot to join to. */
+	Depot *depot = nullptr;
+	CommandCost ret = FindJoiningDepot(ta, VEH_ROAD, join_to, depot, adjacent, flags);
+	if (ret.Failed()) return ret;
+
+	CommandCost cost(EXPENSES_CONSTRUCTION);
+	for (TileIndex tile : ta) {
+		if (IsBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+		Slope tileh = GetTileSlope(tile);
+		if (tileh != SLOPE_FLAT) {
+			if (!_settings_game.construction.build_on_slopes || !CanBuildDepotByTileh(dir, tileh)) {
+				return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
+			}
+			cost.AddCost(_price[PR_BUILD_FOUNDATION]);
 		}
-		cost.AddCost(_price[PR_BUILD_FOUNDATION]);
+
+		cost.AddCost(Command<CMD_LANDSCAPE_CLEAR>::Do(flags, tile));
+		if (cost.Failed()) return cost;
+
+		if (flags & DC_EXEC) {
+			MakeRoadDepot(tile, _current_company, depot->index, dir, rt);
+			MarkTileDirtyByTile(tile);
+		}
 	}
 
-	cost.AddCost(Command<CMD_LANDSCAPE_CLEAR>::Do(flags, tile));
-	if (cost.Failed()) return cost;
-
-	if (IsBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-
-	if (!Depot::CanAllocateItem()) return CMD_ERROR;
-
 	if (flags & DC_EXEC) {
-		Depot *dep = new Depot(tile);
-		dep->build_date = _date;
-		dep->company = _current_company;
-		dep->veh_type = VEH_ROAD;
-
 		/* A road depot has two road bits. */
 		UpdateCompanyRoadInfrastructure(rt, _current_company, ROAD_DEPOT_TRACKBIT_FACTOR);
 
-		MakeRoadDepot(tile, _current_company, dep->index, dir, rt);
-		MarkTileDirtyByTile(tile);
-		MakeDefaultName(dep);
+		depot->AfterAddRemove(ta, true);
+		if (join_to == NEW_DEPOT) MakeDefaultName(depot);
 	}
-	cost.AddCost(_price[PR_BUILD_DEPOT_ROAD]);
+
+	cost.AddCost(_price[PR_BUILD_DEPOT_ROAD] * ta.w * ta.h);
 	return cost;
 }
 
@@ -1187,7 +1197,8 @@ static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
-		Company *c = Company::GetIfValid(GetTileOwner(tile));
+		Depot *depot = Depot::GetByTile(tile);
+		Company *c = Company::GetIfValid(depot->company);
 		if (c != nullptr) {
 			/* A road depot has two road bits. */
 			RoadType rt = GetRoadTypeRoad(tile);
@@ -1196,8 +1207,8 @@ static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 			DirtyCompanyInfrastructureWindows(c->index);
 		}
 
-		delete Depot::GetByTile(tile);
 		DoClearSquare(tile);
+		depot->AfterAddRemove(TileArea(tile), false);
 	}
 
 	return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_DEPOT_ROAD]);
