@@ -161,7 +161,9 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEPOT: // Build depot button
-				if (HandlePlacePushButton(this, WID_DT_DEPOT, SPR_CURSOR_SHIP_DEPOT, HT_RECT)) ShowBuildDocksDepotPicker(this);
+				if (HandlePlacePushButton(this, widget, SPR_CURSOR_SHIP_DEPOT, HT_RECT)) {
+					ShowBuildDocksDepotPicker(this);
+				}
 				break;
 
 			case WID_DT_STATION: // Build station button
@@ -201,9 +203,14 @@ struct BuildDocksToolbarWindow : Window {
 				PlaceProc_DemolishArea(tile);
 				break;
 
-			case WID_DT_DEPOT: // Build depot button
-				DoCommandP(tile, _ship_depot_direction, 0, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT), CcBuildDocks);
+			case WID_DT_DEPOT: { // Build depot button
+				ViewportPlaceMethod vpm = _ship_depot_direction != AXIS_X ? VPM_LIMITED_X_FIXED_Y : VPM_LIMITED_Y_FIXED_X;
+				VpSetPlaceSizingLimit(_settings_game.depot.depot_spread);
+				VpStartPlaceSizing(tile, vpm, DDSP_BUILD_DEPOT);
+				/* Select tiles now to prevent selection from flickering. */
+				VpSelectTilesWithMethod(pt.x, pt.y, vpm);
 				break;
+			}
 
 			case WID_DT_STATION: { // Build station button
 				uint32 p2 = (uint32)INVALID_STATION << 16; // no station to join
@@ -253,6 +260,15 @@ struct BuildDocksToolbarWindow : Window {
 				case DDSP_CREATE_RIVER:
 					DoCommandP(end_tile, start_tile, WATER_CLASS_RIVER | (_ctrl_pressed ? 1 << 2 : 0), CMD_BUILD_CANAL | CMD_MSG(STR_ERROR_CAN_T_PLACE_RIVERS), CcPlaySound_CONSTRUCTION_WATER);
 					break;
+				case DDSP_BUILD_DEPOT: {
+					uint32 p1 = _ship_depot_direction | (_ctrl_pressed << 1) | (INVALID_DEPOT << 16);
+
+					/* Tile is always the land tile, so need to evaluate _thd.pos. */
+					CommandContainer cmdcont = {start_tile, p1, end_tile, CMD_BUILD_SHIP_DEPOT | CMD_MSG(STR_ERROR_CAN_T_BUILD_SHIP_DEPOT), CcBuildDocks, "" };
+
+					ShowSelectDepotIfNeeded(cmdcont, TileArea(start_tile, end_tile), VEH_SHIP);
+					break;
+				}
 
 				default: break;
 			}
@@ -510,10 +526,13 @@ struct BuildDocksDepotWindow : public PickerWindowBase {
 private:
 	static void UpdateDocksDirection()
 	{
+		VpSetPlaceFixedSize(2);
 		if (_ship_depot_direction != AXIS_X) {
 			SetTileSelectSize(1, 2);
+			_thd.select_method = VPM_LIMITED_X_FIXED_Y;
 		} else {
 			SetTileSelectSize(2, 1);
+			_thd.select_method = VPM_LIMITED_Y_FIXED_X;
 		}
 	}
 
@@ -528,6 +547,7 @@ public:
 	void Close() override
 	{
 		CloseWindowById(WC_SELECT_DEPOT, VEH_SHIP);
+		VpResetFixedSize();
 		this->PickerWindowBase::Close();
 	}
 
