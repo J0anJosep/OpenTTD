@@ -706,6 +706,8 @@ static RoadVehicle *RoadVehFindCloseTo(RoadVehicle *v, int x, int y, Direction d
 
 	if (update_blocked_ctr && ++front->blocked_ctr > 1480) return nullptr;
 
+	rvf.best = rvf.best->First();
+
 	return RoadVehicle::From(rvf.best);
 }
 
@@ -1197,7 +1199,7 @@ bool IndividualRoadVehicleController(RoadVehicle *v, const RoadVehicle *prev)
 		if (v->IsFrontEngine()) {
 			const Vehicle *u = RoadVehFindCloseTo(v, gp.x, gp.y, v->direction);
 			if (u != nullptr) {
-				v->cur_speed = u->First()->cur_speed;
+				v->cur_speed = u->cur_speed;
 				return false;
 			}
 		}
@@ -1315,7 +1317,7 @@ again:
 		if (v->IsFrontEngine()) {
 			Vehicle *u = RoadVehFindCloseTo(v, x, y, new_dir);
 			if (u != nullptr) {
-				v->cur_speed = u->First()->cur_speed;
+				v->cur_speed = u->cur_speed;
 				return false;
 			}
 		}
