@@ -615,7 +615,7 @@ static const AircraftVehicleInfo _orig_aircraft_vehicle_info[] = {
 	 *    |   |    |  subtype |                               |    |   |    passenger_capacity
 	 *    |   |    |  |       |                               |    |   |    |   air type (gravel, asphalt, water...)
 	 *    |   |    |  |       |                               |    |   |    |   |      */
-	AVI(  1, 14,  85, P, SND_08_TAKEOFF_PROPELLER,           18,  37,  4,  25,  G  ), //  0 Sampson U52
+	AVI(  1, 14,  85, P, SND_08_TAKEOFF_PROPELLER,           18,  37,  4,  25,  W  ), //  0 Sampson U52
 	AVI(  0, 15, 100, P, SND_08_TAKEOFF_PROPELLER,           20,  37,  8,  65,  G  ), //  1 Coleman Count
 	AVI(  2, 16, 130, J, SND_09_TAKEOFF_JET,                 35,  74, 10,  90,  A  ), //  2 FFP Dart
 	AVI(  8, 75, 250, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 20, 100,  A  ), //  3 Yate Haugan
@@ -653,7 +653,7 @@ static const AircraftVehicleInfo _orig_aircraft_vehicle_info[] = {
 	AVI( 22, 25, 140, P, SND_09_TAKEOFF_JET,                 40,  74, 12,  90,  G  ), // 35 Flashbang X1
 	AVI( 23, 32, 220, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 40, 200,  A  ), // 36 Juggerplane M1
 	AVI( 24, 80, 255, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 30, 100,  A  ), // 37 Flashbang Wizzer
-	AVI(  9, 15,  81, H, SND_09_TAKEOFF_JET,                 20,  25, 15,  40,  G  ), // 38 Tricario Helicopter
+	AVI(  9, 15,  81, H, SND_09_TAKEOFF_JET,                 20,  25, 15,  40,  W  ), // 38 Tricario Helicopter
 	AVI( 19, 17,  77, H, SND_09_TAKEOFF_JET,                 20,  40, 20,  55,  G  ), // 39 Guru X2 Helicopter
 	AVI( 25, 15,  80, H, SND_09_TAKEOFF_JET,                 20,  25, 10,  40,  G  ), // 40 Powernaut Helicopter
 };
