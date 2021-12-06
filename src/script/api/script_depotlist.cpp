@@ -21,8 +21,8 @@ ScriptDepotList::ScriptDepotList(ScriptTile::TransportType transport_type)
 	static_assert(VEH_SHIP  == (int)ScriptTile::TRANSPORT_WATER);
 
 	for (const Depot *depot : Depot::Iterate()) {
-		if (depot->veh_type != (VehicleType)transport_type) continue;
-		if (::GetTileOwner(depot->xy) != ScriptObject::GetCompany() && ScriptObject::GetCompany() != OWNER_DEITY) continue;
+		if (!depot->IsInUse() || depot->veh_type != (VehicleType)transport_type) continue;
+		if (depot->company != ScriptObject::GetCompany() && ScriptObject::GetCompany() != OWNER_DEITY) continue;
 
 		/* It only returns one hangar per airport. Anyway, new aircraft is always built in this hangar and not others. */
 		for (auto const &tile : depot->depot_tiles) this->AddItem(tile);

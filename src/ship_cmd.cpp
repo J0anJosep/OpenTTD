@@ -154,7 +154,7 @@ static const Depot *FindClosestShipDepot(const Vehicle *v, uint max_distance)
 	uint best_dist = max_distance == 0 ? UINT_MAX : max_distance + 1;
 
 	for (const Depot *depot : Depot::Iterate()) {
-		if (depot->veh_type == VEH_SHIP && depot->company == v->owner) {
+		if (depot->veh_type == VEH_SHIP && depot->company == v->owner && depot->IsInUse()) {
 			uint dist = DistanceManhattan(depot->xy, v->tile);
 			if (dist < best_dist) {
 				best_dist = dist;

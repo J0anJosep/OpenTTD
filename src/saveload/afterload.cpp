@@ -2807,6 +2807,7 @@ bool AfterLoadGame()
 				/* It can happen there is no depot here anymore (TTO/TTD savegames) */
 				depot->veh_type = VEH_TRAIN;
 				depot->company = INVALID_OWNER;
+				depot->Disuse();
 				delete depot;
 				continue;
 			}
