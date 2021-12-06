@@ -60,6 +60,20 @@ Depot::~Depot()
 }
 
 /**
+ * Cancel deletion of this depot (reuse it).
+ * @param xy New location of the depot.
+ * @see Depot::IsInUse
+ * @see Depot::Disuse
+ */
+void Depot::Reuse(TileIndex xy)
+{
+	this->delete_ctr = 0;
+	this->xy = xy;
+	this->ta.tile = xy;
+	this->ta.h = this->ta.w = 1;
+}
+
+/**
  * Schedule deletion of this depot.
  *
  * This method is ought to be called after demolishing last depot part.
@@ -67,6 +81,7 @@ Depot::~Depot()
  * placed again later without messing vehicle orders.
  *
  * @see Depot::IsInUse
+ * @see Depot::Reuse
  */
 void Depot::Disuse()
 {
@@ -102,7 +117,7 @@ CommandCost Depot::BeforeAddTiles(TileArea ta)
 {
 	assert(ta.tile != INVALID_TILE);
 
-	if (this->ta.tile != INVALID_TILE) {
+	if (this->ta.tile != INVALID_TILE && this->IsInUse()) {
 		/* Important when the old rect is completely inside the new rect, resp. the old one was empty. */
 		ta.Add(this->ta.tile);
 		ta.Add(TILE_ADDXY(this->ta.tile, this->ta.w - 1, this->ta.h - 1));
@@ -145,8 +160,13 @@ void Depot::AfterAddRemove(TileArea ta, bool adding)
 	} else {
 		assert(this->IsInUse());
 		this->Disuse();
+		TileIndex old_tile = this->xy;
+		this->RescanDepotTiles();
+		assert(this->depot_tiles.empty());
+		this->xy = old_tile;
 	}
 
+	InvalidateWindowData(WC_VEHICLE_DEPOT, this->index);
 	InvalidateWindowData(WC_SELECT_DEPOT, veh_type);
 }
 

@@ -1214,6 +1214,15 @@ static const Depot *FindDepotsNearby(TileArea ta, VehicleType veh_type, bool dis
 		}
 	}
 
+	/* Add reusable depots. */
+	ta.Expand(8);
+	for (Depot *depot : Depot::Iterate()) {
+		if (depot->IsInUse()) continue;
+		if (depot->veh_type != veh_type || depot->company != _current_company) continue;
+		if (!ta.Contains(depot->xy)) continue;
+		_depots_nearby_list.push_back(depot->index);
+	}
+
 	return nullptr;
 }
 
