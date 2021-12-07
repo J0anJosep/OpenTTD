@@ -687,6 +687,10 @@ void Airport::SetHangar(bool create)
 			dep->depot_tiles.push_back(this->GetHangarTile(i));
 		}
 	} else {
+		if (this->depot_id == INVALID_DEPOT) return;
+		assert(Depot::IsValidID(this->depot_id));
+		Depot *dep = Depot::Get(this->depot_id);
+		dep->Disuse();
 		delete Depot::GetIfValid(this->depot_id);
 		this->depot_id = INVALID_DEPOT;
 	}
