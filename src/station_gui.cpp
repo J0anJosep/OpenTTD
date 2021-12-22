@@ -32,6 +32,7 @@
 #include "linkgraph/linkgraph.h"
 #include "zoom_func.h"
 #include "station_cmd.h"
+#include "airport_cmd.h"
 
 #include "widgets/station_widget.h"
 

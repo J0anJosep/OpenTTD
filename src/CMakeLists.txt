@@ -46,6 +46,7 @@ add_files(
     air_map.h
     airport.cpp
     airport.h
+    airport_cmd.cpp
     airport_cmd.h
     airport_gui.cpp
     animated_tile.cpp
