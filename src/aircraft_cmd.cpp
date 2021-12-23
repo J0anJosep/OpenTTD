@@ -2146,28 +2146,9 @@ Station *GetTargetAirportIfValid(const Aircraft *v)
  * Updates the status of the Aircraft heading or in the station
  * @param st Station been updated
  */
-void UpdateAirplanesOnNewStation(const Station *st)
+void UpdateAircraftOnUpdatedStation(const Station *st)
 {
-	/* only 1 station is updated per function call, so it is enough to get entry_point once */
-	const AirportFTAClass *ap = st->airport.GetFTA();
-	Direction rotation = st->airport.tile == INVALID_TILE ? DIR_N : st->airport.rotation;
-
 	for (Aircraft *v : Aircraft::Iterate()) {
-		if (!v->IsNormalAircraft() || v->targetairport != st->index) continue;
-		assert(v->state == FLYING);
-
-		Order *o = &v->current_order;
-		/* The aircraft is heading to a hangar, but the new station doesn't have one,
-		 * or the aircraft can't land on the new station. Cancel current order. */
-		if (o->IsType(OT_GOTO_DEPOT) && !(o->GetDepotOrderType() & ODTFB_PART_OF_ORDERS) && o->GetDestination() == st->airport.depot_id &&
-				(!st->airport.HasHangar() || !CanVehicleUseStation(v, st))) {
-			o->MakeDummy();
-			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-		}
-		v->pos = v->previous_pos = AircraftGetEntryPoint(v, ap, rotation);
-		UpdateAircraftCache(v);
+		// todo
 	}
-
-	/* Heliports don't have a hangar. Invalidate all go to hangar orders from all aircraft. */
-	if (!st->airport.HasHangar()) RemoveOrderFromAllVehicles(OT_GOTO_DEPOT, st->airport.depot_id);
 }

@@ -132,17 +132,16 @@ bool AirportSpec::IsAvailable() const
 
 /**
  * Check if the airport would be within the map bounds at the given tile.
- * @param table Selected layout table. This affects airport rotation, and therefore dimensions.
+ * @param rotation Selected rotation. This affects airport rotation, and therefore dimensions.
  * @param tile Top corner of the airport.
  * @return true iff the airport would be within the map bounds at the given tile.
  */
-bool AirportSpec::IsWithinMapBounds(byte table, TileIndex tile) const
+bool AirportSpec::IsWithinMapBounds(byte rotation, TileIndex tile) const
 {
-	if (table >= this->num_table) return false;
-
 	byte w = this->size_x;
 	byte h = this->size_y;
-	if (this->rotation[table] == DIR_E || this->rotation[table] == DIR_W) Swap(w, h);
+
+	if (rotation % 2 != 0) Swap(w, h);
 
 	return TileX(tile) + w < MapSizeX() &&
 		TileY(tile) + h < MapSizeY();

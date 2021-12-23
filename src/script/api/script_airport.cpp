@@ -16,6 +16,7 @@
 #include "../../station_cmd.h"
 #include "../../airport_cmd.h"
 #include "../../depot_base.h"
+#include "../../air.h"
 
 #include "../../safeguards.h"
 
@@ -69,7 +70,11 @@
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
-	return _settings_game.station.modified_catchment ? ::AirportSpec::Get(type)->catchment : (uint)CA_UNMODIFIED;
+	const AirportSpec *as = ::AirportSpec::Get(type);
+	const AirtypeInfo *ati = GetAirtypeInfo(as->airtype);
+	assert(ati->catchment_radius <= MAX_CATCHMENT);
+
+	return _settings_game.station.modified_catchment ? ati->catchment_radius : (uint)CA_UNMODIFIED;
 }
 
 /* static */ bool ScriptAirport::BuildAirport(TileIndex tile, AirportType type, StationID station_id)
@@ -79,7 +84,7 @@
 	EnforcePrecondition(false, IsValidAirportType(type));
 	EnforcePrecondition(false, station_id == ScriptStation::STATION_NEW || station_id == ScriptStation::STATION_JOIN_ADJACENT || ScriptStation::IsValidStation(station_id));
 
-	return ScriptObject::Command<CMD_BUILD_AIRPORT>::Do(tile, type, 0, (ScriptStation::IsValidStation(station_id) ? station_id : INVALID_STATION), station_id == ScriptStation::STATION_JOIN_ADJACENT);
+	return ScriptObject::Command<CMD_BUILD_AIRPORT>::Do(tile, type, 0, INVALID_AIRTYPE, DIAGDIR_NE, (ScriptStation::IsValidStation(station_id) ? station_id : INVALID_STATION), station_id == ScriptStation::STATION_JOIN_ADJACENT);
 }
 
 /* static */ bool ScriptAirport::RemoveAirport(TileIndex tile)
@@ -132,8 +137,9 @@
 
 /* static */ int ScriptAirport::GetNoiseLevelIncrease(TileIndex tile, AirportType type)
 {
-	extern Town *AirportGetNearestTown(const AirportSpec *as, const TileIterator &it, uint &mindist);
-	extern uint8 GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance);
+	extern CommandCost AddAirportTileTableToBitmapTileArea(const AirportTileTable *att, BitmapTileArea *bta, DiagDirection rotation, uint cost_multiplier);
+	extern Town *AirportGetNearestTown(BitmapTileArea bta, uint &mindist);
+	extern uint8 GetAirportNoiseLevelForDistance(uint noise_level, uint distance);
 
 	if (!::IsValidTile(tile)) return -1;
 	if (!IsAirportInformationAvailable(type)) return -1;
@@ -142,10 +148,13 @@
 	if (!as->IsWithinMapBounds(0, tile)) return -1;
 
 	if (_settings_game.economy.station_noise_level) {
-		AirportTileTableIterator it(as->table[0], tile);
+		BitmapTileArea bta;
+		const AirtypeInfo *ati = GetAirtypeInfo(as->airtype);
+		TileArea ta(tile, as->size_x, as->size_y);
+		AddAirportTileTableToBitmapTileArea(*as->table, &bta, DIAGDIR_BEGIN, ati->cost_multiplier);
 		uint dist;
-		AirportGetNearestTown(as, it, dist);
-		return GetAirportNoiseLevelForDistance(as, dist);
+		AirportGetNearestTown(bta, dist);
+		return GetAirportNoiseLevelForDistance(as->noise_level, dist);
 	}
 
 	return 1;
@@ -153,7 +162,8 @@
 
 /* static */ TownID ScriptAirport::GetNearestTown(TileIndex tile, AirportType type)
 {
-	extern Town *AirportGetNearestTown(const AirportSpec *as, const TileIterator &it, uint &mindist);
+	extern CommandCost AddAirportTileTableToBitmapTileArea(const AirportTileTable *att, BitmapTileArea *bta, DiagDirection rotation, uint cost_multiplier);
+	extern Town *AirportGetNearestTown(BitmapTileArea bta, uint &mindist);
 
 	if (!::IsValidTile(tile)) return INVALID_TOWN;
 	if (!IsAirportInformationAvailable(type)) return INVALID_TOWN;
@@ -161,20 +171,10 @@
 	const AirportSpec *as = AirportSpec::Get(type);
 	if (!as->IsWithinMapBounds(0, tile)) return INVALID_TOWN;
 
+	BitmapTileArea bta;
+	const AirtypeInfo *ati = GetAirtypeInfo(as->airtype);
+	TileArea ta(tile, as->size_x, as->size_y);
+	AddAirportTileTableToBitmapTileArea(*as->table, &bta, DIAGDIR_BEGIN, ati->cost_multiplier);
 	uint dist;
-	return AirportGetNearestTown(as, AirportTileTableIterator(as->table[0], tile), dist)->index;
-}
-
-/* static */ uint16 ScriptAirport::GetMaintenanceCostFactor(AirportType type)
-{
-	if (!IsAirportInformationAvailable(type)) return INVALID_TOWN;
-
-	return AirportSpec::Get(type)->maintenance_cost;
-}
-
-/* static */ Money ScriptAirport::GetMonthlyMaintenanceCost(AirportType type)
-{
-	if (!IsAirportInformationAvailable(type)) return -1;
-
-	return (int64)GetMaintenanceCostFactor(type) * _price[PR_INFRASTRUCTURE_AIRPORT] >> 3;
+	return AirportGetNearestTown(bta, dist)->index;
 }

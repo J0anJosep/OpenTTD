@@ -217,24 +217,84 @@ void UpdateTracks(TileIndex tile)
 	SetAirportTileTracks(tile, tracks);
 }
 
+/**
+ * Get the position in the tile spec of a tile of a tilearea.
+ * @param tile one tile of the area of the airport.
+ * @param tile_area of the airport.
+ * @param rotation the rotation of the airport.
+ */
+uint RotatedAirportSpecPosition(const TileIndex tile, const TileArea tile_area, const DiagDirection rotation)
+{
+	/* Get the tile difference between current tile and northern tile of the airport.
+	 * @revise the function TileIndexToTileIndexDiffC as it seems to return the difference
+	 * between the first tile minus the second one (one would expect to be the opposite).
+	 */
+	TileIndexDiffC tile_diff = TileIndexToTileIndexDiffC(tile, tile_area.tile);
+
+	switch (rotation) {
+		case 0:
+			break;
+		case 1:
+			tile_diff = {(int16)(tile_area.h - 1 - tile_diff.y), (int16)tile_diff.x};
+			break;
+		case 2:
+			tile_diff = {(int16)(tile_area.w - 1 - tile_diff.x), (int16)(tile_area.h - 1 - tile_diff.y)};
+			break;
+		case 3:
+			tile_diff = {(int16)tile_diff.y, (int16)(tile_area.w - 1 - tile_diff.x)};
+			break;
+		default: NOT_REACHED();
+	}
+
+	return tile_diff.x + tile_diff.y * (rotation % 2 == 0 ? tile_area.w : tile_area.h);
+}
+
+/**
+ * Rotate the trackbits as indicated by a direction
+ * @param track_bits to rotate.
+ * @param dir indicating how to rotate track_bits.
+ *             (0 -> no rotation,
+ *              1 -> 90 clockwise,
+ *              2 -> 180 clockwise,
+ *              3 -> 270 clockwise).
+ * @return the rotated trackbits.
+ */
+TrackBits RotateTrackBits(TrackBits track_bits, DiagDirection dir)
+{
+	static const TrackBits rotation_table[DIAGDIR_END][TRACK_END] = {
+		{ TRACK_BIT_X, TRACK_BIT_Y, TRACK_BIT_UPPER, TRACK_BIT_LOWER, TRACK_BIT_LEFT,  TRACK_BIT_RIGHT },
+		{ TRACK_BIT_Y, TRACK_BIT_X, TRACK_BIT_RIGHT, TRACK_BIT_LEFT,  TRACK_BIT_UPPER, TRACK_BIT_LOWER },
+		{ TRACK_BIT_X, TRACK_BIT_Y, TRACK_BIT_LOWER, TRACK_BIT_UPPER, TRACK_BIT_RIGHT, TRACK_BIT_LEFT  },
+		{ TRACK_BIT_Y, TRACK_BIT_X, TRACK_BIT_LEFT,  TRACK_BIT_RIGHT, TRACK_BIT_LOWER, TRACK_BIT_UPPER }
+	};
+
+	TrackBits rotated = TRACK_BIT_NONE;
+	for (Track track : SetTrackBitIterator(track_bits)) {
+		rotated |= rotation_table[dir][track];
+	}
+
+	return rotated;
+}
+
 void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirType airtype)
 {
 	if (this->airport.tile == INVALID_TILE) return;
 
 	const AirportSpec *as = this->airport.GetSpec();
+	if (airtype == INVALID_AIRTYPE) airtype = as->airtype;
 	this->airport.air_type = airtype;
 
-	uint iter = 0;
-	for (TileIndex t : this->airport) {
-		if (!this->TileBelongsToAirport(t)) continue;
-		const TileDescription *airport_tile_desc = &_description_airport_specs[this->airport.type][iter];
-		assert(airport_tile_desc->ground == this->airport.air_type);
+	for (TileIndex t : ta) {
+		uint pos = RotatedAirportSpecPosition(t, ta, rotation);
+		const AirportTileTable *airport_tile_desc = &as->table[this->airport.layout][pos];
+		if (airport_tile_desc->type == ATT_INVALID) continue;
+		assert(this->TileBelongsToAirport(t));
 
 		_m[t].m4 = 0;
 		_m[t].m5 = 0;
 
 		SetStationType(t, STATION_AIRPORT);
-		SetAirtype(t, airport_tile_desc->ground);
+		SetAirtype(t, airtype);
 		SetAirportTileType(t, airport_tile_desc->type);
 
 		AirportTileType att = GetAirportTileType(t);
@@ -249,7 +309,7 @@ void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirT
 				break;
 			case ATT_HANGAR_STANDARD:
 			case ATT_HANGAR_EXTENDED:
-				SetHangarDirection(t, airport_tile_desc->dir);
+				SetHangarDirection(t, RotateDiagDir(airport_tile_desc->dir, rotation));
 				break;
 
 			case ATT_APRON_NORMAL:
@@ -260,23 +320,21 @@ void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirT
 				break;
 
 			case ATT_RUNWAY_MIDDLE:
-				SB(_me[t].m8, 12, 2, airport_tile_desc->runway_directions);
+				SB(_me[t].m8, 12, 2, RotateDirection(airport_tile_desc->runway_directions, rotation));
 				break;
 
 			case ATT_RUNWAY_START_NO_LANDING:
 			case ATT_RUNWAY_START_ALLOW_LANDING:
 			case ATT_RUNWAY_END:
-				SB(_me[t].m8, 12, 2, airport_tile_desc->dir);
+				SB(_me[t].m8, 12, 2, RotateDiagDir(airport_tile_desc->dir, rotation));
 				break;
 			default: NOT_REACHED();
 		}
 
 		if (!IsInfrastructure(t)) {
-			SetAirportTileTracks(t, airport_tile_desc->trackbits);
+			SetAirportTileTracks(t, RotateTrackBits(airport_tile_desc->trackbits, rotation));
 		}
 		assert(GetAirportTileType(t) != ATT_WAITING_POINT);
-
-		iter++;
 	}
 
 	this->UpdateAirportDataStructure();

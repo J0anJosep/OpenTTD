@@ -980,7 +980,7 @@ bool AfterLoadGame()
 						 */
 						TileIndex t1 = TILE_ADDXY(t, 0, 1);
 						if (!IsTileType(t1, MP_INDUSTRY) || GetIndustryGfx(t1) != GFX_OILRIG_1) {
-							DeleteBuiltInHeliport(t);
+							DeleteOldBuiltInHeliport(t);
 						}
 						break;
 					}
