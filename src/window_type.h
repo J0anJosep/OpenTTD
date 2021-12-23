@@ -411,8 +411,21 @@ enum WindowClass {
 	 *   - #TRANSPORT_WATER = #BuildDockDepotWidgets
 	 *   - #TRANSPORT_RAIL = #BuildRailDepotWidgets
 	 *   - #TRANSPORT_ROAD = #BuildRoadDepotWidgets
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
 	 */
 	WC_BUILD_DEPOT,
+
+	/**
+	 * Build heliport; %Window numbers:
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
+	 */
+	WC_BUILD_HELIPORT,
+
+	/**
+	 * Build airport infrastructure; %Window numbers:
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
+	 */
+	WC_BUILD_AIRPORT_INFRASTRUCTURE,
 
 	/**
 	 * Build waypoint; %Window numbers:

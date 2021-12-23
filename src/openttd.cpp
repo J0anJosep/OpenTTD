@@ -25,6 +25,7 @@
 #include "news_func.h"
 #include "fios.h"
 #include "aircraft.h"
+#include "airport_gui.h"
 #include "roadveh.h"
 #include "train.h"
 #include "ship.h"
@@ -874,6 +875,7 @@ static void MakeNewGameDone()
 
 	InitializeRailGUI();
 	InitializeRoadGUI();
+	InitializeAirportGui();
 
 	/* We are the server, we start a new company (not dedicated),
 	 * so set the default password *if* needed. */

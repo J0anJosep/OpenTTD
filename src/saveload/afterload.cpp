@@ -48,6 +48,8 @@
 #include "../subsidy_func.h"
 #include "../newgrf.h"
 #include "../engine_func.h"
+#include "../airport_gui.h"
+#include "../air.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
 #include "../smallmap_gui.h"
@@ -1446,6 +1448,7 @@ bool AfterLoadGame()
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = GetCompanyRailtypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+		c->avail_airtypes = GetCompanyAirtypes(c->index);
 	}
 
 	AfterLoadStations();
@@ -3271,6 +3274,8 @@ bool AfterLoadGame()
 		for (Aircraft *v : Aircraft::Iterate()) {
 			if ((v->vehstatus & VS_CRASHED) == 0) v->Crash();
 		}
+
+		InitializeAirportGui();
 	}
 
 	/* Road stops is 'only' updating some caches */

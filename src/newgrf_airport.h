@@ -120,7 +120,7 @@ struct AirportSpec {
 	static const AirportSpec *Get(byte type);
 	static AirportSpec *GetWithoutOverride(byte type);
 
-	bool IsAvailable() const;
+	bool IsAvailable(AirType air_type = INVALID_AIRTYPE) const;
 	bool IsWithinMapBounds(byte table, TileIndex index) const;
 
 	static void ResetAirports();

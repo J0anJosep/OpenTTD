@@ -470,10 +470,6 @@ STR_ROAD_MENU_TRAM_CONSTRUCTION                                 :Tramway constru
 ###length 1
 STR_WATERWAYS_MENU_WATERWAYS_CONSTRUCTION                       :Waterways construction
 
-# Aairport construction menu
-###length 1
-STR_AIRCRAFT_MENU_AIRPORT_CONSTRUCTION                          :Airport construction
-
 # Landscaping menu
 ###length 3
 STR_LANDSCAPING_MENU_LANDSCAPING                                :Landscaping
@@ -2848,6 +2844,15 @@ STR_AIRTYPE_NAME_GRAVEL                                         :Gravel airport
 STR_AIRTYPE_NAME_ASPHALT                                        :Asphalt airport
 STR_AIRTYPE_NAME_WATER                                          :Water airport
 
+# Airport infrastructure construction window
+STR_BUILD_AIRPORT_INFRA_NO_CATCH_CAPTION                        :{WHITE}Infrastructure without cargo catchment
+STR_BUILD_AIRPORT_INFRA_WITH_CATCH_CAPTION                      :{WHITE}Infrastructure with cargo catchment
+STR_BUILD_AIRPORT_INFRA_TOOLTIP                                 :{BLACK}Select a piece of infrastructre and its orientation
+
+# Heliport construction window
+STR_BUILD_HELIPORT_CAPTION                                      :{WHITE}Heliport Orientation
+STR_BUILD_HELIPORT_ORIENTATION_TOOLTIP                          :{BLACK}Select heliport orientation
+
 # Hangar construction window
 STR_BUILD_HANGAR_CAPTION                                        :{WHITE}Hangar Orientation
 STR_BUILD_HANGAR_ORIENTATION_TOOLTIP                            :{BLACK}Select hangar orientation
@@ -2872,6 +2877,12 @@ STR_AIRPORT_CLASS_SMALL                                         :Small airports
 STR_AIRPORT_CLASS_LARGE                                         :Large airports
 STR_AIRPORT_CLASS_HUB                                           :Hub airports
 STR_AIRPORT_CLASS_HELIPORTS                                     :Helicopter airports
+
+###length 4
+STR_AIRPORT_ROTATION_0                                          :Default orientation
+STR_AIRPORT_ROTATION_90                                         :90º rotated
+STR_AIRPORT_ROTATION_180                                        :180º rotated
+STR_AIRPORT_ROTATION_270                                        :270º rotated
 
 STR_STATION_BUILD_NOISE                                         :{BLACK}Noise generated: {GOLD}{COMMA}
 
@@ -4141,6 +4152,7 @@ STR_REPLACE_ENGINES                                             :Engines
 STR_REPLACE_WAGONS                                              :Wagons
 STR_REPLACE_ALL_RAILTYPE                                        :All rail vehicles
 STR_REPLACE_ALL_ROADTYPE                                        :All road vehicles
+STR_REPLACE_ALL_AIRTYPE                                         :All aircraft vehicles
 
 ###length 2
 STR_REPLACE_HELP_RAILTYPE                                       :{BLACK}Choose the rail type you want to replace engines for
