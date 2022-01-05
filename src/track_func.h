@@ -443,6 +443,13 @@ inline DiagDirection TrackdirToExitdir(Trackdir trackdir)
 	return _trackdir_to_exitdir[trackdir];
 }
 
+static inline Direction TrackdirToDir(Trackdir trackdir)
+{
+	assert(IsValidTrackdir(trackdir));
+	extern const Direction _trackdir_to_direction[TRACKDIR_END];
+	return _trackdir_to_direction[trackdir];
+}
+
 /**
  * Maps a track and an (4-way) dir to the trackdir that represents the track
  * with the exit in the given direction.

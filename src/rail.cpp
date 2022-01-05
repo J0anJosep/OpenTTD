@@ -80,6 +80,12 @@ extern const DiagDirection _trackdir_to_exitdir[TRACKDIR_END] = {
 	DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_NW, DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_NE,
 };
 
+/* Maps a trackdir to the corresponding 8-way direction */
+extern const Direction _trackdir_to_direction[TRACKDIR_END] = {
+	DIR_NE, DIR_SE, DIR_E, DIR_E, DIR_S, DIR_S, INVALID_DIR, INVALID_DIR,
+	DIR_SW, DIR_NW, DIR_W, DIR_W, DIR_N, DIR_N, INVALID_DIR, INVALID_DIR,
+};
+
 extern const Trackdir _track_exitdir_to_trackdir[][DIAGDIR_END] = {
 	{TRACKDIR_X_NE,     INVALID_TRACKDIR,  TRACKDIR_X_SW,     INVALID_TRACKDIR},
 	{INVALID_TRACKDIR,  TRACKDIR_Y_SE,     INVALID_TRACKDIR,  TRACKDIR_Y_NW},
