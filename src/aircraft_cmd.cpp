@@ -80,7 +80,15 @@ void Aircraft::UpdateDeltaXY()
 	}
 }
 
-static void CrashAirplane(Aircraft *v);
+void Aircraft::MarkDirty()
+{
+	this->colourmap = PAL_NONE;
+	this->UpdateViewport(true, false);
+	if (this->subtype == AIR_HELICOPTER) {
+		GetRotorImage(this, EIT_ON_MAP, &this->Next()->Next()->sprite_cache.sprite_seq);
+	}
+}
+
 
 static const SpriteID _aircraft_sprite[] = {
 	0x0EB5, 0x0EBD, 0x0EC5, 0x0ECD,
@@ -96,60 +104,6 @@ template <>
 bool IsValidImageIndex<VEH_AIRCRAFT>(uint8_t image_index)
 {
 	return image_index < lengthof(_aircraft_sprite);
-}
-
-/**
- * Find the nearest hangar to v
- * INVALID_STATION is returned, if the company does not have any suitable
- * airports (like helipads only)
- * @param v vehicle looking for a hangar
- * @return the StationID if one is found, otherwise, INVALID_STATION
- */
-static StationID FindNearestHangar(const Aircraft *v)
-{
-	uint best = 0;
-	StationID index = INVALID_STATION;
-	/* revise: they are not clamped */
-	TileIndex vtile = TileVirtXY(v->x_pos, v->y_pos);
-	uint max_range = v->acache.cached_max_range_sqr;
-
-	/* Determine destinations where it's coming from and where it's heading to */
-	const Station *last_dest = nullptr;
-	const Station *next_dest = nullptr;
-	if (max_range != 0) {
-		if (v->current_order.IsType(OT_GOTO_STATION) ||
-				(v->current_order.IsType(OT_GOTO_DEPOT) && (v->current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) == 0)) {
-			last_dest = Station::GetIfValid(v->last_station_visited);
-			next_dest = Station::GetIfValid(GetTargetDestination(v->current_order, true));
-		} else {
-			last_dest = GetTargetAirportIfValid(v);
-			next_dest = Station::GetIfValid(v->GetNextStoppingStation().value); // revise getnextstoppingstation could ignore depot orders
-		}
-	}
-
-	for (const Station *st : Station::Iterate()) {
-		if (st->owner != v->owner || !(st->facilities & FACIL_AIRPORT) || !st->airport.HasHangar()) continue;
-
-		/* Planes won't land at any helicopter station. */
-		if (!v->IsHelicopter() && st->airport.runways.empty()) continue;
-
-		/* Check if our last and next destinations can be reached from the depot airport. */
-		if (max_range != 0) {
-			if (last_dest != nullptr &&
-					(last_dest->facilities & FACIL_AIRPORT) &&
-					DistanceSquare(st->airport.tile, last_dest->airport.tile) > max_range) continue;
-			if (next_dest != nullptr &&
-					(next_dest->facilities & FACIL_AIRPORT) &&
-					DistanceSquare(st->airport.tile, next_dest->airport.tile) > max_range) continue;
-		}
-
-		uint distance = DistanceSquare(vtile, st->airport.tile);
-		if (distance < best || index == INVALID_STATION) {
-			best = distance;
-			index = st->index;
-		}
-	}
-	return index;
 }
 
 void Aircraft::GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const
@@ -422,24 +376,6 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 	return CommandCost();
 }
 
-
-ClosestDepot Aircraft::FindClosestDepot()
-{
-	const Station *st = GetTargetAirportIfValid(this);
-	/* If the station is not a valid airport or if it has no hangars */
-	if (st == nullptr || !CanVehicleUseStation(this, st) || !st->airport.HasHangar()) {
-		/* the aircraft has to search for a hangar on its own */
-		StationID station = FindNearestHangar(this);
-
-		if (station == INVALID_STATION) return ClosestDepot();
-
-		st = Station::Get(station);
-		assert(st->airport.hangar != nullptr);
-	}
-
-	return ClosestDepot(st->xy, st->airport.hangar->index);
-}
-
 static void CheckIfAircraftNeedsService(Aircraft *v)
 {
 	if (Company::Get(v->owner)->settings.vehicle.servint_aircraft == 0 || !v->NeedsAutomaticServicing()) return;
@@ -506,51 +442,6 @@ void Aircraft::OnNewEconomyDay()
 	SetWindowClassesDirty(WC_AIRCRAFT_LIST);
 }
 
-static void HelicopterTickHandler(Aircraft *v)
-{
-	Aircraft *u = v->Next()->Next();
-
-	if (u->vehstatus & VS_HIDDEN) return;
-
-	/* if true, helicopter rotors do not rotate. This should only be the case if a helicopter is
-	 * loading/unloading at a terminal or stopped */
-	if (v->current_order.IsType(OT_LOADING) || (v->vehstatus & VS_STOPPED)) {
-		if (u->cur_speed != 0) {
-			u->cur_speed++;
-			if (u->cur_speed >= 0x80 && u->state == HRS_ROTOR_MOVING_3) {
-				u->cur_speed = 0;
-			}
-		}
-	} else {
-		if (u->cur_speed == 0) {
-			u->cur_speed = 0x70;
-		}
-		if (u->cur_speed >= 0x50) {
-			u->cur_speed--;
-		}
-	}
-
-	int tick = ++u->tick_counter;
-	int spd = u->cur_speed >> 4;
-
-	VehicleSpriteSeq seq;
-	if (spd == 0) {
-		u->state = HRS_ROTOR_STOPPED;
-		GetRotorImage(v, EIT_ON_MAP, &seq);
-		if (u->sprite_cache.sprite_seq == seq) return;
-	} else if (tick >= spd) {
-		u->tick_counter = 0;
-		u->state = (AircraftState)((u->state % HRS_ROTOR_NUM_STATES) + 1);
-		GetRotorImage(v, EIT_ON_MAP, &seq);
-	} else {
-		return;
-	}
-
-	u->sprite_cache.sprite_seq = seq;
-
-	u->UpdatePositionAndViewport();
-}
-
 /**
  * Set aircraft position.
  * @param v Aircraft to position.
@@ -591,26 +482,6 @@ void SetAircraftPosition(Aircraft *v, int x, int y, int z)
 
 		u->UpdatePositionAndViewport();
 	}
-}
-
-/**
- * Handle Aircraft specific tasks when an Aircraft enters a hangar
- * @param *v Vehicle that enters the hangar
- */
-void HandleAircraftEnterHangar(Aircraft *v)
-{
-	v->subspeed = 0;
-	v->progress = 0;
-
-	Aircraft *u = v->Next();
-	u->vehstatus |= VS_HIDDEN;
-	u = u->Next();
-	if (u != nullptr) {
-		u->vehstatus |= VS_HIDDEN;
-		u->cur_speed = 0;
-	}
-
-	SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
 }
 
 static void PlayAircraftSound(const Vehicle *v)
@@ -838,31 +709,50 @@ int GetAircraftFlightLevel(T *v, bool takeoff)
 template int GetAircraftFlightLevel(DisasterVehicle *v, bool takeoff);
 template int GetAircraftFlightLevel(Aircraft *v, bool takeoff);
 
-static void MaybeCrashAirplane(Aircraft *v);
-
-/**
- * Controls the movement of an aircraft. This function actually moves the vehicle
- * on the map and takes care of minor things like sound playback.
- * @todo    De-mystify the cur_speed values for helicopter rotors.
- * @param v The vehicle that is moved. Must be the first vehicle of the chain
- * @return  Whether the position requested by the State Machine has been reached
- */
-static bool AircraftController(Aircraft *v)
+static void HelicopterTickHandler(Aircraft *v)
 {
-	return false;
+	Aircraft *u = v->Next()->Next();
+
+	if (u->vehstatus & VS_HIDDEN) return;
+
+	/* if true, helicopter rotors do not rotate. This should only be the case if a helicopter is
+	 * loading/unloading at a terminal or stopped */
+	if (v->current_order.IsType(OT_LOADING) || (v->vehstatus & VS_STOPPED)) {
+		if (u->cur_speed != 0) {
+			u->cur_speed++;
+			if (u->cur_speed >= 0x80 && u->state == HRS_ROTOR_MOVING_3) {
+				u->cur_speed = 0;
+			}
+		}
+	} else {
+		if (u->cur_speed == 0) {
+			u->cur_speed = 0x70;
+		}
+		if (u->cur_speed >= 0x50) {
+			u->cur_speed--;
+		}
+	}
+
+	int tick = ++u->tick_counter;
+	int spd = u->cur_speed >> 4;
+
+	VehicleSpriteSeq seq;
+	if (spd == 0) {
+		u->state = HRS_ROTOR_STOPPED;
+		GetRotorImage(v, EIT_ON_MAP, &seq);
+		if (u->sprite_cache.sprite_seq == seq) return;
+	} else if (tick >= spd) {
+		u->tick_counter = 0;
+		u->state = (AircraftState)((u->state % HRS_ROTOR_NUM_STATES) + 1);
+		GetRotorImage(v, EIT_ON_MAP, &seq);
+	} else {
+		return;
+	}
+
+	u->sprite_cache.sprite_seq = seq;
+
+	u->UpdatePositionAndViewport();
 }
-
-/**
- * Handle crashed aircraft \a v.
- * @param v Crashed aircraft.
- */
-static bool HandleCrashedAircraft(Aircraft *v)
-{
-	v->crashed_counter += 3;
-
-	return true;
-}
-
 
 /**
  * Handle smoke of broken aircraft.
@@ -904,57 +794,6 @@ static void HandleAircraftSmoke(Aircraft *v, bool mode)
 		);
 	}
 }
-
-void HandleMissingAircraftOrders(Aircraft *v)
-{
-	/*
-	 * We do not have an order. This can be divided into two cases:
-	 * 1) we are heading to an invalid station. In this case we must
-	 *    find another airport to go to. If there is nowhere to go,
-	 *    we will destroy the aircraft as it otherwise will enter
-	 *    the holding pattern for the first airport, which can cause
-	 *    the plane to go into an undefined state when building an
-	 *    airport with the same StationID.
-	 * 2) we are (still) heading to a (still) valid airport, then we
-	 *    can continue going there. This can happen when you are
-	 *    changing the aircraft's orders while in-flight or in for
-	 *    example a depot. However, when we have a current order to
-	 *    go to a depot, we have to keep that order so the aircraft
-	 *    actually stops.
-	 */
-	const Station *st = GetTargetAirportIfValid(v);
-	if (st == nullptr) {
-		Backup<CompanyID> cur_company(_current_company, v->owner);
-		CommandCost ret = Command<CMD_SEND_VEHICLE_TO_DEPOT>::Do(DC_EXEC, v->index, DepotCommand::None, {});
-		cur_company.Restore();
-
-		if (ret.Failed()) CrashAirplane(v);
-	} else if (!v->current_order.IsType(OT_GOTO_DEPOT)) {
-		v->current_order.Free();
-	}
-}
-
-
-TileIndex Aircraft::GetOrderStationLocation(StationID)
-{
-	/* Orders are changed in flight, ensure going to the right station. */
-	if (this->state == AS_FLYING) {
-		//AircraftNextAirportPos_and_Order(this);
-	}
-
-	/* Aircraft do not use dest-tile */
-	return 0;
-}
-
-void Aircraft::MarkDirty()
-{
-	this->colourmap = PAL_NONE;
-	this->UpdateViewport(true, false);
-	if (this->subtype == AIR_HELICOPTER) {
-		GetRotorImage(this, EIT_ON_MAP, &this->Next()->Next()->sprite_cache.sprite_seq);
-	}
-}
-
 
 uint Aircraft::Crash(bool flooded)
 {
@@ -1023,6 +862,69 @@ static void MaybeCrashAirplane(Aircraft *v)
 }
 
 /**
+ * Handle crashed aircraft \a v.
+ * @param v Crashed aircraft.
+ */
+static bool HandleCrashedAircraft(Aircraft *v)
+{
+	v->crashed_counter += 3;
+
+	return true;
+}
+
+
+/**
+ * Handle Aircraft specific tasks when an Aircraft enters a hangar
+ * @param *v Vehicle that enters the hangar
+ */
+void HandleAircraftEnterHangar(Aircraft *v)
+{
+	v->subspeed = 0;
+	v->progress = 0;
+
+	Aircraft *u = v->Next();
+	u->vehstatus |= VS_HIDDEN;
+	u = u->Next();
+	if (u != nullptr) {
+		u->vehstatus |= VS_HIDDEN;
+		u->cur_speed = 0;
+	}
+
+	SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
+}
+
+/**
+ * Aircraft is about to leave the hangar.
+ * @param v Aircraft leaving.
+ * @param exit_dir The direction the vehicle leaves the hangar.
+ */
+void AircraftLeaveHangar(Aircraft *v, Direction exit_dir)
+{
+	v->cur_speed = 0;
+	v->subspeed = 0;
+	v->progress = 0;
+	v->direction = exit_dir;
+	v->vehstatus &= ~VS_HIDDEN;
+	{
+		Vehicle *u = v->Next();
+		u->vehstatus &= ~VS_HIDDEN;
+
+		/* Rotor blades */
+		u = u->Next();
+		if (u != nullptr) {
+			u->vehstatus &= ~VS_HIDDEN;
+			u->cur_speed = 80;
+		}
+	}
+
+	VehicleServiceInDepot(v);
+	v->LeaveUnbunchingDepot();
+	SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
+	InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
+	SetWindowClassesDirty(WC_AIRCRAFT_LIST);
+}
+
+/**
  * Aircraft arrives at a terminal. If it is the first aircraft, throw a party.
  * Start loading cargo.
  * @param v Aircraft that arrived.
@@ -1071,6 +973,135 @@ static void AircraftLandAirplane(Aircraft *v)
 	}
 }
 
+/**
+ * Returns aircraft's target station if v->target_airport
+ * is a valid station with airport.
+ * @param v vehicle to get target airport for
+ * @return pointer to target station, nullptr if invalid
+ */
+Station *GetTargetAirportIfValid(const Aircraft *v)
+{
+	assert(v->type == VEH_AIRCRAFT);
+
+	Station *st = Station::GetIfValid(v->targetairport);
+	if (st == nullptr) return nullptr;
+
+	return st->airport.tile == INVALID_TILE ? nullptr : st;
+}
+
+TileIndex Aircraft::GetOrderStationLocation(StationID station)
+{
+	/* Orders are changed in flight, ensure going to the right station. */
+	if (this->state == AS_FLYING) {
+		//AircraftNextAirportPos_and_Order(this);
+	}
+
+	/* Aircraft do not use dest-tile */
+	return 0;
+}
+
+/**
+ * Find the nearest hangar to v
+ * INVALID_STATION is returned, if the company does not have any suitable
+ * airports (like helipads only)
+ * @param v vehicle looking for a hangar
+ * @return the StationID if one is found, INVALID_STATION otherwise
+ */
+static StationID FindNearestHangar(const Aircraft *v)
+{
+	uint best = 0;
+	StationID index = INVALID_STATION;
+	/* revise: they are not clamped */
+	TileIndex vtile = TileVirtXY(v->x_pos, v->y_pos);
+	uint max_range = v->acache.cached_max_range_sqr;
+
+	/* Determine destinations where it's coming from and where it's heading to */
+	const Station *last_dest = nullptr;
+	const Station *next_dest = nullptr;
+	if (max_range != 0) {
+		if (v->current_order.IsType(OT_GOTO_STATION) ||
+				(v->current_order.IsType(OT_GOTO_DEPOT) && (v->current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT == 0))) {
+			last_dest = Station::GetIfValid(v->last_station_visited);
+			next_dest = Station::GetIfValid(GetTargetDestination(v, &(v->current_order)));
+		} else {
+			last_dest = GetTargetAirportIfValid(v);
+			next_dest = Station::GetIfValid(v->GetNextStoppingStation().value); // revise getnextstoppingstation could ignore depot orders
+		}
+	}
+
+	for (const Station *st : Station::Iterate()) {
+		if (st->owner != v->owner || !(st->facilities & FACIL_AIRPORT) || !st->airport.HasHangar()) continue;
+
+		/* Planes won't land at any helicopter station. */
+		if (!v->IsHelicopter() && st->airport.runways.empty()) continue;
+
+		/* Check if our last and next destinations can be reached from the depot airport. */
+		if (max_range != 0) {
+			if (last_dest != nullptr &&
+					(last_dest->facilities & FACIL_AIRPORT) &&
+					DistanceSquare(st->airport.tile, last_dest->airport.tile) > max_range) continue;
+			if (next_dest != nullptr &&
+					(next_dest->facilities & FACIL_AIRPORT) &&
+					DistanceSquare(st->airport.tile, next_dest->airport.tile) > max_range) continue;
+		}
+
+		uint distance = DistanceSquare(vtile, st->airport.tile);
+		if (distance < best || index == INVALID_STATION) {
+			best = distance;
+			index = st->index;
+		}
+	}
+	return index;
+}
+
+ClosestDepot Aircraft::FindClosestDepot(TileIndex *location, DestinationID *destination, bool *reverse)
+{
+	const Station *st = GetTargetAirportIfValid(this);
+	/* If the station is not a valid airport or if it has no hangars */
+	if (st == nullptr || !CanVehicleUseStation(this, st) || !st->airport.HasHangar()) {
+		/* the aircraft has to search for a hangar on its own */
+		StationID station = FindNearestHangar(this);
+
+		if (station == INVALID_STATION) return ClosestDepot();
+
+		st = Station::Get(station);
+		assert(st->airport.depot_id != INVALID_DEPOT);
+	}
+
+	assert(st != nullptr);
+	return ClosestDepot(st->xy, st->airport.depot_id);
+}
+
+void HandleMissingAircraftOrders(Aircraft *v)
+{
+	/*
+	 * We do not have an order. This can be divided into two cases:
+	 * 1) we are heading to an invalid station. In this case we must
+	 *    find another airport to go to. If there is nowhere to go,
+	 *    we will destroy the aircraft as it otherwise will enter
+	 *    the holding pattern for the first airport, which can cause
+	 *    the plane to go into an undefined state when building an
+	 *    airport with the same StationID.
+	 * 2) we are (still) heading to a (still) valid airport, then we
+	 *    can continue going there. This can happen when you are
+	 *    changing the aircraft's orders while in-flight or in for
+	 *    example a depot. However, when we have a current order to
+	 *    go to a depot, we have to keep that order so the aircraft
+	 *    actually stops.
+	 */
+
+	const Station *st = v->GetCurrentAirport();
+	//if (st == nullptr || !st->airport.HasHangar()) v->GetTargetAirport();
+	if (st == nullptr || !st->airport.HasHangar()) {
+		Backup<CompanyID> cur_company(_current_company, v->owner);
+		CommandCost ret = Command<CMD_SEND_VEHICLE_TO_DEPOT>::Do(DC_EXEC, v->index, DepotCommand::Service, {});
+		cur_company.Restore();
+
+		if (ret.Failed()) CrashAirplane(v);
+	} else if (!v->current_order.IsType(OT_GOTO_DEPOT)) {
+		v->current_order.Free();
+	}
+}
 
 /** set the right pos when heading to other airports after takeoff */
 void UpdateAircraftState(Aircraft *a)
@@ -1078,39 +1109,15 @@ void UpdateAircraftState(Aircraft *a)
 }
 
 /**
- * Aircraft is about to leave the hangar.
- * @param v Aircraft leaving.
- * @param exit_dir The direction the vehicle leaves the hangar.
- * @note This function is called in AfterLoadGame for old savegames, so don't rely
- *       on any data to be valid, especially don't rely on the fact that the vehicle
- *       is actually on the ground inside a depot.
+ * Controls the movement of an aircraft. This function actually moves the vehicle
+ * on the map and takes care of minor things like sound playback.
+ * @todo    De-mystify the cur_speed values for helicopter rotors.
+ * @param v The vehicle that is moved. Must be the first vehicle of the chain
+ * @return  Whether the position requested by the State Machine has been reached
  */
-void AircraftLeaveHangar(Aircraft *v, Direction exit_dir)
+static bool AircraftController(Aircraft *v)
 {
-	v->cur_speed = 0;
-	v->subspeed = 0;
-	v->progress = 0;
-	v->direction = exit_dir;
-	v->vehstatus &= ~VS_HIDDEN;
-	{
-		Vehicle *u = v->Next();
-		u->vehstatus &= ~VS_HIDDEN;
-
-		/* Rotor blades */
-		u = u->Next();
-		if (u != nullptr) {
-			u->vehstatus &= ~VS_HIDDEN;
-			u->cur_speed = 80;
-		}
-	}
-
-	VehicleServiceInDepot(v);
-	v->LeaveUnbunchingDepot();
-	SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
-
-	/* When called from UpdateOldAircraft(), tile may not be a hangar. */
-	if (IsHangarTile(v->tile)) InvalidateWindowData(WC_VEHICLE_DEPOT, GetDepotIndex(v->tile));
-	SetWindowClassesDirty(WC_AIRCRAFT_LIST);
+	return false;
 }
 
 bool Aircraft::Tick()
@@ -1133,21 +1140,4 @@ bool Aircraft::Tick()
 	}
 
 	return true;
-}
-
-
-/**
- * Returns aircraft's target station if v->target_airport
- * is a valid station with airport.
- * @param v vehicle to get target airport for
- * @return pointer to target station, nullptr if invalid
- */
-Station *GetTargetAirportIfValid(const Aircraft *v)
-{
-	assert(v->type == VEH_AIRCRAFT);
-
-	Station *st = Station::GetIfValid(v->targetairport);
-	if (st == nullptr) return nullptr;
-
-	return st->airport.tile == INVALID_TILE ? nullptr : st;
 }
