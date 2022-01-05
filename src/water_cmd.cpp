@@ -1024,16 +1024,9 @@ static Vehicle *FloodVehicleProc(Vehicle *v, void *data)
 	switch (v->type) {
 		default: break;
 
-		case VEH_AIRCRAFT: {
-			if (!IsAirportTile(v->tile) || GetTileMaxZ(v->tile) != 0) break;
-			if (v->subtype == AIR_SHADOW) break;
-
-			/* We compare v->z_pos against delta_z + 1 because the shadow
-			 * is at delta_z and the actual aircraft at delta_z + 1. */
-
-			FloodVehicle(v);
+		case VEH_AIRCRAFT:
+			/* Aircraft is flooded with FloodAircraftOnAirport(const Station *). */
 			break;
-		}
 
 		case VEH_TRAIN:
 		case VEH_ROAD: {
@@ -1058,11 +1051,7 @@ static void FloodVehicles(TileIndex tile)
 
 	if (IsAirportTile(tile)) {
 		const Station *st = Station::GetByTile(tile);
-		for (TileIndex airport_tile : st->airport) {
-			if (st->TileBelongsToAirport(airport_tile)) FindVehicleOnPos(airport_tile, &z, &FloodVehicleProc);
-		}
-
-		/* No vehicle could be flooded on this airport anymore */
+		FloodAircraftOnAirport(st);
 		return;
 	}
 

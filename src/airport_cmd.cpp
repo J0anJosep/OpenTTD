@@ -1791,3 +1791,43 @@ CommandCost CmdOpenCloseAirport(DoCommandFlag flags, StationID station_id)
 	}
 	return CommandCost();
 }
+
+extern void CrashAircraft(Aircraft *a);
+
+/**
+ * When an airport is being flooded, update all aircraft in that airport
+ * and update all aircraft trying to land on it.
+ * @param st Station being flooded.
+ */
+void FloodAircraftOnAirport(const Station *st)
+{
+	for (Aircraft *a : Aircraft::Iterate()) {
+		if (!a->IsNormalAircraft() ||
+				a->IsAircraftFreelyFlying() ||
+				a->vehstatus & VS_CRASHED) {
+			continue;
+		}
+
+		if (a->IsAircraftFlying()) {
+			if (!a->IsHelicopter()) {
+				TileIndex test_tile = a->state == AS_FLYING_TAKEOFF ? a->tile : a->GetNextTile();
+				if (!IsAirportTileOfStation(test_tile, st->index)) continue;
+				/* Remove reservation and keep flying. */
+				a->state = AS_FLYING_LEAVING_AIRPORT;
+				DiagDirection diagdir = TrackdirToExitdir(a->trackdir);
+				TileIndex start_tile = (a->state == AS_FLYING_TAKEOFF || a->state == AS_FLYING_LANDING) ?
+						GetRunwayExtreme(a->tile, ReverseDiagDir(diagdir)) : a->GetNextTile();
+				assert(IsRunwayStart(start_tile));
+				SetRunwayReservation(start_tile, false);
+			} else {
+				a->state = AS_FLYING_NO_DEST;
+				a->next_pos.pos = AP_DEFAULT;
+				assert(IsValidTrackdir(a->trackdir));
+				RemoveAirportTrackReservation(a->tile, TrackdirToTrack(a->trackdir));
+			}
+		} else {
+			if (!IsAirportTileOfStation(a->tile, st->index)) continue;
+			CrashAircraft(a);
+		}
+	}
+}
