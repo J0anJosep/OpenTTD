@@ -48,6 +48,7 @@ void RemoveDockingTile(TileIndex t);
 void ClearDockingTilesCheckingNeighbours(TileIndex tile);
 
 void UpdateAirportsNoise();
+void FloodAircraftOnAirport(const Station *st);
 
 bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset);
 
