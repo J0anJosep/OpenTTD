@@ -48,6 +48,7 @@ struct Depot : DepotPool::PoolItem<&_depot_pool> {
 	union {
 		RoadTypes road_types;
 		RailTypes rail_types;
+		AirTypes air_types;
 	} r_types;
 
 	TileArea ta;

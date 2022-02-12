@@ -1191,6 +1191,7 @@ struct BuildVehicleWindow : Window {
 	union {
 		RailTypes railtypes; ///< Rail types to show, or #INVALID_RAILTYPES.
 		RoadTypes roadtypes; ///< Road types to show, or #INVALID_ROADTYPES.
+		AirTypes airtypes;   ///< Air types to show, or #INVALID_AIRTYPES.
 	} filter;                                   ///< Filter to apply.
 	bool descending_sort_order;                 ///< Sort direction, @see _engine_sort_direction
 	uint8_t sort_criteria;                         ///< Current sort criterium.
@@ -1300,6 +1301,7 @@ struct BuildVehicleWindow : Window {
 				break;
 
 			case VEH_AIRCRAFT:
+				this->filter.airtypes = this->listview_mode ? INVALID_AIRTYPES : depot->r_types.air_types;
 				break;
 		}
 	}

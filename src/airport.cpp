@@ -527,6 +527,8 @@ void Station::UpdateAirportDataStructure()
 
 	if (airport_area.tile == INVALID_TILE) return;
 
+	if (this->airport.hangar != nullptr) this->airport.hangar->r_types.air_types = AIRTYPES_NONE;
+
 	bool allow_landing = false;
 	for (TileIndex t : airport_area) {
 		if (!this->TileBelongsToAirport(t)) continue;
@@ -544,6 +546,7 @@ void Station::UpdateAirportDataStructure()
 				assert(this->airport.HasHangar());
 				this->airport.hangar->depot_tiles.emplace_back(t);
 				this->airport.hangar->xy = t;
+				this->airport.hangar->r_types.air_types |= (AirTypes)(1 << this->airport.air_type);
 				break;
 
 			case ATT_APRON_NORMAL:
