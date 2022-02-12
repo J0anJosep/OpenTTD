@@ -18,6 +18,7 @@
 #include "command_func.h"
 #include "company_func.h"
 #include "train.h"
+#include "air.h"
 #include "aircraft.h"
 #include "newgrf_debug.h"
 #include "newgrf_sound.h"
@@ -3224,6 +3225,14 @@ bool CanVehicleUseStation(EngineID engine_type, const Station *st)
 			return (st->facilities & FACIL_DOCK) != 0;
 
 		case VEH_AIRCRAFT:
+			if ((st->facilities & FACIL_AIRPORT) == 0) return false;
+			if (st->airport.type == AT_OILRIG && e->u.air.subtype == AIR_HELI) return true;
+			if (!IsCompatibleAirType(e->u.air.airtype, st->airport.air_type)) return false;
+
+			if (e->u.air.subtype & AIR_CTOL) return st->airport.HasLandingRunway();
+
+			return !st->airport.aprons.empty() ||
+					(e->u.air.subtype == AIR_HELI && (!st->airport.helipads.empty() || !st->airport.heliports.empty()));
 
 		default:
 			return false;
