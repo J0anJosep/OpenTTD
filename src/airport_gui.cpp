@@ -436,13 +436,6 @@ public:
 				top += GetCharacterHeight(FS_NORMAL) + WidgetDimensions::scaled.vsep_normal;
 			}
 
-			if (_settings_game.economy.infrastructure_maintenance) {
-				Money monthly = _price[PR_INFRASTRUCTURE_AIRPORT] * as->maintenance_cost >> 3;
-				SetDParam(0, monthly * 12);
-				DrawString(r.left, r.right, top, TimerGameEconomy::UsingWallclockUnits() ? STR_STATION_BUILD_INFRASTRUCTURE_COST_PERIOD : STR_STATION_BUILD_INFRASTRUCTURE_COST_YEAR);
-				top += GetCharacterHeight(FS_NORMAL) + WidgetDimensions::scaled.vsep_normal;
-			}
-
 			/* strings such as 'Size' and 'Coverage Area' */
 			top = DrawStationCoverageAreaText(r.left, r.right, top, SCT_ALL, rad, false) + WidgetDimensions::scaled.vsep_normal;
 			top = DrawStationCoverageAreaText(r.left, r.right, top, SCT_ALL, rad, true);
