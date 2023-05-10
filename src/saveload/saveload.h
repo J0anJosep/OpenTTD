@@ -394,6 +394,8 @@ enum SaveLoadVersion : uint16_t {
 	SLV_ALIGN_WATER_BITS,                   ///< 315  PR#XXXXX Align some water bits in the map array.
 	SLV_DEPOTS_ALIGN_RAIL_DEPOT_BITS,       ///< 316  PR#XXXXX Align one bit for rail depots.
 
+	SLV_KEEP_REMOVED_DEPOTS,                ///< 320  PR#XXXXX Keep remove depots for a while.
+
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 
