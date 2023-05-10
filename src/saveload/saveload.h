@@ -392,6 +392,7 @@ enum SaveLoadVersion : uint16_t {
 	SLV_ALLOW_INCOMPATIBLE_REPLACEMENTS,    ///< 344  PR#XXXXX Allow incompatible vehicle replacements.
 
 	SLV_ALIGN_WATER_BITS,                   ///< 315  PR#XXXXX Align some water bits in the map array.
+	SLV_DEPOTS_ALIGN_RAIL_DEPOT_BITS,       ///< 316  PR#XXXXX Align one bit for rail depots.
 
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
