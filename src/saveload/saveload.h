@@ -391,6 +391,8 @@ enum SaveLoadVersion : uint16_t {
 	SLV_DEPOT_SPREAD,                       ///< 343  PR#XXXXX Add a setting for max depot spread.
 	SLV_ALLOW_INCOMPATIBLE_REPLACEMENTS,    ///< 344  PR#XXXXX Allow incompatible vehicle replacements.
 
+	SLV_ALIGN_WATER_BITS,                   ///< 315  PR#XXXXX Align some water bits in the map array.
+
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 
