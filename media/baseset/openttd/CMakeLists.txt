@@ -27,7 +27,20 @@ if(GRFCODEC_FOUND)
                          ${CMAKE_CURRENT_SOURCE_DIR}/tunnel_portals.nfo
                          ${CMAKE_CURRENT_SOURCE_DIR}/2ccmap.nfo
         PNG_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/airports.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/airport_asphalt.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/airport_gravel.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/airport_preview.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/airport_water.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_city.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_commuter.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_helidepot.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_heliport.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_helistation.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_intercontinental.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_international.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_metropolitan.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_small.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/preview_small_temperate.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/aqueduct.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/autorail.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/canals.png
