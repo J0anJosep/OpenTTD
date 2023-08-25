@@ -1,0 +1,473 @@
+// This file is part of OpenTTD.
+// OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
+// OpenTTD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
+//
+   -1 * 0	 0C "Airtype graphics"
+   -1 * 3	 05 1A FF A7 01
+// gravel icons
+   -1 sprites/airport_gravel.png    8bpp   10    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp   35    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp   60    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp   85    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  110    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  135    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  160    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  185    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  210    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  235    10  20  20     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  260    10  20  20     0   0     normal
+// gravel cursors
+   -1 sprites/airport_gravel.png    8bpp   10    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp   45    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp   80    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  115    35  30  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  148    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  183    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  218    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  253    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  288    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  323    35  32  32     0   0     normal
+   -1 sprites/airport_gravel.png    8bpp  358    35  32  32     0   0     normal
+// Gravel ground
+   -1 sprites/airport_gravel.png    8bpp  500     10  64  31  -31   0     normal // +22
+   -1 sprites/airport_gravel.png    8bpp  575     10  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  650     10  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  725     10  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  800     10  64  31  -31   0     normal
+// Gravel middle runways
+   -1 sprites/airport_gravel.png    8bpp  950     10  64  31  -31   0     normal // +27
+   -1 sprites/airport_gravel.png    8bpp  875     10  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  950     92  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  875    133  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  950    133  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  875     51  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  950     51  64  31  -31   0     normal
+   -1 sprites/airport_gravel.png    8bpp  875     92  64  31  -31   0     normal
+// Gravel starting runways allow, not allow
+   -1 sprites/airport_gravel.png    8bpp 1025    10  64  31  -31    0     normal // +35
+   -1 sprites/airport_gravel.png    8bpp 1025   133  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1025    51  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1025    92  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1025   175  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1025   298  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1025   216  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1025   257  64  31  -31    0     normal
+// Gravel ending runways allow, not allow
+   -1 sprites/airport_gravel.png    8bpp 1100    10  64  31  -31    0     normal // +43
+   -1 sprites/airport_gravel.png    8bpp 1100   133  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1100    51  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1100    92  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1100   175  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1100   298  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1100   216  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1100   257  64  31  -31    0     normal
+// Hangars normal
+   -1 sprites/airport_gravel.png    8bpp  500    90  64  50   -3  -33     normal // +51
+   -1 sprites/airport_gravel.png    8bpp  580    90  64  50  -59  -33     normal
+   -1 sprites/airport_gravel.png    8bpp  660    90  64  50  -31  -19     normal
+   -1 sprites/airport_gravel.png    8bpp  740    90  64  50  -31  -19     normal
+// Hangars snow
+   -1 sprites/airport_gravel.png    8bpp  500   156  64  50   -3  -33     normal // +55
+   -1 sprites/airport_gravel.png    8bpp  580   156  64  50  -59  -33     normal
+   -1 sprites/airport_gravel.png    8bpp  660   156  64  50  -31  -19     normal
+   -1 sprites/airport_gravel.png    8bpp  740   156  64  50  -31  -19     normal
+// Hangars ground
+   -1 sprites/airport_gravel.png    8bpp  500   240  64  31  -31    0     normal // +59
+   -1 sprites/airport_gravel.png    8bpp  575   240  64  31  -31    0     normal
+// Hangars back
+   -1 sprites/airport_gravel.png    8bpp  500   290  64  30  -31   -1     normal // +61
+   -1 sprites/airport_gravel.png    8bpp  575   290  64  30  -31   -1     normal
+// Aprons
+   -1 sprites/airport_gravel.png    8bpp  500    50  64  31  -31    0     normal // +63
+   -1 sprites/airport_gravel.png    8bpp  575    50  64  31  -31    0     normal
+   -1 sprites/airport_gravel.png    8bpp 1175    10  64  87  -31  -56     normal // heliport
+   -1 sprites/airport_gravel.png    8bpp 1255    10  64  87  -31  -56     normal
+   -1 sprites/airport_gravel.png    8bpp 1335    10  64  87  -31  -56     normal
+   -1 sprites/airport_gravel.png    8bpp 1415    10  64  87  -31  -56     normal
+   -1 sprites/airport_gravel.png    8bpp 1175   105  64  87  -31  -56     normal // heliport snow
+   -1 sprites/airport_gravel.png    8bpp 1255   105  64  87  -31  -56     normal
+   -1 sprites/airport_gravel.png    8bpp 1335   105  64  87  -31  -56     normal
+   -1 sprites/airport_gravel.png    8bpp 1415   105  64  87  -31  -56     normal
+// infrastructure: transmitter
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal // transmitter
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal // snowed transmitter (to do)
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_gravel.png   8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_gravel.png   8bpp 1175   200  50  79  -25  -68     normal // tower
+   -1 sprites/airport_gravel.png   8bpp 1235   200  50  79  -25  -68     normal
+   -1 sprites/airport_gravel.png   8bpp 1295   200  50  79  -25  -68     normal
+   -1 sprites/airport_gravel.png   8bpp 1355   200  50  79  -25  -68     normal
+   -1 sprites/airport_gravel.png   8bpp 1175   289  50  79  -25  -68     normal // snowed tower
+   -1 sprites/airport_gravel.png   8bpp 1235   289  50  79  -25  -68     normal
+   -1 sprites/airport_gravel.png   8bpp 1295   289  50  79  -25  -68     normal
+   -1 sprites/airport_gravel.png   8bpp 1355   289  50  79  -25  -68     normal
+// Catchment buildings: 5 buildings x 4 = 20
+   -1 sprites/airport_gravel.png   8bpp  430   360  64  30  -32    1     normal // 1
+   -1 sprites/airport_gravel.png   8bpp  500   360  64  31  -32    0     normal
+   -1 sprites/airport_gravel.png   8bpp  290   360  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp  360   360  64  32  -32   -1     normal
+   -1 sprites/airport_gravel.png   8bpp  150   360  64  47  -32  -16     normal // 2
+   -1 sprites/airport_gravel.png   8bpp  220   360  64  50  -32  -19     normal
+   -1 sprites/airport_gravel.png   8bpp   10   360  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp   80   360  64  32  -32   -1     normal
+   -1 sprites/airport_gravel.png   8bpp 1705   360  64  32  -32   -1     normal // 3
+   -1 sprites/airport_gravel.png   8bpp 1500   360  64  57  -32  -26     normal
+   -1 sprites/airport_gravel.png   8bpp 1570   360  64  53  -32  -22     normal
+   -1 sprites/airport_gravel.png   8bpp 1640   360  64  46  -32  -15     normal
+   -1 sprites/airport_gravel.png   8bpp  835   400  64  36  -32   -5     normal // 4
+   -1 sprites/airport_gravel.png   8bpp  910   400  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp  985   400  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp 1060   400  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp 1140   400  64  41  -31  -16     normal // 5
+   -1 sprites/airport_gravel.png   8bpp 1215   400  64  41  -31  -16     normal
+   -1 sprites/airport_gravel.png   8bpp 1140   400  64  41  -31  -16     normal
+   -1 sprites/airport_gravel.png   8bpp 1215   400  64  41  -31  -16     normal
+// Snowed catchment buildings: 5 buildings x 4 = 20
+   -1 sprites/airport_gravel.png   8bpp  430   427  64  30  -32    1     normal // 1
+   -1 sprites/airport_gravel.png   8bpp  500   427  64  31  -32    0     normal
+   -1 sprites/airport_gravel.png   8bpp  290   427  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp  360   427  64  32  -32   -1     normal
+   -1 sprites/airport_gravel.png   8bpp  150   427  64  47  -32  -16     normal // 2
+   -1 sprites/airport_gravel.png   8bpp  220   427  64  50  -32  -19     normal
+   -1 sprites/airport_gravel.png   8bpp   10   427  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp   80   427  64  32  -32   -1     normal
+   -1 sprites/airport_gravel.png   8bpp 1705   427  64  32  -32   -1     normal // 3
+   -1 sprites/airport_gravel.png   8bpp 1500   427  64  57  -32  -26     normal
+   -1 sprites/airport_gravel.png   8bpp 1570   427  64  53  -32  -22     normal
+   -1 sprites/airport_gravel.png   8bpp 1640   427  64  46  -32  -15     normal
+   -1 sprites/airport_gravel.png   8bpp  835   400  64  36  -32   -5     normal // 4
+   -1 sprites/airport_gravel.png   8bpp  910   400  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp  985   400  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp 1060   400  64  36  -32   -5     normal
+   -1 sprites/airport_gravel.png   8bpp 1140   400  64  41  -31  -16     normal // 5
+   -1 sprites/airport_gravel.png   8bpp 1215   400  64  41  -31  -16     normal
+   -1 sprites/airport_gravel.png   8bpp 1140   400  64  41  -31  -16     normal
+   -1 sprites/airport_gravel.png   8bpp 1215   400  64  41  -31  -16     normal
+// icons   asphalt
+   -1 sprites/airport_asphalt.png   8bpp   10    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp   35    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp   60    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp   85    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  110    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  135    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  160    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  185    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  210    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  235    10  20  20    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  260    10  20  20    0    0     normal
+// cursors asphalt
+   -1 sprites/airport_asphalt.png   8bpp   10    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp   45    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp   80    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  115    35  30  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  148    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  183    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  218    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  253    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  288    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  323    35  32  32    0    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  358    35  32  32    0    0     normal
+// Asphalt ground
+   -1 sprites/airport_asphalt.png   8bpp  500    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  575    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  650    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  725    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  800    10  64  31  -31    0     normal
+// Asphalt middle runways
+   -1 sprites/airport_asphalt.png   8bpp  950    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  875    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  950    92  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  875   133  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  950   133  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  875    51  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  950    51  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  875    92  64  31  -31    0     normal
+// Asphalt starting runways allow, not allow
+   -1 sprites/airport_asphalt.png   8bpp 1025    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025   133  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025    51  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025    92  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025   175  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025   298  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025   216  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1025   257  64  31  -31    0     normal
+// Asphalt ending runways allow, not allow
+   -1 sprites/airport_asphalt.png   8bpp 1100    10  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100   133  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100    51  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100    92  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100   175  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100   298  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100   216  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1100   257  64  31  -31    0     normal
+// Hangars normal
+   -1 sprites/airport_asphalt.png   8bpp  500    90  64  53   -3  -36     normal
+   -1 sprites/airport_asphalt.png   8bpp  575    90  64  53  -59  -36     normal
+   -1 sprites/airport_asphalt.png   8bpp  650    90  64  53  -33  -21     normal
+   -1 sprites/airport_asphalt.png   8bpp  725    90  64  53  -33  -21     normal
+// Hangars snow
+   -1 sprites/airport_asphalt.png   8bpp  500   165  64  53   -4  -34     normal
+   -1 sprites/airport_asphalt.png   8bpp  575   165  64  53  -30  -35     normal
+   -1 sprites/airport_asphalt.png   8bpp  650   165  64  53  -32  -20     normal
+   -1 sprites/airport_asphalt.png   8bpp  725   165  64  53  -32  -20     normal
+// Hangars ground
+   -1 sprites/airport_asphalt.png   8bpp  500   240  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  575   240  64  31  -31    0     normal
+// Hangars back
+   -1 sprites/airport_asphalt.png   8bpp  500   290  64  30  -31   -1     normal
+   -1 sprites/airport_asphalt.png   8bpp  575   290  64  30  -31   -1     normal
+// Aprons
+   -1 sprites/airport_asphalt.png   8bpp  500    50  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp  575    50  64  31  -31    0     normal
+   -1 sprites/airport_asphalt.png   8bpp 1175    10  64  87  -31  -56     normal // heliport
+   -1 sprites/airport_asphalt.png   8bpp 1255    10  64  87  -31  -56     normal
+   -1 sprites/airport_asphalt.png   8bpp 1335    10  64  87  -31  -56     normal
+   -1 sprites/airport_asphalt.png   8bpp 1415    10  64  87  -31  -56     normal
+   -1 sprites/airport_asphalt.png   8bpp 1175   105  64  87  -31  -56     normal // heliport snow
+   -1 sprites/airport_asphalt.png   8bpp 1255   105  64  87  -31  -56     normal
+   -1 sprites/airport_asphalt.png   8bpp 1335   105  64  87  -31  -56     normal
+   -1 sprites/airport_asphalt.png   8bpp 1415   105  64  87  -31  -56     normal
+// Infrastructure without catchment (transmitter)
+   -1 sprites/airport_asphalt.png   8bpp 1430   200  44  91  -22  -80     normal //advanced transmitter
+   -1 sprites/airport_asphalt.png   8bpp 1430   200  44  91  -22  -80     normal
+   -1 sprites/airport_asphalt.png   8bpp 1430   200  44  91  -22  -80     normal
+   -1 sprites/airport_asphalt.png   8bpp 1430   200  44  91  -22  -80     normal
+   -1 sprites/airport_asphalt.png   8bpp 1430   300  44  91  -22  -80     normal // advanced snoed transmitter
+   -1 sprites/airport_asphalt.png   8bpp 1430   300  44  91  -22  -80     normal
+   -1 sprites/airport_asphalt.png   8bpp 1430   300  44  91  -22  -80     normal
+   -1 sprites/airport_asphalt.png   8bpp 1430   300  44  91  -22  -80     normal
+   -1 sprites/airport_asphalt.png   8bpp 1175   200  50  79  -25  -68     normal // tower
+   -1 sprites/airport_asphalt.png   8bpp 1235   200  50  79  -25  -68     normal
+   -1 sprites/airport_asphalt.png   8bpp 1295   200  50  79  -25  -68     normal
+   -1 sprites/airport_asphalt.png   8bpp 1355   200  50  79  -25  -68     normal
+   -1 sprites/airport_asphalt.png   8bpp 1175   289  50  79  -25  -68     normal // snowed tower
+   -1 sprites/airport_asphalt.png   8bpp 1235   289  50  79  -25  -68     normal
+   -1 sprites/airport_asphalt.png   8bpp 1295   289  50  79  -25  -68     normal
+   -1 sprites/airport_asphalt.png   8bpp 1355   289  50  79  -25  -68     normal
+// Catchment buildings: 5 buildings x 4 = 20
+   -1 sprites/airport_asphalt.png    8bpp   10   335  64  55  -32  -24     normal // 1
+   -1 sprites/airport_asphalt.png    8bpp   85   335  64  55  -32  -24     normal
+   -1 sprites/airport_asphalt.png    8bpp  160   335  64  55  -32  -24     normal
+   -1 sprites/airport_asphalt.png    8bpp  234   335  64  55  -32  -24     normal
+   -1 sprites/airport_asphalt.png    8bpp  310   335  64  74  -32  -43     normal // 2
+   -1 sprites/airport_asphalt.png    8bpp  385   335  64  74  -32  -43     normal
+   -1 sprites/airport_asphalt.png    8bpp  460   335  64  74  -32  -43     normal
+   -1 sprites/airport_asphalt.png    8bpp  535   335  64  74  -32  -43     normal
+   -1 sprites/airport_asphalt.png    8bpp  615   335  42  53  -21  -28     normal // 3
+   -1 sprites/airport_asphalt.png    8bpp  670   335  42  53  -21  -28     normal
+   -1 sprites/airport_asphalt.png    8bpp  725   335  42  53  -21  -28     normal
+   -1 sprites/airport_asphalt.png    8bpp  780   335  42  53  -21  -28     normal
+   -1 sprites/airport_asphalt.png    8bpp  835   400  64  36  -32  -5      normal // 4
+   -1 sprites/airport_asphalt.png    8bpp  910   400  64  36  -32  -5      normal
+   -1 sprites/airport_asphalt.png    8bpp  985   400  64  36  -32  -5      normal
+   -1 sprites/airport_asphalt.png    8bpp 1060   400  64  36  -32  -5      normal
+   -1 sprites/airport_asphalt.png    8bpp 1140   400  64  41  -31  -16     normal // 5
+   -1 sprites/airport_asphalt.png    8bpp 1215   400  64  41  -31  -16     normal
+   -1 sprites/airport_asphalt.png    8bpp 1140   400  64  41  -31  -16     normal
+   -1 sprites/airport_asphalt.png    8bpp 1215   400  64  41  -31  -16     normal
+// Snowed catchment buildings: 5 buildings x 4 = 20
+   -1 sprites/airport_asphalt.png    8bpp   10   410  64  55  -32  -24     normal // 1
+   -1 sprites/airport_asphalt.png    8bpp   85   410  64  55  -32  -24     normal
+   -1 sprites/airport_asphalt.png    8bpp  160   410  64  55  -32  -24     normal
+   -1 sprites/airport_asphalt.png    8bpp  234   410  64  55  -32  -24     normal
+   -1 sprites/airport_asphalt.png    8bpp  310   415  64  74  -32  -43     normal // 2
+   -1 sprites/airport_asphalt.png    8bpp  385   415  64  74  -32  -43     normal
+   -1 sprites/airport_asphalt.png    8bpp  460   415  64  74  -32  -43     normal
+   -1 sprites/airport_asphalt.png    8bpp  535   415  64  74  -32  -43     normal
+   -1 sprites/airport_asphalt.png    8bpp  615   400  42  53  -21  -28     normal // 3
+   -1 sprites/airport_asphalt.png    8bpp  670   400  42  53  -21  -28     normal
+   -1 sprites/airport_asphalt.png    8bpp  725   400  42  53  -21  -28     normal
+   -1 sprites/airport_asphalt.png    8bpp  780   400  42  53  -21  -28     normal
+   -1 sprites/airport_asphalt.png    8bpp  835   445  64  36  -32  -5      normal // 4
+   -1 sprites/airport_asphalt.png    8bpp  910   445  64  36  -32  -5      normal
+   -1 sprites/airport_asphalt.png    8bpp  985   445  64  36  -32  -5      normal
+   -1 sprites/airport_asphalt.png    8bpp 1060   445  64  36  -32  -5      normal
+   -1 sprites/airport_asphalt.png    8bpp 1140   450  64  41  -31  -16     normal // 5
+   -1 sprites/airport_asphalt.png    8bpp 1215   450  64  41  -31  -16     normal
+   -1 sprites/airport_asphalt.png    8bpp 1140   450  64  41  -31  -16     normal
+   -1 sprites/airport_asphalt.png    8bpp 1215   450  64  41  -31  -16     normal
+// water icons
+   -1 sprites/airport_water.png     8bpp   10    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp   35    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp   60    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp   85    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  110    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  135    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  160    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  185    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  210    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  235    10  20  20    0    0     normal
+   -1 sprites/airport_water.png     8bpp  260    10  20  20    0    0     normal
+// water cursors
+   -1 sprites/airport_water.png     8bpp   10    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp   45    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp   80    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  115    35  30  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  148    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  183    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  218    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  253    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  288    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  323    35  32  32    0    0     normal
+   -1 sprites/airport_water.png     8bpp  358    35  32  32    0    0     normal
+// Water ground 5
+   -1 sprites/airport_water.png     8bpp  500    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  575    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  650    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  725    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  800    10  64  31  -31    0     normal
+// Water middle runways 8
+   -1 sprites/airport_water.png     8bpp  950    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  875    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  950    92  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  875   133  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  950   133  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  875    51  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  950    51  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  875    92  64  31  -31    0     normal
+// Water starting runways allow, not allow 8
+   -1 sprites/airport_water.png     8bpp 1025    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025   133  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025    51  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025    92  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025   175  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025   298  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025   216  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1025   257  64  31  -31    0     normal
+// Water ending runways allow, not allow 8
+   -1 sprites/airport_water.png     8bpp 1100    10  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100   133  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100    51  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100    92  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100   175  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100   298  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100   216  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1100   257  64  31  -31    0     normal
+// Hangars normal 4
+   -1 sprites/airport_water.png     8bpp  500    90  64  50   -3  -33     normal
+   -1 sprites/airport_water.png     8bpp  580    90  64  50  -59  -33     normal
+   -1 sprites/airport_water.png     8bpp  660    90  64  50  -31  -19     normal
+   -1 sprites/airport_water.png     8bpp  740    90  64  50  -31  -19     normal
+// Hangars snow 4
+   -1 sprites/airport_water.png     8bpp  500   165  64  50   -3  -33     normal
+   -1 sprites/airport_water.png     8bpp  580   165  64  50  -59  -33     normal
+   -1 sprites/airport_water.png     8bpp  660   165  64  50  -31  -19     normal
+   -1 sprites/airport_water.png     8bpp  740   165  64  50  -31  -19     normal
+// Hangars ground 2
+   -1 sprites/airport_water.png     8bpp  500   240  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  575   240  64  31  -31    0     normal
+// Hangars back 2
+   -1 sprites/airport_water.png     8bpp  500   290  64  30  -31   -1     normal
+   -1 sprites/airport_water.png     8bpp  575   290  64  30  -31   -1     normal
+// Aprons 10
+   -1 sprites/airport_water.png     8bpp  500    50  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp  575    50  64  31  -31    0     normal
+   -1 sprites/airport_water.png     8bpp 1175    10  64  87  -31  -56     normal // heliport
+   -1 sprites/airport_water.png     8bpp 1255    10  64  87  -31  -56     normal
+   -1 sprites/airport_water.png     8bpp 1335    10  64  87  -31  -56     normal
+   -1 sprites/airport_water.png     8bpp 1415    10  64  87  -31  -56     normal
+   -1 sprites/airport_water.png     8bpp 1175   105  64  87  -31  -56     normal // heliport snow
+   -1 sprites/airport_water.png     8bpp 1255   105  64  87  -31  -56     normal
+   -1 sprites/airport_water.png     8bpp 1335   105  64  87  -31  -56     normal
+   -1 sprites/airport_water.png     8bpp 1415   105  64  87  -31  -56     normal
+// Infrastructure without catchment (tower) 16
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal // transmitter
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal // snowed transmitter (to do)
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_water.png     8bpp 1430   400  64  96  -31  -80     normal
+   -1 sprites/airport_water.png     8bpp 1175   200  50  79  -25  -68     normal // tower
+   -1 sprites/airport_water.png     8bpp 1235   200  50  79  -25  -68     normal
+   -1 sprites/airport_water.png     8bpp 1295   200  50  79  -25  -68     normal
+   -1 sprites/airport_water.png     8bpp 1355   200  50  79  -25  -68     normal
+   -1 sprites/airport_water.png     8bpp 1175   289  50  79  -25  -68     normal // snowed tower
+   -1 sprites/airport_water.png     8bpp 1235   289  50  79  -25  -68     normal
+   -1 sprites/airport_water.png     8bpp 1295   289  50  79  -25  -68     normal
+   -1 sprites/airport_water.png     8bpp 1355   289  50  79  -25  -68     normal
+// Catchment buildings: 5 buildings x 4 = 20
+   -1 sprites/airport_water.png     8bpp   10   335  64  55  -32  -24     normal // 1
+   -1 sprites/airport_water.png     8bpp   85   335  64  55  -32  -24     normal
+   -1 sprites/airport_water.png     8bpp  160   335  64  55  -32  -24     normal
+   -1 sprites/airport_water.png     8bpp  234   335  64  55  -32  -24     normal
+   -1 sprites/airport_water.png     8bpp  310   335  64  74  -32  -43     normal // 2
+   -1 sprites/airport_water.png     8bpp  385   335  64  74  -32  -43     normal
+   -1 sprites/airport_water.png     8bpp  460   335  64  74  -32  -43     normal
+   -1 sprites/airport_water.png     8bpp  535   335  64  74  -32  -43     normal
+   -1 sprites/airport_water.png     8bpp  615   335  42  53  -21  -28     normal // 3
+   -1 sprites/airport_water.png     8bpp  670   335  42  53  -21  -28     normal
+   -1 sprites/airport_water.png     8bpp  725   335  42  53  -21  -28     normal
+   -1 sprites/airport_water.png     8bpp  780   335  42  53  -21  -28     normal
+   -1 sprites/airport_water.png     8bpp  835   400  64  36  -32  -5      normal // 4
+   -1 sprites/airport_water.png     8bpp  910   400  64  36  -32  -5      normal
+   -1 sprites/airport_water.png     8bpp  985   400  64  36  -32  -5      normal
+   -1 sprites/airport_water.png     8bpp 1060   400  64  36  -32  -5      normal
+   -1 sprites/airport_water.png     8bpp 1140   400  64  41  -31  -16     normal // 5
+   -1 sprites/airport_water.png     8bpp 1215   400  64  41  -31  -16     normal
+   -1 sprites/airport_water.png     8bpp 1140   400  64  41  -31  -16     normal
+   -1 sprites/airport_water.png     8bpp 1215   400  64  41  -31  -16     normal
+// Snowed catchment buildings: 5 buildings x 4 = 20
+   -1 sprites/airport_water.png    8bpp   10   410  64  55  -32  -24     normal // 1
+   -1 sprites/airport_water.png    8bpp   85   410  64  55  -32  -24     normal
+   -1 sprites/airport_water.png    8bpp  160   410  64  55  -32  -24     normal
+   -1 sprites/airport_water.png    8bpp  234   410  64  55  -32  -24     normal
+   -1 sprites/airport_water.png    8bpp  310   415  64  74  -32  -43     normal // 2
+   -1 sprites/airport_water.png    8bpp  385   415  64  74  -32  -43     normal
+   -1 sprites/airport_water.png    8bpp  460   415  64  74  -32  -43     normal
+   -1 sprites/airport_water.png    8bpp  535   415  64  74  -32  -43     normal
+   -1 sprites/airport_water.png    8bpp  615   400  42  53  -21  -28     normal // 3
+   -1 sprites/airport_water.png    8bpp  670   400  42  53  -21  -28     normal
+   -1 sprites/airport_water.png    8bpp  725   400  42  53  -21  -28     normal
+   -1 sprites/airport_water.png    8bpp  780   400  42  53  -21  -28     normal
+   -1 sprites/airport_water.png    8bpp  835   445  64  36  -32  -5      normal // 4
+   -1 sprites/airport_water.png    8bpp  910   445  64  36  -32  -5      normal
+   -1 sprites/airport_water.png    8bpp  985   445  64  36  -32  -5      normal
+   -1 sprites/airport_water.png    8bpp 1060   445  64  36  -32  -5      normal
+   -1 sprites/airport_water.png    8bpp 1140   450  64  41  -31  -16     normal // 5
+   -1 sprites/airport_water.png    8bpp 1215   450  64  41  -31  -16     normal
+   -1 sprites/airport_water.png    8bpp 1140   450  64  41  -31  -16     normal
+   -1 sprites/airport_water.png    8bpp 1215   450  64  41  -31  -16     normal
+// previews
+   -1 sprites/preview_small_temperate.png 8bpp         20   20 224 130  0  0 normal
+   -1 sprites/preview_small_temperate.png 8bpp         20  166 224 130  0  0 normal
+   -1 sprites/preview_small_temperate.png 8bpp         20  312 224 130  0  0 normal
+   -1 sprites/preview_small_temperate.png 8bpp         20  458 224 130  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20   20 192 114  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20  150 192 114  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20  280 192 114  0  0 normal
+   -1 sprites/preview_city.png 8bpp                    20  410 192 114  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp                20   20  64  87  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp               100   20  64  87  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp               180   20  64  87  0  0 normal
+   -1 sprites/preview_heliport.png 8bpp               260   20  64  87  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20   20 192 114  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20  150 192 114  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20  280 192 114  0  0 normal
+   -1 sprites/preview_metropolitan.png 8bpp            20  410 192 114  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20   20 225 138  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20  174 225 138  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20  328 225 138  0  0 normal
+   -1 sprites/preview_international.png 8bpp           20  482 225 138  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20   20 144  99  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20  129 144  99  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20  238 144  99  0  0 normal
+   -1 sprites/preview_commuter.png 8bpp                20  347 144  99  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp               20   20 128  69  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp              150   20 128  85  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp               20  109 128  67  0  0 normal
+   -1 sprites/preview_helidepot.png 8bpp              150  107 128  69  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20   20 160  85  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20  121 160  85  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20  222 160  85  0  0 normal
+   -1 sprites/preview_intercontinental.png 8bpp        20  323 160  85  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp             20   20 192 117  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp            214   38 192  99  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp             20  139 192  99  0  0 normal
+   -1 sprites/preview_helistation.png 8bpp            214  139 192 101  0  0 normal

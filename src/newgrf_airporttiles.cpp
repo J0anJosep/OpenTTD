@@ -96,7 +96,7 @@ void AirportTileOverrideManager::SetEntitySpec(const AirportTileSpec *airpts)
 StationGfx GetTranslatedAirportTileID(StationGfx gfx)
 {
 	const AirportTileSpec *it = AirportTileSpec::Get(gfx);
-	return it->grf_prop.override == INVALID_AIRPORTTILE ? gfx : it->grf_prop.override;
+	return it->grf_prop.override == (StationGfx)INVALID_AIRPORTTILE ? gfx : it->grf_prop.override;
 }
 
 /**

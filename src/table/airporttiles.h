@@ -104,7 +104,28 @@ static const AirportTileSpec _origin_airporttile_specs[] = {
 	AT(3, 1), // APT_GRASS_FENCE_NE_FLAG_2
 };
 
+/**
+ * All default airtype tiles.
+ * @see AirportTiles for a list of names.
+ */
+static const AirportTileSpec _origin_airtype_specs[] = {
+	/* 0..9 */
+	AT_NOANIM,
+	AT_NOANIM,
+	AT_NOANIM,
+	AT_NOANIM,
+	AT_NOANIM,
+	AT(3, 1),
+	AT_NOANIM,
+	AT_NOANIM,
+	AT(11, 2),
+	AT_NOANIM,
+
+	AT_NOANIM,
+};
+
 static_assert(NEW_AIRPORTTILE_OFFSET == lengthof(_origin_airporttile_specs));
+static_assert(ATTG_END == lengthof(_origin_airtype_specs));
 
 #undef AT_NOANIM
 #undef AT

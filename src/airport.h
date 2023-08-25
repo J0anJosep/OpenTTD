@@ -21,8 +21,8 @@ static const uint MAX_ELEMENTS  = 255;                       ///< maximum number
 static const uint NUM_AIRPORTTILES_PER_GRF = 255;            ///< Number of airport tiles per NewGRF; limited to 255 to allow extending Action3 with an extended byte later on.
 
 static const uint NUM_AIRPORTTILES       = 256;              ///< Total number of airport tiles.
-static const uint NEW_AIRPORTTILE_OFFSET = 74;               ///< offset of first newgrf airport tile
-static const uint INVALID_AIRPORTTILE    = NUM_AIRPORTTILES; ///< id for an invalid airport tile
+static const uint NEW_AIRPORTTILE_OFFSET = 74;               ///< offset of first newgrf airport tilex
+static const uint NUM_AIRTYPE_INFRATILES = 11;               ///< Total number of infrastructure tiles by airtype.
 
 /** Airport types */
 enum AirportTypes {
