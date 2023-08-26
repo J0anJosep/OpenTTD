@@ -64,6 +64,4 @@ inline Money StationMaintenanceCost(uint32_t num)
 	return (_price[PR_INFRASTRUCTURE_STATION] * num * (1 + IntSqrt(num))) >> 7; // 7 bits scaling.
 }
 
-Money AirportMaintenanceCost(Owner owner);
-
 #endif /* STATION_FUNC_H */

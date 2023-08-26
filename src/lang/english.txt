@@ -4028,10 +4028,9 @@ STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT                      :{GOLD}Water til
 STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS                          :{WHITE}Canals
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT                    :{GOLD}Stations:
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS                        :{WHITE}Station tiles
-STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS                        :{WHITE}Airport tiles
 STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL_YEAR                      :{WHITE}{1:CURRENCY_LONG}/year ({0:COMMA})
 STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL_PERIOD                    :{WHITE}{1:CURRENCY_LONG}/period ({0:COMMA})
-STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL                           :{WHITE}{CURRENCY_LONG}/year
+STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORT_SECT                    :{GOLD}Airport pieces:
 
 # Industry directory
 STR_INDUSTRY_DIRECTORY_CAPTION                                  :{WHITE}Industries ({COMMA} of {COMMA})

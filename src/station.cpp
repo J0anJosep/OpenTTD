@@ -675,24 +675,6 @@ StationRect& StationRect::operator = (const Rect &src)
 	return *this;
 }
 
-/**
- * Calculates the maintenance cost of all airports of a company.
- * @param owner Company.
- * @return Total cost.
- */
-Money AirportMaintenanceCost(Owner owner)
-{
-	Money total_cost = 0;
-
-	for (const Station *st : Station::Iterate()) {
-		if (st->owner == owner && (st->facilities & FACIL_AIRPORT)) {
-			total_cost += _price[PR_INFRASTRUCTURE_AIRPORT] * st->airport.GetSpec()->maintenance_cost;
-		}
-	}
-	/* 3 bits fraction for the maintenance cost factor. */
-	return total_cost >> 3;
-}
-
 DepotID GetHangarIndex(TileIndex t) {
 	assert(IsAirportTile(t));
 	assert(Station::GetByTile(t)->airport.hangar != nullptr);
