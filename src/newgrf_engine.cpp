@@ -21,6 +21,7 @@
 #include "aircraft.h"
 #include "station_base.h"
 #include "company_base.h"
+#include "newgrf_airtype.h"
 #include "newgrf_railtype.h"
 #include "newgrf_roadtype.h"
 #include "ship.h"
@@ -688,6 +689,13 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 					if (tile_type == param_type) return 0x0F;
 					return (HasPowerOnRoad(param_type, tile_type) ? 0x06 : 0x00) |
 							0x01;
+				}
+				case VEH_AIRCRAFT: {
+					AirType param_type = GetAirTypeTranslation(parameter, object->ro.grffile);
+					if (param_type == INVALID_AIRTYPE) return 0x00;
+					AirType tile_type = GetAirType(v->tile);
+					if (tile_type == param_type) return 0x0F;
+					return 0x01;
 				}
 				default: return 0x00;
 			}

@@ -160,7 +160,7 @@ static const AirTypeInfo _original_airtypes[] = {
 		40,
 
 		/* Gravel type label. */
-		'GRVL',
+		AIRTYPE_LABEL_GRAVEL,
 
 		/* alternate labels */
 		AirTypeLabelList(),
@@ -344,7 +344,7 @@ static const AirTypeInfo _original_airtypes[] = {
 		80,
 
 		/* Gravel type label. */
-		'ASPH',
+		AIRTYPE_LABEL_ASPHALT,
 
 		/* alternate labels */
 		AirTypeLabelList(),
@@ -528,7 +528,7 @@ static const AirTypeInfo _original_airtypes[] = {
 		35,
 
 		/* Gravel type label. */
-		'WATR',
+		AIRTYPE_LABEL_WATER,
 
 		/* alternate labels */
 		AirTypeLabelList(),
