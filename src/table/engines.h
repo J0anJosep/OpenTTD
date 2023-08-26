@@ -542,6 +542,7 @@ static const RailVehicleInfo _orig_rail_vehicle_info[] = {
 #undef O
 #undef C
 #undef R
+#undef A
 #undef V
 #undef N
 #undef E
@@ -596,62 +597,74 @@ static const ShipVehicleInfo _orig_ship_vehicle_info[] = {
  * @param g max_speed (1 unit = 8 mph = 12.8 km-ish/h) (is converted to km-ish/h by the macro)
  * @param h mail_capacity (bags)
  * @param i passenger_capacity (persons)
+ * @param j air type
  */
-#define AVI(a, b, c, d, e, f, g, h, i) { a, b, c, d, e, f, (g * 128) / 10, h, i, 0 }
+#define AVI(a, b, c, d, e, f, g, h, i, j) { a, b, c, d, e, f, (g * 128) / 10, h, i, 0, j }
 #define H AIR_HELI
 #define P AIR_CTOL
 #define J AIR_CTOL | AIR_FAST
+
+#define G AIRTYPE_GRAVEL
+#define A AIRTYPE_ASPHALT
+#define W AIRTYPE_WATER
+
 static const AircraftVehicleInfo _orig_aircraft_vehicle_info[] = {
 	/*    image_index         sfx                             acceleration
 	 *    |   cost_factor     |                               |    max_speed
 	 *    |   |    running_cost                               |    |   mail_capacity
 	 *    |   |    |  subtype |                               |    |   |    passenger_capacity
-	 *    |   |    |  |       |                               |    |   |    | */
-	AVI(  1, 14,  85, P, SND_08_TAKEOFF_PROPELLER,           18,  37,  4,  25 ), //  0 Sampson U52
-	AVI(  0, 15, 100, P, SND_08_TAKEOFF_PROPELLER,           20,  37,  8,  65 ), //  1 Coleman Count
-	AVI(  2, 16, 130, J, SND_09_TAKEOFF_JET,                 35,  74, 10,  90 ), //  2 FFP Dart
-	AVI(  8, 75, 250, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 20, 100 ), //  3 Yate Haugan
-	AVI(  5, 15,  98, P, SND_08_TAKEOFF_PROPELLER,           20,  37,  6,  30 ), //  4 Bakewell Cotswald LB-3
-	AVI(  6, 18, 240, J, SND_09_TAKEOFF_JET,                 40,  74, 30, 200 ), //  5 Bakewell Luckett LB-8
-	AVI(  2, 17, 150, P, SND_09_TAKEOFF_JET,                 35,  74, 15, 100 ), //  6 Bakewell Luckett LB-9
-	AVI(  2, 18, 245, J, SND_09_TAKEOFF_JET,                 40,  74, 30, 150 ), //  7 Bakewell Luckett LB80
-	AVI(  3, 19, 192, J, SND_09_TAKEOFF_JET,                 40,  74, 40, 220 ), //  8 Bakewell Luckett LB-10
-	AVI(  3, 20, 190, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 230 ), //  9 Bakewell Luckett LB-11
-	AVI(  2, 16, 135, J, SND_09_TAKEOFF_JET,                 35,  74, 10,  95 ), // 10 Yate Aerospace YAC 1-11
-	AVI(  2, 18, 240, J, SND_09_TAKEOFF_JET,                 40,  74, 35, 170 ), // 11 Darwin 100
-	AVI(  4, 17, 155, J, SND_09_TAKEOFF_JET,                 40,  74, 15, 110 ), // 12 Darwin 200
-	AVI(  7, 30, 253, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 50, 300 ), // 13 Darwin 300
-	AVI(  4, 18, 210, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 200 ), // 14 Darwin 400
-	AVI(  4, 19, 220, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 240 ), // 15 Darwin 500
-	AVI(  4, 27, 230, J, SND_09_TAKEOFF_JET,                 40,  74, 40, 260 ), // 16 Darwin 600
-	AVI(  3, 25, 225, J, SND_09_TAKEOFF_JET,                 40,  74, 35, 240 ), // 17 Guru Galaxy
-	AVI(  4, 20, 235, J, SND_09_TAKEOFF_JET,                 40,  74, 30, 260 ), // 18 Airtaxi A21
-	AVI(  4, 19, 220, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 210 ), // 19 Airtaxi A31
-	AVI(  4, 18, 170, J, SND_09_TAKEOFF_JET,                 40,  74, 20, 160 ), // 20 Airtaxi A32
-	AVI(  4, 26, 210, J, SND_09_TAKEOFF_JET,                 40,  74, 20, 220 ), // 21 Airtaxi A33
-	AVI(  6, 16, 125, P, SND_09_TAKEOFF_JET,                 50,  74, 10,  80 ), // 22 Yate Aerospace YAe46
-	AVI(  2, 17, 145, P, SND_09_TAKEOFF_JET,                 40,  74, 10,  85 ), // 23 Dinger 100
-	AVI( 11, 16, 130, P, SND_09_TAKEOFF_JET,                 40,  74, 10,  75 ), // 24 AirTaxi A34-1000
-	AVI( 10, 16, 149, P, SND_09_TAKEOFF_JET,                 40,  74, 10,  85 ), // 25 Yate Z-Shuttle
-	AVI( 15, 17, 170, P, SND_09_TAKEOFF_JET,                 40,  74, 18,  65 ), // 26 Kelling K1
-	AVI( 12, 18, 210, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 110 ), // 27 Kelling K6
-	AVI( 13, 20, 230, J, SND_09_TAKEOFF_JET,                 40,  74, 60, 180 ), // 28 Kelling K7
-	AVI( 14, 21, 220, J, SND_09_TAKEOFF_JET,                 40,  74, 65, 150 ), // 29 Darwin 700
-	AVI( 16, 19, 160, J, SND_09_TAKEOFF_JET,                 40, 181, 45,  85 ), // 30 FFP Hyperdart 2
-	AVI( 17, 24, 248, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 80, 400 ), // 31 Dinger 200
-	AVI( 18, 80, 251, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 45, 130 ), // 32 Dinger 1000
-	AVI( 20, 13,  85, P, SND_45_TAKEOFF_PROPELLER_TOYLAND_1, 18,  37,  5,  25 ), // 33 Ploddyphut 100
-	AVI( 21, 18, 100, P, SND_46_TAKEOFF_PROPELLER_TOYLAND_2, 20,  37,  9,  60 ), // 34 Ploddyphut 500
-	AVI( 22, 25, 140, P, SND_09_TAKEOFF_JET,                 40,  74, 12,  90 ), // 35 Flashbang X1
-	AVI( 23, 32, 220, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 40, 200 ), // 36 Juggerplane M1
-	AVI( 24, 80, 255, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 30, 100 ), // 37 Flashbang Wizzer
-	AVI(  9, 15,  81, H, SND_09_TAKEOFF_JET,                 20,  25, 15,  40 ), // 38 Tricario Helicopter
-	AVI( 19, 17,  77, H, SND_09_TAKEOFF_JET,                 20,  40, 20,  55 ), // 39 Guru X2 Helicopter
-	AVI( 25, 15,  80, H, SND_09_TAKEOFF_JET,                 20,  25, 10,  40 ), // 40 Powernaut Helicopter
+	 *    |   |    |  |       |                               |    |   |    |   air type (gravel, asphalt, water...)
+	 *    |   |    |  |       |                               |    |   |    |   |      */
+	AVI(  1, 14,  85, P, SND_08_TAKEOFF_PROPELLER,           18,  37,  4,  25,  G  ), //  0 Sampson U52
+	AVI(  0, 15, 100, P, SND_08_TAKEOFF_PROPELLER,           20,  37,  8,  65,  G  ), //  1 Coleman Count
+	AVI(  2, 16, 130, J, SND_09_TAKEOFF_JET,                 35,  74, 10,  90,  A  ), //  2 FFP Dart
+	AVI(  8, 75, 250, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 20, 100,  A  ), //  3 Yate Haugan
+	AVI(  5, 15,  98, P, SND_08_TAKEOFF_PROPELLER,           20,  37,  6,  30,  G  ), //  4 Bakewell Cotswald LB-3
+	AVI(  6, 18, 240, J, SND_09_TAKEOFF_JET,                 40,  74, 30, 200,  A  ), //  5 Bakewell Luckett LB-8
+	AVI(  2, 17, 150, P, SND_09_TAKEOFF_JET,                 35,  74, 15, 100,  G  ), //  6 Bakewell Luckett LB-9
+	AVI(  2, 18, 245, J, SND_09_TAKEOFF_JET,                 40,  74, 30, 150,  A  ), //  7 Bakewell Luckett LB80
+	AVI(  3, 19, 192, J, SND_09_TAKEOFF_JET,                 40,  74, 40, 220,  A  ), //  8 Bakewell Luckett LB-10
+	AVI(  3, 20, 190, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 230,  A  ), //  9 Bakewell Luckett LB-11
+	AVI(  2, 16, 135, J, SND_09_TAKEOFF_JET,                 35,  74, 10,  95,  A  ), // 10 Yate Aerospace YAC 1-11
+	AVI(  2, 18, 240, J, SND_09_TAKEOFF_JET,                 40,  74, 35, 170,  A  ), // 11 Darwin 100
+	AVI(  4, 17, 155, J, SND_09_TAKEOFF_JET,                 40,  74, 15, 110,  A  ), // 12 Darwin 200
+	AVI(  7, 30, 253, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 50, 300,  A  ), // 13 Darwin 300
+	AVI(  4, 18, 210, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 200,  A  ), // 14 Darwin 400
+	AVI(  4, 19, 220, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 240,  A  ), // 15 Darwin 500
+	AVI(  4, 27, 230, J, SND_09_TAKEOFF_JET,                 40,  74, 40, 260,  A  ), // 16 Darwin 600
+	AVI(  3, 25, 225, J, SND_09_TAKEOFF_JET,                 40,  74, 35, 240,  A  ), // 17 Guru Galaxy
+	AVI(  4, 20, 235, J, SND_09_TAKEOFF_JET,                 40,  74, 30, 260,  A  ), // 18 Airtaxi A21
+	AVI(  4, 19, 220, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 210,  A  ), // 19 Airtaxi A31
+	AVI(  4, 18, 170, J, SND_09_TAKEOFF_JET,                 40,  74, 20, 160,  A  ), // 20 Airtaxi A32
+	AVI(  4, 26, 210, J, SND_09_TAKEOFF_JET,                 40,  74, 20, 220,  A  ), // 21 Airtaxi A33
+	AVI(  6, 16, 125, P, SND_09_TAKEOFF_JET,                 50,  74, 10,  80,  G  ), // 22 Yate Aerospace YAe46
+	AVI(  2, 17, 145, P, SND_09_TAKEOFF_JET,                 40,  74, 10,  85,  G  ), // 23 Dinger 100
+	AVI( 11, 16, 130, P, SND_09_TAKEOFF_JET,                 40,  74, 10,  75,  G  ), // 24 AirTaxi A34-1000
+	AVI( 10, 16, 149, P, SND_09_TAKEOFF_JET,                 40,  74, 10,  85,  G  ), // 25 Yate Z-Shuttle
+	AVI( 15, 17, 170, P, SND_09_TAKEOFF_JET,                 40,  74, 18,  65,  G  ), // 26 Kelling K1
+	AVI( 12, 18, 210, J, SND_09_TAKEOFF_JET,                 40,  74, 25, 110,  A  ), // 27 Kelling K6
+	AVI( 13, 20, 230, J, SND_09_TAKEOFF_JET,                 40,  74, 60, 180,  A  ), // 28 Kelling K7
+	AVI( 14, 21, 220, J, SND_09_TAKEOFF_JET,                 40,  74, 65, 150,  A  ), // 29 Darwin 700
+	AVI( 16, 19, 160, J, SND_09_TAKEOFF_JET,                 40, 181, 45,  85,  A  ), // 30 FFP Hyperdart 2
+	AVI( 17, 24, 248, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 80, 400,  A  ), // 31 Dinger 200
+	AVI( 18, 80, 251, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 45, 130,  A  ), // 32 Dinger 1000
+	AVI( 20, 13,  85, P, SND_45_TAKEOFF_PROPELLER_TOYLAND_1, 18,  37,  5,  25,  G  ), // 33 Ploddyphut 100
+	AVI( 21, 18, 100, P, SND_46_TAKEOFF_PROPELLER_TOYLAND_2, 20,  37,  9,  60,  G  ), // 34 Ploddyphut 500
+	AVI( 22, 25, 140, P, SND_09_TAKEOFF_JET,                 40,  74, 12,  90,  G  ), // 35 Flashbang X1
+	AVI( 23, 32, 220, J, SND_3D_TAKEOFF_JET_BIG,             40,  74, 40, 200,  A  ), // 36 Juggerplane M1
+	AVI( 24, 80, 255, J, SND_3B_TAKEOFF_JET_FAST,            50, 181, 30, 100,  A  ), // 37 Flashbang Wizzer
+	AVI(  9, 15,  81, H, SND_09_TAKEOFF_JET,                 20,  25, 15,  40,  G  ), // 38 Tricario Helicopter
+	AVI( 19, 17,  77, H, SND_09_TAKEOFF_JET,                 20,  40, 20,  55,  G  ), // 39 Guru X2 Helicopter
+	AVI( 25, 15,  80, H, SND_09_TAKEOFF_JET,                 20,  25, 10,  40,  G  ), // 40 Powernaut Helicopter
 };
 #undef J
 #undef P
 #undef H
+
+#undef G
+#undef A
+#undef W
+
 #undef AVI
 
 /**
