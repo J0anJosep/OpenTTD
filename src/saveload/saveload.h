@@ -397,6 +397,7 @@ enum SaveLoadVersion : uint16_t {
 	SLV_KEEP_REMOVED_DEPOTS,                ///< 320  PR#XXXXX Keep remove depots for a while.
 
 	SLV_EXTENDED_DEPOTS,                    ///< 321  PR#8480 Extended depots for rail, road and water transport.
+	SLV_MULTITILE_AIRPORTS,                 ///< 322  PR#XXXX Multi-tile airports.
 
 	SLV_PATCHED = UINT16_MAX - 6,           ///< Make it difficult to load any savegame made with
 			// this patched version in any other version of OpenTTD (unless it uses the same saveload version trick).
