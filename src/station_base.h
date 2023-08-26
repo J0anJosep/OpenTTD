@@ -292,9 +292,9 @@ struct GoodsEntry {
 struct Airport : public TileArea {
 	Airport() : TileArea(INVALID_TILE, 0, 0) {}
 
-	uint64_t flags;       ///< stores which blocks on the airport are taken. was 16 bit earlier on, then 32
-	uint8_t type;          ///< Type of this airport, @see AirportTypes
-	uint8_t layout;        ///< Airport layout number.
+	uint64_t flags;     ///< Stores some data of the airport.
+	uint8_t type;       ///< Type of this airport, @see AirportTypes
+	uint8_t layout;     ///< Airport layout number.
 	Direction rotation; ///< How this airport is rotated.
 	AirType air_type;   ///< NOSAVE: airport type.
 	Depot *hangar;      ///< The corresponding hangar of this airport, if any.
@@ -333,7 +333,18 @@ struct Airport : public TileArea {
 	/** Check if this airport has at least one hangar. */
 	inline bool HasHangar() const
 	{
-		return this->hangar != nullptr;
+		return HasBit(this->flags, AFB_HANGAR);
+	}
+
+	/** Check if this airport has at least one landing runway. */
+	inline bool HasLandingRunway() const
+	{
+		return HasBit(this->flags, AFB_LANDING_RUNWAY);
+	}
+
+	inline bool IsClosed() const
+	{
+		return HasBit(this->flags, AFB_CLOSED_MANUAL);
 	}
 };
 

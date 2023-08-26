@@ -513,6 +513,7 @@ void Station::UpdateAirportDataStructure()
 
 	if (airport_area.tile == INVALID_TILE) return;
 
+	bool allow_landing = false;
 	for (TileIndex t : airport_area) {
 		if (!this->TileBelongsToAirport(t)) continue;
 		this->airport.Add(t);
@@ -543,6 +544,8 @@ void Station::UpdateAirportDataStructure()
 				break;
 
 			case ATT_RUNWAY_START_ALLOW_LANDING:
+				allow_landing = true;
+				[[fallthrough]];
 			case ATT_RUNWAY_START_NO_LANDING:
 				this->airport.runways.emplace_back(t);
 				break;
@@ -552,6 +555,10 @@ void Station::UpdateAirportDataStructure()
 	}
 
 	if (this->airport.hangar != nullptr) InvalidateWindowData(WC_BUILD_VEHICLE, this->airport.hangar->index);
+
+	if (this->airport.HasLandingRunway() != allow_landing) {
+		ToggleBit(this->airport.flags, AFB_LANDING_RUNWAY);
+	}
 }
 
 /**
