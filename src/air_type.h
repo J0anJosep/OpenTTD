@@ -14,6 +14,10 @@
 
 typedef uint32_t AirTypeLabel;
 
+static const AirTypeLabel AIRTYPE_LABEL_GRAVEL  = 'GRVL';
+static const AirTypeLabel AIRTYPE_LABEL_ASPHALT = 'ASPH';
+static const AirTypeLabel AIRTYPE_LABEL_WATER   = 'WATR';
+
 /** Enumeration for all possible airtypes. */
 enum AirType : uint8_t {
 	AIRTYPE_BEGIN    = 0,    ///< Used for iterations

@@ -13,6 +13,7 @@
 #include "cargotype.h"
 #include "rail_type.h"
 #include "road_type.h"
+#include "air_type.h"
 #include "fileio_type.h"
 #include "newgrf_text_type.h"
 #include "core/bitmath_func.hpp"
@@ -86,6 +87,7 @@ enum GrfSpecFeature {
 	GSF_ROADTYPES,
 	GSF_TRAMTYPES,
 	GSF_ROADSTOPS,
+	GSF_AIRTYPES,
 	GSF_END,
 
 	GSF_FAKE_TOWNS = GSF_END, ///< Fake town GrfSpecFeature for NewGRF debugging (parent scope)
@@ -138,6 +140,9 @@ struct GRFFile : ZeroedMemoryAllocator {
 
 	std::vector<RoadTypeLabel> tramtype_list;       ///< Roadtype translation table (tram)
 	RoadType tramtype_map[ROADTYPE_END];
+
+	std::vector<AirTypeLabel> airtype_list;         ///< AirType translation table
+	AirType airtype_map[AIRTYPE_END];
 
 	CanalProperties canal_local_properties[CF_END]; ///< Canal properties as set by this NewGRF
 
