@@ -204,4 +204,18 @@ void SetRunwayReservation(TileIndex tile, bool b);
 TileIndex GetRunwayExtreme(TileIndex tile, DiagDirection dir);
 uint GetRunwayLength(TileIndex tile);
 
+enum AirportFlagBits : uint8_t {
+	AFB_CLOSED_MANUAL         = 0,   ///< Airport closed: manually closed.
+	AFB_HANGAR                = 1,   ///< Airport has at least one hangar tile.
+	AFB_LANDING_RUNWAY        = 2,   ///< Airport has a landing runway.
+};
+
+enum AirportFlags : uint16_t {
+	AF_NONE                =  0,     ///< No flag.
+	AF_CLOSED_MANUAL       =  1 << AFB_CLOSED_MANUAL,
+	AF_HANGAR              =  1 << AFB_HANGAR,
+	AF_LANDING_RUNWAY      =  1 << AFB_LANDING_RUNWAY,
+};
+DECLARE_ENUM_AS_BIT_SET(AirportFlags)
+
 #endif /* AIRPORT_H */

@@ -384,6 +384,11 @@ public:
 	{
 		Station *st = Station::From(bst);
 
+		/* Convert old flags to new flags. */
+		if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS) && (st->facilities & FACIL_AIRPORT) != 0) {
+			st->airport.flags = HasBit(st->airport.flags, 63) ? AF_CLOSED_MANUAL : AF_NONE;
+		}
+
 		/* Before savegame version 161, persistent storages were not stored in a pool. */
 		if (IsSavegameVersionBefore(SLV_161) && !IsSavegameVersionBefore(SLV_145) && st->facilities & FACIL_AIRPORT) {
 			/* Store the old persistent storage. The GRFID will be added later. */
