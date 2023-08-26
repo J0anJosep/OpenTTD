@@ -3403,6 +3403,13 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		/* We have to destroy all aircraft to completely restart from scratch. */
+		for (Aircraft *v : Aircraft::Iterate()) {
+			if ((v->vehstatus & VS_CRASHED) == 0) v->Crash();
+		}
+	}
+
 	AfterLoadLabelMaps();
 	AfterLoadCompanyStats();
 	AfterLoadStoryBook();
