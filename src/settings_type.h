@@ -158,6 +158,7 @@ struct GUISettings {
 	uint8_t  advanced_vehicle_list;            ///< use the "advanced" vehicle list
 	uint8_t  loading_indicators;               ///< show loading indicators
 	uint8_t  default_rail_type;                ///< the default rail type for the rail GUI
+	uint8_t  default_air_type;                 ///< the default air type for the rail GUI
 	uint8_t  toolbar_pos;                      ///< position of toolbars, 0=left, 1=center, 2=right
 	uint8_t  statusbar_pos;                    ///< position of statusbar, 0=left, 1=center, 2=right
 	uint8_t  window_snap_radius;               ///< windows snap at each other if closer than this

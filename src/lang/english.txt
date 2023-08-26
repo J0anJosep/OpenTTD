@@ -1768,6 +1768,8 @@ STR_CONFIG_SETTING_QUICKGOTO_HELPTEXT                           :Pre-select the 
 
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE                            :Default rail type (after new game/game load): {STRING2}
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_HELPTEXT                   :Rail type to select after starting or loading a game. 'first available' selects the oldest type of tracks, 'last available' selects the newest type of tracks, and 'most used' selects the type which is currently most in use
+STR_CONFIG_SETTING_DEFAULT_AIR_TYPE                             :Default air type (after new game/game load): {STRING2}
+STR_CONFIG_SETTING_DEFAULT_AIR_TYPE_HELPTEXT                    :Air type to select after starting or loading a game. 'first available' selects the oldest type of airport, 'last available' selects the newest one, and 'most used' selects the type which is currently most in use
 ###length 3
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_FIRST                      :First available
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_LAST                       :Last available
