@@ -845,7 +845,7 @@ STR_NEWS_TRAIN_CRASH                                            :{BIG_FONT}{BLAC
 STR_NEWS_ROAD_VEHICLE_CRASH_DRIVER                              :{BIG_FONT}{BLACK}Road Vehicle Crash!{}Driver dies in fireball after collision with train
 STR_NEWS_ROAD_VEHICLE_CRASH                                     :{BIG_FONT}{BLACK}Road Vehicle Crash!{}{COMMA} die in fireball after collision with train
 STR_NEWS_AIRCRAFT_CRASH                                         :{BIG_FONT}{BLACK}Plane Crash!{}{COMMA} die in fireball at {STATION}
-STR_NEWS_PLANE_CRASH_OUT_OF_FUEL                                :{BIG_FONT}{BLACK}Plane Crash!{}Aircraft ran out of fuel, {COMMA} die in fireball
+STR_NEWS_AIRCRAFT_CRASH_NO_AIRPORT                              :{BIG_FONT}{BLACK}Aircraft Crash!{}{COMMA} die in fireball
 
 STR_NEWS_DISASTER_ZEPPELIN                                      :{BIG_FONT}{BLACK}Zeppelin disaster at {STATION}!
 STR_NEWS_DISASTER_SMALL_UFO                                     :{BIG_FONT}{BLACK}Road vehicle destroyed in 'UFO' collision!
@@ -2977,8 +2977,41 @@ STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP                        :{BLACK}Select s
 STR_STATION_BUILD_DOCK_CAPTION                                  :{WHITE}Dock
 
 # Airport toolbar
+STR_TOOLBAR_AIRPORT_GRAVEL_CONSTRUCTION_CAPTION                 :Gravel Airport Construction
+STR_TOOLBAR_AIRPORT_ASPHALT_CONSTRUCTION_CAPTION                :Asphalt Airport Construction
+STR_TOOLBAR_AIRPORT_WATER_CONSTRUCTION_CAPTION                  :Water Airport Construction
+
+# Airport menu text
+###length 3
+STR_TOOLBAR_AIRPORT_GRAVEL_MENU_TEXT                            :Gravel airport construction
+STR_TOOLBAR_AIRPORT_ASPHALT_MENU_TEXT                           :Asphalt airport construction
+STR_TOOLBAR_AIRPORT_WATER_MENU_TEXT                             :Water airport construction
+
 STR_TOOLBAR_AIRCRAFT_CAPTION                                    :{WHITE}Airports
 STR_TOOLBAR_AIRCRAFT_BUILD_AIRPORT_TOOLTIP                      :{BLACK}Build airport. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
+
+STR_TOOLBAR_AIRCRAFT_ADD_TILES                                  :{BLACK}Add or remove airport tiles to an airport
+STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_CATCHMENT                   :{BLACK}Define as infrastructure with catchment
+STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_NO_CATCHMENT                :{BLACK}Define as infrastructure without catchment
+STR_TOOLBAR_AIRCRAFT_SET_TRACKS                                 :{BLACK}Set tracks
+STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_LANDING                      :{BLACK}Define a runway allowing landing
+STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_NO_LANDING                   :{BLACK}Define a runway forbidding landing
+STR_TOOLBAR_AIRCRAFT_BUILD_APRON                                :{BLACK}Build an apron
+STR_TOOLBAR_AIRCRAFT_BUILD_HELIPAD                              :{BLACK}Build a helipad
+STR_TOOLBAR_AIRCRAFT_BUILD_HELIPORT                             :{BLACK}Build a heliport
+STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_STANDARD                      :{BLACK}Build a standard hangar
+STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_EXTENDED                      :{BLACK}Build an extended hangar
+STR_AIRPORT_TOOLBAR_TOOLTIP_TOGGLE_BUILD_REMOVE_FOR             :{BLACK}Toggle build/remove for airport tiles, infrastructure, aprons and hangars
+STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP                  :{BLACK}Build a predefined airport layout. Ctrl enables joining stations. Shift toggles building/showing cost estimate
+STR_TOOLBAR_AIRCRAFT_CHANGE_AIRTYPE                             :{BLACK}Change the airtype of an airport
+
+STR_AIRTYPE_NAME_GRAVEL                                         :Gravel airport
+STR_AIRTYPE_NAME_ASPHALT                                        :Asphalt airport
+STR_AIRTYPE_NAME_WATER                                          :Water airport
+
+# Hangar construction window
+STR_BUILD_HANGAR_CAPTION                                        :{WHITE}Hangar Orientation
+STR_BUILD_HANGAR_ORIENTATION_TOOLTIP                            :{BLACK}Select hangar orientation
 
 # Airport construction window
 STR_STATION_BUILD_AIRPORT_CAPTION                               :{WHITE}Airport Selection
@@ -4381,6 +4414,10 @@ STR_REPLACE_MAGLEV_VEHICLES                                     :Maglev Vehicles
 STR_REPLACE_ROAD_VEHICLES                                       :Road Vehicles
 STR_REPLACE_TRAM_VEHICLES                                       :Tramway Vehicles
 
+STR_REPLACE_AIRCRAFT_GRAVEL_VEHICLES                            :Gravel aircraft
+STR_REPLACE_AIRCRAFT_ASPHALT_VEHICLES                           :Asphalt aircraft
+STR_REPLACE_AIRCRAFT_WATER_VEHICLES                             :Water aircraft
+
 STR_REPLACE_REMOVE_WAGON                                        :{BLACK}Wagon removal ({STRING1}): {ORANGE}{STRING}
 STR_REPLACE_REMOVE_WAGON_HELP                                   :{BLACK}Make autoreplace keep the length of a train the same by removing wagons (starting at the front), if replacing the engine would make the train longer
 STR_REPLACE_REMOVE_WAGON_GROUP_HELP                             :{STRING}. Ctrl+Click to also apply to sub-groups
@@ -4440,6 +4477,7 @@ STR_VEHICLE_STATUS_LOADING_UNLOADING                            :{LTBLUE}Loading
 STR_VEHICLE_STATUS_LEAVING                                      :{LTBLUE}Leaving
 STR_VEHICLE_STATUS_WAITING_UNBUNCHING                           :{LTBLUE}Waiting to unbunch
 STR_VEHICLE_STATUS_CRASHED                                      :{RED}Crashed!
+STR_VEHICLE_STATUS_FALLING                                      :{RED}Falling!
 STR_VEHICLE_STATUS_BROKEN_DOWN                                  :{RED}Broken down
 STR_VEHICLE_STATUS_STOPPED                                      :{RED}Stopped
 STR_VEHICLE_STATUS_TRAIN_STOPPING_VEL                           :{RED}{VELOCITY} - Stopping
@@ -5114,6 +5152,28 @@ STR_ERROR_DRIVE_THROUGH_ON_TOWN_ROAD                            :{WHITE}... road
 STR_ERROR_DRIVE_THROUGH_DIRECTION                               :{WHITE}... road facing in the wrong direction
 STR_ERROR_DRIVE_THROUGH_CORNER                                  :{WHITE}... drive through stops can't have corners
 STR_ERROR_DRIVE_THROUGH_JUNCTION                                :{WHITE}... drive through stops can't have junctions
+
+STR_ERROR_AIRPORT_DISABLED_BY_TILE                              :{WHITE}... setting about building by tile is disabled.
+STR_ERROR_AIRPORT_INCORRECT_AIRTYPE                             :{WHITE}... airport has a different air type.
+STR_ERROR_AIRPORT_ALREADY_AIRTYPE                               :{WHITE}... airport has this air type already.
+STR_ERROR_AIRPORT_CAN_T_CONVERT_WATER                           :{WHITE}... can't convert between water and non-water airtypes.
+STR_ERROR_AIRPORT_CAN_T_CONVERT_HELIPORT                        :{WHITE}... can't convert heliport to another airtype.
+STR_ERROR_AIRPORT_CAN_T_BUILD_HELIPORT                          :{WHITE}... can't build heliport with this airtype.
+STR_ERROR_AIRPORT_TOO_MUCH_RUNWAYS                              :{WHITE}... exceeding maximum number of runways for this air type.
+STR_ERROR_AIRPORT_NOT_SAME_LEVEL                                :{WHITE}... not at the same level.
+STR_ERROR_AIRPORT_PLAIN_WATER                                   :{WHITE}... must be built on water and plain terrain.
+STR_ERROR_AIRPORT_INVALID_AIR_TYPE                              :{WHITE}... tile has a different air type.
+STR_ERROR_AIRPORT_CAN_T_HAVE_TRACKS                             :{WHITE}... tile can't have tracks.
+STR_ERROR_AIRPORT_NO_COMPATIBLE_NEIGHBOURS                      :{WHITE}... can't add track. New track must be compatible with neighbour tiles.
+STR_ERROR_AIRPORT_CAN_T_ADD_TRACK_HANGAR                        :{WHITE}... hangars can only have tracks on x or y axis. revise
+STR_ERROR_AIRPORT_RUNWAY_TOO_SHORT                              :{WHITE}... runway too short.
+STR_ERROR_AIRPORT_RUNWAY_INCOMPLETE                             :{WHITE}... not all runway is on the same airport station.
+STR_ERROR_AIRPORT_RUNWAY_CAN_T_BUILD_OVER                       :{WHITE}... it is not possible to build the runway over those tiles.
+STR_ERROR_AIRPORT_PRESENT_AIRCRAFT                              :{WHITE}... aircraft present in the airport.
+
+STR_ERROR_AIRPORT_RUNWAY_OVERLAP                                :{WHITE}... runway overlaps other runways.
+STR_ERROR_AIRPORT_RUNWAY_CAN_T_REMOVE                           :{WHITE}... remove runways correctly.
+STR_ERROR_AIRPORT_REMOVE_RUNWAYS_FIRST                          :{WHITE}... must remove runways first.
 
 # Station destruction related errors
 STR_ERROR_CAN_T_REMOVE_PART_OF_STATION                          :{WHITE}Can't remove part of station...
