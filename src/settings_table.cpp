@@ -401,6 +401,13 @@ static void DepotSettingsChanged(int32_t)
 	CloseWindowByClass(WC_BUILD_TOOLBAR);
 }
 
+static void ModifyAirportLayout(int32_t)
+{
+	CloseWindowByClass(WC_BUILD_TOOLBAR);
+	extern AirType _last_built_airtype;
+	_last_built_airtype = AIRTYPE_BEGIN;
+}
+
 /**
  * Update any possible saveload window and delete any newgrf dialogue as
  * its widget parts might change. Reinit all windows as it allows access to the

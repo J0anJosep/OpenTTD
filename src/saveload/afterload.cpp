@@ -827,6 +827,10 @@ bool AfterLoadGame()
 		_settings_game.depot.water_depot_types = 1;
 	}
 
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		_settings_game.station.allow_modify_airports = false;
+	}
+
 	/* Load the sprites */
 	GfxLoadSprites();
 	LoadStringWidthTable();
