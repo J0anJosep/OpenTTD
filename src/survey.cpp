@@ -324,10 +324,10 @@ void SurveyCompanies(nlohmann::json &survey)
 		company["infrastructure"]["road"] = c->infrastructure.GetRoadTotal();
 		company["infrastructure"]["tram"] = c->infrastructure.GetTramTotal();
 		company["infrastructure"]["rail"] = c->infrastructure.GetRailTotal();
+		company["infrastructure"]["air"] = c->infrastructure.GetAirTotal();
 		company["infrastructure"]["signal"] = c->infrastructure.signal;
 		company["infrastructure"]["water"] = c->infrastructure.water;
 		company["infrastructure"]["station"] = c->infrastructure.station;
-		company["infrastructure"]["airport"] = c->infrastructure.airport;
 	}
 }
 

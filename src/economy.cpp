@@ -44,6 +44,7 @@
 #include "core/container_func.hpp"
 #include "cargo_type.h"
 #include "water.h"
+#include "air.h"
 #include "game/game.hpp"
 #include "cargomonitor.h"
 #include "goal_base.h"
@@ -526,9 +527,6 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 		UpdateSignalsInBuffer();
 	}
 
-	/* Add airport infrastructure count of the old company to the new one. */
-	if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.airport += Company::Get(old_owner)->infrastructure.airport;
-
 	/* convert owner of stations (including deleted ones, but excluding buoys) */
 	for (Station *st : Station::Iterate()) {
 		if (st->owner == old_owner) {
@@ -692,9 +690,12 @@ static void CompaniesGenStatistics()
 			for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
 				if (c->infrastructure.road[rt] != 0) cost.AddCost(RoadMaintenanceCost(rt, c->infrastructure.road[rt], RoadTypeIsRoad(rt) ? road_total : tram_total));
 			}
+			uint32_t air_total = c->infrastructure.GetAirTotal();
+			for (AirType at = AIRTYPE_BEGIN; at < AIRTYPE_END; at++) {
+				if (c->infrastructure.air[at] != 0) cost.AddCost(AirMaintenanceCost(at, c->infrastructure.air[at], air_total));
+			}
 			cost.AddCost(CanalMaintenanceCost(c->infrastructure.water));
 			cost.AddCost(StationMaintenanceCost(c->infrastructure.station));
-			cost.AddCost(AirportMaintenanceCost(c->index));
 
 			SubtractMoneyFromCompany(cost);
 		}

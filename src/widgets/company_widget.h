@@ -178,6 +178,8 @@ enum CompanyInfrastructureWidgets : WidgetID {
 	WID_CI_TRAM_COUNT,    ///< Count of tram.
 	WID_CI_WATER_DESC,    ///< Description of water.
 	WID_CI_WATER_COUNT,   ///< Count of water.
+	WID_CI_AIRPORT_DESC,  ///< Description of airport.
+	WID_CI_AIRPORT_COUNT, ///< Count of airport tiles.
 	WID_CI_STATION_DESC,  ///< Description of station.
 	WID_CI_STATION_COUNT, ///< Count of station.
 	WID_CI_TOTAL_DESC,    ///< Description of total.

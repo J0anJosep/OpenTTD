@@ -31,6 +31,7 @@
 #include "object_type.h"
 #include "rail.h"
 #include "road.h"
+#include "air.h"
 #include "engine_base.h"
 #include "window_func.h"
 #include "road_func.h"
@@ -1749,6 +1750,10 @@ static constexpr NWidgetPart _nested_company_infrastructure_widgets[] = {
 				NWidget(WWT_EMPTY, COLOUR_GREY, WID_CI_WATER_COUNT), SetMinimalTextLines(2, 0), SetFill(0, 1),
 			EndContainer(),
 			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
+			NWidget(WWT_EMPTY, COLOUR_GREY, WID_CI_AIRPORT_DESC), SetMinimalTextLines(2, 0), SetFill(1, 0),
+			NWidget(WWT_EMPTY, COLOUR_GREY, WID_CI_AIRPORT_COUNT), SetMinimalTextLines(2, 0), SetFill(0, 1),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
 				NWidget(WWT_EMPTY, COLOUR_GREY, WID_CI_STATION_DESC), SetMinimalTextLines(3, 0), SetFill(1, 0),
 				NWidget(WWT_EMPTY, COLOUR_GREY, WID_CI_STATION_COUNT), SetMinimalTextLines(3, 0), SetFill(0, 1),
 			EndContainer(),
@@ -1767,6 +1772,7 @@ struct CompanyInfrastructureWindow : Window
 {
 	RailTypes railtypes; ///< Valid railtypes.
 	RoadTypes roadtypes; ///< Valid roadtypes.
+	AirTypes airtypes;   ///< Valid airtypes.
 
 	uint total_width; ///< String width of the total cost line.
 
@@ -1782,6 +1788,7 @@ struct CompanyInfrastructureWindow : Window
 	{
 		this->railtypes = RAILTYPES_NONE;
 		this->roadtypes = ROADTYPES_NONE;
+		this->airtypes = AIRTYPES_NONE;
 
 		/* Find the used railtypes. */
 		for (const Engine *e : Engine::IterateType(VEH_TRAIN)) {
@@ -1792,6 +1799,16 @@ struct CompanyInfrastructureWindow : Window
 
 		/* Get the date introduced railtypes as well. */
 		this->railtypes = AddDateIntroducedRailTypes(this->railtypes, CalendarTime::MAX_DATE);
+
+		/* Find the used airtypes. */
+		for (const Engine *e : Engine::IterateType(VEH_AIRCRAFT)) {
+			if (!HasBit(e->info.climates, _settings_game.game_creation.landscape)) continue;
+
+			this->airtypes |= GetAirTypeInfo(e->u.air.airtype)->introduces_airtypes;
+		}
+
+		/* Get the date introduced airtypes as well. */
+		this->airtypes = AddDateIntroducedAirTypes(this->airtypes, CalendarTime::MAX_DATE);
 
 		/* Find the used roadtypes. */
 		for (const Engine *e : Engine::IterateType(VEH_ROAD)) {
@@ -1823,9 +1840,13 @@ struct CompanyInfrastructureWindow : Window
 			if (HasBit(this->roadtypes, rt)) total += RoadMaintenanceCost(rt, c->infrastructure.road[rt], RoadTypeIsRoad(rt) ? road_total : tram_total);
 		}
 
+		uint32_t air_total = c->infrastructure.GetAirTotal();
+		for (AirType at = AIRTYPE_BEGIN; at != AIRTYPE_END; at++) {
+			if (HasBit(this->airtypes, at)) total += AirMaintenanceCost(at, c->infrastructure.air[at], air_total);
+		}
+
 		total += CanalMaintenanceCost(c->infrastructure.water);
 		total += StationMaintenanceCost(c->infrastructure.station);
-		total += AirportMaintenanceCost(c->index);
 
 		return total;
 	}
@@ -1886,10 +1907,25 @@ struct CompanyInfrastructureWindow : Window
 				size.width = std::max(size.width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS).width + padding.width + WidgetDimensions::scaled.hsep_indent);
 				break;
 
+			case WID_CI_AIRPORT_DESC: {
+				uint lines = 1;
+				size.width = std::max(size.width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORT_SECT).width);
+
+				for (const auto &at : _sorted_airtypes) {
+					if (HasBit(this->airtypes, at)) {
+						lines++;
+						SetDParam(0, GetAirTypeInfo(at)->strings.name);
+						size.width = std::max(size.width, GetStringBoundingBox(STR_JUST_STRING).width + WidgetDimensions::scaled.frametext.left);
+					}
+				}
+
+				size.height = std::max(size.height, lines * GetCharacterHeight(FS_NORMAL));
+				break;
+			}
+
 			case WID_CI_STATION_DESC:
 				size.width = std::max(size.width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT).width + padding.width);
 				size.width = std::max(size.width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS).width + padding.width + WidgetDimensions::scaled.hsep_indent);
-				size.width = std::max(size.width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS).width + padding.width + WidgetDimensions::scaled.hsep_indent);
 				break;
 
 			case WID_CI_RAIL_COUNT:
@@ -1897,6 +1933,7 @@ struct CompanyInfrastructureWindow : Window
 			case WID_CI_TRAM_COUNT:
 			case WID_CI_WATER_COUNT:
 			case WID_CI_STATION_COUNT:
+			case WID_CI_AIRPORT_COUNT:
 			case WID_CI_TOTAL: {
 				/* Find the maximum count that is displayed. */
 				uint32_t max_val = 1000;  // Some random number to reserve enough space.
@@ -1917,10 +1954,13 @@ struct CompanyInfrastructureWindow : Window
 				}
 				max_val = std::max(max_val, c->infrastructure.water);
 				max_cost = std::max(max_cost, CanalMaintenanceCost(c->infrastructure.water));
+				uint32_t air_total = c->infrastructure.GetAirTotal();
+				for (AirType at = AIRTYPE_BEGIN; at < AIRTYPE_END; at++) {
+					max_val = std::max(max_val, c->infrastructure.air[at]);
+					max_cost = std::max(max_cost, AirMaintenanceCost(at, c->infrastructure.air[at], air_total));
+				}
 				max_val = std::max(max_val, c->infrastructure.station);
 				max_cost = std::max(max_cost, StationMaintenanceCost(c->infrastructure.station));
-				max_val = std::max(max_val, c->infrastructure.airport);
-				max_cost = std::max(max_cost, AirportMaintenanceCost(c->index));
 
 				SetDParamMaxValue(0, max_val);
 				uint count_width = GetStringBoundingBox(STR_JUST_COMMA).width + WidgetDimensions::scaled.hsep_indent; // Reserve some wiggle room
@@ -2041,6 +2081,35 @@ struct CompanyInfrastructureWindow : Window
 				this->DrawCountLine(r, y, c->infrastructure.water, CanalMaintenanceCost(c->infrastructure.water));
 				break;
 
+			case WID_CI_AIRPORT_DESC:
+				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORT_SECT);
+
+				if (this->airtypes != AIRTYPES_NONE) {
+					/* Draw name of each valid airtype. */
+					for (const auto &at : _sorted_airtypes) {
+						if (HasBit(this->railtypes, at)) {
+							SetDParam(0, GetAirTypeInfo(at)->strings.name);
+							DrawString(ir.left, ir.right, y += GetCharacterHeight(FS_NORMAL), STR_JUST_STRING, TC_WHITE);
+						}
+					}
+				} else {
+					/* No valid airtype. */
+					DrawString(ir.left, ir.right, y += GetCharacterHeight(FS_NORMAL), STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+				}
+
+				break;
+
+			case WID_CI_AIRPORT_COUNT: {
+				/* Draw infrastructure count for each valid airtype. */
+				uint32_t air_total = c->infrastructure.GetAirTotal();
+				for (const auto &at : _sorted_airtypes) {
+					if (HasBit(this->airtypes, at)) {
+						this->DrawCountLine(r, y, c->infrastructure.air[at], AirMaintenanceCost(at, c->infrastructure.air[at], air_total));
+					}
+				}
+				break;
+			}
+
 			case WID_CI_TOTAL:
 				if (_settings_game.economy.infrastructure_maintenance) {
 					Rect tr = r.WithWidth(this->total_width, _current_text_dir == TD_RTL);
@@ -2056,12 +2125,10 @@ struct CompanyInfrastructureWindow : Window
 			case WID_CI_STATION_DESC:
 				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT);
 				DrawString(ir.left, ir.right, y += GetCharacterHeight(FS_NORMAL), STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS);
-				DrawString(ir.left, ir.right, y += GetCharacterHeight(FS_NORMAL), STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS);
 				break;
 
 			case WID_CI_STATION_COUNT:
 				this->DrawCountLine(r, y, c->infrastructure.station, StationMaintenanceCost(c->infrastructure.station));
-				this->DrawCountLine(r, y, c->infrastructure.airport, AirportMaintenanceCost(c->index));
 				break;
 		}
 	}
@@ -2349,10 +2416,10 @@ struct CompanyWindow : Window
 			y += GetCharacterHeight(FS_NORMAL);
 		}
 
-		if (c->infrastructure.airport != 0) {
-			SetDParam(0, c->infrastructure.airport);
+		uint air_pieces = c->infrastructure.GetAirTotal();
+		if (air_pieces != 0) {
+			SetDParam(0, air_pieces);
 			DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT);
-			y += GetCharacterHeight(FS_NORMAL);
 		}
 
 		if (y == r.top) {
