@@ -141,10 +141,12 @@ const SaveLoadCompat _vehicle_ship_sl_compat[] = {
 /** Original field order for SlVehicleAircraft. */
 const SaveLoadCompat _vehicle_aircraft_sl_compat[] = {
 	SLC_VAR("common"),
-	SLC_VAR("crashed_counter"),
-	SLC_VAR("pos"),
-	SLC_VAR("targetairport"),
+	SLC_VAR("trackdir"),
 	SLC_VAR("state"),
+	SLC_VAR("crashed_counter"),
+	SLC_VAR("aircraft_pos"),
+	SLC_VAR("targetairport"),
+	SLC_VAR("old_state"),
 	SLC_VAR("previous_pos"),
 	SLC_VAR("last_direction"),
 	SLC_VAR("number_consecutive_turns"),

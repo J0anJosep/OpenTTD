@@ -108,14 +108,6 @@ bool IsValidImageIndex<VEH_AIRCRAFT>(uint8_t image_index)
 	return image_index < lengthof(_aircraft_sprite);
 }
 
-/** Helicopter rotor animation states */
-enum HelicopterRotorStates {
-	HRS_ROTOR_STOPPED,
-	HRS_ROTOR_MOVING_1,
-	HRS_ROTOR_MOVING_2,
-	HRS_ROTOR_MOVING_3,
-};
-
 /**
  * Find the nearest hangar to v
  * INVALID_STATION is returned, if the company does not have any suitable
@@ -1930,30 +1922,6 @@ static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const A
 	}
 	return true;
 }
-
-/**
- * Combination of aircraft state for going to a certain terminal and the
- * airport flag for that terminal block.
- */
-struct MovementTerminalMapping {
-	AirportMovementStates state; ///< Aircraft movement state when going to this terminal.
-	uint64_t airport_flag;         ///< Bitmask in the airport flags that need to be free for this terminal.
-};
-
-/** A list of all valid terminals and their associated blocks. */
-static const MovementTerminalMapping _airport_terminal_mapping[] = {
-	{TERM1, TERM1_block},
-	{TERM2, TERM2_block},
-	{TERM3, TERM3_block},
-	{TERM4, TERM4_block},
-	{TERM5, TERM5_block},
-	{TERM6, TERM6_block},
-	{TERM7, TERM7_block},
-	{TERM8, TERM8_block},
-	{HELIPAD1, HELIPAD1_block},
-	{HELIPAD2, HELIPAD2_block},
-	{HELIPAD3, HELIPAD3_block},
-};
 
 /**
  * Find a free terminal or helipad, and if available, assign it.

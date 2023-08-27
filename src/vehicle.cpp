@@ -2807,7 +2807,7 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 
 		if (this->type == VEH_AIRCRAFT) {
 			Aircraft *a = Aircraft::From(this);
-			if (a->state == FLYING && a->targetairport != closestDepot.destination) {
+			if (a->IsAircraftFreelyFlying() && a->targetairport != closestDepot.destination) {
 				/* The aircraft is now heading for a different hangar than the next in the orders */
 				AircraftNextAirportPos_and_Order(a);
 			}
