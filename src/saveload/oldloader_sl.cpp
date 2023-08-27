@@ -1088,7 +1088,7 @@ static const OldChunks vehicle_ship_chunk[] = {
 };
 
 static const OldChunks vehicle_air_chunk[] = {
-	OCL_SVAR(  OC_UINT8, Aircraft, pos ),
+	OCL_NULL( 1 ), // Old aircraft position
 	OCL_SVAR(  OC_FILE_U8 | OC_VAR_U16, Aircraft, targetairport ),
 	OCL_SVAR( OC_UINT16, Aircraft, crashed_counter ),
 	OCL_SVAR(  OC_UINT8, Aircraft, state ),

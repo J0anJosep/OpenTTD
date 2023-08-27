@@ -883,19 +883,27 @@ public:
 	}
 };
 
+uint8_t _old_state;
+uint8_t _pos;
+StationID _targetairport;
+
 class SlVehicleAircraft : public DefaultSaveLoadHandler<SlVehicleAircraft, Vehicle> {
 public:
 	inline static const SaveLoad description[] = {
 		 SLEG_STRUCT("common", SlVehicleCommon),
+		 SLE_CONDVAR(Aircraft, trackdir,              SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, state,                 SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_trackdir,         SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_pos.x,            SLE_UINT32,                   SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_pos.y,            SLE_UINT32,                   SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_pos.pos,          SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
 		     SLE_VAR(Aircraft, crashed_counter,       SLE_UINT16),
-		     SLE_VAR(Aircraft, pos,                   SLE_UINT8),
-
+		SLEG_CONDVAR("aircraft_pos", _pos,            SLE_UINT8,                    SL_MIN_VERSION, SLV_MULTITILE_AIRPORTS),
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_FILE_U8  | SLE_VAR_U16,   SL_MIN_VERSION, SLV_5),
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_UINT16,                   SLV_5, SL_MAX_VERSION),
 
-		     SLE_VAR(Aircraft, state,                 SLE_UINT8),
-
-		 SLE_CONDVAR(Aircraft, previous_pos,          SLE_UINT8,                    SLV_2, SL_MAX_VERSION),
+		SLEG_CONDVAR("old_state", _old_state,         SLE_UINT8,                    SL_MIN_VERSION, SLV_MULTITILE_AIRPORTS),
+		SLEG_CONDVAR("previous_pos", _pos,            SLE_UINT8,                    SLV_2, SLV_MULTITILE_AIRPORTS),
 		 SLE_CONDVAR(Aircraft, last_direction,        SLE_UINT8,                    SLV_2, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, number_consecutive_turns, SLE_UINT8,                 SLV_2, SL_MAX_VERSION),
 

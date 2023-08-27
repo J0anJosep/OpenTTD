@@ -3094,6 +3094,8 @@ public:
 		TextColour text_colour = TC_FROMSTRING;
 		if (v->vehstatus & VS_CRASHED) {
 			str = STR_VEHICLE_STATUS_CRASHED;
+		} else if (v->type == VEH_AIRCRAFT && Aircraft::From(v)->IsAircraftFalling()) {
+			str = STR_VEHICLE_STATUS_FALLING;
 		} else if (v->type != VEH_AIRCRAFT && v->breakdown_ctr == 1) { // check for aircraft necessary?
 			str = STR_VEHICLE_STATUS_BROKEN_DOWN;
 		} else if (v->vehstatus & VS_STOPPED && (!mouse_over_start_stop || v->IsStoppedInDepot())) {
