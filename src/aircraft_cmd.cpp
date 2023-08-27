@@ -709,7 +709,7 @@ int GetAircraftFlightLevel(T *v, bool takeoff)
 template int GetAircraftFlightLevel(DisasterVehicle *v, bool takeoff);
 template int GetAircraftFlightLevel(Aircraft *v, bool takeoff);
 
-static void HelicopterTickHandler(Aircraft *v)
+static void HandleHelicopterRotor(Aircraft *v)
 {
 	Aircraft *u = v->Next()->Next();
 
@@ -807,7 +807,7 @@ uint Aircraft::Crash(bool flooded)
  * Bring the aircraft in a crashed state, create the explosion animation, and create a news item about the crash.
  * @param v Aircraft that crashed.
  */
-static void CrashAirplane(Aircraft *v)
+void CrashAircraft(Aircraft *v)
 {
 	CreateEffectVehicleRel(v, 4, 4, 8, EV_EXPLOSION_LARGE);
 
@@ -843,13 +843,15 @@ static void CrashAirplane(Aircraft *v)
 /**
  * Decide whether aircraft \a v should crash.
  * @param v Aircraft to test.
+ * @return Whether the plane has crashed.
  */
-static void MaybeCrashAirplane(Aircraft *v)
+static bool MaybeCrashAirplane(Aircraft *v)
 {
-	if (_settings_game.vehicle.plane_crashes == 0) return;
+	if (_settings_game.vehicle.plane_crashes == 0) return false;
 
 	uint32_t prob = (0x4000 << _settings_game.vehicle.plane_crashes) / 1500;
-	if (GB(Random(), 0, 19) > prob) return;
+	uint32_t rand = GB(Random(), 0, 18);
+	if (rand > prob) return false;
 
 	/* Crash the airplane. Remove all goods stored at the station. */
 	Station *st = Station::Get(v->targetairport);
@@ -858,7 +860,8 @@ static void MaybeCrashAirplane(Aircraft *v)
 		ge.cargo.Truncate();
 	}
 
-	CrashAirplane(v);
+	CrashAircraft(v);
+	return true;
 }
 
 /**
@@ -877,7 +880,7 @@ static bool HandleCrashedAircraft(Aircraft *v)
  * Handle Aircraft specific tasks when an Aircraft enters a hangar
  * @param *v Vehicle that enters the hangar
  */
-void HandleAircraftEnterHangar(Aircraft *v)
+void AircraftEntersHangar(Aircraft *v)
 {
 	v->subspeed = 0;
 	v->progress = 0;
@@ -955,10 +958,10 @@ static void AircraftEntersTerminal(Aircraft *v)
 }
 
 /**
- * Aircraft touched down at the landing strip.
+ * Plane touched down at the landing strip.
  * @param v Aircraft that landed.
  */
-static void AircraftLandAirplane(Aircraft *v)
+static void PlaneLandsOnRunway(Aircraft *v)
 {
 	Station *st = Station::Get(v->targetairport);
 
@@ -1007,7 +1010,7 @@ TileIndex Aircraft::GetOrderStationLocation(StationID station)
  * @param v vehicle looking for a hangar
  * @return the StationID if one is found, INVALID_STATION otherwise
  */
-static StationID FindNearestHangar(const Aircraft *v)
+static StationID FindClosestHangar(const Aircraft *v)
 {
 	uint best = 0;
 	StationID index = INVALID_STATION;
@@ -1060,7 +1063,7 @@ ClosestDepot Aircraft::FindClosestDepot(TileIndex *location, DestinationID *dest
 	/* If the station is not a valid airport or if it has no hangars */
 	if (st == nullptr || !CanVehicleUseStation(this, st) || !st->airport.HasHangar()) {
 		/* the aircraft has to search for a hangar on its own */
-		StationID station = FindNearestHangar(this);
+		StationID station = FindClosestHangar(this);
 
 		if (station == INVALID_STATION) return ClosestDepot();
 
@@ -1130,7 +1133,7 @@ bool Aircraft::Tick()
 
 	if (!(this->vehstatus & VS_STOPPED)) this->running_ticks++;
 
-	if (this->subtype == AIR_HELICOPTER) HelicopterTickHandler(this);
+	if (this->IsHelicopter()) HandleHelicopterRotor(this);
 
 	this->current_order_time++;
 
