@@ -499,12 +499,12 @@ static const NICallback _nic_airporttiles[] = {
 };
 
 class NIHAirportTile : public NIHelper {
-	bool IsInspectable(uint index) const override        { return AirportTileSpec::Get(GetAirportGfx(index))->grf_prop.grffile != nullptr; }
+	bool IsInspectable(uint index) const override        { return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(index))->grf_prop.grffile != nullptr; }
 	uint GetParent(uint index) const override            { return GetInspectWindowNumber(GSF_AIRPORTS, GetStationIndex(index)); }
 	const void *GetInstance(uint)const override          { return nullptr; }
-	const void *GetSpec(uint index) const override       { return AirportTileSpec::Get(GetAirportGfx(index)); }
+	const void *GetSpec(uint index) const override       { return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(index)); }
 	void SetStringParameters(uint index) const override  { this->SetObjectAtStringParameters(STR_STATION_NAME, GetStationIndex(index), index); }
-	uint32_t GetGRFID(uint index) const override           { return (this->IsInspectable(index)) ? AirportTileSpec::Get(GetAirportGfx(index))->grf_prop.grffile->grfid : 0; }
+	uint32_t GetGRFID(uint index) const override         { return (this->IsInspectable(index)) ? AirportTileSpec::GetAirportTileSpec(GetAirportGfx(index))->grf_prop.grffile->grfid : 0; }
 
 	uint Resolve(uint index, uint var, uint param, bool &avail) const override
 	{

@@ -3106,7 +3106,7 @@ static void DrawTile_Station(TileInfo *ti)
 	if (IsAirport(ti->tile)) {
 		gfx = GetAirportGfx(ti->tile);
 		if (gfx >= NEW_AIRPORTTILE_OFFSET) {
-			const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
+			const AirportTileSpec *ats = AirportTileSpec::GetAirportTileSpec(gfx);
 			if (ats->grf_prop.spritegroup[0] != nullptr && DrawNewAirportTile(ti, Station::GetByTile(ti->tile), ats)) {
 				return;
 			}

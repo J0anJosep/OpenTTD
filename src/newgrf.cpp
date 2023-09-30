@@ -4961,7 +4961,7 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 
 				/* Allocate space for this airport tile. */
 				if (tsp == nullptr) {
-					_cur.grffile->airtspec[airtid + i] = std::make_unique<AirportTileSpec>(*AirportTileSpec::Get(subs_id));
+					_cur.grffile->airtspec[airtid + i] = std::make_unique<AirportTileSpec>(*AirportTileSpec::GetAirportTileSpec(subs_id));
 					tsp = _cur.grffile->airtspec[airtid + i].get();
 
 					tsp->enabled = true;
