@@ -35,7 +35,7 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
  * @param gfx index of airport tile
  * @return A pointer to the corresponding AirportTileSpec
  */
-/* static */ const AirportTileSpec *AirportTileSpec::Get(StationGfx gfx)
+/* static */ const AirportTileSpec *AirportTileSpec::GetAirportTileSpec(StationGfx gfx)
 {
 	/* should be assert(gfx < lengthof(tiles)), but that gives compiler warnings
 	 * since it's always true if the following holds: */
@@ -51,7 +51,7 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
 /* static */ const AirportTileSpec *AirportTileSpec::GetByTile(TileIndex tile)
 {
 	assert(IsTileType(tile, MP_STATION) && IsAirport(tile));
-	return AirportTileSpec::Get(GetAirportGfx(tile));
+	return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(tile));
 }
 
 /**
@@ -97,7 +97,7 @@ void AirportTileOverrideManager::SetEntitySpec(const AirportTileSpec *airpts)
  */
 StationGfx GetTranslatedAirportTileID(StationGfx gfx)
 {
-	const AirportTileSpec *it = AirportTileSpec::Get(gfx);
+	const AirportTileSpec *it = AirportTileSpec::GetAirportTileSpec(gfx);
 	return it->grf_prop.override == (StationGfx)INVALID_AIRPORTTILE ? gfx : it->grf_prop.override;
 }
 
@@ -133,7 +133,7 @@ static uint32_t GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint
 	}
 
 	StationGfx gfx = GetAirportGfx(tile);
-	const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
+	const AirportTileSpec *ats = AirportTileSpec::GetAirportTileSpec(gfx);
 
 	if (gfx < NEW_AIRPORTTILE_OFFSET) { // Does it belongs to an old type?
 		/* It is an old tile.  We have to see if it's been overridden */
@@ -141,7 +141,7 @@ static uint32_t GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint
 			return 0xFF << 8 | gfx; // no. Tag FF + the gfx id of that tile
 		}
 		/* Overridden */
-		const AirportTileSpec *tile_ovr = AirportTileSpec::Get(ats->grf_prop.override);
+		const AirportTileSpec *tile_ovr = AirportTileSpec::GetAirportTileSpec(ats->grf_prop.override);
 
 		if (tile_ovr->grf_prop.grffile->grfid == cur_grfid) {
 			return tile_ovr->grf_prop.local_id; // same grf file

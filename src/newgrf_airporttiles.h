@@ -73,7 +73,7 @@ struct AirportTileSpec {
 	bool enabled;                         ///< entity still available (by default true). newgrf can disable it, though
 	GRFFileProps grf_prop;                ///< properties related the the grf file
 
-	static const AirportTileSpec *Get(StationGfx gfx);
+	static const AirportTileSpec *GetAirportTileSpec(StationGfx gfx);
 	static const AirportTileSpec *GetByTile(TileIndex tile);
 
 	static void ResetAirportTiles();
