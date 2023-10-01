@@ -3902,6 +3902,49 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 	return ret;
 }
 
+AirType GetConversionAirtype(uint airport)
+{
+	struct AirportTypesConversion {
+		AirportTypes airport_type;
+		AirType air_type;
+	};
+
+	switch (_cur.grffile->grfid) {
+		default:
+			Debug(misc, 0, "Trying to load airports of unknown airtype from grffile with id {}", _cur.grffile->grfid);
+			return AIRTYPE_GRAVEL;
+		case 16860225:
+			return AIRTYPE_WATER;
+		case 19680837: // North Korean Aviation Set: Small asphalt airports
+			return AIRTYPE_ASPHALT;
+		case 5259587: { // OpenGFX+ Airports
+			/* This table indicates how to convert the airports provided in OpenGFX+Airports,
+			* as long as it is the first NewGRF to be applied that modifies airports. */
+			/* The "S" shows which airports have a (close) equivalent in original airports. */
+			AirportTypesConversion opengfx_plus_airports[] = {
+				{ AT_SMALL,          AIRTYPE_GRAVEL  }, // S NEW_AIRPORT_OFFSET +  0 Small gravel
+				{ AT_SMALL,          AIRTYPE_WATER   }, //   NEW_AIRPORT_OFFSET +  1 Small water
+				{ AT_SMALL,          AIRTYPE_ASPHALT }, //   NEW_AIRPORT_OFFSET +  2 Small asphalt
+				{ AT_COMMUTER,       AIRTYPE_GRAVEL  }, //   NEW_AIRPORT_OFFSET +  3 Commuter gravel
+				{ AT_COMMUTER,       AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  4 Commuter asphalt
+				{ AT_LARGE,          AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  5 Large asphalt
+				{ AT_METROPOLITAN,   AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  6 City asphalt
+				{ AT_INTERNATIONAL,  AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  7 International asphalt
+				{ AT_INTERCON,       AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  8 Intercontinental asphalt -- Uses a different and non-rectangular layout.
+				{ AT_HELIPORT,       AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  9 Heliport
+				{ AT_HELIDEPOT,      AIRTYPE_GRAVEL  }, //   NEW_AIRPORT_OFFSET + 10 Helidepot gravel
+				{ AT_HELIDEPOT,      AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET + 11 Helidepot asphalt
+				{ AT_HELISTATION,    AIRTYPE_GRAVEL  }, //   NEW_AIRPORT_OFFSET + 12 Helistation gravel
+				{ AT_HELISTATION,    AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET + 13 Helistation asphalt
+			};
+			const uint num_opengfx_plus_airports = sizeof(opengfx_plus_airports)/sizeof(opengfx_plus_airports[0]);
+
+			if (airport >= num_opengfx_plus_airports) NOT_REACHED();
+			return opengfx_plus_airports[airport].air_type;
+		}
+	}
+}
+
 /**
  * Define properties for airports
  * @param airport Local ID of the airport.
@@ -3921,6 +3964,8 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 
 	/* Allocate airport specs if they haven't been allocated already. */
 	if (_cur.grffile->airportspec.size() < airport + numinfo) _cur.grffile->airportspec.resize(airport + numinfo);
+
+	AirType conversion_airtype = GetConversionAirtype(airport);
 
 	for (int i = 0; i < numinfo; i++) {
 		AirportSpec *as = _cur.grffile->airportspec[airport + i].get();
@@ -3955,6 +4000,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 					as->grf_prop.local_id = airport + i;
 					as->grf_prop.subst_id = subs_id;
 					as->grf_prop.grffile = _cur.grffile;
+					as->airtype = conversion_airtype;
 					/* override the default airport */
 					_airport_mngr.Add(airport + i, _cur.grffile->grfid, subs_id);
 				}
