@@ -74,12 +74,14 @@ struct AirportTileSpec {
 	GRFFileProps grf_prop;                ///< properties related the the grf file
 
 	static const AirportTileSpec *GetAirportTileSpec(StationGfx gfx);
+	static const AirportTileSpec *GetAirtypeTileSpec(StationGfx gfx);
 	static const AirportTileSpec *GetByTile(TileIndex tile);
 
 	static void ResetAirportTiles();
 
 private:
 	static AirportTileSpec tiles[NUM_AIRPORTTILES];
+	static AirportTileSpec airtype_tiles[NUM_AIRTYPE_INFRATILES];
 
 	friend void AirportTileOverrideManager::SetEntitySpec(const AirportTileSpec *airpts);
 };

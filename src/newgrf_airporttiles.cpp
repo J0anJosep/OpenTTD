@@ -27,6 +27,7 @@
 extern uint32_t GetRelativePosition(TileIndex tile, TileIndex ind_tile);
 
 AirportTileSpec AirportTileSpec::tiles[NUM_AIRPORTTILES];
+AirportTileSpec AirportTileSpec::airtype_tiles[NUM_AIRTYPE_INFRATILES];
 
 AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORTTILES, INVALID_AIRPORTTILE);
 
@@ -44,6 +45,17 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
 }
 
 /**
+ * Retrieve airtype tile spec for the given airport tile
+ * @param gfx index of airport tile
+ * @return A pointer to the corresponding AirportTileSpec
+ */
+/* static */ const AirportTileSpec *AirportTileSpec::GetAirtypeTileSpec(StationGfx gfx)
+{
+	assert(gfx < ATTG_END);
+	return &AirportTileSpec::airtype_tiles[gfx];
+}
+
+/**
  * Retrieve airport tile spec for the given airport tile.
  * @param tile The airport tile.
  * @return A pointer to the corresponding AirportTileSpec.
@@ -51,6 +63,9 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
 /* static */ const AirportTileSpec *AirportTileSpec::GetByTile(TileIndex tile)
 {
 	assert(IsTileType(tile, MP_STATION) && IsAirport(tile));
+
+	if (HasAirtypeGfx(tile)) return AirportTileSpec::GetAirtypeTileSpec(GetAirportGfx(tile));
+
 	return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(tile));
 }
 
@@ -61,6 +76,9 @@ void AirportTileSpec::ResetAirportTiles()
 {
 	auto insert = std::copy(std::begin(_origin_airporttile_specs), std::end(_origin_airporttile_specs), std::begin(AirportTileSpec::tiles));
 	std::fill(insert, std::end(AirportTileSpec::tiles), AirportTileSpec{});
+
+	auto insert_airtype = std::copy(std::begin(_origin_airtype_specs), std::end(_origin_airtype_specs), std::begin(AirportTileSpec::airtype_tiles));
+	std::fill(insert_airtype, std::end(AirportTileSpec::airtype_tiles), AirportTileSpec{});
 
 	/* Reset any overrides that have been set. */
 	_airporttile_mngr.ResetOverride();
