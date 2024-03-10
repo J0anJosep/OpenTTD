@@ -231,14 +231,18 @@ struct RefitDesc {
 struct ClosestDepot {
 	TileIndex location;
 	DestinationID destination; ///< The DestinationID as used for orders.
+	StationID st_destination;  ///< The StationID of the hangar, for aircraft.
 	bool reverse;
 	bool found;
 
 	ClosestDepot() :
-		location(INVALID_TILE), destination(0), reverse(false), found(false) {}
+		location(INVALID_TILE), destination(0), st_destination(INVALID_STATION), reverse(false), found(false) {}
 
 	ClosestDepot(TileIndex location, DestinationID destination, bool reverse = false) :
 		location(location), destination(destination), reverse(reverse), found(true) {}
+
+	ClosestDepot(TileIndex location, DestinationID destination, StationID st_station) :
+		location(location), destination(destination), st_destination(st_station), found(true) {}
 };
 
 /** %Vehicle data structure. */
