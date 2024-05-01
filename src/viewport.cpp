@@ -3644,14 +3644,9 @@ void MarkCatchmentTilesDirty()
 	}
 	if (_viewport_highlight_station != nullptr) {
 		if (_viewport_highlight_station->catchment_tiles.tile == INVALID_TILE) {
-			MarkWholeScreenDirty();
 			_viewport_highlight_station = nullptr;
-		} else {
-			BitmapTileIterator it(_viewport_highlight_station->catchment_tiles);
-			for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
-				MarkTileDirtyByTile(tile);
-			}
 		}
+		MarkWholeScreenDirty();
 	}
 	if (_viewport_highlight_waypoint != nullptr) {
 		if (!_viewport_highlight_waypoint->IsInUse()) {
