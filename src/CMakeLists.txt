@@ -40,6 +40,8 @@ add_files(
 )
 
 add_files(
+    air.h
+    air.cpp
     air_type.h
     aircraft.h
     aircraft_cmd.cpp
