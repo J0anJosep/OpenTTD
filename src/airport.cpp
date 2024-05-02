@@ -669,10 +669,7 @@ uint8_t GetVehiclePosOnBuild(TileIndex hangar_tile)
 	 * layout for #th position of depot. Since layout must start with a listing
 	 * of all depots, it is simple */
 	for (uint i = 0;; i++) {
-		if (st->airport.GetHangarTile(i) == hangar_tile) {
-			assert(apc->layout[i].heading == HANGAR);
-			return apc->layout[i].position;
-		}
+		return apc->layout[i].position;
 	}
 	NOT_REACHED();
 }

@@ -42,6 +42,7 @@
 #include "aircraft_cmd.h"
 #include "vehicle_cmd.h"
 #include "depot_base.h"
+#include "air_map.h"
 
 #include "table/strings.h"
 
@@ -277,8 +278,11 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 	/* Prevent building aircraft types at places which can't handle them */
 	if (!CanVehicleUseStation(e->index, st)) return CMD_ERROR;
 
+	if (!st->airport.HasHangar()) return CMD_ERROR;
+	Depot *depot = Depot::Get(st->airport.depot_id);
+
 	/* Make sure all aircraft end up in the first tile of the hangar. */
-	tile = st->airport.GetHangarTile(st->airport.GetHangarNum(tile));
+	tile = depot->depot_tiles[0];
 
 	if (flags & DC_EXEC) {
 		Aircraft *v = new Aircraft(); // aircraft
@@ -1127,7 +1131,7 @@ static bool AircraftController(Aircraft *v)
 		int airport_z = v->z_pos;
 		if ((amd.flag & (AMED_LAND | AMED_BRAKE)) && st != nullptr) {
 			assert(st->airport.HasHangar());
-			TileIndex hangar_tile = st->airport.GetHangarTile(0);
+			TileIndex hangar_tile = Depot::Get(st->airport.depot_id)->depot_tiles[0];
 			airport_z = GetTileMaxPixelZ(hangar_tile) + 1; // To avoid clashing with the shadow
 		}
 
@@ -1564,8 +1568,9 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 		/* airplane goto state takeoff, helicopter to helitakeoff */
 		v->state = (v->subtype == AIR_HELICOPTER) ? HELITAKEOFF : TAKEOFF;
 	}
-	const Station *st = Station::GetByTile(v->tile);
-	AircraftLeaveHangar(v, st->airport.GetHangarExitDirection(v->tile));
+	assert(IsAirport(v->tile));
+	assert(IsHangar(v->tile));
+	AircraftLeaveHangar(v, DiagDirToDir(GetHangarDirection(v->tile)));
 	AirportMove(v, apc);
 }
 
