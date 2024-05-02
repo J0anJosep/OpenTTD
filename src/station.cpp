@@ -285,7 +285,6 @@ static uint GetTileCatchmentRadius(TileIndex tile, const Station *st)
 	if (_settings_game.station.modified_catchment) {
 		switch (GetStationType(tile)) {
 			case STATION_RAIL:    return CA_TRAIN;
-			case STATION_OILRIG:  return CA_UNMODIFIED;
 			case STATION_AIRPORT: return st->airport.GetSpec()->catchment;
 			case STATION_TRUCK:   return CA_TRUCK;
 			case STATION_BUS:     return CA_BUS;
@@ -691,50 +690,6 @@ Money AirportMaintenanceCost(Owner owner)
 	}
 	/* 3 bits fraction for the maintenance cost factor. */
 	return total_cost >> 3;
-}
-
-/**
- * Create a hangar on the airport.
- */
-void Airport::AddHangar()
-{
-	assert(this->hangar == nullptr);
-	assert(Depot::CanAllocateItem());
-	assert(this->GetNumHangars() > 0);
-	Station *st = Station::GetByTile(this->GetHangarTile(0));
-	this->hangar = new Depot(this->GetHangarTile(0), VEH_AIRCRAFT, st->owner, st);
-	this->hangar->build_date = st->build_date;
-	this->hangar->town = st->town;
-
-	this->hangar->ta.tile = st->airport.tile;
-	this->hangar->ta.w = st->airport.w;
-	this->hangar->ta.h = st->airport.h;
-
-	for (uint i = 0; i < this->GetNumHangars(); i++) {
-		this->hangar->depot_tiles.push_back(this->GetHangarTile(i));
-	}
-}
-
-/**
- * Delete the hangar on the airport.
- */
-void Airport::RemoveHangar()
-{
-	if (this->hangar == nullptr) return;
-
-	/* TODO Check this. */
-	RemoveOrderFromAllVehicles(OT_GOTO_DEPOT, this->hangar->index);
-
-	for (Aircraft *a : Aircraft::Iterate()) {
-		if (!a->IsNormalAircraft()) continue;
-		if (!a->current_order.IsType(OT_GOTO_DEPOT)) continue;
-		if (a->current_order.GetDestination() != this->hangar->index) continue;
-		a->current_order.MakeDummy();
-	}
-
-	this->hangar->Disuse();
-	delete this->hangar;
-	this->hangar = nullptr;
 }
 
 DepotID GetHangarIndex(TileIndex t) {
