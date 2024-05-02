@@ -16,6 +16,7 @@
 #include "water.h"
 #include "landscape.h"
 #include "company_base.h"
+#include "air_map.h"
 #include "town.h"
 #include "table/strings.h"
 #include "table/airporttiles.h"
@@ -49,6 +50,7 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
  */
 /* static */ const AirportTileSpec *AirportTileSpec::GetByTile(TileIndex tile)
 {
+	assert(IsTileType(tile, MP_STATION) && IsAirport(tile));
 	return AirportTileSpec::Get(GetAirportGfx(tile));
 }
 

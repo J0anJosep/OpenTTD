@@ -7,6 +7,7 @@
 
 /** @file newgrf_debug_data.h Data 'tables' for NewGRF debugging. */
 
+#include "../air_map.h"
 #include "../newgrf_house.h"
 #include "../newgrf_engine.h"
 #include "../newgrf_roadtype.h"

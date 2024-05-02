@@ -27,6 +27,8 @@
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
 #include "depot_base.h"
+#include "air.h"
+#include "air_map.h"
 
 #include "table/strings.h"
 
