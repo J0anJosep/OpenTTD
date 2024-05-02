@@ -52,8 +52,11 @@ static const int ROTOR_Z_OFFSET         = 5;    ///< Z Offset between helicopter
 void GetAircraftSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 void UpdateAircraftCache(Aircraft *v, bool update_range = false);
 
-void UpdateAircraftLandingTile(Aircraft *v);
+void AircraftUpdateNextPos(Aircraft *v);
 void SetAircraftPosition(Aircraft *v, int x, int y, int z);
+
+void AssignLandingTile(Aircraft *v, TileIndex tile);
+TileIndex FindClosestLandingTile(Aircraft *v);
 
 void GetAircraftFlightLevelBounds(const Vehicle *v, int *min, int *max);
 template <class T>
@@ -253,6 +256,8 @@ struct Aircraft final : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 		return this->Next()->dest_tile;
 	}
 
+	StationID GetCurrentAirportID() const;
+	Station *GetCurrentAirport() const;
 	void UpdateNextTile(TileIndex tile);
 	void SetDestTile(TileIndex tile) override;
 
@@ -263,6 +268,7 @@ struct Aircraft final : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
 	TileIndex GetOrderStationLocation(StationID station) override;
 	TileIndex GetCargoTile() const override { return this->First()->tile; }
 	ClosestDepot FindClosestDepot() override;
+	TileIndex GetOrderHangarLocation(DepotID depot);
 
 	/**
 	 * Check if the aircraft type is a normal flying device; eg

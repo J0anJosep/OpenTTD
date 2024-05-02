@@ -425,6 +425,20 @@ inline TrackBits TrackCrossesTracks(Track track)
 }
 
 /**
+ * Maps a trackdir to the (4-way) direction used for entering this tile
+ * when following that trackdir.
+ *
+ * @param trackdir The given track direction
+ * @return The entry direction to a tile in order to follow the Trackdir
+ */
+static inline DiagDirection TrackdirToEntrydir(Trackdir trackdir)
+{
+	assert(IsValidTrackdirForRoadVehicle(trackdir));
+	extern const DiagDirection _trackdir_to_entrydir[TRACKDIR_END];
+	return _trackdir_to_entrydir[trackdir];
+}
+
+/**
  * Maps a trackdir to the (4-way) direction the tile is exited when following
  * that trackdir.
  *

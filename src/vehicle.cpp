@@ -45,6 +45,7 @@
 #include "effectvehicle_func.h"
 #include "effectvehicle_base.h"
 #include "vehiclelist.h"
+#include "air_map.h"
 #include "bridge_map.h"
 #include "tunnel_map.h"
 #include "depot_map.h"
@@ -217,6 +218,7 @@ void VehicleServiceInExtendedDepot(Vehicle *v)
 			break;
 
 		case VEH_AIRCRAFT:
+			Aircraft::From(v)->dest_tile = 0;
 			SetWindowClassesDirty(WC_AIRCRAFT_LIST);
 			break;
 
@@ -2786,26 +2788,18 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 			SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 		}
 
-		this->SetDestTile(closestDepot.location);
 		this->current_order.MakeGoToDepot(closestDepot.destination, ODTF_MANUAL);
 		if ((command & DepotCommand::Service) == DepotCommand::None) this->current_order.SetDepotActionType(ODATFB_HALT);
+		this->SetDestTile(closestDepot.location);
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, this->index, WID_VV_START_STOP);
 
 		/* If there is no depot in front and the train is not already reversing, reverse automatically (trains only) */
 		if (this->type == VEH_TRAIN && (closestDepot.reverse ^ HasBit(Train::From(this)->flags, VRF_REVERSING))) {
 			Command<CMD_REVERSE_TRAIN_DIRECTION>::Do(DC_EXEC, this->index, false);
 		}
-
-		if (this->type == VEH_AIRCRAFT) {
-			Aircraft *a = Aircraft::From(this);
-			if (a->IsAircraftFreelyFlying() && a->targetairport != closestDepot.destination) {
-				/* The aircraft is now heading for a different hangar than the next in the orders */
-			}
-		}
 	}
 
 	return CommandCost();
-
 }
 
 /**
