@@ -282,7 +282,6 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 
 		if (IsValidZeppelinCrashSite(v->tile)) {
 			Station *st = Station::GetByTile(v->tile);
-			CLRBITS(st->airport.flags, RUNWAY_IN_block);
 			AI::NewEvent(GetTileOwner(v->tile), new ScriptEventDisasterZeppelinerCleared(st->index));
 
 			TrackBits tracks = GetAirportTileTracks(v->tile);
@@ -321,10 +320,6 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 	} else if (v->age == 350) {
 		v->state = 3;
 		v->age = 0;
-	}
-
-	if (IsValidTile(v->tile) && IsAirportTile(v->tile)) {
-		SETBITS(Station::GetByTile(v->tile)->airport.flags, RUNWAY_IN_block);
 	}
 
 	return true;

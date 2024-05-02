@@ -1005,16 +1005,6 @@ void Vehicle::PreDestructor()
 
 	Company::Get(this->owner)->freeunits[this->type].ReleaseID(this->unitnumber);
 
-	if (this->type == VEH_AIRCRAFT && this->IsPrimaryVehicle()) {
-		Aircraft *a = Aircraft::From(this);
-		Station *st = GetTargetAirportIfValid(a);
-		if (st != nullptr) {
-			const AirportFTA *layout = st->airport.GetFTA()->layout;
-			CLRBITS(st->airport.flags, layout[a->previous_pos].block | layout[a->pos].block);
-		}
-	}
-
-
 	if (this->type == VEH_ROAD && this->IsPrimaryVehicle()) {
 		RoadVehicle *v = RoadVehicle::From(this);
 		if (!(v->vehstatus & VS_CRASHED) && IsInsideMM(v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END)) {
@@ -2809,7 +2799,6 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 			Aircraft *a = Aircraft::From(this);
 			if (a->IsAircraftFreelyFlying() && a->targetairport != closestDepot.destination) {
 				/* The aircraft is now heading for a different hangar than the next in the orders */
-				AircraftNextAirportPos_and_Order(a);
 			}
 		}
 	}
@@ -3235,8 +3224,6 @@ bool CanVehicleUseStation(EngineID engine_type, const Station *st)
 			return (st->facilities & FACIL_DOCK) != 0;
 
 		case VEH_AIRCRAFT:
-			return (st->facilities & FACIL_AIRPORT) != 0 &&
-					(st->airport.GetFTA()->flags & (e->u.air.subtype & AIR_CTOL ? AirportFTAClass::AIRPLANES : AirportFTAClass::HELICOPTERS)) != 0;
 
 		default:
 			return false;

@@ -159,61 +159,6 @@ void ConvertOldMultiheadToNew()
 	}
 }
 
-
-/** need to be called to load aircraft from old version */
-void UpdateOldAircraft()
-{
-	/* set airport_flags to 0 for all airports just to be sure */
-	for (Station *st : Station::Iterate()) {
-		st->airport.flags = 0; // reset airport
-	}
-
-	for (Aircraft *a : Aircraft::Iterate()) {
-		/* airplane has another vehicle with subtype 4 (shadow), helicopter also has 3 (rotor)
-		 * skip those */
-		if (a->IsNormalAircraft()) {
-			/* airplane in terminal stopped doesn't hurt anyone, so goto next */
-			if ((a->vehstatus & VS_STOPPED) && a->state == 0) {
-				a->state = HANGAR;
-				continue;
-			}
-
-			AircraftLeaveHangar(a, a->direction); // make airplane visible if it was in a depot for example
-			a->vehstatus &= ~VS_STOPPED; // make airplane moving
-			UpdateAircraftCache(a);
-			a->cur_speed = a->vcache.cached_max_speed; // so aircraft don't have zero speed while in air
-			if (!a->current_order.IsType(OT_GOTO_STATION) && !a->current_order.IsType(OT_GOTO_DEPOT)) {
-				/* reset current order so aircraft doesn't have invalid "station-only" order */
-				a->current_order.MakeDummy();
-			}
-			a->state = FLYING;
-			AircraftNextAirportPos_and_Order(a); // move it to the entry point of the airport
-			GetNewVehiclePosResult gp = GetNewVehiclePos(a);
-			a->tile = 0; // aircraft in air is tile=0
-
-			/* correct speed of helicopter-rotors */
-			if (a->subtype == AIR_HELICOPTER) a->Next()->Next()->cur_speed = 32;
-
-			/* set new position x,y,z */
-			GetAircraftFlightLevelBounds(a, &a->z_pos, nullptr);
-			SetAircraftPosition(a, gp.x, gp.y, GetAircraftFlightLevel(a));
-		}
-	}
-
-	/* Clear aircraft from loading vehicles, if we bumped them into the air. */
-	for (Station *st : Station::Iterate()) {
-		for (auto iter = st->loading_vehicles.begin(); iter != st->loading_vehicles.end(); /* nothing */) {
-			Vehicle *v = *iter;
-			if (v->type == VEH_AIRCRAFT && !v->current_order.IsType(OT_LOADING)) {
-				iter = st->loading_vehicles.erase(iter);
-				delete v->cargo_payment;
-			} else {
-				++iter;
-			}
-		}
-	}
-}
-
 /**
  * Check all vehicles to ensure their engine type is valid
  * for the currently loaded NewGRFs (that includes none...)
