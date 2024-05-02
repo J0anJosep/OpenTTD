@@ -823,7 +823,7 @@ ERROR: IsEnd() is invalid as Begin() is never called
   GetAirportWidth(2):               1
   GetAirportHeight(2):              1
   GetAirportCoverageRadius(2):      8
-  GetAirportNumHelipads(2):         1
+  GetAirportNumHelipads(2):         0
   IsAirportInformationAvailable(3): true
   IsValidAirportType(3):            false
   GetAirportWidth(3):               6

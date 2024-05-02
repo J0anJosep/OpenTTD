@@ -1423,9 +1423,6 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
-	/* By now, do not accept newgrf airports. */
-	if (airport_type >= NEW_AIRPORT_OFFSET) return CMD_ERROR;
-
 	CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 	if (ret.Failed()) return ret;
 
@@ -1444,8 +1441,8 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport
 	if (as->has_hangar && !Depot::CanAllocateItem()) return CMD_ERROR;
 	if (!as->IsAvailable()) return CMD_ERROR;
 
-	uint16_t w = as->size_x;
-	uint16_t h = as->size_y;
+	uint16_t w = as->layouts[layout].size_x;
+	uint16_t h = as->layouts[layout].size_y;
 	if (rotation % 2 != 0) Swap(w, h);
 
 	TileArea airport_area = TileArea(tile, w, h);
