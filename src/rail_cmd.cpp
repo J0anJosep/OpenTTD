@@ -815,7 +815,7 @@ static const TileIndexDiffC _trackdelta[] = {
 };
 
 
-static CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileIndex end)
+CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileIndex end)
 {
 	int x = TileX(start);
 	int y = TileY(start);

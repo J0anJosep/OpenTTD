@@ -193,23 +193,6 @@ public:
 	static TownID GetNearestTown(TileIndex tile, AirportType type);
 
 	/**
-	 * Get the maintenance cost factor of an airport type.
-	 * @param type The airport type to get the maintenance factor of.
-	 * @pre IsAirportInformationAvailable(type)
-	 * @return Maintenance cost factor of the airport type.
-	 */
-	static SQInteger GetMaintenanceCostFactor(AirportType type);
-
-	/**
-	 * Get the monthly maintenance cost of an airport type.
-	 * @param type The airport type to get the monthly maintenance cost of.
-	 * @pre IsAirportInformationAvailable(type)
-	 * @return Maintenance cost of the airport type per economy-month.
-	 * @see \ref ScriptEconomyTime
-	 */
-	static Money GetMonthlyMaintenanceCost(AirportType type);
-
-	/**
 	 * Get the number of helipads of this airport type.
 	 * @param type The airport type.
 	 * @pre IsAirportInformationAvailable(type)

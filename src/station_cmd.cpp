@@ -26,6 +26,7 @@
 #include "pathfinder/yapf/yapf_cache.h"
 #include "road_internal.h" /* For drawing catenary/checking road removal */
 #include "autoslope.h"
+#include "air.h"
 #include "water.h"
 #include "strings_internal.h"
 #include "clear_func.h"
@@ -68,6 +69,7 @@
 #include "depot_base.h"
 #include "platform_func.h"
 #include "tilehighlight_type.h"
+#include "air_map.h"
 
 #include "widgets/station_widget.h"
 
@@ -4461,6 +4463,7 @@ static CommandCost CanRemoveRoadWithStop(TileIndex tile, DoCommandFlag flags)
 }
 
 extern CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags);
+extern CommandCost ClearAirportTile(TileIndex tile, DoCommandFlag flags);
 
 /**
  * Clear a single tile of a station.
@@ -4489,7 +4492,12 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags)
 		case STATION_WAYPOINT: return RemoveRailWaypoint(tile, flags);
 		case STATION_AIRPORT: // airport can be built on water
 			if (_current_company == OWNER_WATER && IsTileOnWater(tile)) break;
-			return RemoveAirport(tile, flags);
+			if (_settings_game.station.allow_modify_airports) {
+				return ClearAirportTile(tile, flags);
+			} else {
+				return RemoveAirport(tile, flags);
+			}
+			break;
 		case STATION_TRUCK:    [[fallthrough]];
 		case STATION_BUS:
 			if (IsDriveThroughStopTile(tile)) {

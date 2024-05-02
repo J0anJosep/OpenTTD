@@ -286,4 +286,26 @@ static inline bool IsDiagDirFacingSouth(DiagDirection diag_dir)
 	return diag_dir == DIAGDIR_SE || diag_dir == DIAGDIR_SW;
 }
 
+/**
+ * Rotate a diagonal direction with a given number of right angles clockwise.
+ * @param dir original diagonal direcion.
+ * @param rotate number of right angles for clockwise rotation.
+ * @return the original diagonal direction rotated 90 degrees clockwise as many times as indicaded by rotate.
+ */
+static inline Direction RotateDirection(Direction dir, DiagDirection rotate)
+{
+	return (Direction)((dir + 2 * rotate) % DIR_END);
+}
+
+/**
+ * Rotate a direction with a given number of right angles clockwise.
+ * @param dir original direcion.
+ * @param rotate number of right angles for clockwise rotation.
+ * @return the original direction rotated 90 degrees clockwise as many times as indicaded by rotate.
+ */
+static inline DiagDirection RotateDiagDir(DiagDirection dir, DiagDirection rotate)
+{
+	return (DiagDirection)((dir + rotate) % DIAGDIR_END);
+}
+
 #endif /* DIRECTION_FUNC_H */
