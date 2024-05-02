@@ -50,6 +50,8 @@
 #include "../newgrf.h"
 #include "../newgrf_station.h"
 #include "../engine_func.h"
+#include "../airport_gui.h"
+#include "../air.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
 #include "../smallmap_gui.h"
@@ -1473,6 +1475,7 @@ bool AfterLoadGame()
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = GetCompanyRailTypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+		c->avail_airtypes = GetCompanyAirTypes(c->index);
 	}
 
 	AfterLoadStations();
@@ -3418,6 +3421,8 @@ bool AfterLoadGame()
 		for (Aircraft *v : Aircraft::Iterate()) {
 			if ((v->vehstatus & VS_CRASHED) == 0) v->Crash();
 		}
+
+		InitializeAirportGui();
 	}
 
 	AfterLoadLabelMaps();

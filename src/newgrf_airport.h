@@ -123,7 +123,7 @@ struct AirportSpec : NewGRFSpecBase<AirportClassID> {
 	static const AirportSpec *Get(uint8_t type);
 	static AirportSpec *GetWithoutOverride(uint8_t type);
 
-	bool IsAvailable() const;
+	bool IsAvailable(AirType air_type = INVALID_AIRTYPE) const;
 	bool IsWithinMapBounds(uint8_t table, TileIndex index) const;
 
 	static void ResetAirports();
