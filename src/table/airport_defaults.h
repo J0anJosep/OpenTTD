@@ -14,7 +14,7 @@
 #include "../air_type.h"
 #include "airporttile_ids.h"
 
-/** Tiles for Country Airfield (small) */
+/** Tiles for Country Airfield (small) with hangar in the western tile. */
 static const std::initializer_list<AirportTileTable> _description_country = {
 	AirportTileTable(ATT_INFRASTRUCTURE_WITH_CATCH,    ATTG_WITH_CATCH_BUILDING_3,            DIAGDIR_NW,                APT_SMALL_BUILDING_1),
 	AirportTileTable(ATT_INFRASTRUCTURE_WITH_CATCH,    ATTG_WITH_CATCH_BUILDING_2,            DIAGDIR_NW,                APT_SMALL_BUILDING_2),
@@ -30,6 +30,47 @@ static const std::initializer_list<AirportTileTable> _description_country = {
 	AirportTileTable(ATT_RUNWAY_MIDDLE,                TRACK_BIT_CROSS | TRACK_BIT_LEFT,      DIR_NE,                    APT_RUNWAY_SMALL_MIDDLE),
 	AirportTileTable(ATT_RUNWAY_MIDDLE,                TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SE,    DIR_NE,                    APT_RUNWAY_SMALL_MIDDLE),
 	AirportTileTable(ATT_RUNWAY_START_ALLOW_LANDING,   TRACK_BIT_CROSS | TRACK_BIT_UPPER,     DIAGDIR_NE,                APT_RUNWAY_SMALL_NEAR_END),
+};
+
+/** Tiles for Country Airfield (small) with hangar in the northern tile. */
+static const std::initializer_list<AirportTileTable> _description_country_2 = {
+	AirportTileTable(ATT_HANGAR_STANDARD,              TRACK_BIT_Y,                           DIAGDIR_SE                 ),
+	AirportTileTable(ATT_INFRASTRUCTURE_WITH_CATCH,    ATTG_WITH_CATCH_BUILDING_3,            DIAGDIR_NW                 ),
+	AirportTileTable(ATT_INFRASTRUCTURE_WITH_CATCH,    ATTG_WITH_CATCH_BUILDING_2,            DIAGDIR_NW                 ),
+	AirportTileTable(ATT_INFRASTRUCTURE_WITH_CATCH,    ATTG_WITH_CATCH_BUILDING_1,            DIAGDIR_NW                 ),
+
+	AirportTileTable(ATT_SIMPLE_TRACK,                 TRACK_BIT_CROSS | TRACK_BIT_LOWER                                 ),
+	AirportTileTable(ATT_APRON_NORMAL,                 TRACK_BIT_CROSS,                       APRON_APRON                ),
+	AirportTileTable(ATT_APRON_NORMAL,                 TRACK_BIT_CROSS,                       APRON_APRON                ),
+	AirportTileTable(ATT_INFRASTRUCTURE_NO_CATCH,      ATTG_NO_CATCH_FLAG,                    DIAGDIR_SW                 ),
+
+	AirportTileTable(ATT_RUNWAY_END,                   TRACK_BIT_CROSS | TRACK_BIT_UPPER,     DIAGDIR_NE                 ),
+	AirportTileTable(ATT_RUNWAY_MIDDLE,                TRACK_BIT_CROSS | TRACK_BIT_LEFT,      DIR_NE                     ),
+	AirportTileTable(ATT_RUNWAY_MIDDLE,                TRACK_BIT_ALL & ~TRACK_BIT_3WAY_SE,    DIR_NE                     ),
+	AirportTileTable(ATT_RUNWAY_START_ALLOW_LANDING,   TRACK_BIT_X,                           DIAGDIR_NE                 ),
+};
+
+/** Tiles for Country Airfield (small) non-rectangular. */
+static const std::initializer_list<AirportTileTable> _description_country_3 = {
+	AirportTileTable(                                                                                                    ),
+	AirportTileTable(                                                                                                    ),
+	AirportTileTable(                                                                                                    ),
+	AirportTileTable(ATT_HANGAR_STANDARD,              TRACK_BIT_Y,                           DIAGDIR_SE                 ),
+
+	AirportTileTable(ATT_INFRASTRUCTURE_NO_CATCH,      ATTG_NO_CATCH_FLAG,                    DIAGDIR_NW                 ),
+	AirportTileTable(ATT_APRON_NORMAL,                 TRACK_BIT_CROSS,                       APRON_APRON                ),
+	AirportTileTable(ATT_APRON_NORMAL,                 TRACK_BIT_CROSS,                       APRON_APRON                ),
+	AirportTileTable(ATT_SIMPLE_TRACK,                 TRACK_BIT_CROSS                                                   ),
+
+	AirportTileTable(ATT_SIMPLE_TRACK,                 TRACK_BIT_LOWER                                                   ),
+	AirportTileTable(ATT_SIMPLE_TRACK,                 TRACK_BIT_CROSS | TRACK_BIT_LEFT                                  ),
+	AirportTileTable(ATT_SIMPLE_TRACK,                 TRACK_BIT_CROSS | TRACK_BIT_VERT | TRACK_BIT_UPPER                ),
+	AirportTileTable(ATT_SIMPLE_TRACK,                 TRACK_BIT_CROSS | TRACK_BIT_RIGHT                                 ),
+
+	AirportTileTable(ATT_RUNWAY_END,                   TRACK_BIT_Y,                           DIAGDIR_NE                 ),
+	AirportTileTable(ATT_RUNWAY_MIDDLE,                TRACK_BIT_NONE,                        DIR_NE                     ),
+	AirportTileTable(ATT_RUNWAY_MIDDLE,                TRACK_BIT_LEFT,                        DIR_NE                     ),
+	AirportTileTable(ATT_RUNWAY_START_ALLOW_LANDING,   TRACK_BIT_CROSS,                       DIAGDIR_NE                 ),
 };
 
 /** Tiles for Commuter Airfield (small) */
@@ -354,7 +395,7 @@ static const std::initializer_list<AirportTileTable> _description_oilrig = {
 };
 
 static const std::initializer_list<AirportTileLayout> _layouts_country = {
-	{ _description_country, 4, 3 },
+	{ _description_country, 4, 3 }, { _description_country_2, 4, 3 }, { _description_country_3, 4, 4 },
 };
 
 static const std::initializer_list<AirportTileLayout> _layouts_city = {
