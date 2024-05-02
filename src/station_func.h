@@ -39,6 +39,8 @@ void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, Ro
 
 bool HasStationInUse(StationID station, bool include_company, CompanyID company);
 
+StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class);
+
 void DeleteBuiltInHeliport(TileIndex t);
 void UpdateStationDockingTiles(Station *st);
 void RemoveDockingTile(TileIndex t);

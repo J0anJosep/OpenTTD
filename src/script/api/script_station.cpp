@@ -16,6 +16,7 @@
 #include "../../roadstop_base.h"
 #include "../../town.h"
 #include "../../station_cmd.h"
+#include "../../airport_cmd.h"
 
 #include "../../safeguards.h"
 

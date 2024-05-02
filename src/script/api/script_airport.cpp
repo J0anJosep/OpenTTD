@@ -14,6 +14,7 @@
 #include "../../town.h"
 #include "../../landscape_cmd.h"
 #include "../../station_cmd.h"
+#include "../../airport_cmd.h"
 #include "../../depot_base.h"
 
 #include "../../safeguards.h"
