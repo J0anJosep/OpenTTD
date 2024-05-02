@@ -85,6 +85,15 @@ enum CatchmentArea {
 	MAX_CATCHMENT      = 10, ///< Maximum catchment for airports with "modified catchment" enabled
 };
 
+enum StationNaming {
+	STATIONNAMING_RAIL,
+	STATIONNAMING_ROAD,
+	STATIONNAMING_AIRPORT,
+	STATIONNAMING_OILRIG,
+	STATIONNAMING_DOCK,
+	STATIONNAMING_HELIPORT,
+};
+
 static const uint MAX_LENGTH_STATION_NAME_CHARS = 32; ///< The maximum length of a station name in characters including '\0'
 
 struct StationCompare {

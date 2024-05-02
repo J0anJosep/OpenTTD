@@ -11,6 +11,13 @@
 #define AIRPORT_CMD_H
 
 #include "command_type.h"
+#include "station_type.h"
+
+CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport_type, uint8_t layout, StationID station_to_join, bool allow_adjacent);
+CommandCost CmdOpenCloseAirport(DoCommandFlag flags, StationID station_id);
+
+DEF_CMD_TRAIT(CMD_BUILD_AIRPORT,            CmdBuildAirport,          CMD_AUTO | CMD_NO_WATER, CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_OPEN_CLOSE_AIRPORT,       CmdOpenCloseAirport,      0,                       CMDT_ROUTE_MANAGEMENT)
 
 CommandCallback CcBuildAirport;
 
