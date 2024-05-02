@@ -2008,19 +2008,12 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					/* PBS reservations cannot reverse */
 					if (pbs_look_ahead && closestDepot.reverse) return false;
 
-					v->SetDestTile(closestDepot.location);
 					v->current_order.SetDestination(closestDepot.destination);
+					v->SetDestTile(closestDepot.location);
 
 					/* If there is no depot in front, reverse automatically (trains only) */
 					if (v->type == VEH_TRAIN && closestDepot.reverse) Command<CMD_REVERSE_TRAIN_DIRECTION>::Do(DC_EXEC, v->index, false);
 
-					if (v->type == VEH_AIRCRAFT) {
-						Aircraft *a = Aircraft::From(v);
-						if (a->targetairport != GetStationIndex(closestDepot.location)) {
-							/* The aircraft is now heading for a different hangar than the next in the orders */
-							UpdateAircraftLandingTile(a);
-						}
-					}
 					return true;
 				}
 
@@ -2034,11 +2027,11 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					v->SetDestTile(Depot::Get(order->GetDestination())->GetBestDepotTile(v));
 				} else {
 					Aircraft *a = Aircraft::From(v);
-					DestinationID destination_depot = a->current_order.GetDestination();
-					StationID destination = GetStationIndex(Depot::Get(destination_depot)->xy);
-					if (a->targetairport != destination) {
+					Depot *dep = Depot::Get(a->current_order.GetDestination());
+					assert(dep->station != nullptr);
+					if (a->targetairport != dep->station->index) {
 						/* The aircraft is now heading for a different hangar than the next in the orders */
-						a->SetDestTile(a->GetOrderStationLocation(destination));
+						a->SetDestTile(a->GetOrderStationLocation(dep->station->index));
 					}
 				}
 				return true;
@@ -2114,11 +2107,8 @@ bool ProcessOrders(Vehicle *v)
 			break;
 
 		case OT_LOADING:
-			return false;
-
 		case OT_LEAVESTATION:
-			if (v->type != VEH_AIRCRAFT) return false;
-			break;
+			return false;
 
 		default: break;
 	}
@@ -2170,7 +2160,7 @@ bool ProcessOrders(Vehicle *v)
 	}
 
 	/* If it is unchanged, keep it. */
-	if (order->Equals(v->current_order) && (v->type == VEH_AIRCRAFT || v->dest_tile != 0) &&
+	if (order->Equals(v->current_order) && v->dest_tile != 0 &&
 			(v->type != VEH_SHIP || !order->IsType(OT_GOTO_STATION) || Station::Get(order->GetDestination())->ship_station.tile != INVALID_TILE)) {
 		return false;
 	}

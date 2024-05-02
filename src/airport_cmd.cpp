@@ -54,9 +54,9 @@
 void UpdateAircraftOnUpdatedAirport(const Station *st)
 {
 	for (Aircraft *v : Aircraft::Iterate()) {
-		if (!v->IsPrimaryVehicle()) continue;
-		if (v->state == AS_FLYING || v->state == AS_FLYING_NO_DEST) {
-			AircraftUpdateNextAirportPosAndOrder(v);
+		if (!v->IsPrimaryVehicle() || v->targetairport != st->index) continue;
+		if (v->IsAircraftFreelyFlying()) {
+			AircraftUpdateNextPos(v);
 			continue;
 		}
 
@@ -1759,6 +1759,7 @@ void DeleteBuiltInHeliport(TileIndex tile)
 					a->state == AS_ON_HOLD_APPROACHING) {
 				a->state = AS_FLYING;
 				ProcessOrders(a);
+				a->SetDestTile(0);
 			}
 		}
 	}
