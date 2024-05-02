@@ -9,6 +9,8 @@
 
 #include "stdafx.h"
 #include "station_base.h"
+
+#include "table/airtypes.h"
 #include "table/strings.h"
 #include "table/airport_movement.h"
 #include "table/airporttile_ids.h"
@@ -63,6 +65,164 @@ AIRPORT_GENERIC(dummy, nullptr, 0, AirportFTAClass::ALL, 0)
 #undef AIRPORT_GENERIC
 
 #include "table/airport_defaults.h"
+
+/** Helper type for lists/vectors of trains */
+typedef std::vector<Aircraft *> AircraftList;
+
+AirTypeInfo _airtypes[AIRTYPE_END];
+std::vector<AirType> _sorted_airtypes;
+AirTypes _airtypes_hidden_mask;
+
+
+void ResolveAirTypeGUISprites(AirTypeInfo *ati)
+{
+	SpriteID cursors_base = GetCustomAirSprite(ati, INVALID_TILE, ATSG_CURSORS);
+	if (cursors_base != 0) {
+		ati->gui_sprites.add_airport_tiles        = cursors_base +   0;
+		ati->gui_sprites.build_track_tile         = cursors_base +   1;
+		ati->gui_sprites.change_airtype           = cursors_base +   2;
+		ati->gui_sprites.build_catchment_infra    = cursors_base +   3;
+		ati->gui_sprites.build_noncatchment_infra = cursors_base +   4;
+		ati->gui_sprites.define_landing_runway    = cursors_base +   5;
+		ati->gui_sprites.define_nonlanding_runway = cursors_base +   6;
+		ati->gui_sprites.build_apron              = cursors_base +   7;
+		ati->gui_sprites.build_helipad            = cursors_base +   8;
+		ati->gui_sprites.build_heliport           = cursors_base +   9;
+		ati->gui_sprites.build_hangar             = cursors_base +  10;
+
+		ati->cursor.add_airport_tiles        = cursors_base +  11;
+		ati->cursor.build_track_tile         = cursors_base +  12;
+		ati->cursor.change_airtype           = cursors_base +  13;
+		ati->cursor.build_catchment_infra    = cursors_base +  14;
+		ati->cursor.build_noncatchment_infra = cursors_base +  15;
+		ati->cursor.define_landing_runway    = cursors_base +  16;
+		ati->cursor.define_nonlanding_runway = cursors_base +  17;
+		ati->cursor.build_apron              = cursors_base +  18;
+		ati->cursor.build_helipad            = cursors_base +  19;
+		ati->cursor.build_heliport           = cursors_base +  20;
+		ati->cursor.build_hangar             = cursors_base +  21;
+	}
+}
+
+
+/**
+ * Reset all air type information to its default values.
+ */
+void ResetAirTypes()
+{
+	static_assert(lengthof(_original_airtypes) <= lengthof(_airtypes));
+
+	uint i = 0;
+	for (; i < lengthof(_original_airtypes); i++) _airtypes[i] = _original_airtypes[i];
+
+	static const AirTypeInfo empty_airtype = {
+			{	0, // Ground sprite
+				{
+					{	// Airport buildings with infrastructure: non-snowed/snowed + 5 building + 4 rotations
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 }
+					},
+					{
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 },
+						{ 0, 0, 0, 0 }
+					}
+				},
+				{	// Airport animated flag    revise: maybe 4 sprites instead of 16 is enough
+					{ 0, 0, 0, 0 },
+					{ 0, 0, 0, 0 },
+					{ 0, 0, 0, 0 },
+					{ 0, 0, 0, 0 }
+				},
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Radar sprites
+				{ // Infrastructure with no catchment (with 4 rotated sprites): transmitter, snowed transmitter, tower, snowed tower
+					{ 0, 0, 0, 0 },
+					{ 0, 0, 0, 0 },
+					{ 0, 0, 0, 0 },
+					{ 0, 0, 0, 0 }
+				},
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Runway sprites
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  }, // Sprites for normal apron, helipad, 4 rotated sprites for heliports and 4 more for snowed heliports
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } // Hangar sprites
+			},
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Icons
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Cursors
+			{ 0, 0, 0, 0 }, // Strings
+			0, AIRTYPES_NONE, AIRTYPES_NONE, 0, 0, 0, 0, AirTypeLabelList(), 0, 0,
+			AIRTYPES_NONE, AIRTYPES_NONE, 0,
+			{}, {}, 0, 0, 0, 0, 0, false, false };
+	for (; i < lengthof(_airtypes); i++) _airtypes[i] = empty_airtype;
+}
+
+/**
+ * Compare airtypes based on their sorting order.
+ * @param first  The airtype to compare to.
+ * @param second The airtype to compare.
+ * @return True iff the first should be sorted before the second.
+ */
+static bool CompareAirTypes(const AirType &first, const AirType &second)
+{
+	return GetAirTypeInfo(first)->sorting_order < GetAirTypeInfo(second)->sorting_order;
+}
+
+/**
+ * Resolve sprites of custom air types
+ */
+void InitAirTypes()
+{
+	for (AirType at = AIRTYPE_BEGIN; at != AIRTYPE_END; at++) {
+		AirTypeInfo *ati = &_airtypes[at];
+		ResolveAirTypeGUISprites(ati);
+	}
+
+	_sorted_airtypes.clear();
+	for (AirType at = AIRTYPE_BEGIN; at != AIRTYPE_END; at++) {
+		if (_airtypes[at].label != 0 && !HasBit(_airtypes_hidden_mask, at)) {
+			_sorted_airtypes.push_back(at);
+		}
+	}
+	std::sort(_sorted_airtypes.begin(), _sorted_airtypes.end(), CompareAirTypes);
+
+}
+
+/**
+ * Allocate a new air type label
+ */
+AirType AllocateAirType(AirTypeLabel label)
+{
+	for (AirType at = AIRTYPE_BEGIN; at != AIRTYPE_END; at++) {
+		AirTypeInfo *ati = &_airtypes[at];
+
+		if (ati->label == 0) {
+			/* Set up new air type */
+			*ati = _original_airtypes[AIRTYPE_BEGIN];
+			ati->label = label;
+			ati->alternate_labels.clear();
+
+			/* Make us compatible with ourself. */
+			ati->compatible_airtypes = (AirTypes)(1 << at);
+
+			/* We also introduce ourself. */
+			ati->introduces_airtypes = (AirTypes)(1 << at);
+
+			/* Default sort order; order of allocation, but with some
+			 * offsets so it's easier for NewGRF to pick a spot without
+			 * changing the order of other (original) air types.
+			 * The << is so you can place other airtypes in between the
+			 * other airtypes, the 7 is to be able to place something
+			 * before the first (default) air type. */
+			ati->sorting_order = at << 4 | 7;
+			return at;
+		}
+	}
+
+	return INVALID_AIRTYPE;
+}
 
 
 static uint16_t AirportGetNofElements(const AirportFTAbuildup *apFA);

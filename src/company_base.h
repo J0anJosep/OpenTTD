@@ -133,6 +133,7 @@ struct Company : CompanyProperties, CompanyPool::PoolItem<&_company_pool> {
 	Company(uint16_t name_1 = 0, bool is_ai = false);
 	~Company();
 
+	AirTypes avail_airtypes;           ///< Air types available to the company.
 	RailTypes avail_railtypes;         ///< Rail types available to this company.
 	RoadTypes avail_roadtypes;         ///< Road types available to this company.
 
