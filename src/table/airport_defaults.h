@@ -13,6 +13,53 @@
 #include "../track_type.h"
 #include "../air_type.h"
 #include "airporttile_ids.h"
+#include "airport_movement.h"
+
+/**
+ * Define a generic airport.
+ * @param name Suffix of the names of the airport data.
+ * @param terminals The terminals.
+ * @param num_helipads Number of heli pads.
+ * @param flags Information about the class of FTA.
+ * @param delta_z Height of the airport above the land.
+ */
+#define AIRPORT_GENERIC(name, terminals, num_helipads, flags, delta_z) \
+static const AirportFTAClass _airportfta_ ## name(_airport_moving_data_ ## name, terminals, \
+num_helipads, _airport_entries_ ## name, flags, _airport_fta_ ## name, delta_z);
+
+/**
+ * Define an airport.
+ * @param name Suffix of the names of the airport data.
+ * @param num_helipads Number of heli pads.
+ * @param short_strip Airport has a short land/take-off strip.
+ */
+#define AIRPORT(name, num_helipads, short_strip) \
+AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, AirportFTAClass::ALL | (short_strip ? AirportFTAClass::SHORT_STRIP : (AirportFTAClass::Flags)0), 0)
+
+/**
+ * Define a heliport.
+ * @param name Suffix of the names of the helipad data.
+ * @param num_helipads Number of heli pads.
+ * @param delta_z Height of the airport above the land.
+ */
+#define HELIPORT(name, num_helipads, delta_z) \
+AIRPORT_GENERIC(name, nullptr, num_helipads, AirportFTAClass::HELICOPTERS, delta_z)
+
+AIRPORT(country, 0, true)
+AIRPORT(city, 0, false)
+HELIPORT(heliport, 1, 60)
+AIRPORT(metropolitan, 0, false)
+AIRPORT(international, 2, false)
+AIRPORT(commuter, 2, true)
+HELIPORT(helidepot, 1, 0)
+AIRPORT(intercontinental, 2, false)
+HELIPORT(helistation, 3, 0)
+HELIPORT(oilrig, 1, 54)
+AIRPORT_GENERIC(dummy, nullptr, 0, AirportFTAClass::ALL, 0)
+
+#undef HELIPORT
+#undef AIRPORT
+#undef AIRPORT_GENERIC
 
 /**
  * Definition of an airport tiles layout.
@@ -393,8 +440,8 @@ static const std::initializer_list<AirportTileLayout> _tile_table_helistation = 
 		size_x, size_y, noise, catchment, min_year, max_year, maint_cost, ttdpatch_type, class_id, name, preview, true)
 
 /* The helidepot and helistation have ATP_TTDP_SMALL because they are at ground level */
-extern const AirportSpec _origin_airport_specs[] = {
-	AS(country,          4, 3,     0,                   1959,  4,  3,  7, ATP_TTDP_SMALL,    APC_SMALL,    STR_AIRPORT_SMALL,            SPR_AIRPORT_PREVIEW_SMALL),
+const AirportSpec _origin_airport_specs[] = {
+	AS(country,          4, 3,     0,     1959,  4,  3,  7, ATP_TTDP_SMALL,    APC_SMALL,    STR_AIRPORT_SMALL,            SPR_AIRPORT_PREVIEW_SMALL),
 	AS(city,             6, 6,  1955, CalendarTime::MAX_YEAR,  5,  7, 24, ATP_TTDP_LARGE,    APC_LARGE,    STR_AIRPORT_CITY,             SPR_AIRPORT_PREVIEW_LARGE),
 	AS_ND(heliport,      1, 1,  1963, CalendarTime::MAX_YEAR,  4,  2,  4, ATP_TTDP_HELIPORT, APC_HELIPORT, STR_AIRPORT_HELIPORT,         SPR_AIRPORT_PREVIEW_HELIPORT),
 	AS(metropolitan,     6, 6,  1980, CalendarTime::MAX_YEAR,  6, 10, 28, ATP_TTDP_LARGE,    APC_LARGE,    STR_AIRPORT_METRO,            SPR_AIRPORT_PREVIEW_METROPOLITAN),
@@ -408,7 +455,8 @@ extern const AirportSpec _origin_airport_specs[] = {
 
 static_assert(NEW_AIRPORT_OFFSET == lengthof(_origin_airport_specs));
 
-const AirportSpec AirportSpec::dummy = AS_GENERIC(&_airportfta_dummy, {}, {}, 0, 0, 0, 0, CalendarTime::MIN_YEAR, CalendarTime::MIN_YEAR, 0, ATP_TTDP_LARGE, APC_BEGIN, STR_NULL, 0, false);
+#define AS_GENERIC(fsm, att, rot, att_len, depot_tbl, num_depots, size_x, size_y, noise, catchment, min_year, max_year, maint_cost, ttdpatch_type, class_id, name, preview, enabled) \
+{fsm, att, rot, att_len, depot_tbl, num_depots, size_x, size_y, noise, catchment, min_year, max_year, name, ttdpatch_type, class_id, preview, maint_cost, enabled, GRFFileProps(AT_INVALID)}
 
 #undef AS
 #undef AS_ND
