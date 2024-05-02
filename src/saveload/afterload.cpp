@@ -2442,8 +2442,8 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_140)) {
 		for (Station *st : Station::Iterate()) {
 			if (st->airport.tile != INVALID_TILE) {
-				st->airport.w = st->airport.GetSpec()->size_x;
-				st->airport.h = st->airport.GetSpec()->size_y;
+				st->airport.w = st->airport.GetSpec()->layouts[0].size_x;
+				st->airport.h = st->airport.GetSpec()->layouts[0].size_y;
 			}
 		}
 	}

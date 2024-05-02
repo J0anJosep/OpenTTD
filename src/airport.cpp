@@ -33,6 +33,10 @@ std::vector<AirType> _sorted_airtypes;
 AirTypes _airtypes_hidden_mask;
 
 
+const AirportSpec AirportSpec::dummy = {{APC_BEGIN, 0}, {}, INVALID_AIRTYPE, 0, 0, 0, 0, 0, CalendarTime::MIN_YEAR, CalendarTime::MIN_YEAR, STR_NULL, ATP_TTDP_LARGE, 0, false, false, false, GRFFileProps(AT_INVALID)};
+const AirportSpec AirportSpec::custom = {{APC_CUSTOM, 0}, {}, INVALID_AIRTYPE, 0, 0, 0, 0, 0, CalendarTime::MIN_YEAR, CalendarTime::MIN_YEAR, STR_AIRPORT_CUSTOM, ATP_TTDP_LARGE, 0, false, false, false, GRFFileProps(AT_INVALID)};
+
+
 void ResolveAirTypeGUISprites(AirTypeInfo *ati)
 {
 	SpriteID cursors_base = GetCustomAirSprite(ati, INVALID_TILE, ATSG_CURSORS);
@@ -223,6 +227,7 @@ void ConvertOldAirportData(Station *st) {
 void AfterLoadSetAirportTileTypes()
 {
 	for (Station *st : Station::Iterate()) {
+		ConvertOldAirportData(st);
 		st->LoadAirportTilesFromSpec(st->airport, (DiagDirection)st->airport.rotation, st->airport.air_type);
 	}
 }

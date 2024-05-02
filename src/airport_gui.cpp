@@ -874,13 +874,14 @@ public:
 
 		if (_selected_airport_index != -1) {
 			const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index);
-			const AirTypeInfo *ati = GetAirTypeInfo(as->airtype);
+			AirType airtype = _settings_game.station.allow_modify_airports ? _cur_airtype : as->airtype;
+			const AirTypeInfo *ati = GetAirTypeInfo(airtype);
 			int rad = _settings_game.station.modified_catchment ? ati->catchment_radius : (uint)CA_UNMODIFIED;
 
 			/* only show the station (airport) noise, if the noise option is activated */
 			if (_settings_game.economy.station_noise_level) {
 				/* show the noise of the selected airport */
-				SetDParam(0, as->noise_level);
+				SetDParam(0, as->GetAirportNoise(airtype));
 				DrawString(r.left, r.right, top, STR_STATION_BUILD_NOISE);
 				top += GetCharacterHeight(FS_NORMAL) + WidgetDimensions::scaled.vsep_normal;
 			}
@@ -917,8 +918,8 @@ public:
 			this->DisableWidget(WID_AP_ROTATION_INCREASE);
 		} else {
 			const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index);
-			int w = as->size_x;
-			int h = as->size_y;
+			int w = as->layouts[_selected_airport_layout].size_x;
+			int h = as->layouts[_selected_airport_layout].size_y;
 			if (_selected_rotation % 2 != 0) Swap(w, h);
 			SetTileSelectSize(w, h);
 

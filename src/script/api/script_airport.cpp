@@ -35,7 +35,7 @@
 	if (!IsValidAirportType(type)) return -1;
 
 	const AirportSpec *as = ::AirportSpec::Get(type);
-	return _price[PR_BUILD_STATION_AIRPORT] * as->size_x * as->size_y;
+	return _price[PR_BUILD_STATION_AIRPORT] * as->layouts[0].size_x * as->layouts[0].size_y;
 }
 
 /* static */ bool ScriptAirport::IsHangarTile(TileIndex tile)
@@ -56,14 +56,14 @@
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
-	return ::AirportSpec::Get(type)->size_x;
+	return ::AirportSpec::Get(type)->layouts[0].size_x;
 }
 
 /* static */ SQInteger ScriptAirport::GetAirportHeight(AirportType type)
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
-	return ::AirportSpec::Get(type)->size_y;
+	return ::AirportSpec::Get(type)->layouts[0].size_y;
 }
 
 /* static */ SQInteger ScriptAirport::GetAirportCoverageRadius(AirportType type)
@@ -146,17 +146,17 @@ extern uint8_t GetAirportNoiseLevelForDistance(uint noise_level, uint distance);
 	if (!IsAirportInformationAvailable(type)) return -1;
 
 	const AirportSpec *as = ::AirportSpec::Get(type);
-	if (!as->IsWithinMapBounds(0, tile)) return -1;
+	if (!as->IsWithinMapBounds(0, tile, 0)) return -1;
 
 	if (_settings_game.economy.station_noise_level) {
 		BitmapTileArea bta;
 		const AirTypeInfo *ati = GetAirTypeInfo(as->airtype);
-		TileArea ta(tile, as->size_x, as->size_y);
+		TileArea ta(tile, as->layouts[0].size_x, as->layouts[0].size_y);
 		AddAirportTileTableToBitmapTileArea(as->layouts[0], &bta, DIAGDIR_BEGIN, ati->cost_multiplier);
 		uint dist;
 
 		AirportGetNearestTown(bta, dist);
-		return GetAirportNoiseLevelForDistance(as->noise_level, dist);
+		return GetAirportNoiseLevelForDistance(as->GetAirportNoise(as->airtype), dist);
 	}
 
 	return 1;
@@ -168,11 +168,11 @@ extern uint8_t GetAirportNoiseLevelForDistance(uint noise_level, uint distance);
 	if (!IsAirportInformationAvailable(type)) return INVALID_TOWN;
 
 	const AirportSpec *as = AirportSpec::Get(type);
-	if (!as->IsWithinMapBounds(0, tile)) return INVALID_TOWN;
+	if (!as->IsWithinMapBounds(0, tile, 0)) return INVALID_TOWN;
 
 	BitmapTileArea bta;
 	const AirTypeInfo *ati = GetAirTypeInfo(as->airtype);
-	TileArea ta(tile, as->size_x, as->size_y);
+	TileArea ta(tile, as->layouts[0].size_x, as->layouts[0].size_y);
 	AddAirportTileTableToBitmapTileArea(as->layouts[0], &bta, DIAGDIR_BEGIN, ati->cost_multiplier);
 	uint dist;
 	return AirportGetNearestTown(bta, dist)->index;
@@ -182,5 +182,5 @@ extern uint8_t GetAirportNoiseLevelForDistance(uint noise_level, uint distance);
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
-	return ::AirportSpec::Get(type)->fsm->num_helipads;
+	return ::AirportSpec::Get(type)->num_helipads;
 }

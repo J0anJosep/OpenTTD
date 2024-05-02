@@ -52,8 +52,11 @@
 #include "road.h"
 #include "newgrf_roadstop.h"
 
+#include "table/airport_defaults.h"
 #include "table/strings.h"
 #include "table/build_industry.h"
+
+#include <bitset>
 
 #include "safeguards.h"
 
@@ -3916,7 +3919,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 		return CIR_INVALID_ID;
 	}
 
-	/* Allocate industry specs if they haven't been allocated already. */
+	/* Allocate airport specs if they haven't been allocated already. */
 	if (_cur.grffile->airportspec.size() < airport + numinfo) _cur.grffile->airportspec.resize(airport + numinfo);
 
 	for (int i = 0; i < numinfo; i++) {
@@ -3959,63 +3962,81 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 			}
 
 			case 0x0A: { // Set airport layout
-				uint8_t num_layouts = buf.ReadByte();
-				buf.ReadDWord(); // Total size of definition, unneeded.
-				uint8_t size_x = 0;
-				uint8_t size_y = 0;
+				if (_cur.grffile->grf_version <= 8) {
+					/* Deal with the only NewGRF that modified airport layouts. */
+					const uint max_airport_tiles = 4096; // 64 * 64, max station spread.
+					[[maybe_unused]] uint num_tiles = as->layouts[0].size_x * as->layouts[0].size_y;
+					assert(num_tiles <= max_airport_tiles);
+					uint8_t num_layouts = buf.ReadByte();
+					std::bitset<max_airport_tiles> defined_tiles;
+					buf.ReadDWord();  // Total size of the definition, unneeded.
 
-				std::vector<AirportTileLayout> layouts;
-				layouts.reserve(num_layouts);
+					as->layouts.resize(1);
+					auto &layout = as->layouts[0];
+					assert(layout.tiles.size() == num_tiles);
 
-				for (uint8_t j = 0; j != num_layouts; ++j) {
-					auto &layout = layouts.emplace_back();
-					layout.rotation = static_cast<Direction>(buf.ReadByte() & 6); // Rotation can only be DIR_NORTH, DIR_EAST, DIR_SOUTH or DIR_WEST.
+					for (uint8_t j = 0; j != num_layouts; ++j) {
+						DiagDirection rotation = (DiagDirection)(buf.ReadByte() / 2); // rotation
 
-					for (;;) {
-						auto &tile = layout.tiles.emplace_back();
-						tile.ti.x = buf.ReadByte();
-						tile.ti.y = buf.ReadByte();
-						if (tile.ti.x == 0 && tile.ti.y == 0x80) {
-							/* Convert terminator to our own. */
-							tile.ti.x = -0x80;
-							tile.ti.y = 0;
-							tile.gfx = 0;
-							break;
-						}
+						for (;;) {
+							uint8_t x = buf.ReadByte(); // Offsets from northermost tile
+							uint8_t y = buf.ReadByte();
 
-						tile.gfx = buf.ReadByte();
+							if (x == 0 && y == 0x80) break;
 
-						if (tile.gfx == 0xFE) {
-							/* Use a new tile from this GRF */
-							int local_tile_id = buf.ReadWord();
-
-							/* Read the ID from the _airporttile_mngr. */
-							uint16_t tempid = _airporttile_mngr.GetID(local_tile_id, _cur.grffile->grfid);
-
-							if (tempid == INVALID_AIRPORTTILE) {
-								GrfMsg(2, "AirportChangeInfo: Attempt to use airport tile {} with airport id {}, not yet defined. Ignoring.", local_tile_id, airport + i);
-							} else {
-								/* Declared as been valid, can be used */
-								tile.gfx = tempid;
+							// Get the corresponding offset for the non-rotated version.
+							switch (rotation) {
+								case 0:
+									break;
+								case 1:
+									Swap(x, y);
+									x = as->layouts[0].size_x - 1 - x;
+									break;
+								case 2:
+									x = as->layouts[0].size_x - 1 - x;
+									y = as->layouts[0].size_y - 1 - y;
+									break;
+								case 3:
+									Swap(x, y);
+									y = as->layouts[0].size_y - 1 - y;
+									break;
+								default:
+									NOT_REACHED();
 							}
-						} else if (tile.gfx == 0xFF) {
-							tile.ti.x = static_cast<int8_t>(GB(tile.ti.x, 0, 8));
-							tile.ti.y = static_cast<int8_t>(GB(tile.ti.y, 0, 8));
-						}
 
-						/* Determine largest size. */
-						if (layout.rotation == DIR_E || layout.rotation == DIR_W) {
-							size_x = std::max<uint8_t>(size_x, tile.ti.y + 1);
-							size_y = std::max<uint8_t>(size_y, tile.ti.x + 1);
-						} else {
-							size_x = std::max<uint8_t>(size_x, tile.ti.x + 1);
-							size_y = std::max<uint8_t>(size_y, tile.ti.y + 1);
+							uint16_t table_index = as->layouts[0].size_x * y + x;
+							assert(table_index < as->layouts[0].size_x * as->layouts[0].size_y);
+
+							// Only keep track of first layout.
+							if (j == 0) defined_tiles[table_index] = true;
+							auto &tile = layout.tiles[table_index];
+
+							tile.gfx[rotation] = (AirportTiles)buf.ReadByte();
+
+							if (tile.gfx[rotation] == 0xFE) { // gfx
+								int local_tile_id = buf.ReadWord(); // use a new tile for this GRFC
+								/* Read the ID from the _airporttile_mngr. */
+								uint16_t tempid = _airporttile_mngr.GetID(local_tile_id, _cur.grffile->grfid);
+
+								if (tempid == INVALID_AIRPORTTILE) {
+									GrfMsg(2, "AirportChangeInfo: Attempt to use airport tile {} with airport id {}, not yet defined. Ignoring.", local_tile_id, airport + i);
+								} else {
+									/* Declared as been valid, can be used */
+									tile.gfx[rotation] = (AirportTiles)tempid;
+								}
+							}
 						}
 					}
+
+					/* Set the empty tiles if any. */
+					for (int i = 0; i < as->layouts[0].size_x * as->layouts[0].size_y; i++) {
+						if (defined_tiles[i]) continue;
+						layout.tiles[i].type = ATT_INVALID;
+					}
+
+				} else {
+					ret = CIR_UNKNOWN;
 				}
-				as->layouts = std::move(layouts);
-				as->size_x = size_x;
-				as->size_y = size_y;
 				break;
 			}
 
@@ -4030,11 +4051,11 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				break;
 
 			case 0x0E:
-				as->catchment = Clamp(buf.ReadByte(), 1, MAX_CATCHMENT);
+				buf.ReadByte(); // Old airport catchment
 				break;
 
 			case 0x0F:
-				as->noise_level = buf.ReadByte();
+				buf.ReadByte(); // Old airport noise
 				break;
 
 			case 0x10:
@@ -4042,8 +4063,16 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				break;
 
 			case 0x11: // Maintenance cost factor
-				as->maintenance_cost = buf.ReadWord();
+				buf.ReadWord();
 				break;
+
+				/*
+				as->num_runways = buf->ReadByte();
+				as->num_aprons = buf->ReadByte();
+				as->num_helipads = buf->ReadByte();
+				as->num_heliports = buf->ReadByte();
+				as->min_runway_length = buf->ReadByte();
+				*/
 
 			default:
 				ret = CIR_UNKNOWN;
@@ -4985,6 +5014,7 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 					continue;
 				}
 
+				Debug(misc, 0, "Overriding airport tile {} {}", airtid + i, override);
 				_airporttile_mngr.Add(airtid + i, _cur.grffile->grfid, override);
 				break;
 			}
@@ -9860,6 +9890,7 @@ static void FinaliseAirportsArray()
 		for (auto &as : file->airportspec) {
 			if (as != nullptr && as->enabled) {
 				_airport_mngr.SetEntitySpec(as.get());
+				/* Fill some missing data if not provided. */
 			}
 		}
 
