@@ -39,7 +39,7 @@
 {
 	if (!::IsValidTile(tile)) return false;
 
-	return ::IsTileType(tile, MP_STATION) && ::IsHangar(tile);
+	return ::IsTileType(tile, MP_STATION) && ::IsAirport(tile) && ::IsHangar(tile);
 }
 
 /* static */ bool ScriptAirport::IsAirportTile(TileIndex tile)

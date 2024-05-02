@@ -10,6 +10,7 @@
 #ifndef STATION_MAP_H
 #define STATION_MAP_H
 
+#include "air_type.h"
 #include "rail_map.h"
 #include "road_map.h"
 #include "water_map.h"
@@ -45,6 +46,18 @@ inline StationType GetStationType(Tile t)
 {
 	assert(IsTileType(t, MP_STATION));
 	return (StationType)GB(t.m6(), 3, 4);
+}
+
+/**
+ * Get the station type of this tile
+ * @param t the tile to query
+ * @pre IsTileType(t, MP_STATION)
+ * @return the station type
+ */
+static inline void SetStationType(Tile t, StationType type)
+{
+	assert(IsTileType(t, MP_STATION));
+	SB(t.m6(), 3, 3, type);
 }
 
 /**
@@ -156,6 +169,7 @@ inline bool HasStationTileRail(Tile t)
  */
 inline bool IsAirport(Tile t)
 {
+	assert(IsTileType(t, MP_STATION));
 	return GetStationType(t) == STATION_AIRPORT;
 }
 
@@ -169,7 +183,124 @@ inline bool IsAirportTile(Tile t)
 	return IsTileType(t, MP_STATION) && IsAirport(t);
 }
 
-bool IsHangar(Tile t);
+/**
+ * Check if an airport tile is a hangar.
+ * @param t Tile to check.
+ * @return Whether the tile is a hangar.
+ * @pre IsAirportTile
+ */
+static inline bool IsHangar(Tile t)
+{
+	assert(IsValidTile(t));
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+
+	return GB(t.m5(), 8 - ATT_HANGAR_LAYOUT_NUM_BITS, ATT_HANGAR_LAYOUT_NUM_BITS) == ATT_HANGAR_LAYOUT_BITS;
+}
+
+/**
+ * Check if an airport tile is a generic apron.
+ * (apron, heliport, helipad, built-in heliport).
+ * @param t Tile to check.
+ * @return Whether the tile is an apron.
+ * @pre IsAirportTile
+ */
+static inline bool IsApron(Tile t)
+{
+	assert(IsValidTile(t));
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+
+	return GB(t.m5(), 8 - ATT_APRON_LAYOUT_NUM_BITS, ATT_APRON_LAYOUT_NUM_BITS) == ATT_APRON_LAYOUT_BITS;
+}
+
+/**
+ * Get the type of apron.
+ * @param t Tile to get the type of.
+ * @return The type of apron.
+ * @pre IsApron
+ */
+static inline ApronType GetApronType(Tile t)
+{
+	assert(IsValidTile(t));
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+	assert(IsApron(t));
+
+	ApronType type = (ApronType)GB(t.m5(), 4, 2);
+
+	assert(type < APRON_END);
+
+	return type;
+}
+
+/**
+ * Is a given tile a built-in heliport?
+ * @param t Tile to get the type of.
+ * @return True if it is a built-in heliport.
+ * @pre IsTerminal
+ */
+static inline bool IsBuiltInHeliport(TileIndex t)
+{
+	assert(IsValidTile(t));
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+	assert(IsApron(t));
+
+	return GetApronType(t) == APRON_BUILTIN_HELIPORT;
+}
+
+/**
+ * Is this tile a built-in heliport?
+ * @param t the tile to get the information from.
+ * @return true if and only if the tile is a built-in heliport.
+ */
+static inline bool IsBuiltInHeliportTile(TileIndex t)
+{
+	return IsTileType(t, MP_STATION) &&
+	IsAirport(t) &&
+	IsApron(t) &&
+	IsBuiltInHeliport(t);
+}
+
+/**
+ * Is a given tile a built-in heliport on water?
+ * @param t Tile to get the type of.
+ * @return True if it is a built-in heliport on water.
+ * @pre IsTerminal
+ */
+static inline bool IsWateredBuiltInHeliport(TileIndex t)
+{
+	assert(IsValidTile(t));
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+	assert(IsApron(t));
+
+	return GetApronType(t) == APRON_BUILTIN_HELIPORT && IsTileOnWater(t);
+}
+
+/**
+ * Is this tile a built-in heliport on water?
+ * @param t the tile to get the information from.
+ * @return true if and only if the tile is a built-in heliport on water.
+ */
+static inline bool IsWateredBuiltInHeliportTile(Tile t)
+{
+	return IsTileType(t, MP_STATION) &&
+	IsAirport(t) &&
+	IsApron(t) &&
+	IsWateredBuiltInHeliport(t);
+}
+
+/**
+ * Is tile \a t an hangar tile?
+ * @param t Tile to check
+ * @return \c true if the tile is an hangar
+ */
+static inline bool IsHangarTile(Tile t)
+{
+	return IsTileType(t, MP_STATION) && IsAirport(t) && IsHangar(t);
+}
 
 /**
  * Is the station at \a t a truck stop?
@@ -278,8 +409,6 @@ inline bool IsDriveThroughStopTile(Tile t)
 	return IsAnyRoadStopTile(t) && GetStationGfx(t) >= GFX_TRUCK_BUS_DRIVETHROUGH_OFFSET;
 }
 
-StationGfx GetTranslatedAirportTileID(StationGfx gfx);
-
 /**
  * Get the decorations of a road waypoint.
  * @param tile The tile to query.
@@ -321,18 +450,6 @@ static inline void ToggleRoadWaypointOnSnowOrDesert(Tile t)
 {
 	assert(IsRoadWaypointTile(t));
 	ToggleBit(t.m8(), 15);
-}
-
-/**
- * Get the station graphics of this airport tile
- * @param t the tile to query
- * @pre IsAirport(t)
- * @return the station graphics
- */
-inline StationGfx GetAirportGfx(Tile t)
-{
-	assert(IsAirport(t));
-	return GetTranslatedAirportTileID(GetStationGfx(t));
 }
 
 /**
@@ -392,16 +509,6 @@ inline bool IsBuoy(Tile t)
 inline bool IsBuoyTile(Tile t)
 {
 	return IsTileType(t, MP_STATION) && IsBuoy(t);
-}
-
-/**
- * Is tile \a t an hangar tile?
- * @param t Tile to check
- * @return \c true if the tile is an hangar
- */
-inline bool IsHangarTile(Tile t)
-{
-	return IsTileType(t, MP_STATION) && IsHangar(t);
 }
 
 /**

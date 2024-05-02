@@ -177,6 +177,58 @@ AirType AllocateAirType(AirTypeLabel label)
 	return INVALID_AIRTYPE;
 }
 
+/**
+ * Get the sprite for an airport tile.
+ * @param t Tile to get the sprite of.
+ * @return AirportTile ID.
+ */
+StationGfx GetAirportGfx(TileIndex t)
+{
+	assert(IsTileType(t, MP_STATION));
+	assert(IsAirport(t));
+
+	if (!HasAirtypeGfx(t)) return GetTranslatedAirportTileID(GetTileAirportGfx(t));
+
+	switch (GetAirportTileType(t)) {
+		case ATT_INFRASTRUCTURE_NO_CATCH:
+		case ATT_INFRASTRUCTURE_WITH_CATCH:
+			return GetTileAirportGfx(t);
+
+		case ATT_SIMPLE_TRACK:
+			return (StationGfx)0;
+
+		case ATT_HANGAR_STANDARD:
+		case ATT_HANGAR_EXTENDED:
+			return (StationGfx)0;
+
+		case ATT_APRON_NORMAL:
+		case ATT_APRON_HELIPAD:
+		case ATT_APRON_HELIPORT:
+		case ATT_APRON_BUILTIN_HELIPORT:
+			switch (GetApronType(t)) {
+				case APRON_APRON:
+				case APRON_HELIPAD:
+				case APRON_HELIPORT:
+					return (StationGfx)0;
+				case APRON_BUILTIN_HELIPORT:
+					return (StationGfx)0; // oil rig heliport
+				default: NOT_REACHED();
+			}
+
+		case ATT_RUNWAY_MIDDLE:
+		case ATT_RUNWAY_START_NO_LANDING:
+		case ATT_RUNWAY_START_ALLOW_LANDING:
+		case ATT_RUNWAY_END: {
+			return (StationGfx)0;
+			break;
+		}
+
+		case ATT_WAITING_POINT:
+			NOT_REACHED();
+		default:
+			NOT_REACHED();
+	}
+}
 
 static uint16_t AirportGetNofElements(const AirportFTAbuildup *apFA);
 static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildup *apFA);
