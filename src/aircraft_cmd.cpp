@@ -2163,22 +2163,3 @@ Station *GetTargetAirportIfValid(const Aircraft *v)
 
 	return st->airport.tile == INVALID_TILE ? nullptr : st;
 }
-
-/**
- * Updates the status of the Aircraft heading or in the station
- * @param st Station been updated
- */
-void UpdateAirplanesOnNewStation(const Station *st)
-{
-	/* only 1 station is updated per function call, so it is enough to get entry_point once */
-	const AirportFTAClass *ap = st->airport.GetFTA();
-	Direction rotation = st->airport.tile == INVALID_TILE ? DIR_N : st->airport.rotation;
-
-	for (Aircraft *v : Aircraft::Iterate()) {
-		if (!v->IsNormalAircraft() || v->targetairport != st->index) continue;
-		assert(v->state == FLYING);
-
-		v->pos = v->previous_pos = AircraftGetEntryPoint(v, ap, rotation);
-		UpdateAircraftCache(v);
-	}
-}

@@ -251,23 +251,181 @@ void UpdateTracks(TileIndex tile)
 	SetAirportTileTracks(tile, tracks);
 }
 
+/**
+ * Get the start or end of a runway.
+ * @param tile Tile belonging a runway.
+ * @param dir Direction to follow.
+ * @return a runway extreme.
+ */
+TileIndex GetRunwayExtreme(TileIndex tile, DiagDirection dir)
+{
+	assert(IsAirportTile(tile) && IsRunway(tile));
+
+	TileIndexDiff delta = TileOffsByDiagDir(dir);
+	TileIndex t = tile;
+
+	for (;;) {
+		assert(IsAirportTile(t));
+		assert(IsRunway(t));
+		if (IsRunwayExtreme(t)) {
+			DiagDirection last_dir = GetRunwayExtremeDirection(t);
+			if (IsRunwayEnd(t)) {
+				if (last_dir == dir) return t;
+				assert(last_dir == ReverseDiagDir(dir));
+			} else {
+				assert(IsRunwayStart(t));
+				if (last_dir == ReverseDiagDir(dir)) return t;
+				assert(last_dir == dir);
+			}
+		}
+		t += delta;
+	}
+}
+
+/**
+ * Check if a tile is a valid continuation of a runway.
+ * The tile \a test_tile is a valid continuation to \a runway, if all of the following are true:
+ * \li \a test_tile is an airport tile
+ * \li \a test_tile and \a start_tile are in the same station
+ * \li the tracks on \a test_tile and \a start_tile are in the same direction
+ * @param test_tile Tile to test
+ * @param start_tile Depot tile to compare with
+ * @pre IsAirport && IsRunwayStart(start_tile)
+ * @return true if the two tiles are compatible
+ */
+inline bool IsCompatibleRunwayTile(TileIndex test_tile, TileIndex start_tile)
+{
+	assert(IsAirportTile(start_tile) && IsRunwayStart(start_tile));
+	return IsAirportTile(test_tile) &&
+			GetStationIndex(test_tile) == GetStationIndex(start_tile) &&
+			(GetRunwayTrackdirs(start_tile) & GetRunwayTrackdirs(test_tile)) != TRACKDIR_BIT_NONE;
+}
+
+/**
+ * Get the runway length.
+ * @param tile Runway start tile
+ * @return the length of the runway.
+ */
+uint GetRunwayLength(TileIndex tile)
+{
+	assert(IsAirport(tile) && IsRunwayStart(tile));
+	DiagDirection dir = GetRunwayExtremeDirection(tile);
+	assert(IsValidDiagDirection(dir));
+
+	uint length = 1;
+	[[maybe_unused]] TileIndex start_tile = tile;
+
+	do {
+		length++;
+		tile += TileOffsByDiagDir(dir);
+		assert(IsCompatibleRunwayTile(tile, start_tile));
+	} while (!IsRunwayEnd(tile));
+
+	return length;
+}
+
+/**
+ * Set the reservation for a complete station platform.
+ * @pre IsRailStationTile(start)
+ * @param tile starting tile of the platform
+ * @param b the state the reservation should be set to
+ */
+void SetRunwayReservation(TileIndex tile, bool b)
+{
+	assert(IsRunwayExtreme(tile));
+	DiagDirection runway_dir = GetRunwayExtremeDirection(tile);
+	if (IsRunwayEnd(tile)) runway_dir = ReverseDiagDir(runway_dir);
+	TileIndexDiff diff = TileOffsByDiagDir(runway_dir);
+
+	do {
+		assert(IsAirportTile(tile));
+		assert(!HasAirportTrackReserved(tile));
+		SetReservationAsRunway(tile, b);
+		if (_show_airport_tracks) MarkTileDirtyByTile(tile);
+		tile = TileAdd(tile, diff);
+	} while (!IsRunwayExtreme(tile));
+
+	SetReservationAsRunway(tile, b);
+	if (_show_airport_tracks) MarkTileDirtyByTile(tile);
+}
+
+/**
+ * Get the position in the tile spec of a tile of a tilearea.
+ * @param tile one tile of the area of the airport.
+ * @param tile_area of the airport.
+ * @param rotation the rotation of the airport.
+ */
+uint RotatedAirportSpecPosition(const TileIndex tile, const TileArea tile_area, const DiagDirection rotation)
+{
+	/* Get the tile difference between current tile and northern tile of the airport.
+	 * @revise the function TileIndexToTileIndexDiffC as it seems to return the difference
+	 * between the first tile minus the second one (one would expect to be the opposite).
+	 */
+	TileIndexDiffC tile_diff = TileIndexToTileIndexDiffC(tile, tile_area.tile);
+
+	switch (rotation) {
+		case 0:
+			break;
+		case 1:
+			tile_diff = {(int16_t)(tile_area.h - 1 - tile_diff.y), (int16_t)tile_diff.x};
+			break;
+		case 2:
+			tile_diff = {(int16_t)(tile_area.w - 1 - tile_diff.x), (int16_t)(tile_area.h - 1 - tile_diff.y)};
+			break;
+		case 3:
+			tile_diff = {(int16_t)tile_diff.y, (int16_t)(tile_area.w - 1 - tile_diff.x)};
+			break;
+		default: NOT_REACHED();
+	}
+
+	return tile_diff.x + tile_diff.y * (rotation % 2 == 0 ? tile_area.w : tile_area.h);
+}
+
+/**
+ * Rotate the trackbits as indicated by a direction
+ * @param track_bits to rotate.
+ * @param dir indicating how to rotate track_bits.
+ *             (0 -> no rotation,
+ *              1 -> 90 clockwise,
+ *              2 -> 180 clockwise,
+ *              3 -> 270 clockwise).
+ * @return the rotated trackbits.
+ */
+TrackBits RotateTrackBits(TrackBits track_bits, DiagDirection dir)
+{
+	static const TrackBits rotation_table[DIAGDIR_END][TRACK_END] = {
+		{ TRACK_BIT_X, TRACK_BIT_Y, TRACK_BIT_UPPER, TRACK_BIT_LOWER, TRACK_BIT_LEFT,  TRACK_BIT_RIGHT },
+		{ TRACK_BIT_Y, TRACK_BIT_X, TRACK_BIT_RIGHT, TRACK_BIT_LEFT,  TRACK_BIT_UPPER, TRACK_BIT_LOWER },
+		{ TRACK_BIT_X, TRACK_BIT_Y, TRACK_BIT_LOWER, TRACK_BIT_UPPER, TRACK_BIT_RIGHT, TRACK_BIT_LEFT  },
+		{ TRACK_BIT_Y, TRACK_BIT_X, TRACK_BIT_LEFT,  TRACK_BIT_RIGHT, TRACK_BIT_LOWER, TRACK_BIT_UPPER }
+	};
+
+	TrackBits rotated = TRACK_BIT_NONE;
+	for (Track track : SetTrackBitIterator(track_bits)) {
+		rotated |= rotation_table[dir][track];
+	}
+
+	return rotated;
+}
+
 void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirType airtype)
 {
 	if (this->airport.tile == INVALID_TILE) return;
 
 	const AirportSpec *as = this->airport.GetSpec();
+	if (airtype == INVALID_AIRTYPE) airtype = as->airtype;
 	this->airport.air_type = airtype;
 
-	uint iter = 0;
-	for (Tile t : this->airport) {
-		if (!this->TileBelongsToAirport(t)) continue;
-		const TileDescription *airport_tile_desc = &_description_airport_specs[this->airport.type][iter];
-		assert(airport_tile_desc->ground == this->airport.air_type);
+	for (Tile t : ta) {
+		uint pos = RotatedAirportSpecPosition(t, ta, rotation);
+		const AirportTileTable *airport_tile_desc = &as->layouts[this->airport.layout].tiles[pos];
+		if (airport_tile_desc->type == ATT_INVALID) continue;
+		assert(this->TileBelongsToAirport(t));
 
 		t.m5() = 0;
 
 		SetStationType(t, STATION_AIRPORT);
-		SetAirType(t, airport_tile_desc->ground);
+		SetAirType(t, airtype);
 		SetAirportTileType(t, airport_tile_desc->type);
 
 		bool airtype_gfx = airtype != as->airtype || airport_tile_desc->gfx[rotation] == INVALID_AIRPORTTILE;
@@ -285,7 +443,7 @@ void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirT
 				break;
 			case ATT_HANGAR_STANDARD:
 			case ATT_HANGAR_EXTENDED:
-				SetHangarDirection(t, airport_tile_desc->dir);
+				SetHangarDirection(t, RotateDiagDir(airport_tile_desc->dir, rotation));
 				break;
 
 			case ATT_APRON_NORMAL:
@@ -296,13 +454,13 @@ void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirT
 				break;
 
 			case ATT_RUNWAY_MIDDLE:
-				SB(t.m8(), 12, 2, airport_tile_desc->runway_directions);
+				SB(t.m8(), 12, 2, RotateDirection(airport_tile_desc->runway_directions, rotation));
 				break;
 
 			case ATT_RUNWAY_START_NO_LANDING:
 			case ATT_RUNWAY_START_ALLOW_LANDING:
 			case ATT_RUNWAY_END:
-				SB(t.m8(), 12, 2, airport_tile_desc->dir);
+				SB(t.m8(), 12, 2, RotateDiagDir(airport_tile_desc->dir, rotation));
 				break;
 			case ATT_WAITING_POINT:
 				NOT_REACHED();
@@ -310,7 +468,7 @@ void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirT
 		}
 
 		if (!IsInfrastructure(t)) {
-			SetAirportTileTracks(t, airport_tile_desc->trackbits);
+			SetAirportTileTracks(t, RotateTrackBits(airport_tile_desc->trackbits, rotation));
 		}
 	}
 

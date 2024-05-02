@@ -41,6 +41,7 @@ bool HasStationInUse(StationID station, bool include_company, CompanyID company)
 
 StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class);
 
+void DeleteOldBuiltInHeliport(TileIndex t);
 void DeleteBuiltInHeliport(TileIndex t);
 void UpdateStationDockingTiles(Station *st);
 void RemoveDockingTile(TileIndex t);

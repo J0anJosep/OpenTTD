@@ -200,5 +200,8 @@ const AirportFTAClass *GetAirport(const uint8_t airport_type);
 uint8_t GetVehiclePosOnBuild(TileIndex hangar_tile);
 
 TrackBits GetAllowedTracks(TileIndex tile);
+void SetRunwayReservation(TileIndex tile, bool b);
+TileIndex GetRunwayExtreme(TileIndex tile, DiagDirection dir);
+uint GetRunwayLength(TileIndex tile);
 
 #endif /* AIRPORT_H */
