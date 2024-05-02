@@ -53,6 +53,7 @@ add_files(
     airport_cmd.cpp
     airport_cmd.h
     airport_gui.cpp
+    airport_gui.h
     animated_tile.cpp
     animated_tile_func.h
     articulated_vehicles.cpp

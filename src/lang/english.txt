@@ -511,9 +511,6 @@ STR_ROAD_MENU_TRAM_CONSTRUCTION                                 :Tramway constru
 # Waterways construction menu
 STR_WATERWAYS_MENU_WATERWAYS_CONSTRUCTION                       :Waterways construction
 
-# Aairport construction menu
-STR_AIRCRAFT_MENU_AIRPORT_CONSTRUCTION                          :Airport construction
-
 # Landscaping menu
 STR_LANDSCAPING_MENU_LANDSCAPING                                :Landscaping
 STR_LANDSCAPING_MENU_PLANT_TREES                                :Plant trees
@@ -2992,28 +2989,40 @@ STR_TOOLBAR_AIRPORT_WATER_CONSTRUCTION_CAPTION                  :Water Airport C
 STR_TOOLBAR_AIRPORT_GRAVEL_MENU_TEXT                            :Gravel airport construction
 STR_TOOLBAR_AIRPORT_ASPHALT_MENU_TEXT                           :Asphalt airport construction
 STR_TOOLBAR_AIRPORT_WATER_MENU_TEXT                             :Water airport construction
+STR_TOOLBAR_AIRPORT_DARK_MENU_TEXT                              :Darker airport construction
+STR_TOOLBAR_AIRPORT_YELLOW_MENU_TEXT                            :Drawn tracks airport construction
+###next-name-looks-similar
 
-STR_TOOLBAR_AIRCRAFT_CAPTION                                    :{WHITE}Airports
-STR_TOOLBAR_AIRCRAFT_BUILD_AIRPORT_TOOLTIP                      :{BLACK}Build airport. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
+STR_TOOLBAR_AIRPORT_CAPTION                                    :{WHITE}Airports
+STR_TOOLBAR_AIRPORT_BUILD_AIRPORT_TOOLTIP                      :{BLACK}Build airport. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
 
-STR_TOOLBAR_AIRCRAFT_ADD_TILES                                  :{BLACK}Add or remove airport tiles to an airport
-STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_CATCHMENT                   :{BLACK}Define as infrastructure with catchment
-STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_NO_CATCHMENT                :{BLACK}Define as infrastructure without catchment
-STR_TOOLBAR_AIRCRAFT_SET_TRACKS                                 :{BLACK}Set tracks
-STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_LANDING                      :{BLACK}Define a runway allowing landing
-STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_NO_LANDING                   :{BLACK}Define a runway forbidding landing
-STR_TOOLBAR_AIRCRAFT_BUILD_APRON                                :{BLACK}Build an apron
-STR_TOOLBAR_AIRCRAFT_BUILD_HELIPAD                              :{BLACK}Build a helipad
-STR_TOOLBAR_AIRCRAFT_BUILD_HELIPORT                             :{BLACK}Build a heliport
-STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_STANDARD                      :{BLACK}Build a standard hangar
-STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_EXTENDED                      :{BLACK}Build an extended hangar
-STR_AIRPORT_TOOLBAR_TOOLTIP_TOGGLE_BUILD_REMOVE_FOR             :{BLACK}Toggle build/remove for airport tiles, infrastructure, aprons and hangars
-STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP                  :{BLACK}Build a predefined airport layout. Ctrl enables joining stations. Shift toggles building/showing cost estimate
-STR_TOOLBAR_AIRCRAFT_CHANGE_AIRTYPE                             :{BLACK}Change the airtype of an airport
+STR_TOOLBAR_AIRPORT_ADD_TILES                                  :{BLACK}Add or remove airport tiles to an airport
+STR_TOOLBAR_AIRPORT_INFRASTRUCTURE_CATCHMENT                   :{BLACK}Define as infrastructure with catchment
+STR_TOOLBAR_AIRPORT_INFRASTRUCTURE_NO_CATCHMENT                :{BLACK}Define as infrastructure without catchment
+STR_TOOLBAR_AIRPORT_SET_TRACKS                                 :{BLACK}Set tracks
+STR_TOOLBAR_AIRPORT_DEFINE_RUNWAY_LANDING                      :{BLACK}Define a runway allowing landing
+STR_TOOLBAR_AIRPORT_DEFINE_RUNWAY_NO_LANDING                   :{BLACK}Define a runway forbidding landing
+STR_TOOLBAR_AIRPORT_BUILD_APRON                                :{BLACK}Build an apron
+STR_TOOLBAR_AIRPORT_BUILD_HELIPAD                              :{BLACK}Build a helipad
+STR_TOOLBAR_AIRPORT_BUILD_HELIPORT                             :{BLACK}Build a heliport
+STR_TOOLBAR_AIRPORT_BUILD_HANGAR_STANDARD                      :{BLACK}Build a standard hangar
+STR_TOOLBAR_AIRPORT_BUILD_HANGAR_EXTENDED                      :{BLACK}Build an extended hangar
+STR_TOOLBAR_AIRPORT_TOGGLE_BUILD_REMOVE                        :{BLACK}Toggle build/remove for airport tiles, infrastructure, aprons and hangars
+STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP                  :{BLACK}Build a predefined airport layout. Ctrl enables joining stations. Shift toggles building/showing cost estimate
+STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE                             :{BLACK}Change the airtype of an airport
 
 STR_AIRTYPE_NAME_GRAVEL                                         :Gravel airport
 STR_AIRTYPE_NAME_ASPHALT                                        :Asphalt airport
 STR_AIRTYPE_NAME_WATER                                          :Water airport
+
+# Airport infrastructure construction window
+STR_BUILD_AIRPORT_INFRA_NO_CATCH_CAPTION                        :{WHITE}Infrastructure without cargo catchment
+STR_BUILD_AIRPORT_INFRA_WITH_CATCH_CAPTION                      :{WHITE}Infrastructure with cargo catchment
+STR_BUILD_AIRPORT_INFRA_TOOLTIP                                 :{BLACK}Select a piece of infrastructre and its orientation
+
+# Heliport construction window
+STR_BUILD_HELIPORT_CAPTION                                      :{WHITE}Heliport Orientation
+STR_BUILD_HELIPORT_ORIENTATION_TOOLTIP                          :{BLACK}Select heliport orientation
 
 # Hangar construction window
 STR_BUILD_HANGAR_CAPTION                                        :{WHITE}Hangar Orientation
@@ -3039,6 +3048,12 @@ STR_AIRPORT_CLASS_SMALL                                         :Small airports
 STR_AIRPORT_CLASS_LARGE                                         :Large airports
 STR_AIRPORT_CLASS_HUB                                           :Hub airports
 STR_AIRPORT_CLASS_HELIPORTS                                     :Helicopter airports
+
+###length 4
+STR_AIRPORT_ROTATION_0                                          :Default orientation
+STR_AIRPORT_ROTATION_90                                         :90º rotated
+STR_AIRPORT_ROTATION_180                                        :180º rotated
+STR_AIRPORT_ROTATION_270                                        :270º rotated
 
 STR_STATION_BUILD_NOISE                                         :{BLACK}Noise generated: {GOLD}{COMMA}
 
@@ -4406,6 +4421,7 @@ STR_REPLACE_ENGINES                                             :Engines
 STR_REPLACE_WAGONS                                              :Wagons
 STR_REPLACE_ALL_RAILTYPE                                        :All rail vehicles
 STR_REPLACE_ALL_ROADTYPE                                        :All road vehicles
+STR_REPLACE_ALL_AIRTYPE                                         :All aircraft vehicles
 
 ###length 2
 STR_REPLACE_HELP_RAILTYPE                                       :{BLACK}Choose the rail type you want to replace engines for

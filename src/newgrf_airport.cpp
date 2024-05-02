@@ -79,11 +79,38 @@ AirportSpec AirportSpec::specs[NUM_AIRPORTS]; ///< Airport specifications.
 	return &AirportSpec::specs[type];
 }
 
-/** Check whether this airport is available to build. */
-bool AirportSpec::IsAvailable() const
+/**
+ * Check whether this airport is available to build.
+ * @param airtype the airtype to check for, or INVALID_AIRTYPE
+ *                to check against default airtype for this airport spec
+ * @return whether this airport spec is available.
+ */
+bool AirportSpec::IsAvailable(AirType air_type) const
 {
 	if (!this->enabled) return false;
 	if (TimerGameCalendar::year < this->min_year) return false;
+
+	if (air_type != INVALID_AIRTYPE) {
+		const AirTypeInfo *ati = GetAirTypeInfo(air_type);
+		assert(ati != nullptr);
+		if (ati->max_num_runways < this->num_runways) return false;
+		if (this->num_runways > 0 && ati->min_runway_length > this->min_runway_length) return false;
+
+		if (!GetAirTypeInfo(air_type)->heliport_availability) {
+			/* Check at least one layout doesn't have any heliport. */
+			bool all_have_heliport = true;
+			uint num_tiles = this->size_x * this->size_y;
+			for (uint layout_num = 0; all_have_heliport && layout_num < this->layouts.size(); layout_num++) {
+				bool has_heliport = false;
+				for (uint tile_num = 0; (tile_num < num_tiles) && !has_heliport; tile_num++) {
+					if (this->layouts[layout_num].tiles[tile_num].type == ATT_APRON_HELIPORT) has_heliport = true;
+				}
+				if (!has_heliport) all_have_heliport = false;
+			}
+			if (all_have_heliport) return false;
+		}
+	}
+
 	if (_settings_game.station.never_expire_airports) return true;
 	return TimerGameCalendar::year <= this->max_year;
 }
