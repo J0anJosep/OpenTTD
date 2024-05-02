@@ -630,7 +630,6 @@ static void DeleteOrderWarnings(const Vehicle *v)
 	DeleteVehicleNews(v->index, STR_NEWS_VEHICLE_HAS_VOID_ORDER);
 	DeleteVehicleNews(v->index, STR_NEWS_VEHICLE_HAS_DUPLICATE_ENTRY);
 	DeleteVehicleNews(v->index, STR_NEWS_VEHICLE_HAS_INVALID_ENTRY);
-	DeleteVehicleNews(v->index, STR_NEWS_PLANE_USES_TOO_SHORT_RUNWAY);
 }
 
 /**
@@ -1738,12 +1737,6 @@ void CheckOrders(const Vehicle *v)
 				n_st++;
 				if (!CanVehicleUseStation(v, st)) {
 					message = STR_NEWS_VEHICLE_HAS_INVALID_ENTRY;
-				} else if (v->type == VEH_AIRCRAFT &&
-							(AircraftVehInfo(v->engine_type)->subtype & AIR_FAST) &&
-							(st->airport.GetFTA()->flags & AirportFTAClass::SHORT_STRIP) &&
-							!_cheats.no_jetcrash.value &&
-							message == INVALID_STRING_ID) {
-					message = STR_NEWS_PLANE_USES_TOO_SHORT_RUNWAY;
 				}
 			}
 		}
@@ -2018,9 +2011,9 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 
 					if (v->type == VEH_AIRCRAFT) {
 						Aircraft *a = Aircraft::From(v);
-						if (a->state == FLYING && a->targetairport != closestDepot.destination) {
+						if (a->targetairport != GetStationIndex(closestDepot.location)) {
 							/* The aircraft is now heading for a different hangar than the next in the orders */
-							AircraftNextAirportPos_and_Order(a);
+							UpdateAircraftLandingTile(a);
 						}
 					}
 					return true;

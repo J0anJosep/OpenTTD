@@ -53,8 +53,7 @@ void HandleAircraftEnterHangar(Aircraft *v);
 void GetAircraftSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 void UpdateAircraftCache(Aircraft *v, bool update_range = false);
 
-void AircraftLeaveHangar(Aircraft *v, Direction exit_dir);
-void AircraftNextAirportPos_and_Order(Aircraft *v);
+void UpdateAircraftLandingTile(Aircraft *v);
 void SetAircraftPosition(Aircraft *v, int x, int y, int z);
 
 void GetAircraftFlightLevelBounds(const Vehicle *v, int *min, int *max);
