@@ -15,6 +15,7 @@
 #include "station_base.h"
 #include "newgrf_class_func.h"
 #include "town.h"
+#include "table/airport_defaults.h"
 
 #include "safeguards.h"
 

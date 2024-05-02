@@ -14,57 +14,10 @@
 #include "table/strings.h"
 #include "table/airport_movement.h"
 #include "table/airporttile_ids.h"
+#include "table/airport_defaults.h"
 
 #include "safeguards.h"
 
-
-/**
- * Define a generic airport.
- * @param name Suffix of the names of the airport data.
- * @param terminals The terminals.
- * @param num_helipads Number of heli pads.
- * @param flags Information about the class of FTA.
- * @param delta_z Height of the airport above the land.
- */
-#define AIRPORT_GENERIC(name, terminals, num_helipads, flags, delta_z) \
-	static const AirportFTAClass _airportfta_ ## name(_airport_moving_data_ ## name, terminals, \
-			num_helipads, _airport_entries_ ## name, flags, _airport_fta_ ## name, delta_z);
-
-/**
- * Define an airport.
- * @param name Suffix of the names of the airport data.
- * @param num_helipads Number of heli pads.
- * @param short_strip Airport has a short land/take-off strip.
- */
-#define AIRPORT(name, num_helipads, short_strip) \
-	AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, AirportFTAClass::ALL | (short_strip ? AirportFTAClass::SHORT_STRIP : (AirportFTAClass::Flags)0), 0)
-
-/**
- * Define a heliport.
- * @param name Suffix of the names of the helipad data.
- * @param num_helipads Number of heli pads.
- * @param delta_z Height of the airport above the land.
- */
-#define HELIPORT(name, num_helipads, delta_z) \
-	AIRPORT_GENERIC(name, nullptr, num_helipads, AirportFTAClass::HELICOPTERS, delta_z)
-
-AIRPORT(country, 0, true)
-AIRPORT(city, 0, false)
-HELIPORT(heliport, 1, 60)
-AIRPORT(metropolitan, 0, false)
-AIRPORT(international, 2, false)
-AIRPORT(commuter, 2, true)
-HELIPORT(helidepot, 1, 0)
-AIRPORT(intercontinental, 2, false)
-HELIPORT(helistation, 3, 0)
-HELIPORT(oilrig, 1, 54)
-AIRPORT_GENERIC(dummy, nullptr, 0, AirportFTAClass::ALL, 0)
-
-#undef HELIPORT
-#undef AIRPORT
-#undef AIRPORT_GENERIC
-
-#include "table/airport_defaults.h"
 
 /** Helper type for lists/vectors of trains */
 typedef std::vector<Aircraft *> AircraftList;
@@ -228,6 +181,7 @@ AirType AllocateAirType(AirTypeLabel label)
 static uint16_t AirportGetNofElements(const AirportFTAbuildup *apFA);
 static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildup *apFA);
 
+const AirportSpec AirportSpec::dummy = {&_airportfta_dummy, {}, _default_airports_rotation, 0, nullptr, 0, 0, 0, 0, 0, CalendarTime::MIN_YEAR, CalendarTime::MIN_YEAR, STR_NULL, ATP_TTDP_LARGE, APC_BEGIN, 0, 0, false, GRFFileProps(AT_INVALID)};
 
 /**
  * Rotate the airport moving data to another rotation.
