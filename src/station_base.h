@@ -299,6 +299,11 @@ struct Airport : public TileArea {
 	AirType air_type;   ///< NOSAVE: airport type.
 	Depot *hangar;      ///< The corresponding hangar of this airport, if any.
 
+	std::vector<TileIndex> aprons;     ///< NOSAVE: aprons this airport has.
+	std::vector<TileIndex> helipads;   ///< NOSAVE: helipads of this airport.
+	std::vector<TileIndex> heliports;  ///< NOSAVE: heliports of this airport (cannot move through the airport without flying)
+	std::vector<TileIndex> runways;    ///< NOSAVE: runways of this airport.
+
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
 	/**
@@ -408,9 +413,6 @@ struct Airport : public TileArea {
 		return num;
 	}
 
-	void AddHangar();
-	void RemoveHangar();
-
 private:
 	/**
 	 * Retrieve hangar information of a hangar at a given tile.
@@ -499,6 +501,10 @@ public:
 	void AddIndustryToDeliver(Industry *ind, TileIndex tile);
 	void RemoveIndustryToDeliver(Industry *ind);
 	void RemoveFromAllNearbyLists();
+
+	void LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirType airtype);
+	void ClearAirportDataInfrastructure();
+	void UpdateAirportDataStructure();
 
 	inline bool TileIsInCatchment(TileIndex tile) const
 	{

@@ -9,6 +9,12 @@
 
 #include "stdafx.h"
 #include "station_base.h"
+#include "newgrf_airtype.h"
+#include "depot_base.h"
+#include "air_map.h"
+#include "window_func.h"
+
+#include "debug.h"
 
 #include "table/airtypes.h"
 #include "table/strings.h"
@@ -175,6 +181,279 @@ AirType AllocateAirType(AirTypeLabel label)
 	}
 
 	return INVALID_AIRTYPE;
+}
+
+/**
+ * Set the new airport layout, rotation and airtype of old airports
+ * (even those built with OpenGRF+Airports).
+ * @param st Station with the airport to update, if there is one.
+ */
+void ConvertOldAirportData(Station *st) {
+	if (st->airport.tile == INVALID_TILE) return;
+
+	st->airport.air_type = INVALID_AIRTYPE;
+
+	if (st->airport.type < NEW_AIRPORT_OFFSET) return;
+
+	if (st->airport.type == NEW_AIRPORT_OFFSET + 1) {
+		/* Already existing water airports built on land cannot be converted properly.
+		 * Handle them as standard small gravel airports. */
+		st->airport.type = NEW_AIRPORT_OFFSET;
+	}
+
+	st->airport.layout   = 0;
+
+	/* Old rotation dir values are 0, 2, 4, 6.
+	 * Convert them to 0, 1, 2, 3 (DiagDirection values). */
+	assert(st->airport.rotation % 2 == 0);
+	assert(st->airport.rotation <= 6);
+	st->airport.rotation = (Direction)(st->airport.rotation / 2);
+
+	if (st->airport.type > 23) {
+		/* OpenGRF+Airports includes airport types from NEW_AIRPORT_OFFSET to 23.
+		 * Do not try to convert a completely unknown airport type. */
+		Debug(misc, 0, "Unknown airport type: station {} airport type {}", st->index, st->airport.type);
+		NOT_REACHED();
+	}
+}
+
+/**
+ * After loading an old savegame, update type and tracks of airport tiles.
+ */
+void AfterLoadSetAirportTileTypes()
+{
+	for (Station *st : Station::Iterate()) {
+		st->LoadAirportTilesFromSpec(st->airport, (DiagDirection)st->airport.rotation, st->airport.air_type);
+	}
+}
+
+/** Clear data about infrastructure of airport */
+void Station::ClearAirportDataInfrastructure() {
+	this->airport.Clear();
+	this->airport.air_type = INVALID_AIRTYPE;
+	this->airport.aprons.clear();
+	this->airport.helipads.clear();
+	this->airport.runways.clear();
+	if (this->airport.HasHangar()) {
+		this->airport.hangar->depot_tiles.clear();
+	}
+}
+
+void UpdateTracks(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	if (!MayHaveAirTracks(tile) || IsHangar(tile)) return;
+	TrackBits tracks = GetAllowedTracks(tile) & GetAirportTileTracks(tile);
+	if (tracks != GetAirportTileTracks(tile)) {
+		Debug(misc, 0, "Removing invalid track on tile {}", tile);
+	}
+
+	SetAirportTileTracks(tile, tracks);
+}
+
+void Station::LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirType airtype)
+{
+	if (this->airport.tile == INVALID_TILE) return;
+
+	const AirportSpec *as = this->airport.GetSpec();
+	this->airport.air_type = airtype;
+
+	uint iter = 0;
+	for (Tile t : this->airport) {
+		if (!this->TileBelongsToAirport(t)) continue;
+		const TileDescription *airport_tile_desc = &_description_airport_specs[this->airport.type][iter];
+		assert(airport_tile_desc->ground == this->airport.air_type);
+
+		t.m5() = 0;
+
+		SetStationType(t, STATION_AIRPORT);
+		SetAirType(t, airport_tile_desc->ground);
+		SetAirportTileType(t, airport_tile_desc->type);
+
+		bool airtype_gfx = airtype != as->airtype || airport_tile_desc->gfx[rotation] == INVALID_AIRPORTTILE;
+		SetAirGfxType(t, airtype_gfx);
+		SetTileAirportGfx(t, airtype_gfx ? airport_tile_desc->at_gfx : airport_tile_desc->gfx[rotation]);
+
+		switch (GetAirportTileType(t)) {
+			case ATT_INFRASTRUCTURE_WITH_CATCH:
+			case ATT_INFRASTRUCTURE_NO_CATCH:
+				SetAirportTileRotation(t, (DiagDirection)((rotation + airport_tile_desc->dir) % DIAGDIR_END));
+				if (!airtype_gfx) SetAirportGfxForAirtype(t, airport_tile_desc->at_gfx);
+				break;
+
+			case ATT_SIMPLE_TRACK:
+				break;
+			case ATT_HANGAR_STANDARD:
+			case ATT_HANGAR_EXTENDED:
+				SetHangarDirection(t, airport_tile_desc->dir);
+				break;
+
+			case ATT_APRON_NORMAL:
+			case ATT_APRON_HELIPAD:
+			case ATT_APRON_HELIPORT:
+			case ATT_APRON_BUILTIN_HELIPORT:
+				SetAirportTileRotation(t, (DiagDirection)((rotation + airport_tile_desc->dir) % DIAGDIR_END));
+				break;
+
+			case ATT_RUNWAY_MIDDLE:
+				SB(t.m8(), 12, 2, airport_tile_desc->runway_directions);
+				break;
+
+			case ATT_RUNWAY_START_NO_LANDING:
+			case ATT_RUNWAY_START_ALLOW_LANDING:
+			case ATT_RUNWAY_END:
+				SB(t.m8(), 12, 2, airport_tile_desc->dir);
+				break;
+			case ATT_WAITING_POINT:
+				NOT_REACHED();
+			default: NOT_REACHED();
+		}
+
+		if (!IsInfrastructure(t)) {
+			SetAirportTileTracks(t, airport_tile_desc->trackbits);
+		}
+	}
+
+	this->UpdateAirportDataStructure();
+}
+
+/** Update cached variables after loading a game or modifying an airport */
+void Station::UpdateAirportDataStructure()
+{
+	this->ClearAirportDataInfrastructure();
+
+	/* Recover the airport area tile rescanning the rect of the station */
+	TileArea ta(TileXY(this->rect.left, this->rect.top), TileXY(this->rect.right, this->rect.bottom));
+	/* At the same time, detect any hangar. */
+	TileIndex first_hangar = INVALID_TILE;
+
+	TileArea airport_area;
+	for (TileIndex t : ta) {
+		if (!this->TileBelongsToAirport(t)) continue;
+		airport_area.Add(t);
+
+		if (first_hangar != INVALID_TILE) continue;
+
+		if (this->airport.air_type == INVALID_AIRTYPE) this->airport.air_type = GetAirType(t);
+
+		assert(this->airport.air_type == GetAirType(t));
+
+		if (IsHangar(t)) first_hangar = t;
+	}
+
+	/* Set/Clear depot. */
+	if (first_hangar != INVALID_TILE && this->airport.hangar == nullptr) {
+		if (!Depot::CanAllocateItem()) NOT_REACHED();
+		this->airport.hangar = new Depot(first_hangar, VEH_AIRCRAFT, GetTileOwner(first_hangar), this);
+		this->airport.hangar->build_date = this->build_date;
+		this->airport.hangar->town = this->town;
+	} else if (this->airport.hangar != nullptr) {
+		this->airport.hangar->Disuse();
+		delete this->airport.hangar;
+		this->airport.hangar = nullptr;
+	}
+
+	if (airport_area.tile == INVALID_TILE) return;
+
+	for (TileIndex t : airport_area) {
+		if (!this->TileBelongsToAirport(t)) continue;
+		this->airport.Add(t);
+
+		assert(this->airport.air_type == GetAirType(t));
+
+		if (!MayHaveAirTracks(t)) continue;
+
+		UpdateTracks(t);
+
+		switch (GetAirportTileType(t)) {
+			case ATT_HANGAR_STANDARD:
+			case ATT_HANGAR_EXTENDED:
+				assert(this->airport.HasHangar());
+				this->airport.hangar->depot_tiles.emplace_back(t);
+				this->airport.hangar->xy = t;
+				break;
+
+			case ATT_APRON_NORMAL:
+				this->airport.aprons.emplace_back(t);
+				break;
+			case ATT_APRON_HELIPAD:
+				this->airport.helipads.emplace_back(t);
+				break;
+			case ATT_APRON_HELIPORT:
+			case ATT_APRON_BUILTIN_HELIPORT:
+				this->airport.heliports.emplace_back(t);
+				break;
+
+			case ATT_RUNWAY_START_ALLOW_LANDING:
+			case ATT_RUNWAY_START_NO_LANDING:
+				this->airport.runways.emplace_back(t);
+				break;
+
+			default: break;
+		}
+	}
+
+	if (this->airport.hangar != nullptr) InvalidateWindowData(WC_BUILD_VEHICLE, this->airport.hangar->index);
+}
+
+/**
+ * Return the tracks a tile could have.
+ * It returns the tracks the tile has plus the extra tracks that
+ * could also exist on the tile.
+ * @param tile
+ * @return The tracks the tile could have.
+ */
+TrackBits GetAllowedTracks(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	switch (GetAirportTileType(tile)) {
+		case ATT_INFRASTRUCTURE_NO_CATCH:
+		case ATT_INFRASTRUCTURE_WITH_CATCH:
+			return TRACK_BIT_NONE;
+
+		case ATT_HANGAR_STANDARD:
+		case ATT_HANGAR_EXTENDED:
+			return HasBit(Tile(tile).m8(), 15) ? TRACK_BIT_Y: TRACK_BIT_X;
+
+		case ATT_APRON_HELIPORT:
+		case ATT_APRON_BUILTIN_HELIPORT:
+			return TRACK_BIT_CROSS;
+
+		case ATT_APRON_NORMAL:
+		case ATT_APRON_HELIPAD:
+		case ATT_SIMPLE_TRACK:
+		case ATT_RUNWAY_MIDDLE:
+		case ATT_RUNWAY_END:
+		case ATT_RUNWAY_START_NO_LANDING:
+		case ATT_RUNWAY_START_ALLOW_LANDING: {
+			TrackBits tracks = TRACK_BIT_ALL;
+
+			const TrackBits rem_tracks[] = {
+				~TRACK_BIT_UPPER,
+				~(TRACK_BIT_UPPER | TRACK_BIT_RIGHT),
+				~TRACK_BIT_RIGHT,
+				~(TRACK_BIT_LOWER | TRACK_BIT_RIGHT),
+				~TRACK_BIT_LOWER,
+				~(TRACK_BIT_LOWER | TRACK_BIT_LEFT),
+				~TRACK_BIT_LEFT,
+				~(TRACK_BIT_UPPER | TRACK_BIT_LEFT),
+			};
+
+			for (Direction dir = DIR_BEGIN; dir < DIR_END; dir++) {
+				TileIndex t = TileAddByDir(tile, dir);
+				if (!IsValidTile(t) || !IsAirportTile(t) ||
+					GetStationIndex(t) != GetStationIndex(tile) || !MayHaveAirTracks(t)) {
+					tracks &= rem_tracks[dir];
+					} else if (IsHangar(t)) {
+						tracks &= rem_tracks[dir];
+					}
+			}
+
+			return tracks;
+		}
+
+		default: NOT_REACHED();
+	}
 }
 
 /**

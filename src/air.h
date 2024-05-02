@@ -374,5 +374,6 @@ AirType AllocateAirType(AirTypeLabel label);
 extern std::vector<AirType> _sorted_airtypes;
 extern AirTypes _airtypes_hidden_mask;
 
+void AfterLoadSetAirportTileTypes();
 
 #endif /* AIR_H */

@@ -63,6 +63,7 @@
 #include "../timer/timer_game_calendar.h"
 #include "../timer/timer_game_economy.h"
 #include "../timer/timer_game_tick.h"
+#include "../air.h"
 
 #include "saveload_internal.h"
 
@@ -297,7 +298,7 @@ static void InitializeWindowsAndCaches()
 	}
 
 	for (Depot *dep : Depot::Iterate()) {
-		dep->RescanDepotTiles();
+		if (dep->veh_type != VEH_AIRCRAFT) dep->RescanDepotTiles();
 	}
 
 	RecomputePrices();
@@ -915,7 +916,7 @@ bool AfterLoadGame()
 						st = STATION_BUS;
 						SetStationGfx(t, gfx - 71);
 					} else if (gfx == 75) {                 // Oil rig
-						st = STATION_OILRIG;
+						st = STATION_OLD_OILRIG;
 						SetStationGfx(t, gfx - 75);
 					} else if (IsInsideMM(gfx,  76,  82)) { // Dock
 						st = STATION_DOCK;
@@ -991,7 +992,7 @@ bool AfterLoadGame()
 						}
 						break;
 
-					case STATION_OILRIG: {
+					case STATION_OLD_OILRIG: {
 						/* The internal encoding of oil rigs was changed twice.
 						 * It was 3 (till 2.2) and later 5 (till 5.1).
 						 * DeleteBuiltInHeliport asserts on the correct type, and
@@ -1839,7 +1840,7 @@ bool AfterLoadGame()
 			switch (GetTileType(t)) {
 				case MP_STATION:
 					switch (GetStationType(t)) {
-						case STATION_OILRIG:
+						case STATION_OLD_OILRIG:
 						case STATION_DOCK:
 						case STATION_BUOY:
 							SetWaterClass(t, (WaterClass)GB(t.m3(), 0, 2));
@@ -1971,7 +1972,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_99)) {
 		for (auto t : Map::Iterate()) {
 			/* Set newly introduced WaterClass of industry tiles */
-			if (IsBuiltInHeliportTile(t)) {
+			if (IsTileType(t, MP_STATION) && GetStationType(t) == STATION_OLD_OILRIG) {
 				SetWaterClassDependingOnSurroundings(t, true);
 			}
 			if (IsTileType(t, MP_INDUSTRY)) {
@@ -2444,6 +2445,24 @@ bool AfterLoadGame()
 		}
 	}
 
+	/* Data structure on airport has changed. */
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		for (auto t : Map::Iterate()) {
+			if (!IsTileType(t, MP_STATION)) continue;
+			if (GetStationType(t) == STATION_OLD_OILRIG) {
+				SetStationType(t, STATION_AIRPORT);
+			}
+			if (GetStationType(t) != STATION_AIRPORT) continue;
+			t.m4() = t.m5();
+			t.m5() = 0;
+		}
+		AfterLoadSetAirportTileTypes();
+	} else {
+		for (Station *st : Station::Iterate()) {
+			st->UpdateAirportDataStructure();
+		}
+	}
+
 	if (IsSavegameVersionBefore(SLV_141)) {
 		for (auto t : Map::Iterate()) {
 			/* Reset tropic zone for VOID tiles, they shall not have any. */
@@ -2803,21 +2822,6 @@ bool AfterLoadGame()
 					st->airport.psa = nullptr;
 
 				}
-			}
-		}
-	}
-
-	if (IsSavegameVersionBefore(SLV_ADD_DEPOTS_TO_HANGARS)) {
-		for (Station *st : Station::Iterate()) {
-			if ((st->facilities & FACIL_AIRPORT) && st->airport.HasHangar()) {
-				/* Add a built-in hangar for some airport types. */
-				assert(Depot::CanAllocateItem());
-				st->airport.AddHangar();
-			} else {
-				/* If airport has no hangar, remove old go to hangar orders
-				 * that could remain from removing an airport with a hangar
-				 * and rebuilding it with an airport with no hangar. */
-				RemoveOrderFromAllVehicles(OT_GOTO_DEPOT, st->index);
 			}
 		}
 	}

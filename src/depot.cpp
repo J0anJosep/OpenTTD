@@ -262,6 +262,8 @@ void Depot::RescanDepotTiles()
 				/* Mark this ship depot has at least one part, so ships can be built. */
 				this->r_types.rail_types |= INVALID_RAILTYPES;
 				break;
+			case VEH_AIRCRAFT:
+				NOT_REACHED();
 			default: break;
 		}
 	}
