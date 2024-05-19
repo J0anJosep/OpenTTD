@@ -174,10 +174,37 @@ struct AircraftPosition {
 	int y;
 };
 
+struct AircraftPathChoice {
+	std::deque<Trackdir> td;
+	std::deque<TileIndex> tile;  ///< Kept for debugging purposes. Should be removed in the future.
+
+	inline bool empty() const { return this->td.empty(); }
+
+	inline size_t size() const
+	{
+		assert(this->td.size() == this->tile.size());
+		return this->td.size();
+	}
+
+	inline void clear()
+	{
+		this->td.clear();
+		this->tile.clear();
+	}
+
+	inline void pop_front()
+	{
+		assert(!this->empty());
+		this->td.pop_front();
+		this->tile.pop_front();
+	}
+};
+
 /**
  * Aircraft, helicopters, rotors and their shadows belong to this class.
  */
 struct Aircraft final : public SpecializedVehicle<Aircraft, VEH_AIRCRAFT> {
+	AircraftPathChoice path;       ///< Cached path choices
 	uint16_t crashed_counter;      ///< Timer for handling crash animations.
 	Trackdir trackdir;             ///< Current trackdir while aircraft is on land.
 	AircraftState state;           ///< Current aircraft state. @see AircraftState

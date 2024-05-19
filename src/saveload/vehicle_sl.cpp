@@ -854,6 +854,8 @@ public:
 
 		 SLE_CONDVAR(Aircraft, turn_counter,          SLE_UINT8,                  SLV_136, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, flags,                 SLE_UINT8,                  SLV_167, SL_MAX_VERSION),
+	   SLE_CONDDEQUE(Aircraft, path.td,               SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+	   SLE_CONDDEQUE(Aircraft, path.tile,             SLE_UINT32,                   SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
 	};
 	inline const static SaveLoadCompatTable compat_description = _vehicle_aircraft_sl_compat;
 
