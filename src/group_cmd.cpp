@@ -694,10 +694,10 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 		/* Set group parent */
 		const Group *pg = Group::GetIfValid(GB(p1, 16, 16));
 
-		if (pg->index == g->index) return CMD_ERROR;
-		if (pg->index == g->parent) return CMD_ERROR;
-
 		if (pg != NULL) {
+			if (pg->index == g->index) return CMD_ERROR;
+			if (pg->index == g->parent) return CMD_ERROR;
+
 			if (pg->owner != _current_company) return CMD_ERROR;
 			if (pg->vehicle_type != g->vehicle_type) return CMD_ERROR;
 
