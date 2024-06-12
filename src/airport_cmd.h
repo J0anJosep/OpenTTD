@@ -23,6 +23,7 @@ CommandCost CmdChangeAirportTiles(DoCommandFlag flags, TileIndex start_tile, Til
 CommandCost CmdAddRemoveAirportTiles(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, bool adding, AirType at, StationID station_to_join, bool adjacent);
 CommandCost CmdAddRemoveTracksToAirport(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, bool add, Track track);
 CommandCost CmdChangeAirType(DoCommandFlag flags, TileIndex tile, AirType air_type);
+CommandCost CmdAirportChangeTrackGFX(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, uint8_t gfx_index, bool diagonal);
 
 CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport_type, uint8_t layout, AirType air_type, DiagDirection rotation, StationID station_to_join, bool allow_adjacent);
 CommandCost CmdOpenCloseAirport(DoCommandFlag flags, StationID station_id);
@@ -31,6 +32,7 @@ DEF_CMD_TRAIT(CMD_CHANGE_AIRPORT,        CmdChangeAirportTiles,       CMD_AUTO, 
 DEF_CMD_TRAIT(CMD_ADD_REM_AIRPORT,       CmdAddRemoveAirportTiles,    CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
 DEF_CMD_TRAIT(CMD_ADD_REM_TRACKS,        CmdAddRemoveTracksToAirport, CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
 DEF_CMD_TRAIT(CMD_CONVERT_AIRPORT,       CmdChangeAirType,            CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_AIRPORT_CHANGE_GFX,    CmdAirportChangeTrackGFX,    CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
 
 DEF_CMD_TRAIT(CMD_BUILD_AIRPORT,         CmdBuildAirport,             CMD_AUTO | CMD_NO_WATER, CMDT_LANDSCAPE_CONSTRUCTION)
 DEF_CMD_TRAIT(CMD_OPEN_CLOSE_AIRPORT,    CmdOpenCloseAirport,         0,                       CMDT_ROUTE_MANAGEMENT)

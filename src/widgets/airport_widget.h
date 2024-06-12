@@ -28,6 +28,7 @@ enum AirportToolbarWidgets : WidgetID {
 	WID_AT_REMOVE,                    ///< Remove widget.
 	WID_AT_AIRPORT,                   ///< Build a predefined airport.
 	WID_AT_DEMOLISH,                  ///< Demolish button.
+	WID_AT_CHANGE_GRAPHICS,           ///< Change base graphics, if possible.
 
 	WID_AT_REMOVE_FIRST = WID_AT_BUILD_TILE,   ///< First an last widgets that work combined with remove widget.
 	WID_AT_REMOVE_LAST = WID_AT_HANGAR_EXTENDED,
@@ -89,6 +90,33 @@ enum BuildAirportInfrastructureWithCatchmentWidgets : WidgetID {
 	WID_BAIWC_ROTATION,          ///< Selected angle of rotation of the infrastructure tile.
 	WID_BAIWC_ROTATION_DECREASE, ///< Decrease the angle of rotation.
 	WID_BAIWC_ROTATION_INCREASE, ///< Increase the angle of rotation.
+};
+
+/** Widgets of the #BuildAirportInfraWithCatchWindow class. */
+enum BuildAirportSelectGfxForAirportTracks : WidgetID {
+	WID_BASGFAT_CAPTION,     ///< Caption of the window.
+	WID_BASGFAT_AUTO,
+	WID_BASGFAT_DEFAULT,     ///<
+	WID_BASGFAT_01,          ///<
+	WID_BASGFAT_02,          ///<
+	WID_BASGFAT_03,          ///<
+	WID_BASGFAT_04,          ///<
+	WID_BASGFAT_05,          ///<
+	WID_BASGFAT_06,          ///<
+	WID_BASGFAT_07,          ///<
+	WID_BASGFAT_08,          ///<
+	WID_BASGFAT_09,          ///<
+	WID_BASGFAT_10,          ///<
+	WID_BASGFAT_11,          ///<
+	WID_BASGFAT_12,          ///<
+	WID_BASGFAT_13,          ///<
+	WID_BASGFAT_14,          ///<
+	WID_BASGFAT_15,          ///<
+	WID_BASGFAT_16,          ///<
+	WID_BASGFAT_17,          ///<
+	WID_BASGFAT_18,          ///<
+	WID_BASGFAT_19,          ///<
+	WID_BASGFAT_20,          ///<
 };
 
 #endif /* WIDGETS_AIRPORT_WIDGET_H */

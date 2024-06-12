@@ -3010,6 +3010,8 @@ STR_TOOLBAR_AIRPORT_BUILD_HANGAR_EXTENDED                      :{BLACK}Build an 
 STR_TOOLBAR_AIRPORT_TOGGLE_BUILD_REMOVE                        :{BLACK}Toggle build/remove for airport tiles, infrastructure, aprons and hangars
 STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP                  :{BLACK}Build a predefined airport layout. Ctrl enables joining stations. Shift toggles building/showing cost estimate
 STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE                             :{BLACK}Change the airtype of an airport
+STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS                            :{BLACK}Change track graphics
+STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS_TOOLTIP                    :{BLACK}Click over a simple airport tile to change its graphics (experimental; only works on the Drawn tracks airtype)
 
 STR_AIRTYPE_NAME_GRAVEL                                         :Gravel airport
 STR_AIRTYPE_NAME_ASPHALT                                        :Asphalt airport
@@ -3027,6 +3029,12 @@ STR_BUILD_HELIPORT_ORIENTATION_TOOLTIP                          :{BLACK}Select h
 # Hangar construction window
 STR_BUILD_HANGAR_CAPTION                                        :{WHITE}Hangar Orientation
 STR_BUILD_HANGAR_ORIENTATION_TOOLTIP                            :{BLACK}Select hangar orientation
+
+# Select gfx for airport track tiles
+STR_SELECT_GFX_AIRPORT_TRACKS_CAPTION                           :{WHITE}Selection of graphics for track tiles
+STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP                           :{BLACK}Select the graphics for airport track tiles and click on airport track tiles.
+STR_SELECT_GFX_AIRPORT_TRACKS_DEFAULT                           :{BLACK}Default
+STR_SELECT_GFX_AIRPORT_TRACKS_DETECT                            :{BLACK}Autodetect sprites
 
 # Airport construction window
 STR_STATION_BUILD_AIRPORT_CAPTION                               :{WHITE}Airport Selection

@@ -70,7 +70,7 @@ public:
 	 * the ones used directly in the code
 	 */
 	struct {
-		SpriteID ground;       ///< ground sprite
+		SpriteID ground[20];           ///< ground sprite
 		SpriteID infra_catch[2][5][4]; ///< non-snowed/snowed + building number + rotation
 		SpriteID wind[4][4];
 		SpriteID radar[12];

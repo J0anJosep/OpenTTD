@@ -2805,8 +2805,42 @@ static void DrawTile_Airport(TileInfo *ti)
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 	if (IsTileOnWater(ti->tile)) DrawWaterClassGround(ti);
 
-	SpriteID image = ati->base_sprites.ground;
+	SpriteID image = ati->base_sprites.ground[0];
 	if (IsRunway(ti->tile)) image = ati->base_sprites.runways[GetAirOffset(ti->tile)];
+	if (IsSimpleTrack(ti->tile)) {
+		uint8_t index = GetTileAirportGfx(ti->tile);
+		assert(index <= 21);
+		if (index == 0) {
+			if (GetAirportGround(ti->tile) != AG_AIRTYPE) {
+				TrackBits tracks = GetAirportTileTracks(ti->tile);
+				if ((tracks & TRACK_BIT_CROSS) != TRACK_BIT_NONE ||
+						(tracks & TRACK_BIT_HORZ) == TRACK_BIT_HORZ ||
+						(tracks & TRACK_BIT_VERT) == TRACK_BIT_VERT) {
+					image = ati->base_sprites.ground[0];
+				} else {
+					if (tracks & TRACK_BIT_LEFT) {
+						image = ati->base_sprites.ground[1];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					if (tracks & TRACK_BIT_RIGHT) {
+						image = ati->base_sprites.ground[2];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					if (tracks & TRACK_BIT_UPPER) {
+						image = ati->base_sprites.ground[3];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					if (tracks & TRACK_BIT_LOWER) {
+						image = ati->base_sprites.ground[4];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					image = 0;
+				}
+			}
+		} else {
+			image = ati->base_sprites.ground[index - 1];
+		}
+	}
 	PaletteID pal  = PAL_NONE; // t->ground.pal;
 
 	/* Draw ground. */
@@ -2825,18 +2859,18 @@ static void DrawTile_Airport(TileInfo *ti)
 
 		case ATT_HANGAR_EXTENDED:
 		case ATT_HANGAR_STANDARD:
-			total_offset = ati->base_sprites.ground;
+			total_offset = ati->base_sprites.ground[0];
 			t = &_airtype_display_datas_hangars[GetHangarDirection(ti->tile)];
 			break;
 
 		case ATT_APRON_NORMAL:
 		case ATT_APRON_HELIPAD:
-			total_offset = ati->base_sprites.ground;
+			total_offset = ati->base_sprites.ground[0];
 			t = &_airtype_display_datas_aprons[GetApronType(ti->tile)];
 			break;
 
 		case ATT_APRON_HELIPORT:
-			total_offset = ati->base_sprites.ground + GetAirportTileRotation(ti->tile);
+			total_offset = ati->base_sprites.ground[0] + GetAirportTileRotation(ti->tile);
 			t = &_airtype_display_datas_aprons[GetApronType(ti->tile)];
 			break;
 
@@ -2853,17 +2887,17 @@ static void DrawTile_Airport(TileInfo *ti)
 					t = &_airtype_display_datas_radar[GetAnimationFrame(ti->tile)];
 					break;
 				case ATTG_NO_CATCH_TOWER:
-					total_offset = ati->base_sprites.ground;
+					total_offset = ati->base_sprites.ground[0];
 					t = &_airtype_display_datas_tower[dir];
 					break;
 				case ATTG_NO_CATCH_TRANSMITTER:
-					total_offset = ati->base_sprites.ground;
+					total_offset = ati->base_sprites.ground[0];
 					t = &_airtype_display_datas_transmitter[dir];
 					break;
 
 				case ATTG_NO_CATCH_EMPTY:
 				case ATTG_NO_CATCH_PIER:
-					total_offset = ati->base_sprites.ground;
+					total_offset = ati->base_sprites.ground[0];
 					t = &_airtype_display_datas[at * 4 + dir];
 					break;
 				default:
@@ -2873,7 +2907,7 @@ static void DrawTile_Airport(TileInfo *ti)
 		}
 
 		case ATT_INFRASTRUCTURE_WITH_CATCH: {
-			total_offset = ati->base_sprites.ground;
+			total_offset = ati->base_sprites.ground[0];
 			AirportTiles at = GetTileAirportGfx(ti->tile);
 			DiagDirection dir = GetAirportTileRotation(ti->tile);
 			switch (at) {

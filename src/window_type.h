@@ -443,6 +443,12 @@ enum WindowClass {
 	WC_BUILD_AIRPORT_INFRASTRUCTURE,
 
 	/**
+	 * Select gfx for airport track tiles; %Window numbers:
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
+	 */
+	WC_SELECT_TRACK_GFX,
+
+	/**
 	 * Build waypoint; %Window numbers:
 	 *   - #TRANSPORT_RAIL = #BuildRailWaypointWidgets
 	 */

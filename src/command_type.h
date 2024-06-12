@@ -224,6 +224,7 @@ enum Commands : uint16_t {
 	CMD_ADD_REM_TRACKS,               ///< build/remove tracks
 	CMD_CONVERT_AIRPORT,              ///< change the aiport type (gravel, asphalt, etc.)
 	CMD_BUILD_AIRPORT,                ///< build an airport layout
+	CMD_AIRPORT_CHANGE_GFX,           ///< change the graphics of an airport tile, if possible
 
 	CMD_BUILD_DOCK,                   ///< build a dock
 

@@ -39,6 +39,8 @@
 #include "water.h"
 #include "window_func.h"
 
+#include "pathfinder/follow_track.hpp"
+
 #include "table/airporttile_ids.h"
 #include "table/airport_defaults.h"
 #include "table/airtypes.h"
@@ -1048,6 +1050,161 @@ CommandCost CmdChangeAirType(DoCommandFlag flags, TileIndex tile, AirType air_ty
 	}
 
 	return cost;
+}
+
+/**
+ * 	Try to set the best possible graphics for an airport track tile.
+ * @param tile The tile to set the specific graphics.
+ * @pre IsAirportTile(tile)
+ * @pre IsSimpleTrack(tile)
+ * @pre CheckTileOwnerShip(tile).Succeeded()
+ */
+void SetAdequateGfxForAirportTrack(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	assert(IsSimpleTrack(tile));
+	assert(HasAirtypeGfx(tile));
+	assert(CheckTileOwnership(tile).Succeeded());
+
+	TrackBits tracks = GetAirportTileTracks(tile);
+	uint8_t sides = 0; // The four lower bits correspond to each diagdir. The corresponding bit is set if tracks
+	                   // from the tile and the neighbour tile are connected at the corresponding edge.
+	StationID st_id = GetStationIndex(tile);
+	CFollowTrackAirport fs(INVALID_COMPANY);
+
+	const TrackBits three_ways[] = {TRACK_BIT_3WAY_NE, TRACK_BIT_3WAY_SE, TRACK_BIT_3WAY_SW, TRACK_BIT_3WAY_NW};
+	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
+		if ((tracks & three_ways[dir]) == TRACK_BIT_NONE) continue;
+		Trackdir trackdir = DiagDirToDiagTrackdir(dir);
+		if (!fs.Follow(tile, trackdir)) continue;
+		SetBit(sides, dir);
+	}
+
+	switch (CountBits(sides)) {
+		case 0:
+		case 1:
+			SetTileAirportGfx(tile, (AirportTiles)(0));
+			break;
+		case 2: {
+			Track track = INVALID_TRACK;
+			switch (sides) {
+				case 3:
+					track = TRACK_RIGHT;
+					break;
+				case 12:
+					track = TRACK_LEFT;
+					break;
+				case 9:
+					track = TRACK_UPPER;
+					break;
+				case 6:
+					track = TRACK_LOWER;
+					break;
+				case 5:
+					track = TRACK_X;
+					break;
+				case 10:
+					track = TRACK_Y;
+					break;
+				default:
+					NOT_REACHED();
+			}
+			switch (track) {
+				case TRACK_X:
+				case TRACK_Y:
+					SetTileAirportGfx(tile, (AirportTiles)(6 + track));
+					break;
+				case TRACK_UPPER:
+				case TRACK_LOWER:
+				case TRACK_LEFT:
+				case TRACK_RIGHT: {
+					uint8_t orthogonal = 0; // Whether the tile looks a vertical or horizontal path.
+					for (; sides != 0;) {
+						DiagDirection dir = (DiagDirection)FindFirstBit(sides);
+						ClrBit(sides, dir);
+						TileIndex neighbour = TileAddByDiagDir(tile, dir);
+						if (!IsValidTile(neighbour)) continue;
+						if (!IsAirportTileOfStation(neighbour, st_id)) continue;
+						if (!MayHaveAirTracks(neighbour)) continue;
+						if (!HasBit(GetAirportTileTracks(neighbour), TrackToOppositeTrack(track))) continue;
+						orthogonal++;
+					}
+					orthogonal = orthogonal == 2 ? 8 : 0;
+					SetTileAirportGfx(tile, (AirportTiles)(track + 7 + orthogonal));
+					break;
+				}
+				default:
+					NOT_REACHED();
+			}
+			break;
+		}
+		case 3:
+			switch (sides) {
+				default:
+					NOT_REACHED();
+				case 7:
+					SetTileAirportGfx(tile, (AirportTiles)(13));
+					break;
+				case 11:
+					SetTileAirportGfx(tile, (AirportTiles)(16));
+					break;
+				case 13:
+					SetTileAirportGfx(tile, (AirportTiles)(15));
+					break;
+				case 14:
+					SetTileAirportGfx(tile, (AirportTiles)(14));
+					break;
+			}
+			break;
+		case 4:
+			SetTileAirportGfx(tile, (AirportTiles)(8));
+			break;
+	}
+
+	MarkTileDirtyByTile(tile);
+}
+
+/**
+ * Change the
+ */
+CommandCost CmdAirportChangeTrackGFX(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, uint8_t gfx_index, bool diagonal)
+{
+	CommandCost ret = CheckSettingBuildByTile();
+	if (ret.Failed()) return ret;
+
+	/* Check air type. */
+	if (!ValParamAirType(air_type)) return_cmd_error(STR_ERROR_AIRPORT_INCORRECT_AIRTYPE);
+
+	std::unique_ptr<TileIterator> iter;
+	if (diagonal) {
+		iter = std::make_unique<DiagonalTileIterator>(start_tile, end_tile);
+	} else {
+		iter = std::make_unique<OrthogonalTileIterator>(start_tile, end_tile);
+	}
+
+	for (; *iter != INVALID_TILE; ++(*iter)) {
+		Tile tile = Tile(*iter);
+		if (!IsAirportTile(tile)) continue;
+		if (air_type != GetAirType(tile)) return_cmd_error(STR_ERROR_AIRPORT_INCORRECT_AIRTYPE);
+
+		if (CheckTileOwnership(tile).Failed()) {
+			/* We don't own it!. */
+			return_cmd_error(STR_ERROR_OWNED_BY);
+		}
+
+		if (!HasAirtypeGfx(tile)) continue;
+		if (!IsSimpleTrack(tile)) continue;
+		if (flags & DC_EXEC) {
+			if (gfx_index == 0) {
+				SetAdequateGfxForAirportTrack(tile);
+			} else {
+				SetTileAirportGfx(tile, (AirportTiles)(gfx_index - 1));
+				MarkTileDirtyByTile(tile);
+			}
+		}
+	}
+
+	return CommandCost();
 }
 
 CommandCost RemoveAirportTiles(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type)

@@ -9,6 +9,7 @@
 
 #include "stdafx.h"
 #include "economy_func.h"
+#include "widget_type.h"
 #include "window_gui.h"
 #include "station_gui.h"
 #include "terraform_gui.h"
@@ -37,6 +38,7 @@
 #include "air_map.h"
 #include "station_map.h"
 #include "engine_base.h"
+#include "window_type.h"
 #include "zoom_func.h"
 #include "timer/timer.h"
 #include "timer/timer_game_calendar.h"
@@ -58,12 +60,14 @@ static uint8_t _selected_infra_catch_rotation;   ///< selected rotation for infr
 static AirportTiles _selected_infra_catch;       ///< selected infrastructure type.
 static uint8_t _selected_infra_nocatch_rotation; ///< selected rotation for infrastructure.
 static AirportTiles _selected_infra_nocatch;     ///< selected infrastructure type.
+static uint8_t _selected_track_gfx_index;        ///< selected track gfx index.
 
 static void ShowBuildAirportPicker(Window *parent);
 static void ShowHangarPicker(Window *parent);
 static void ShowHeliportPicker(Window *parent);
 static void ShowAirportInfraNoCatchPicker(Window *parent);
 static void ShowAirportInfraWithCatchPicker(Window *parent);
+static void ShowTrackGfxPicker(Window *parent);
 Window *ShowBuildAirToolbar(AirType airtype);
 
 SpriteID GetCustomAirportSprite(const AirportSpec *as, uint8_t layout);
@@ -189,6 +193,7 @@ struct BuildAirToolbarWindow : Window {
 
 		_cur_airtype = airtype;
 		const AirTypeInfo *ati = GetAirTypeInfo(airtype);
+		SetWidgetDisabledState(WID_AT_CHANGE_GRAPHICS, ati->build_on_water);
 
 		this->GetWidget<NWidgetCore>(WID_AT_BUILD_TILE)->widget_data = ati->gui_sprites.add_airport_tiles;
 		this->GetWidget<NWidgetCore>(WID_AT_TRACKS)->widget_data = ati->gui_sprites.build_track_tile;
@@ -241,14 +246,13 @@ struct BuildAirToolbarWindow : Window {
 
 	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, [[maybe_unused]] Dimension &fill, [[maybe_unused]] Dimension &resize) override
 	{
-			if (!IsInsideMM(widget, WID_AT_BUILD_TILE, WID_AT_REMOVE)) return;
+		if (!IsInsideMM(widget, WID_AT_BUILD_TILE, WID_AT_REMOVE)) return;
+		NWidgetCore *wid = this->GetWidget<NWidgetCore>(widget);
 
-			NWidgetCore *wid = this->GetWidget<NWidgetCore>(widget);
-
-			Dimension d = GetSpriteSize(wid->widget_data);
-			d.width += padding.width;
-			d.height += padding.height;
-			size = d;
+		Dimension d = GetSpriteSize(wid->widget_data);
+		d.width += padding.width;
+		d.height += padding.height;
+		size = d;
 	}
 
 	void UpdateRemoveWidgetStatus(int clicked_widget)
@@ -364,6 +368,13 @@ struct BuildAirToolbarWindow : Window {
 				this->last_user_action = widget;
 				break;
 
+			case WID_AT_CHANGE_GRAPHICS:
+				if (HandlePlacePushButton(this, widget, SPR_CURSOR_MOUSE, HT_RECT)) {
+					ShowTrackGfxPicker(this);
+				}
+				this->last_user_action = widget;
+				break;
+
 			default: break;
 		}
 
@@ -413,6 +424,10 @@ struct BuildAirToolbarWindow : Window {
 				} else {
 					VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_STATION);
 				}
+				break;
+
+			case WID_AT_CHANGE_GRAPHICS:
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_BUILD_STATION);
 				break;
 
 			default: NOT_REACHED();
@@ -482,6 +497,11 @@ struct BuildAirToolbarWindow : Window {
 				}
 				break;
 			}
+
+			case WID_AT_CHANGE_GRAPHICS:
+				Command<CMD_AIRPORT_CHANGE_GFX>::Post(STR_ERROR_CAN_T_DO_THIS, start_tile, end_tile, _cur_airtype, _selected_track_gfx_index, _ctrl_pressed);
+				break;
+
 			default: NOT_REACHED();
 		}
 	}
@@ -505,6 +525,7 @@ struct BuildAirToolbarWindow : Window {
 		CloseWindowById(WC_SELECT_STATION, 0);
 		CloseWindowById(WC_BUILD_HELIPORT, TRANSPORT_AIR);
 		CloseWindowById(WC_BUILD_AIRPORT_INFRASTRUCTURE, TRANSPORT_AIR);
+		CloseWindowById(WC_SELECT_TRACK_GFX, TRANSPORT_AIR);
 	}
 
 	/**
@@ -599,6 +620,8 @@ static constexpr NWidgetPart _nested_air_tile_toolbar_widgets[] = {
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_CONVERT), SetFill(0, 1),
 					SetDataTip(0, STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE),
+			NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_AT_CHANGE_GRAPHICS), SetFill(0, 1),
+					SetDataTip(STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS, STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS_TOOLTIP),
 		EndContainer(),
 	EndContainer(),
 };
@@ -712,7 +735,7 @@ public:
 			const AirportSpec *as = ac->GetSpec(_selected_airport_index);
 			if (as->IsAvailable(_cur_airtype)) {
 				/* Ensure the airport layout is valid. */
-				_selected_airport_layout = Clamp(_selected_airport_layout, 0, as->layouts.size() - 1);
+				_selected_airport_layout = Clamp(_selected_airport_layout, 0, (uint8_t)as->layouts.size() - 1);
 				_selected_rotation = (DiagDirection)Clamp(_selected_rotation, 0, 3);
 				selectFirstAirport = false;
 				this->UpdateSelectSize();
@@ -1116,7 +1139,7 @@ struct BuildHangarWindow : public PickerWindowBase {
 		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetHangarSpriteHeight(). */
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		DiagDirection dir = (DiagDirection)(widget - WID_BHW_NE + DIAGDIR_NE);
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airport_hangars[4];
@@ -1127,21 +1150,13 @@ struct BuildHangarWindow : public PickerWindowBase {
 
 	void OnClick([[maybe_unused]] Point pt, int widget, [[maybe_unused]] int click_count) override
 	{
-		switch (widget) {
-			case WID_BHW_NW:
-			case WID_BHW_NE:
-			case WID_BHW_SW:
-			case WID_BHW_SE:
-				this->RaiseWidget(WID_BHW_NE + _rotation_dir);
-				_rotation_dir = (DiagDirection)(widget - WID_BHW_NE);
-				this->LowerWidget(WID_BHW_NE + _rotation_dir);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				break;
+		if (!IsInsideMM(widget, WID_BHW_NE, WID_BHW_NW + 1)) return;
 
-			default:
-				break;
-		}
+		this->RaiseWidget(WID_BHW_NE + _rotation_dir);
+		_rotation_dir = (DiagDirection)(widget - WID_BHW_NE);
+		this->LowerWidget(WID_BHW_NE + _rotation_dir);
+		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+		this->SetDirty();
 	}
 };
 
@@ -1176,6 +1191,105 @@ static void ShowHangarPicker(Window *parent)
 	new BuildHangarWindow(_build_hangar_desc, parent);
 }
 
+struct SelectTrackGfxWindow : public PickerWindowBase {
+	SelectTrackGfxWindow(WindowDesc &desc, Window *parent) : PickerWindowBase(desc, parent)
+	{
+		this->CreateNestedTree();
+		this->LowerWidget(_selected_track_gfx_index);
+		this->FinishInitNested(TRANSPORT_AIR);
+	}
+
+	void UpdateWidgetSize(int widget, Dimension &size, [[maybe_unused]] const Dimension &padding, [[maybe_unused]] Dimension &fill, [[maybe_unused]] Dimension &resize) override
+	{
+		if (!IsInsideMM(widget, WID_BASGFAT_AUTO, WID_BASGFAT_20 + 1)) return;
+
+		size.width = ScaleGUITrad(64) + 2;
+		size.height = ScaleGUITrad(32) + 2;
+	}
+
+	void DrawWidget(const Rect &r, int widget) const override
+	{
+		if (!IsInsideMM(widget, WID_BASGFAT_01, WID_BASGFAT_20 + 1)) return;
+
+		int x = r.left + 1 + ScaleGUITrad(TILE_PIXELS - 1);
+		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetHangarSpriteHeight(). */
+		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
+
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[widget - WID_BASGFAT_01];
+		DrawSprite(ground, PAL_NONE, x, y);
+	}
+
+	void OnClick([[maybe_unused]] Point pt, int widget, [[maybe_unused]] int click_count) override
+	{
+		if (!IsInsideMM(widget, WID_BASGFAT_AUTO, WID_BASGFAT_20 + 1)) return;
+
+		this->RaiseWidget(WID_BASGFAT_AUTO + _selected_track_gfx_index);
+		_selected_track_gfx_index = widget - WID_BASGFAT_AUTO;
+		this->LowerWidget(WID_BASGFAT_AUTO + _selected_track_gfx_index);
+		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+		this->SetDirty();
+	}
+};
+
+static const NWidgetPart _nested_select_track_gfx_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN, WID_BASGFAT_CAPTION), SetDataTip(STR_SELECT_GFX_AIRPORT_TRACKS_CAPTION, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_DARK_GREEN),
+		NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0), SetPIPRatio(1, 0, 1), SetPadding(WidgetDimensions::unscaled.picker),
+			NWidget(NWID_HORIZONTAL_LTR), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_DEFAULT), SetFill(1, 0),
+				SetDataTip(STR_SELECT_GFX_AIRPORT_TRACKS_DEFAULT, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_AUTO), SetFill(1, 0),
+				SetDataTip(STR_SELECT_GFX_AIRPORT_TRACKS_DETECT, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL_LTR), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_01), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_06), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_07), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_08), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL_LTR), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_13), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_14), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_15), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_16), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL_LTR), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_09), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_10), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_11), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_12), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL_LTR), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_02), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_03), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_04), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_05), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_HORIZONTAL_LTR), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_17), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_18), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_19), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BASGFAT_20), SetDataTip(0x0, STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP),
+			EndContainer(),
+		EndContainer(),
+	EndContainer(),
+};
+
+static WindowDesc _select_track_gfx_widgets(
+	WDP_AUTO, nullptr, 0, 0,
+	WC_SELECT_TRACK_GFX, WC_BUILD_TOOLBAR,
+	WDF_CONSTRUCTION,
+	_nested_select_track_gfx_widgets
+);
+
+static void ShowTrackGfxPicker(Window *parent)
+{
+	new SelectTrackGfxWindow(_select_track_gfx_widgets, parent);
+}
+
 struct BuildHeliportWindow : public PickerWindowBase {
 	BuildHeliportWindow(WindowDesc &desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
@@ -1202,7 +1316,7 @@ struct BuildHeliportWindow : public PickerWindowBase {
 		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetHangarSpriteHeight(). */
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		DiagDirection dir = (DiagDirection)(widget - WID_BHW_NE + DIAGDIR_NE);
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airport_heliports[];
@@ -1287,7 +1401,7 @@ struct BuildAirportInfraNoCatchWindow : public PickerWindowBase {
 		int x = r.left + 1 + ScaleGUITrad(TILE_PIXELS - 1);
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airtype_display_datas[];
 		extern const DrawTileSprites _airtype_display_datas_radar[];
@@ -1439,7 +1553,7 @@ struct BuildAirportInfraWithCatchWindow : public PickerWindowBase {
 		int x = r.left + 1 + ScaleGUITrad(TILE_PIXELS - 1);
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airtype_display_datas[];
 		const DrawTileSprites *dts = &_airtype_display_datas[
