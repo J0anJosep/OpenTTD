@@ -276,6 +276,11 @@ struct BuildAirToolbarWindow : Window {
 	void OnClick([[maybe_unused]] Point pt, WidgetID widget, [[maybe_unused]] int click_count) override
 	{
 		switch (widget) {
+			case WID_AT_TRACKS_GRAPHICS:
+				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.add_airport_tiles, HT_RECT);
+				this->last_user_action = widget;
+				break;
+
 			case WID_AT_BUILD_TILE:
 				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.add_airport_tiles, HT_RECT);
 				this->last_user_action = widget;
@@ -415,7 +420,9 @@ struct BuildAirToolbarWindow : Window {
 					VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_STATION);
 				}
 				break;
-
+			case WID_AT_TRACKS_GRAPHICS:
+				VpStartPlaceSizing(tile, VPM_FIX_X, DDSP_BUILD_STATION);
+				break;
 			default: NOT_REACHED();
 		}
 	}
@@ -430,6 +437,18 @@ struct BuildAirToolbarWindow : Window {
 		if (pt.x == -1) return;
 
 		switch (this->last_user_action) {
+			case WID_AT_TRACKS_GRAPHICS: {
+				if (!IsAirportTile(start_tile)) break;
+				if (!IsSimpleTrack(start_tile)) break;
+				uint index = (uint)GetTileAirportGfx(start_tile);
+				index++;
+				if (index > 20) index = 0;
+				SetTileAirportGfx(start_tile, (AirportTiles)index);
+				index = GetTileAirportGfx(start_tile);
+				MarkTileDirtyByTile(start_tile);
+
+				break;
+			}
 			case WID_AT_BUILD_TILE: {
 				assert(_settings_game.station.allow_modify_airports);
 
@@ -600,6 +619,8 @@ static constexpr NWidgetPart _nested_air_tile_toolbar_widgets[] = {
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_CONVERT), SetFill(0, 1),
 					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_CHANGE_AIRTYPE),
+			NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_AT_TRACKS_GRAPHICS), SetFill(0, 1),
+					SetDataTip(STR_ROTATE_GRAPHICS, STR_TOOLBAR_ROTATE_GRAPHICS),
 		EndContainer(),
 	EndContainer(),
 };
@@ -713,7 +734,7 @@ public:
 			const AirportSpec *as = ac->GetSpec(_selected_airport_index);
 			if (as->IsAvailable(_cur_airtype)) {
 				/* Ensure the airport layout is valid. */
-				_selected_airport_layout = Clamp(_selected_airport_layout, 0, as->layouts.size() - 1);
+				_selected_airport_layout = Clamp(_selected_airport_layout, 0, (uint8_t)as->layouts.size() - 1);
 				_selected_rotation = (DiagDirection)Clamp(_selected_rotation, 0, 3);
 				selectFirstAirport = false;
 				this->UpdateSelectSize();
@@ -1117,7 +1138,7 @@ struct BuildHangarWindow : public PickerWindowBase {
 		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetHangarSpriteHeight(). */
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		DiagDirection dir = (DiagDirection)(widget - WID_BHW_NE + DIAGDIR_NE);
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airport_hangars[4];
@@ -1203,7 +1224,7 @@ struct BuildHeliportWindow : public PickerWindowBase {
 		/* Height of depot sprite in OpenGFX is TILE_PIXELS + GetHangarSpriteHeight(). */
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		DiagDirection dir = (DiagDirection)(widget - WID_BHW_NE + DIAGDIR_NE);
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airport_heliports[];
@@ -1288,7 +1309,7 @@ struct BuildAirportInfraNoCatchWindow : public PickerWindowBase {
 		int x = r.left + 1 + ScaleGUITrad(TILE_PIXELS - 1);
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airtype_display_datas[];
 		extern const DrawTileSprites _airtype_display_datas_radar[];
@@ -1440,7 +1461,7 @@ struct BuildAirportInfraWithCatchWindow : public PickerWindowBase {
 		int x = r.left + 1 + ScaleGUITrad(TILE_PIXELS - 1);
 		int y = r.bottom - ScaleGUITrad(TILE_PIXELS - 1);
 
-		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground;
+		SpriteID ground = GetAirTypeInfo(_cur_airtype)->base_sprites.ground[0];
 		PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 		extern const DrawTileSprites _airtype_display_datas[];
 		const DrawTileSprites *dts = &_airtype_display_datas[

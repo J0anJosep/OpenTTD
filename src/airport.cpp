@@ -78,7 +78,9 @@ void ResetAirTypes()
 	for (; i < lengthof(_original_airtypes); i++) _airtypes[i] = _original_airtypes[i];
 
 	static const AirTypeInfo empty_airtype = {
-			{	0, // Ground sprite
+			{	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Ground sprite
+				  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+				},
 				{
 					{	// Airport buildings with infrastructure: non-snowed/snowed + 5 building + 4 rotations
 						{ 0, 0, 0, 0 },
