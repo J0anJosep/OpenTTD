@@ -1537,6 +1537,7 @@ CommandCost CmdAddRemoveAirportTiles(DoCommandFlag flags, TileIndex start_tile, 
 			SetAirType(tile, at);
 			SetAirportTileType(tile, ATT_SIMPLE_TRACK);
 			SetAirGfxType(tile, true);
+			SetAirportGroundAndDensity(tile, AG_AIRTYPE, 0);
 
 			c->infrastructure.air[at]++;
 			c->infrastructure.station++;

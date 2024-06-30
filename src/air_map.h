@@ -983,4 +983,127 @@ static inline bool IsAirportTileOfStation(TileIndex t, StationID st_id)
 	return IsAirportTile(t) && st_id == GetStationIndex(t);
 }
 
+/**
+ * Airport ground types. Valid densities in comments after the enum.
+ */
+enum AirportGround {
+	AG_GRASS   = 0, ///< 0-3
+	AG_SNOW    = 1, ///< 0-3
+	AG_DESERT  = 2, ///< 1,3
+	AG_AIRTYPE = 3, ///< 0-3 snow density
+};
+
+/**
+ * Get the type of airport ground to draw on a tile.
+ * @param t the tile to get the airport ground type of
+ * @pre IsAirportTile(t)
+ * @return the ground type
+ */
+inline AirportGround GetAirportGround(Tile t)
+{
+	assert(IsAirportTile(t));
+	return (AirportGround)GB(t.m5(), 0, 2);
+}
+
+/**
+ * Get the ground density of an airport tile.
+ * @param t the tile to get the density of
+ * @pre IsAirportTile(t)
+ * @return the density
+ */
+inline uint GetAirportGroundDensity(Tile t)
+{
+	assert(IsAirportTile(t));
+	return GB(t.m5(), 2, 2);
+}
+
+/**
+ * Get whether an airport tile has snow.
+ * @param t the tile to check
+ * @pre IsAirportTile(t)
+ * @return whether the tile has snow.
+ */
+inline bool HasAirportGroundSnow(Tile t)
+{
+	assert(IsAirportTile(t));
+	AirportGround airport_ground = GetAirportGround(t);
+	return (airport_ground == AG_SNOW || airport_ground == AG_AIRTYPE) && GetAirportGroundDensity(t) != 0;
+}
+
+/**
+ * Increment the ground density of an airport tile.
+ * @param t the tile to increment the density of
+ * @param d the amount to increment the density with
+ * @pre IsAirportTile(t)
+ */
+inline void AddAirportGroundDensity(Tile t, int d)
+{
+	assert(IsAirportTile(t));
+	SB(t.m5(), 2, 2, GetAirportGroundDensity(t) + d);
+}
+
+/**
+ * Set the ground density of an airport tile.
+ * @param t the tile to set the density of
+ * @param d the new density
+ * @pre IsAirportTile(t)
+ */
+inline void SetAirportGroundDensity(Tile t, uint d)
+{
+	assert(IsAirportTile(t));
+	SB(t.m5(), 2, 2, d);
+}
+
+/**
+ * Get the counter used to advance to the next ground density.
+ * @param t the tile to get the counter of
+ * @return the value of the counter
+ * @pre IsAirportTile(t)
+ */
+inline uint GetAirportGroundCounter(Tile t)
+{
+	assert(IsAirportTile(t));
+	return GB(t.m6(), 0, 3);
+}
+
+/**
+ * Increments the counter used to advance to the next ground density.
+ * @param t the tile to increment the counter of
+ * @param c the amount to increment the counter with
+ * @pre IsAirportTile(t)
+ */
+inline void AddAirportGroundCounter(Tile t, int c)
+{
+	assert(IsAirportTile(t));
+	SB(t.m6(), 0, 3, GetAirportGroundCounter(t) + c);
+}
+
+/**
+ * Sets the counter used to advance to the next ground density.
+ * @param t the tile to set the counter of
+ * @param c the amount to set the counter to
+ * @pre IsAirportTile(t)
+ */
+inline void SetAirportGroundCounter(Tile t, uint c)
+{
+	assert(IsAirportTile(t));
+	SB(t.m6(), 0, 3, c);
+}
+
+
+/**
+ * Sets ground type and density in one go. Also sets the counter to 0.
+ * @param t       the tile to set the ground type and density for
+ * @param type    the new ground type of the tile
+ * @param density the density of the ground tile
+ * @pre IsAirportTile(t)
+ */
+inline void SetAirportGroundAndDensity(Tile t, AirportGround type, uint density)
+{
+	assert(IsAirportTile(t));
+	SB(t.m5(), 0, 2, type);
+	SB(t.m5(), 2, 2, density);
+	SetAirportGroundCounter(t, 0);
+}
+
 #endif /* AIR_MAP_H */

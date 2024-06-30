@@ -2788,6 +2788,29 @@ uint8_t GetAirOffset(TileIndex tile) {
 	}
 }
 
+static inline void DrawAirportGround(TileInfo *ti, const AirTypeInfo *ati, PaletteID palette)
+{
+	if (IsTileOnWater(ti->tile)) {
+		DrawWaterClassGround(ti);
+		return;
+	}
+
+	switch (GetAirportGround(ti->tile)) {
+		case AG_GRASS:
+			DrawClearLandTile(ti, GetAirportGroundDensity(ti->tile));
+			break;
+		case AG_DESERT:
+		case AG_SNOW:
+			DrawGroundSprite(_clear_land_sprites_snow_desert[GetAirportGroundDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+			break;
+		case AG_AIRTYPE: {
+			SpriteID image = ati->base_sprites.ground[0];
+			DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+			break;
+		}
+	}
+}
+
 /**
  * Draw an airport tile.
  * @param ti TileInfo of the tile to draw.
@@ -2803,9 +2826,9 @@ static void DrawTile_Airport(TileInfo *ti)
 	PaletteID palette = Company::IsValidID(owner) ? COMPANY_SPRITE_COLOUR(owner) : PALETTE_TO_GREY;
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
-	if (IsTileOnWater(ti->tile)) DrawWaterClassGround(ti);
+	DrawAirportGround(ti, ati, palette);
 
-	SpriteID image = ati->base_sprites.ground[0];
+	SpriteID image = 0;
 	if (IsRunway(ti->tile)) image = ati->base_sprites.runways[GetAirOffset(ti->tile)];
 	if (IsSimpleTrack(ti->tile)) {
 		uint8_t index = GetTileAirportGfx(ti->tile);
@@ -2841,10 +2864,9 @@ static void DrawTile_Airport(TileInfo *ti)
 			image = ati->base_sprites.ground[index - 1];
 		}
 	}
-	PaletteID pal  = PAL_NONE; // t->ground.pal;
 
 	/* Draw ground. */
-	DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+	if (image != 0) DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
 
 	/* Get the data of the sprites to draw, if any. */
 	AirportTileType att = GetAirportTileType(ti->tile);
@@ -2858,10 +2880,12 @@ static void DrawTile_Airport(TileInfo *ti)
 			break;
 
 		case ATT_HANGAR_EXTENDED:
-		case ATT_HANGAR_STANDARD:
+		case ATT_HANGAR_STANDARD: {
 			total_offset = ati->base_sprites.ground[0];
-			t = &_airtype_display_datas_hangars[GetHangarDirection(ti->tile)];
+			uint tile_sprites_offset = GetHangarDirection(ti->tile);
+			t = &_airtype_display_datas_hangars[tile_sprites_offset + (HasAirportGroundSnow(ti->tile) ? 4 : 0)];
 			break;
+		}
 
 		case ATT_APRON_NORMAL:
 		case ATT_APRON_HELIPAD:
@@ -2870,7 +2894,7 @@ static void DrawTile_Airport(TileInfo *ti)
 			break;
 
 		case ATT_APRON_HELIPORT:
-			total_offset = ati->base_sprites.ground[0] + GetAirportTileRotation(ti->tile);
+			total_offset = ati->base_sprites.ground[0] + GetAirportTileRotation(ti->tile) + (HasAirportGroundSnow(ti->tile) ? 4 : 0);
 			t = &_airtype_display_datas_aprons[GetApronType(ti->tile)];
 			break;
 
@@ -2887,11 +2911,11 @@ static void DrawTile_Airport(TileInfo *ti)
 					t = &_airtype_display_datas_radar[GetAnimationFrame(ti->tile)];
 					break;
 				case ATTG_NO_CATCH_TOWER:
-					total_offset = ati->base_sprites.ground[0];
+					total_offset = ati->base_sprites.ground[0] + (HasAirportGroundSnow(ti->tile) ? 4 : 0);
 					t = &_airtype_display_datas_tower[dir];
 					break;
 				case ATTG_NO_CATCH_TRANSMITTER:
-					total_offset = ati->base_sprites.ground[0];
+					total_offset = ati->base_sprites.ground[0] + (HasAirportGroundSnow(ti->tile) ? 4 : 0);
 					t = &_airtype_display_datas_transmitter[dir];
 					break;
 
@@ -2918,6 +2942,7 @@ static void DrawTile_Airport(TileInfo *ti)
 				case ATTG_WITH_CATCH_BUILDING_3:
 				case ATTG_WITH_CATCH_BUILDING_FLAT:
 				case ATTG_WITH_CATCH_BUILDING_TERMINAL:
+					if (HasAirportGroundSnow(ti->tile)) total_offset += 20;
 					t = &_airtype_display_datas[at * 4 + dir];
 					break;
 			}
@@ -2934,7 +2959,6 @@ static void DrawTile_Airport(TileInfo *ti)
 			NOT_REACHED();
 	}
 
-	/* Draw fences. */
 	if (t != nullptr) DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, 0, palette);
 
 	if (_show_airport_tracks) DrawAirportTracks(ti);
@@ -3524,6 +3548,83 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
 }
 
+/** Convert to or from snowy tiles. */
+static void TileLoopAirportAlps(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	int k = GetTileZ(tile) - GetSnowLine() + 1;
+
+	AirportGround airport_ground = GetAirportGround(tile);
+	switch (airport_ground) {
+		case AG_AIRTYPE:
+		case AG_SNOW:
+			break;
+		default:
+			/* Below the snow line, do nothing if no snow. */
+			/* At or above the snow line, make snow tile if needed. */
+			if (k >= 0) {
+				SetAirportGroundAndDensity(tile, AG_SNOW, 0);
+				MarkTileDirtyByTile(tile);
+			}
+			return;
+	}
+
+	/* Update snow density. */
+	uint current_density = GetAirportGroundDensity(tile);
+	uint req_density = (k < 0) ? 0u : std::min<uint>(k, 3u);
+
+	if (current_density == req_density) {
+		/* Density at the required level. */
+		if (k >= 0 || airport_ground == AG_AIRTYPE) return;
+		SetAirportGroundAndDensity(tile, AG_GRASS, 3);
+	} else {
+		AddAirportGroundDensity(tile, current_density < req_density ? 1 : -1);
+	}
+	MarkTileDirtyByTile(tile);
+}
+
+/**
+ * Tests if at least one surrounding tile is non-desert
+ * @param tile tile to check
+ * @return does this tile have at least one non-desert tile around?
+ */
+static inline bool AirportNeighbourIsNormal(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+
+	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
+		TileIndex t = tile + TileOffsByDiagDir(dir);
+		if (!IsValidTile(t)) continue;
+		if (GetTropicZone(t) != TROPICZONE_DESERT) return true;
+		if (HasTileWaterClass(t) && GetWaterClass(t) == WATER_CLASS_SEA) return true;
+	}
+	return false;
+}
+
+static void TileLoopAirportDesert(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	/* Current desert level - 0 if it is not desert */
+	uint current = 0;
+	if (GetAirportGround(tile) == AG_DESERT) current = GetAirportGroundDensity(tile);
+
+	/* Expected desert level - 0 if it shouldn't be desert */
+	uint expected = 0;
+	if (GetTropicZone(tile) == TROPICZONE_DESERT) {
+		expected = AirportNeighbourIsNormal(tile) ? 1 : 3;
+	}
+
+	if (current == expected) return;
+
+	if (expected == 0) {
+		SetAirportGroundAndDensity(tile, AG_GRASS, 3);
+	} else {
+		/* Transition from clear to desert is not smooth (after clearing desert tile) */
+		SetAirportGroundAndDensity(tile, AG_DESERT, expected);
+	}
+
+	MarkTileDirtyByTile(tile);
+}
 
 static void TileLoop_Station(TileIndex tile)
 {
@@ -3531,7 +3632,33 @@ static void TileLoop_Station(TileIndex tile)
 	 * hardcoded.....not good */
 	switch (GetStationType(tile)) {
 		case STATION_AIRPORT:
-			if (IsTileOnWater(tile)) TileLoop_Water(tile);
+			if (IsTileOnWater(tile)) {
+				TileLoop_Water(tile);
+			} else {
+				switch (_settings_game.game_creation.landscape) {
+					case LT_TROPIC: TileLoopAirportDesert(tile); break;
+					case LT_ARCTIC: TileLoopAirportAlps(tile);   break;
+				}
+
+				switch (GetAirportGround(tile)) {
+					case AG_GRASS:
+						if (GetAirportGroundDensity(tile) == 3) return;
+
+						if (GetAirportGroundCounter(tile) < 7) {
+							AddAirportGroundCounter(tile, 1);
+						} else {
+							SetAirportGroundCounter(tile, 0);
+							AddAirportGroundDensity(tile, 1);
+							MarkTileDirtyByTile(tile);
+						}
+						break;
+					case AG_SNOW:
+					case AG_DESERT:
+					case AG_AIRTYPE:
+					default:
+						break;
+				}
+			}
 			AirportTileAnimationTrigger(Station::GetByTile(tile), tile, AAT_TILELOOP);
 			break;
 
