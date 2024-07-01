@@ -163,7 +163,7 @@ struct BuildAirToolbarWindow : Window {
 			/* Show in the tooltip why this button is disabled. */
 			this->GetWidget<NWidgetCore>(WID_AT_AIRPORT)->SetToolTip(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
 		} else {
-			this->GetWidget<NWidgetCore>(WID_AT_AIRPORT)->SetToolTip(STR_TOOLBAR_AIRCRAFT_BUILD_AIRPORT_TOOLTIP);
+			this->GetWidget<NWidgetCore>(WID_AT_AIRPORT)->SetToolTip(STR_TOOLBAR_AIRPORT_BUILD_AIRPORT_TOOLTIP);
 		}
 	}
 
@@ -173,7 +173,7 @@ struct BuildAirToolbarWindow : Window {
 			if (_settings_game.station.allow_modify_airports) {
 				SetDParam(0, GetAirTypeInfo(_cur_airtype)->strings.toolbar_caption);
 			} else {
-				SetDParam(0, STR_TOOLBAR_AIRCRAFT_CAPTION);
+				SetDParam(0, STR_TOOLBAR_AIRPORT_CAPTION);
 			}
 		}
 	}
@@ -276,8 +276,13 @@ struct BuildAirToolbarWindow : Window {
 	void OnClick([[maybe_unused]] Point pt, WidgetID widget, [[maybe_unused]] int click_count) override
 	{
 		switch (widget) {
+			case WID_AT_TOGGLE_GROUND:
+				HandlePlacePushButton(this, widget, SPR_CURSOR_MOUSE, HT_RECT);
+				this->last_user_action = widget;
+				break;
+
 			case WID_AT_TRACKS_GRAPHICS:
-				HandlePlacePushButton(this, widget, GetAirTypeInfo(_cur_airtype)->cursor.add_airport_tiles, HT_RECT);
+				HandlePlacePushButton(this, widget, SPR_CURSOR_MOUSE, HT_RECT);
 				this->last_user_action = widget;
 				break;
 
@@ -423,6 +428,15 @@ struct BuildAirToolbarWindow : Window {
 			case WID_AT_TRACKS_GRAPHICS:
 				VpStartPlaceSizing(tile, VPM_FIX_X, DDSP_BUILD_STATION);
 				break;
+			case WID_AT_TOGGLE_GROUND:
+				// TODO Command
+				if (GetAirportGround(tile) == AIRPORT_AIRTYPE) {
+					SetAirportGroundAndDensity(tile, AIRPORT_GRASS, 0);
+				} else {
+					SetAirportGroundAndDensity(tile, AIRPORT_AIRTYPE, 0);
+				}
+				MarkTileDirtyByTile(tile);
+				break;
 			default: NOT_REACHED();
 		}
 	}
@@ -438,6 +452,7 @@ struct BuildAirToolbarWindow : Window {
 
 		switch (this->last_user_action) {
 			case WID_AT_TRACKS_GRAPHICS: {
+				// TODO should be a command
 				if (!IsAirportTile(start_tile)) break;
 				if (!IsSimpleTrack(start_tile)) break;
 				uint index = (uint)GetTileAirportGfx(start_tile);
@@ -562,12 +577,12 @@ static std::unique_ptr<NWidgetBase> MakeNWidgetHangars()
 
 	if (HasBit(_settings_game.depot.hangar_types, 0)) {
 		/* Add the widget for building standard hangar. */
-		hor->Add(std::make_unique<NWidgetLeaf>(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HANGAR_STANDARD, 0, STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_STANDARD));
+		hor->Add(std::make_unique<NWidgetLeaf>(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HANGAR_STANDARD, 0, STR_TOOLBAR_AIRPORT_BUILD_HANGAR_STANDARD));
 	}
 
 	if (HasBit(_settings_game.depot.hangar_types, 1)) {
 		/* Add the widget for building extended hangar. */
-		hor->Add(std::make_unique<NWidgetLeaf>(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HANGAR_EXTENDED, 0, STR_TOOLBAR_AIRCRAFT_BUILD_HANGAR_EXTENDED));
+		hor->Add(std::make_unique<NWidgetLeaf>(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HANGAR_EXTENDED, 0, STR_TOOLBAR_AIRPORT_BUILD_HANGAR_EXTENDED));
 	}
 
 	return hor;
@@ -581,46 +596,48 @@ static constexpr NWidgetPart _nested_air_tile_toolbar_widgets[] = {
 	EndContainer(),
 	NWidget(NWID_VERTICAL),
 		NWidget(NWID_HORIZONTAL),
-			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_AIRPORT), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_AIRPORT), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP),
 
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_DEMOLISH), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_REMOVE), SetFill(0, 1),
-			SetDataTip(SPR_IMG_REMOVE, STR_AIRPORT_TOOLBAR_TOOLTIP_TOGGLE_BUILD_REMOVE_FOR),
+			SetDataTip(SPR_IMG_REMOVE, STR_TOOLBAR_AIRPORT_TOGGLE_BUILD_REMOVE),
 
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 
-			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_BUILD_TILE), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(0, STR_TOOLBAR_AIRCRAFT_ADD_TILES),
-			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_TRACKS), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(0, STR_TOOLBAR_AIRCRAFT_SET_TRACKS),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_BUILD_TILE), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(0, STR_TOOLBAR_AIRPORT_ADD_TILES),
+			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_TRACKS), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(0, STR_TOOLBAR_AIRPORT_SET_TRACKS),
 
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_INFRASTRUCTURE_CATCH), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_CATCHMENT),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_INFRASTRUCTURE_CATCHMENT),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_INFRASTRUCTURE_NO_CATCH), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_INFRASTRUCTURE_NO_CATCHMENT),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_INFRASTRUCTURE_NO_CATCHMENT),
 		EndContainer(),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_RUNWAY_LANDING), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_LANDING),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_DEFINE_RUNWAY_LANDING),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_RUNWAY_NO_LANDING), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_DEFINE_RUNWAY_NO_LANDING),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_DEFINE_RUNWAY_NO_LANDING),
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_APRON), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_BUILD_APRON),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_BUILD_APRON),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HELIPAD), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_BUILD_HELIPAD),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_BUILD_HELIPAD),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_HELIPORT), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_BUILD_HELIPORT),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_BUILD_HELIPORT),
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 			NWidgetFunction(MakeNWidgetHangars),
 			NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_CONVERT), SetFill(0, 1),
-					SetDataTip(0, STR_TOOLBAR_AIRCRAFT_CHANGE_AIRTYPE),
+					SetDataTip(0, STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE),
 			NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_AT_TRACKS_GRAPHICS), SetFill(0, 1),
-					SetDataTip(STR_ROTATE_GRAPHICS, STR_TOOLBAR_ROTATE_GRAPHICS),
+					SetDataTip(STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS, STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS_TOOLTIP),
+			NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_AT_TOGGLE_GROUND), SetFill(0, 1),
+					SetDataTip(STR_TOOLBAR_AIRPORT_TOGGLE_GROUND, STR_TOOLBAR_AIRPORT_TOGGLE_GROUND_TOOLBAR),
 		EndContainer(),
 	EndContainer(),
 };
@@ -633,7 +650,7 @@ static const NWidgetPart _nested_air_nontile_toolbar_widgets[] = {
 	EndContainer(),
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_AIRPORT), SetFill(0, 1), SetMinimalSize(42, 22),
-				SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP),
+				SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP),
 	NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_DEMOLISH), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
 	EndContainer(),

@@ -3527,14 +3527,19 @@ static void TileLoopAirportAlps(TileIndex tile)
 	assert(IsAirportTile(tile));
 	int k = GetTileZ(tile) - GetSnowLine() + 1;
 
-	if (GetAirportGround(tile) != AIRPORT_SNOW) {
-		/* Below the snow line, do nothing if no snow. */
-		/* At or above the snow line, make snow tile if needed. */
-		if (k >= 0) {
-			SetAirportGroundAndDensity(tile, AIRPORT_SNOW, 0);
-			MarkTileDirtyByTile(tile);
-		}
-		return;
+	switch (GetAirportGround(tile)) {
+		case AIRPORT_AIRTYPE:
+			return;
+		case AIRPORT_SNOW:
+			break;
+		default:
+			/* Below the snow line, do nothing if no snow. */
+			/* At or above the snow line, make snow tile if needed. */
+			if (k >= 0) {
+				SetAirportGroundAndDensity(tile, AIRPORT_SNOW, 0);
+				MarkTileDirtyByTile(tile);
+			}
+			return;
 	}
 
 	/* Update snow density. */
