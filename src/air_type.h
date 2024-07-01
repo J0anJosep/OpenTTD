@@ -17,6 +17,9 @@ typedef uint32_t AirTypeLabel;
 static const AirTypeLabel AIRTYPE_LABEL_GRAVEL  = 'GRVL';
 static const AirTypeLabel AIRTYPE_LABEL_ASPHALT = 'ASPH';
 static const AirTypeLabel AIRTYPE_LABEL_WATER   = 'WATR';
+static const AirTypeLabel AIRTYPE_LABEL_ASPHALT_DARK   = 'ASPD';
+static const AirTypeLabel AIRTYPE_LABEL_ASPHALT_YELLOW = 'ASPY';
+
 
 /** Enumeration for all possible airtypes. */
 enum AirType : uint8_t {
@@ -24,6 +27,8 @@ enum AirType : uint8_t {
 	AIRTYPE_GRAVEL   = 0,    ///< Gravel surface
 	AIRTYPE_ASPHALT  = 1,    ///< Asphalt surface
 	AIRTYPE_WATER    = 2,    ///< Water surface
+	AIRTYPE_DARK     = 3,
+	AIRTYPE_YELLOW   = 4,
 	AIRTYPE_END      = 16,   ///< Used for iterations
 	INVALID_AIRTYPE  = 0xFF, ///< Flag for invalid airtype
 
@@ -41,7 +46,9 @@ enum AirTypes : uint64_t {
 	AIRTYPES_GRAVEL   = 1 << AIRTYPE_GRAVEL,    ///< Gravel surface
 	AIRTYPES_ASPHALT  = 1 << AIRTYPE_ASPHALT,   ///< Asphalt surface
 	AIRTYPES_WATER    = 1 << AIRTYPE_WATER,     ///< Water surface
-	AIRTYPES_ALL      = AIRTYPES_GRAVEL | AIRTYPES_ASPHALT | AIRTYPES_WATER,
+	AIRTYPES_DARK     = 1 << AIRTYPE_DARK,      ///< Dark surface
+	AIRTYPES_YELLOW   = 1 << AIRTYPE_YELLOW,    ///< Yellow surface
+	AIRTYPES_ALL      = AIRTYPES_GRAVEL | AIRTYPES_ASPHALT | AIRTYPES_WATER | AIRTYPES_DARK | AIRTYPES_YELLOW,
 	INVALID_AIRTYPES  = UINT16_MAX,             ///< Invalid airtypes
 };
 DECLARE_ENUM_AS_BIT_SET(AirTypes)

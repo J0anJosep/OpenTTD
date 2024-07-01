@@ -2756,7 +2756,7 @@ static void DrawAirportFences(TileInfo *ti)
 	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
 		TileIndex neighbour = TileAddByDiagDir(ti->tile, dir);
-		if (IsValidTile(neighbour) && IsAirportTileOfStation(neighbour, st_id)) continue;
+		if (IsValidTile(neighbour) && (IsAirportTileOfStation(neighbour, st_id) || IsTileType(neighbour, MP_OBJECT))) continue;
 		AddSortableSpriteToDraw(SPR_TRACK_FENCE_FLAT_Y - (dir % 2), palette,
 		ti->x + x_off_air_fence[dir], ti->y + y_off_air_fence[dir], (dir % 2) ? 16 : 1, (dir % 2) ? 1 : 16, 4, ti->z);
 	}
