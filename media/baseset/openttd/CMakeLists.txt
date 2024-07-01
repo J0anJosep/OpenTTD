@@ -28,6 +28,8 @@ if(GRFCODEC_FOUND)
                          ${CMAKE_CURRENT_SOURCE_DIR}/2ccmap.nfo
         PNG_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/airports.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/airport_asphalt.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/airport_asphalt_dark.png
+                         ${CMAKE_CURRENT_SOURCE_DIR}/airport_asphalt_yellow.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/airport_gravel.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/airport_preview.png
                          ${CMAKE_CURRENT_SOURCE_DIR}/airport_water.png
