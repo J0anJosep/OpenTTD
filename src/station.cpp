@@ -26,6 +26,9 @@
 #include "core/random_func.hpp"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
+#include "depot_base.h"
+#include "air.h"
+#include "air_map.h"
 
 #include "table/strings.h"
 
@@ -268,43 +271,6 @@ void Station::MarkTilesDirty(bool cargo_change) const
 	}
 }
 
-/* virtual */ uint Station::GetPlatformLength(TileIndex tile) const
-{
-	assert(this->TileBelongsToRailStation(tile));
-
-	TileIndexDiff delta = (GetRailStationAxis(tile) == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
-
-	TileIndex t = tile;
-	uint len = 0;
-	do {
-		t -= delta;
-		len++;
-	} while (IsCompatibleTrainStationTile(t, tile));
-
-	t = tile;
-	do {
-		t += delta;
-		len++;
-	} while (IsCompatibleTrainStationTile(t, tile));
-
-	return len - 1;
-}
-
-/* virtual */ uint Station::GetPlatformLength(TileIndex tile, DiagDirection dir) const
-{
-	TileIndex start_tile = tile;
-	uint length = 0;
-	assert(IsRailStationTile(tile));
-	assert(dir < DIAGDIR_END);
-
-	do {
-		length++;
-		tile += TileOffsByDiagDir(dir);
-	} while (IsCompatibleTrainStationTile(tile, start_tile));
-
-	return length;
-}
-
 /**
  * Get the catchment size of an individual station tile.
  * @param tile Station tile to get catchment size of.
@@ -319,8 +285,8 @@ static uint GetTileCatchmentRadius(TileIndex tile, const Station *st)
 	if (_settings_game.station.modified_catchment) {
 		switch (GetStationType(tile)) {
 			case STATION_RAIL:    return CA_TRAIN;
-			case STATION_OILRIG:  return CA_UNMODIFIED;
-			case STATION_AIRPORT: return st->airport.GetSpec()->catchment;
+			case STATION_AIRPORT:
+				return HasAirportCatchment(tile) ? st->airport.AirportCatchmentRadius() : CA_NONE;
 			case STATION_TRUCK:   return CA_TRUCK;
 			case STATION_BUS:     return CA_BUS;
 			case STATION_DOCK:    return CA_DOCK;
@@ -353,7 +319,7 @@ uint Station::GetCatchmentRadius() const
 		if (this->truck_stops        != nullptr)      ret = std::max<uint>(ret, CA_TRUCK);
 		if (this->train_station.tile != INVALID_TILE) ret = std::max<uint>(ret, CA_TRAIN);
 		if (this->ship_station.tile  != INVALID_TILE) ret = std::max<uint>(ret, CA_DOCK);
-		if (this->airport.tile       != INVALID_TILE) ret = std::max<uint>(ret, this->airport.GetSpec()->catchment);
+		if (this->airport.tile       != INVALID_TILE) ret = std::max<uint>(ret, this->airport.AirportCatchmentRadius());
 	} else {
 		if (this->bus_stops != nullptr || this->truck_stops != nullptr || this->train_station.tile != INVALID_TILE || this->ship_station.tile != INVALID_TILE || this->airport.tile != INVALID_TILE) {
 			ret = CA_UNMODIFIED;
@@ -709,25 +675,24 @@ StationRect& StationRect::operator = (const Rect &src)
 	return *this;
 }
 
-/**
- * Calculates the maintenance cost of all airports of a company.
- * @param owner Company.
- * @return Total cost.
- */
-Money AirportMaintenanceCost(Owner owner)
-{
-	Money total_cost = 0;
-
-	for (const Station *st : Station::Iterate()) {
-		if (st->owner == owner && (st->facilities & FACIL_AIRPORT)) {
-			total_cost += _price[PR_INFRASTRUCTURE_AIRPORT] * st->airport.GetSpec()->maintenance_cost;
-		}
-	}
-	/* 3 bits fraction for the maintenance cost factor. */
-	return total_cost >> 3;
+DepotID GetHangarIndex(TileIndex t) {
+	assert(IsAirportTile(t));
+	assert(Station::GetByTile(t)->airport.hangar != nullptr);
+	return Station::GetByTile(t)->airport.hangar->index;
 }
 
 bool StationCompare::operator() (const Station *lhs, const Station *rhs) const
 {
 	return lhs->index < rhs->index;
+}
+
+/**
+ * Get the corresponent catchment radius for each infrastructure tile of this airport.
+ * @return the catchment radius.
+ */
+CatchmentArea Airport::AirportCatchmentRadius() const
+{
+	const AirTypeInfo *ati = GetAirTypeInfo(this->air_type);
+	assert(ati->catchment_radius <= MAX_CATCHMENT);
+	return (CatchmentArea)ati->catchment_radius;
 }

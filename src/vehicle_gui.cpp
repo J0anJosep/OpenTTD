@@ -45,6 +45,7 @@
 #include "train_cmd.h"
 #include "hotkeys.h"
 #include "group_cmd.h"
+#include "depot_base.h"
 
 #include "safeguards.h"
 
@@ -2122,7 +2123,7 @@ public:
 			}
 
 			case WID_VL_AVAILABLE_VEHICLES:
-				ShowBuildVehicleWindow(INVALID_TILE, this->vli.vtype);
+				ShowBuildVehicleWindow(INVALID_DEPOT, this->vli.vtype);
 				break;
 
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN: {
@@ -2267,16 +2268,9 @@ void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type, StationI
 	ShowVehicleListWindowLocal(company, VL_STATION_LIST, vehicle_type, station);
 }
 
-void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type, TileIndex depot_tile)
+void ShowVehicleListWindowDepot(CompanyID company, VehicleType vehicle_type, DepotID depot_id)
 {
-	uint16_t depot_airport_index;
-
-	if (vehicle_type == VEH_AIRCRAFT) {
-		depot_airport_index = GetStationIndex(depot_tile);
-	} else {
-		depot_airport_index = GetDepotIndex(depot_tile);
-	}
-	ShowVehicleListWindowLocal(company, VL_DEPOT_LIST, vehicle_type, depot_airport_index);
+	ShowVehicleListWindowLocal(company, VL_DEPOT_LIST, vehicle_type, depot_id);
 }
 
 
@@ -3100,6 +3094,8 @@ public:
 		TextColour text_colour = TC_FROMSTRING;
 		if (v->vehstatus & VS_CRASHED) {
 			str = STR_VEHICLE_STATUS_CRASHED;
+		} else if (v->type == VEH_AIRCRAFT && Aircraft::From(v)->IsAircraftFalling()) {
+			str = STR_VEHICLE_STATUS_FALLING;
 		} else if (v->type != VEH_AIRCRAFT && v->breakdown_ctr == 1) { // check for aircraft necessary?
 			str = STR_VEHICLE_STATUS_BROKEN_DOWN;
 		} else if (v->vehstatus & VS_STOPPED && (!mouse_over_start_stop || v->IsStoppedInDepot())) {
@@ -3117,6 +3113,8 @@ public:
 			} else { // no train
 				str = STR_VEHICLE_STATUS_STOPPED;
 			}
+		} else if (HasBit(v->vehicle_flags, VF_IS_SERVICING)) {
+			str = STR_VEHICLE_STATUS_SERVICING;
 		} else if (v->IsInDepot() && v->IsWaitingForUnbunching()) {
 			str = STR_VEHICLE_STATUS_WAITING_UNBUNCHING;
 		} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) {
@@ -3141,7 +3139,7 @@ public:
 
 				case OT_GOTO_DEPOT: {
 					SetDParam(0, v->type);
-					SetDParam(1, v->current_order.GetDestination());
+					SetDParam(1, GetTargetDestination(v->current_order, v->type == VEH_AIRCRAFT));
 					SetDParam(2, PackVelocity(v->GetDisplaySpeed(), v->type));
 					if (v->current_order.GetDestination() == INVALID_DEPOT) {
 						/* This case *only* happens when multiple nearest depot orders

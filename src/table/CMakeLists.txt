@@ -2,9 +2,9 @@ add_subdirectory(settings)
 
 add_files(
     airport_defaults.h
-    airport_movement.h
     airporttile_ids.h
     airporttiles.h
+    airtypes.h
     animcursors.h
     autorail.h
     bridge_land.h

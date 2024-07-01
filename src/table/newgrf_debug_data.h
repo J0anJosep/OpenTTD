@@ -7,8 +7,10 @@
 
 /** @file newgrf_debug_data.h Data 'tables' for NewGRF debugging. */
 
+#include "../air_map.h"
 #include "../newgrf_house.h"
 #include "../newgrf_engine.h"
+#include "../newgrf_airtype.h"
 #include "../newgrf_roadtype.h"
 #include "../newgrf_roadstop.h"
 
@@ -497,12 +499,12 @@ static const NICallback _nic_airporttiles[] = {
 };
 
 class NIHAirportTile : public NIHelper {
-	bool IsInspectable(uint index) const override        { return AirportTileSpec::Get(GetAirportGfx(index))->grf_prop.grffile != nullptr; }
+	bool IsInspectable(uint index) const override        { return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(index))->grf_prop.grffile != nullptr; }
 	uint GetParent(uint index) const override            { return GetInspectWindowNumber(GSF_AIRPORTS, GetStationIndex(index)); }
 	const void *GetInstance(uint)const override          { return nullptr; }
-	const void *GetSpec(uint index) const override       { return AirportTileSpec::Get(GetAirportGfx(index)); }
+	const void *GetSpec(uint index) const override       { return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(index)); }
 	void SetStringParameters(uint index) const override  { this->SetObjectAtStringParameters(STR_STATION_NAME, GetStationIndex(index), index); }
-	uint32_t GetGRFID(uint index) const override           { return (this->IsInspectable(index)) ? AirportTileSpec::Get(GetAirportGfx(index))->grf_prop.grffile->grfid : 0; }
+	uint32_t GetGRFID(uint index) const override         { return (this->IsInspectable(index)) ? AirportTileSpec::GetAirportTileSpec(GetAirportGfx(index))->grf_prop.grffile->grfid : 0; }
 
 	uint Resolve(uint index, uint var, uint param, bool &avail) const override
 	{
@@ -711,11 +713,51 @@ class NIHRoadStop : public NIHelper {
 	}
 };
 
+/*** NewGRF air types ***/
+
+static const NIVariable _niv_airtypes[] = {
+	NIV(0x40, "terrain type"),
+	NIV(0x41, "enhanced tunnels"),
+	NIV(0x42, "level crossing status"),
+	NIV(0x43, "construction date"),
+	NIV(0x44, "town zone"),
+	NIV_END()
+};
+
+class NIHAirType : public NIHelper {
+	bool IsInspectable(uint) const override              { return true; }
+
+	uint GetParent(uint index) const override            {
+		return HasAirtypeGfx(index) ? GetInspectWindowNumber(GSF_AIRPORTS, GetStationIndex(index)) :
+				GetInspectWindowNumber(GSF_AIRPORTTILES, index);
+	}
+
+	const void *GetInstance(uint) const override         { return nullptr; }
+	const void *GetSpec(uint) const override             { return nullptr; }
+	void SetStringParameters(uint index) const override  { this->SetObjectAtStringParameters(STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_AIR_TYPE, INVALID_STRING_ID, index); }
+	uint32_t GetGRFID(uint) const override               { return 0; }
+
+	uint Resolve(uint index, uint var, uint param, bool &avail) const override
+	{
+		/* There is no unique GRFFile for the tile. Multiple GRFs can define different parts of the airtype.
+		 * However, currently the NewGRF Debug GUI does not display variables depending on the GRF (like 0x7F) anyway. */
+		AirTypeResolverObject ro(nullptr, index, TCX_NORMAL, ATSG_END);
+		return ro.GetScope(VSG_SCOPE_SELF)->GetVariable(var, param, avail);
+	}
+};
+
 static const NIFeature _nif_roadstop = {
 	nullptr,
 	_nic_roadstops,
 	_nif_roadstops,
 	new NIHRoadStop(),
+};
+
+static const NIFeature _nif_airtype = {
+	nullptr,
+	nullptr,
+	_niv_airtypes,
+	new NIHAirType(),
 };
 
 /** Table with all NIFeatures. */
@@ -741,6 +783,7 @@ static const NIFeature * const _nifeatures[] = {
 	&_nif_roadtype,     // GSF_ROADTYPES
 	&_nif_tramtype,     // GSF_TRAMTYPES
 	&_nif_roadstop,     // GSF_ROADSTOPS
+	&_nif_airtype,      // GSF_AIRTYPES
 	&_nif_town,         // GSF_FAKE_TOWNS
 };
 static_assert(lengthof(_nifeatures) == GSF_FAKE_END);

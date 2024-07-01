@@ -18,6 +18,7 @@
 #include "dropdown_common_type.h"
 #include "house.h"
 #include "vehicle_gui.h"
+#include "airport_gui.h"
 #include "rail_gui.h"
 #include "road.h"
 #include "road_gui.h"
@@ -73,6 +74,7 @@
 /** Width of the toolbar, shared by statusbar. */
 uint _toolbar_width = 0;
 
+AirType _last_built_airtype;
 RailType _last_built_railtype;
 RoadType _last_built_roadtype;
 RoadType _last_built_tramtype;
@@ -938,9 +940,13 @@ static CallBackFunction MenuClickBuildWater(int)
 
 static CallBackFunction ToolbarBuildAirClick(Window *w)
 {
-	DropDownList list;
-	list.push_back(MakeDropDownListIconItem(SPR_IMG_AIRPORT, PAL_NONE, STR_AIRCRAFT_MENU_AIRPORT_CONSTRUCTION, 0));
-	ShowDropDownList(w, std::move(list), 0, WID_TN_AIR, 140, true);
+	if (_settings_game.station.allow_modify_airports) {
+		DropDownList list = GetAirTypeDropDownList();
+		ShowDropDownList(w, std::move(list), _last_built_airtype, WID_TN_AIR, 140, true);
+	} else {
+		ShowBuildAirToolbar(INVALID_AIRTYPE);
+	}
+
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	return CBF_NONE;
 }
@@ -950,9 +956,10 @@ static CallBackFunction ToolbarBuildAirClick(Window *w)
  *
  * @return #CBF_NONE
  */
-static CallBackFunction MenuClickBuildAir(int)
+static CallBackFunction MenuClickBuildAir(int index)
 {
-	ShowBuildAirToolbar();
+	_last_built_airtype = (AirType)index;
+	ShowBuildAirToolbar(_last_built_airtype);
 	return CBF_NONE;
 }
 
@@ -2028,7 +2035,7 @@ struct MainToolbarWindow : Window {
 			case MTHK_BUILD_ROAD: ShowBuildRoadToolbar(_last_built_roadtype); break;
 			case MTHK_BUILD_TRAM: ShowBuildRoadToolbar(_last_built_tramtype); break;
 			case MTHK_BUILD_DOCKS: ShowBuildDocksToolbar(); break;
-			case MTHK_BUILD_AIRPORT: ShowBuildAirToolbar(); break;
+			case MTHK_BUILD_AIRPORT: if (CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) ShowBuildAirToolbar(_last_built_airtype); break;
 			case MTHK_BUILD_TREES: ShowBuildTreesToolbar(); break;
 			case MTHK_MUSIC: ShowMusicWindow(); break;
 			case MTHK_SCRIPT_DEBUG: ShowScriptDebugWindow(); break;

@@ -33,7 +33,7 @@ enum StationType {
 	STATION_AIRPORT,
 	STATION_TRUCK,
 	STATION_BUS,
-	STATION_OILRIG,
+	STATION_OLD_OILRIG, // Value can be reused.
 	STATION_DOCK,
 	STATION_BUOY,
 	STATION_WAYPOINT,
@@ -83,6 +83,15 @@ enum CatchmentArea {
 	CA_UNMODIFIED      =  4, ///< Catchment for all stations with "modified catchment" disabled
 
 	MAX_CATCHMENT      = 10, ///< Maximum catchment for airports with "modified catchment" enabled
+};
+
+enum StationNaming {
+	STATIONNAMING_RAIL,
+	STATIONNAMING_ROAD,
+	STATIONNAMING_AIRPORT,
+	STATIONNAMING_OILRIG,
+	STATIONNAMING_DOCK,
+	STATIONNAMING_HELIPORT,
 };
 
 static const uint MAX_LENGTH_STATION_NAME_CHARS = 32; ///< The maximum length of a station name in characters including '\0'

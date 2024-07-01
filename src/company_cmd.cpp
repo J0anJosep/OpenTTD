@@ -26,6 +26,7 @@
 #include "window_func.h"
 #include "strings_func.h"
 #include "sound_func.h"
+#include "air.h"
 #include "rail.h"
 #include "core/pool_func.hpp"
 #include "settings_func.h"
@@ -607,6 +608,7 @@ Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY)
 
 	c->avail_railtypes = GetCompanyRailTypes(c->index);
 	c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+	c->avail_airtypes = GetCompanyAirTypes(c->index);
 	c->inaugurated_year = TimerGameEconomy::year;
 
 	/* If starting a player company in singleplayer and a favorite company manager face is selected, choose it. Otherwise, use a random face.

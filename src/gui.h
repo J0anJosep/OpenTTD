@@ -33,9 +33,6 @@ void ShowOrdersWindow(const Vehicle *v);
 Window *ShowBuildDocksToolbar();
 Window *ShowBuildDocksScenToolbar();
 
-/* airport_gui.cpp */
-Window *ShowBuildAirToolbar();
-
 /* tgp_gui.cpp */
 void ShowGenerateLandscape();
 void ShowHeightmapLoad();

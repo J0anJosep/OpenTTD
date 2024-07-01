@@ -16,6 +16,7 @@
 #include "water.h"
 #include "landscape.h"
 #include "company_base.h"
+#include "air_map.h"
 #include "town.h"
 #include "table/strings.h"
 #include "table/airporttiles.h"
@@ -26,6 +27,7 @@
 extern uint32_t GetRelativePosition(TileIndex tile, TileIndex ind_tile);
 
 AirportTileSpec AirportTileSpec::tiles[NUM_AIRPORTTILES];
+AirportTileSpec AirportTileSpec::airtype_tiles[NUM_AIRTYPE_INFRATILES];
 
 AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORTTILES, INVALID_AIRPORTTILE);
 
@@ -34,12 +36,23 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
  * @param gfx index of airport tile
  * @return A pointer to the corresponding AirportTileSpec
  */
-/* static */ const AirportTileSpec *AirportTileSpec::Get(StationGfx gfx)
+/* static */ const AirportTileSpec *AirportTileSpec::GetAirportTileSpec(StationGfx gfx)
 {
 	/* should be assert(gfx < lengthof(tiles)), but that gives compiler warnings
 	 * since it's always true if the following holds: */
 	static_assert(MAX_UVALUE(StationGfx) + 1 == lengthof(tiles));
 	return &AirportTileSpec::tiles[gfx];
+}
+
+/**
+ * Retrieve airtype tile spec for the given airport tile
+ * @param gfx index of airport tile
+ * @return A pointer to the corresponding AirportTileSpec
+ */
+/* static */ const AirportTileSpec *AirportTileSpec::GetAirtypeTileSpec(StationGfx gfx)
+{
+	assert(gfx < ATTG_END);
+	return &AirportTileSpec::airtype_tiles[gfx];
 }
 
 /**
@@ -49,7 +62,11 @@ AirportTileOverrideManager _airporttile_mngr(NEW_AIRPORTTILE_OFFSET, NUM_AIRPORT
  */
 /* static */ const AirportTileSpec *AirportTileSpec::GetByTile(TileIndex tile)
 {
-	return AirportTileSpec::Get(GetAirportGfx(tile));
+	assert(IsTileType(tile, MP_STATION) && IsAirport(tile));
+
+	if (HasAirtypeGfx(tile)) return AirportTileSpec::GetAirtypeTileSpec(GetAirportGfx(tile));
+
+	return AirportTileSpec::GetAirportTileSpec(GetAirportGfx(tile));
 }
 
 /**
@@ -59,6 +76,9 @@ void AirportTileSpec::ResetAirportTiles()
 {
 	auto insert = std::copy(std::begin(_origin_airporttile_specs), std::end(_origin_airporttile_specs), std::begin(AirportTileSpec::tiles));
 	std::fill(insert, std::end(AirportTileSpec::tiles), AirportTileSpec{});
+
+	auto insert_airtype = std::copy(std::begin(_origin_airtype_specs), std::end(_origin_airtype_specs), std::begin(AirportTileSpec::airtype_tiles));
+	std::fill(insert_airtype, std::end(AirportTileSpec::airtype_tiles), AirportTileSpec{});
 
 	/* Reset any overrides that have been set. */
 	_airporttile_mngr.ResetOverride();
@@ -95,8 +115,8 @@ void AirportTileOverrideManager::SetEntitySpec(const AirportTileSpec *airpts)
  */
 StationGfx GetTranslatedAirportTileID(StationGfx gfx)
 {
-	const AirportTileSpec *it = AirportTileSpec::Get(gfx);
-	return it->grf_prop.override == INVALID_AIRPORTTILE ? gfx : it->grf_prop.override;
+	const AirportTileSpec *it = AirportTileSpec::GetAirportTileSpec(gfx);
+	return it->grf_prop.override == (StationGfx)INVALID_AIRPORTTILE ? gfx : it->grf_prop.override;
 }
 
 /**
@@ -131,7 +151,7 @@ static uint32_t GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint
 	}
 
 	StationGfx gfx = GetAirportGfx(tile);
-	const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
+	const AirportTileSpec *ats = AirportTileSpec::GetAirportTileSpec(gfx);
 
 	if (gfx < NEW_AIRPORTTILE_OFFSET) { // Does it belongs to an old type?
 		/* It is an old tile.  We have to see if it's been overridden */
@@ -139,7 +159,7 @@ static uint32_t GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint
 			return 0xFF << 8 | gfx; // no. Tag FF + the gfx id of that tile
 		}
 		/* Overridden */
-		const AirportTileSpec *tile_ovr = AirportTileSpec::Get(ats->grf_prop.override);
+		const AirportTileSpec *tile_ovr = AirportTileSpec::GetAirportTileSpec(ats->grf_prop.override);
 
 		if (tile_ovr->grf_prop.grffile->grfid == cur_grfid) {
 			return tile_ovr->grf_prop.local_id; // same grf file

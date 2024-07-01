@@ -18,53 +18,10 @@
 #include "newgrf_town.h"
 #include "tilearea_type.h"
 
+#include "table/airporttile_ids.h"
+
 /** Copy from station_map.h */
 typedef uint8_t StationGfx;
-
-/** Tile-offset / AirportTileID pair. */
-struct AirportTileTable {
-	TileIndexDiffC ti; ///< Tile offset from  the top-most airport tile.
-	StationGfx gfx;    ///< AirportTile to use for this tile.
-};
-
-/** Iterator to iterate over all tiles belonging to an airport spec. */
-class AirportTileTableIterator : public TileIterator {
-private:
-	const AirportTileTable *att; ///< The offsets.
-	TileIndex base_tile;         ///< The tile we base the offsets off.
-
-public:
-	/**
-	 * Construct the iterator.
-	 * @param att The TileTable we want to iterate over.
-	 * @param base_tile The basetile for all offsets.
-	 */
-	AirportTileTableIterator(const AirportTileTable *att, TileIndex base_tile) : TileIterator(base_tile + ToTileIndexDiff(att->ti)), att(att), base_tile(base_tile)
-	{
-	}
-
-	inline TileIterator& operator ++() override
-	{
-		this->att++;
-		if (this->att->ti.x == -0x80) {
-			this->tile = INVALID_TILE;
-		} else {
-			this->tile = this->base_tile + ToTileIndexDiff(this->att->ti);
-		}
-		return *this;
-	}
-
-	/** Get the StationGfx for the current tile. */
-	StationGfx GetStationGfx() const
-	{
-		return this->att->gfx;
-	}
-
-	std::unique_ptr<TileIterator> Clone() const override
-	{
-		return std::make_unique<AirportTileTableIterator>(*this);
-	}
-};
 
 /** List of default airport classes. */
 enum AirportClassID {
@@ -73,6 +30,7 @@ enum AirportClassID {
 	APC_LARGE,          ///< id for large airports class
 	APC_HUB,            ///< id for hub airports class
 	APC_HELIPORT,       ///< id for heliports
+	APC_CUSTOM,         ///< customized airport class
 	APC_MAX       = 16, ///< maximum number of airport classes
 };
 
@@ -87,44 +45,117 @@ enum TTDPAirportType {
 	ATP_TTDP_OILRIG,   ///< Same as AT_OILRIG
 };
 
-/** A list of all hangar tiles in an airport */
-struct HangarTileTable {
-	TileIndexDiffC ti; ///< Tile offset from the top-most airport tile.
-	Direction dir;     ///< Direction of the exit.
-	uint8_t hangar_num;   ///< The hangar to which this tile belongs.
+struct AirportTileTable {
+	AirportTileType type;                       // Use this tile will have (apron, tracks,...).
+	ApronType apron_type{APRON_INVALID};        // Subtype of apron.
+	DiagDirection dir{INVALID_DIAGDIR};         // Direction of runway or exit direction of hangars.
+	TrackBits trackbits{TRACK_BIT_NONE};        // Tracks for this tile.
+	Direction runway_directions{INVALID_DIR};   // Directions of the runways present on this tile.
+												// Maps a direction into the diagonal directions of the runways.
+	AirportTiles at_gfx{ATTG_DEFAULT_GFX};      // Sprite for this tile as provided by an airtype.
+	AirportTiles gfx[DIAGDIR_END] {             // Sprites for this tile.
+		INVALID_AIRPORTTILE,
+		INVALID_AIRPORTTILE,
+		INVALID_AIRPORTTILE,
+		INVALID_AIRPORTTILE
+	};
+
+	void SetGfx(AirportTiles gfx) {
+		this->gfx[DIAGDIR_BEGIN] = gfx;
+	}
+
+	/* Description for simple track tiles. */
+	AirportTileTable(AirportTileType att, TrackBits trackbits, AirportTiles gfx = INVALID_AIRPORTTILE) :
+		type(att),
+		trackbits(trackbits)
+	{
+		assert(att == ATT_SIMPLE_TRACK);
+		SetGfx(gfx);
+	}
+
+	/* Description for aprons, helipads and heliports. */
+	AirportTileTable(AirportTileType att, TrackBits trackbits, ApronType type,
+			AirportTiles gfx = INVALID_AIRPORTTILE) :
+		type(att),
+		apron_type(type),
+		trackbits(trackbits)
+	{
+		assert(att >= ATT_APRON_NORMAL && att <= ATT_APRON_BUILTIN_HELIPORT);
+		SetGfx(gfx);
+	}
+
+	/* Description for hangars and runway end and start. */
+	AirportTileTable(AirportTileType att, TrackBits trackbits, DiagDirection dir, AirportTiles gfx = INVALID_AIRPORTTILE) :
+		type(att),
+		dir(dir),
+		trackbits(trackbits)
+	{
+		assert(att == ATT_HANGAR_STANDARD ||
+				att == ATT_HANGAR_EXTENDED ||
+				att == ATT_RUNWAY_END ||
+				att == ATT_RUNWAY_START_ALLOW_LANDING ||
+				att == ATT_RUNWAY_START_NO_LANDING);
+		SetGfx(gfx);
+	}
+
+	/* Description for middle parts of runways. */
+	AirportTileTable(AirportTileType att, TrackBits trackbits, Direction runway_directions, AirportTiles gfx = INVALID_AIRPORTTILE) :
+		type(att),
+		trackbits(trackbits),
+		runway_directions(runway_directions)
+	{
+		assert(att == ATT_RUNWAY_MIDDLE);
+		assert(IsValidDirection(runway_directions));
+		SetGfx(gfx);
+	}
+
+	/* Description for infrastructure. */
+	AirportTileTable(AirportTileType att, AirportTiles at_gfx, DiagDirection rotation = DIAGDIR_NE,
+			AirportTiles gfx = INVALID_AIRPORTTILE) :
+		type(att),
+		dir(rotation),
+		at_gfx(at_gfx)
+	{
+		assert(att == ATT_INFRASTRUCTURE_WITH_CATCH || att == ATT_INFRASTRUCTURE_NO_CATCH);
+		SetGfx(gfx);
+	}
+
+	/* Description for a non-airport tile, for non-rectangular airports. */
+	AirportTileTable() : type(ATT_INVALID) {}
 };
 
 struct AirportTileLayout {
 	std::vector<AirportTileTable> tiles; ///< List of all tiles in this layout.
-	Direction rotation; ///< The rotation of this layout.
+	uint8_t size_x;                        ///< size of airport in x direction
+	uint8_t size_y;                        ///< size of airport in y direction
 };
 
 /**
  * Defines the data structure for an airport.
  */
 struct AirportSpec : NewGRFSpecBase<AirportClassID> {
-	const struct AirportFTAClass *fsm;     ///< the finite statemachine for the default airports
-	std::vector<AirportTileLayout> layouts; ///< List of layouts composing the airport.
-	std::span<const HangarTileTable> depots; ///< Position of the depots on the airports.
-	uint8_t size_x;                           ///< size of airport in x direction
-	uint8_t size_y;                           ///< size of airport in y direction
-	uint8_t noise_level;                      ///< noise that this airport generates
-	uint8_t catchment;                        ///< catchment area of this airport
+	std::vector<AirportTileLayout> layouts;///< list of the different layouts
+	AirType airtype;                       ///< the airtype for this set of layouts
+	uint8_t num_runways;                   ///< number of runways
+	uint8_t num_aprons;                    ///< number of aprons
+	uint8_t num_helipads;                  ///< number of helipads
+	uint8_t num_heliports;                 ///< number of heliports
+	uint8_t min_runway_length;             ///< length of the shortest runway
 	TimerGameCalendar::Year min_year;      ///< first year the airport is available
 	TimerGameCalendar::Year max_year;      ///< last year the airport is available
 	StringID name;                         ///< name of this airport
 	TTDPAirportType ttd_airport_type;      ///< ttdpatch airport type (Small/Large/Helipad/Oilrig)
 	SpriteID preview_sprite;               ///< preview sprite for this airport
-	uint16_t maintenance_cost;               ///< maintenance cost multiplier
-	/* Newgrf data */
 	bool enabled;                          ///< Entity still available (by default true). Newgrf can disable it, though.
+	bool has_hangar;
+	bool has_heliport;
 	struct GRFFileProps grf_prop;          ///< Properties related to the grf file.
 
 	static const AirportSpec *Get(uint8_t type);
 	static AirportSpec *GetWithoutOverride(uint8_t type);
 
-	bool IsAvailable() const;
-	bool IsWithinMapBounds(uint8_t table, TileIndex index) const;
+	bool IsAvailable(AirType air_type = INVALID_AIRTYPE) const;
+	bool IsWithinMapBounds(uint8_t table, TileIndex index, uint8_t layout) const;
 
 	static void ResetAirports();
 
@@ -135,7 +166,10 @@ struct AirportSpec : NewGRFSpecBase<AirportClassID> {
 		return static_cast<uint8_t>(std::distance(std::cbegin(specs), this));
 	}
 
-	static const AirportSpec dummy; ///< The dummy airport.
+	uint8_t GetAirportNoise(AirType airtype) const;
+
+	static const AirportSpec custom; ///< The customized airports specs.
+	static const AirportSpec dummy;  ///< The dummy airport.
 
 private:
 	static AirportSpec specs[NUM_AIRPORTS]; ///< Specs of the airports.

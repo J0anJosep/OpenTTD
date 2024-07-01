@@ -39,12 +39,16 @@ void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, Ro
 
 bool HasStationInUse(StationID station, bool include_company, CompanyID company);
 
-void DeleteOilRig(TileIndex t);
+StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class);
+
+void DeleteOldBuiltInHeliport(TileIndex t);
+void DeleteBuiltInHeliport(TileIndex t);
 void UpdateStationDockingTiles(Station *st);
 void RemoveDockingTile(TileIndex t);
 void ClearDockingTilesCheckingNeighbours(TileIndex tile);
 
 void UpdateAirportsNoise();
+void FloodAircraftOnAirport(const Station *st);
 
 bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset);
 
@@ -61,7 +65,5 @@ inline Money StationMaintenanceCost(uint32_t num)
 {
 	return (_price[PR_INFRASTRUCTURE_STATION] * num * (1 + IntSqrt(num))) >> 7; // 7 bits scaling.
 }
-
-Money AirportMaintenanceCost(Owner owner);
 
 #endif /* STATION_FUNC_H */

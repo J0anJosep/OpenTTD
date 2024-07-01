@@ -44,6 +44,7 @@
 #include "core/container_func.hpp"
 #include "cargo_type.h"
 #include "water.h"
+#include "air.h"
 #include "game/game.hpp"
 #include "cargomonitor.h"
 #include "goal_base.h"
@@ -55,6 +56,8 @@
 #include "timer/timer.h"
 #include "timer/timer_game_calendar.h"
 #include "timer/timer_game_economy.h"
+#include "depot_base.h"
+#include "platform_func.h"
 
 #include "table/strings.h"
 #include "table/pricebase.h"
@@ -374,6 +377,12 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 	}
 	if (new_owner == INVALID_OWNER) RebuildSubsidisedSourceAndDestinationCache();
 
+	for (Depot *dep : Depot::Iterate()) {
+		if (dep->owner == old_owner && new_owner != INVALID_OWNER) {
+			dep->owner = new_owner;
+		}
+	}
+
 	/* Take care of rating and transport rights in towns */
 	for (Town *t : Town::Iterate()) {
 		/* If a company takes over, give the ratings to that company. */
@@ -517,9 +526,6 @@ void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner)
 		/* update signals in buffer */
 		UpdateSignalsInBuffer();
 	}
-
-	/* Add airport infrastructure count of the old company to the new one. */
-	if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.airport += Company::Get(old_owner)->infrastructure.airport;
 
 	/* convert owner of stations (including deleted ones, but excluding buoys) */
 	for (Station *st : Station::Iterate()) {
@@ -684,9 +690,12 @@ static void CompaniesGenStatistics()
 			for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
 				if (c->infrastructure.road[rt] != 0) cost.AddCost(RoadMaintenanceCost(rt, c->infrastructure.road[rt], RoadTypeIsRoad(rt) ? road_total : tram_total));
 			}
+			uint32_t air_total = c->infrastructure.GetAirTotal();
+			for (AirType at = AIRTYPE_BEGIN; at < AIRTYPE_END; at++) {
+				if (c->infrastructure.air[at] != 0) cost.AddCost(AirMaintenanceCost(at, c->infrastructure.air[at], air_total));
+			}
 			cost.AddCost(CanalMaintenanceCost(c->infrastructure.water));
 			cost.AddCost(StationMaintenanceCost(c->infrastructure.station));
-			cost.AddCost(AirportMaintenanceCost(c->index));
 
 			SubtractMoneyFromCompany(cost);
 		}
@@ -1614,14 +1623,13 @@ static void ReserveConsist(Station *st, Vehicle *u, CargoArray *consist_capleft,
  * Update the vehicle's load_unload_ticks, the time it will wait until it tries to load or unload
  * again. Adjust for overhang of trains and set it at least to 1.
  * @param front The vehicle to be updated.
- * @param st The station the vehicle is loading at.
  * @param ticks The time it would normally wait, based on cargo loaded and unloaded.
  */
-static void UpdateLoadUnloadTicks(Vehicle *front, const Station *st, int ticks)
+static void UpdateLoadUnloadTicks(Vehicle *front, int ticks)
 {
 	if (front->type == VEH_TRAIN && _settings_game.order.station_length_loading_penalty) {
 		/* Each platform tile is worth 2 rail vehicles. */
-		int overhang = front->GetGroundVehicleCache()->cached_total_length - st->GetPlatformLength(front->tile) * TILE_SIZE;
+		int overhang = front->GetGroundVehicleCache()->cached_total_length - GetPlatformLength(front->tile) * TILE_SIZE;
 		if (overhang > 0) {
 			ticks <<= 1;
 			ticks += (overhang * ticks) / 8;
@@ -1883,9 +1891,9 @@ static void LoadUnloadVehicle(Vehicle *front)
 			SetBit(front->vehicle_flags, VF_STOP_LOADING);
 		}
 
-		UpdateLoadUnloadTicks(front, st, new_load_unload_ticks);
+		UpdateLoadUnloadTicks(front, new_load_unload_ticks);
 	} else {
-		UpdateLoadUnloadTicks(front, st, 20); // We need the ticks for link refreshing.
+		UpdateLoadUnloadTicks(front, 20); // We need the ticks for link refreshing.
 		bool finished_loading = true;
 		if (front->current_order.GetLoadType() & OLFB_FULL_LOAD) {
 			if (front->current_order.GetLoadType() == OLF_FULL_LOAD_ANY) {

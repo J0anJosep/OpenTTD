@@ -193,6 +193,7 @@ enum Commands : uint16_t {
 	CMD_BUILD_BRIDGE,                 ///< build a bridge
 	CMD_BUILD_RAIL_STATION,           ///< build a rail station
 	CMD_BUILD_TRAIN_DEPOT,            ///< build a train depot
+	CMD_REMOVE_TRAIN_DEPOT,           ///< remove a train depot
 	CMD_BUILD_SINGLE_SIGNAL,          ///< build a signal
 	CMD_REMOVE_SINGLE_SIGNAL,         ///< remove a signal
 	CMD_TERRAFORM_LAND,               ///< terraform a tile
@@ -218,7 +219,11 @@ enum Commands : uint16_t {
 	CMD_BUILD_ROAD_DEPOT,             ///< build a road depot
 	CMD_CONVERT_ROAD,                 ///< convert a road type
 
-	CMD_BUILD_AIRPORT,                ///< build an airport
+	CMD_CHANGE_AIRPORT,               ///< change pieces of airport
+	CMD_ADD_REM_AIRPORT,              ///< build/remove tiles for airport tracks
+	CMD_ADD_REM_TRACKS,               ///< build/remove tracks
+	CMD_CONVERT_AIRPORT,              ///< change the aiport type (gravel, asphalt, etc.)
+	CMD_BUILD_AIRPORT,                ///< build an airport layout
 
 	CMD_BUILD_DOCK,                   ///< build a dock
 

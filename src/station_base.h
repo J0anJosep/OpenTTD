@@ -15,9 +15,11 @@
 #include "newgrf_airport.h"
 #include "cargopacket.h"
 #include "industry_type.h"
+#include "air_type.h"
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
 #include "bitmap_type.h"
+#include "depot_type.h"
 
 static const uint8_t INITIAL_STATION_RATING = 175;
 static const uint8_t MAX_STATION_RATING = 255;
@@ -290,12 +292,21 @@ struct GoodsEntry {
 struct Airport : public TileArea {
 	Airport() : TileArea(INVALID_TILE, 0, 0) {}
 
-	uint64_t flags;       ///< stores which blocks on the airport are taken. was 16 bit earlier on, then 32
-	uint8_t type;          ///< Type of this airport, @see AirportTypes
-	uint8_t layout;        ///< Airport layout number.
+	uint64_t flags;     ///< Stores some data of the airport.
+	uint8_t type;       ///< Type of this airport, @see AirportTypes
+	uint8_t layout;     ///< Airport layout number.
 	Direction rotation; ///< How this airport is rotated.
+	AirType air_type;   ///< NOSAVE: airport type.
+	Depot *hangar;      ///< The corresponding hangar of this airport, if any.
+
+	std::vector<TileIndex> aprons;     ///< NOSAVE: aprons this airport has.
+	std::vector<TileIndex> helipads;   ///< NOSAVE: helipads of this airport.
+	std::vector<TileIndex> heliports;  ///< NOSAVE: heliports of this airport (cannot move through the airport without flying)
+	std::vector<TileIndex> runways;    ///< NOSAVE: runways of this airport.
 
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
+
+	CatchmentArea AirportCatchmentRadius() const;
 
 	/**
 	 * Get the AirportSpec that from the airport type of this airport. If there
@@ -305,120 +316,25 @@ struct Airport : public TileArea {
 	const AirportSpec *GetSpec() const
 	{
 		if (this->tile == INVALID_TILE) return &AirportSpec::dummy;
+		if (this->type == AT_CUSTOM) return &AirportSpec::custom;
 		return AirportSpec::Get(this->type);
-	}
-
-	/**
-	 * Get the finite-state machine for this airport or the finite-state machine
-	 * for the dummy airport in case this isn't an airport.
-	 * @pre this->type < NEW_AIRPORT_OFFSET.
-	 * @return The state machine for this airport.
-	 */
-	const AirportFTAClass *GetFTA() const
-	{
-		return this->GetSpec()->fsm;
 	}
 
 	/** Check if this airport has at least one hangar. */
 	inline bool HasHangar() const
 	{
-		return !this->GetSpec()->depots.empty();
+		return HasBit(this->flags, AFB_HANGAR);
 	}
 
-	/**
-	 * Add the tileoffset to the base tile of this airport but rotate it first.
-	 * The base tile is the northernmost tile of this airport. This function
-	 * helps to make sure that getting the tile of a hangar works even for
-	 * rotated airport layouts without requiring a rotated array of hangar tiles.
-	 * @param tidc The tilediff to add to the airport tile.
-	 * @return The tile of this airport plus the rotated offset.
-	 */
-	inline TileIndex GetRotatedTileFromOffset(TileIndexDiffC tidc) const
+	/** Check if this airport has at least one landing runway. */
+	inline bool HasLandingRunway() const
 	{
-		const AirportSpec *as = this->GetSpec();
-		switch (this->rotation) {
-			case DIR_N: return this->tile + ToTileIndexDiff(tidc);
-
-			case DIR_E: return this->tile + TileDiffXY(tidc.y, as->size_x - 1 - tidc.x);
-
-			case DIR_S: return this->tile + TileDiffXY(as->size_x - 1 - tidc.x, as->size_y - 1 - tidc.y);
-
-			case DIR_W: return this->tile + TileDiffXY(as->size_y - 1 - tidc.y, tidc.x);
-
-			default: NOT_REACHED();
-		}
+		return HasBit(this->flags, AFB_LANDING_RUNWAY);
 	}
 
-	/**
-	 * Get the first tile of the given hangar.
-	 * @param hangar_num The hangar to get the location of.
-	 * @pre hangar_num < GetNumHangars().
-	 * @return A tile with the given hangar.
-	 */
-	inline TileIndex GetHangarTile(uint hangar_num) const
+	inline bool IsClosed() const
 	{
-		for (const auto &depot : this->GetSpec()->depots) {
-			if (depot.hangar_num == hangar_num) {
-				return this->GetRotatedTileFromOffset(depot.ti);
-			}
-		}
-		NOT_REACHED();
-	}
-
-	/**
-	 * Get the exit direction of the hangar at a specific tile.
-	 * @param tile The tile to query.
-	 * @pre IsHangarTile(tile).
-	 * @return The exit direction of the hangar, taking airport rotation into account.
-	 */
-	inline Direction GetHangarExitDirection(TileIndex tile) const
-	{
-		const AirportSpec *as = this->GetSpec();
-		const HangarTileTable *htt = GetHangarDataByTile(tile);
-		return ChangeDir(htt->dir, DirDifference(this->rotation, as->layouts[0].rotation));
-	}
-
-	/**
-	 * Get the hangar number of the hangar at a specific tile.
-	 * @param tile The tile to query.
-	 * @pre IsHangarTile(tile).
-	 * @return The hangar number of the hangar at the given tile.
-	 */
-	inline uint GetHangarNum(TileIndex tile) const
-	{
-		const HangarTileTable *htt = GetHangarDataByTile(tile);
-		return htt->hangar_num;
-	}
-
-	/** Get the number of hangars on this airport. */
-	inline uint GetNumHangars() const
-	{
-		uint num = 0;
-		uint counted = 0;
-		for (const auto &depot : this->GetSpec()->depots) {
-			if (!HasBit(counted, depot.hangar_num)) {
-				num++;
-				SetBit(counted, depot.hangar_num);
-			}
-		}
-		return num;
-	}
-
-private:
-	/**
-	 * Retrieve hangar information of a hangar at a given tile.
-	 * @param tile %Tile containing the hangar.
-	 * @return The requested hangar information.
-	 * @pre The \a tile must be at a hangar tile at an airport.
-	 */
-	inline const HangarTileTable *GetHangarDataByTile(TileIndex tile) const
-	{
-		for (const auto &depot : this->GetSpec()->depots) {
-			if (this->GetRotatedTileFromOffset(depot.ti) == tile) {
-				return &depot;
-			}
-		}
-		NOT_REACHED();
+		return HasBit(this->flags, AFB_CLOSED_MANUAL);
 	}
 };
 
@@ -483,9 +399,6 @@ public:
 	void MoveSign(TileIndex new_xy) override;
 
 	void AfterStationTileSetChange(bool adding, StationType type);
-
-	uint GetPlatformLength(TileIndex tile, DiagDirection dir) const override;
-	uint GetPlatformLength(TileIndex tile) const override;
 	void RecomputeCatchment(bool no_clear_nearby_lists = false);
 	static void RecomputeCatchmentForAll();
 
@@ -495,6 +408,10 @@ public:
 	void AddIndustryToDeliver(Industry *ind, TileIndex tile);
 	void RemoveIndustryToDeliver(Industry *ind);
 	void RemoveFromAllNearbyLists();
+
+	void LoadAirportTilesFromSpec(TileArea ta, DiagDirection rotation, AirType airtype);
+	void ClearAirportDataInfrastructure();
+	void UpdateAirportDataStructure();
 
 	inline bool TileIsInCatchment(TileIndex tile) const
 	{

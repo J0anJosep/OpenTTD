@@ -19,6 +19,7 @@
 #include "../tunnelbridge.h"
 #include "../station_base.h"
 #include "../strings_func.h"
+#include "../air_map.h"
 
 #include "table/strings.h"
 
@@ -98,13 +99,6 @@ void AfterLoadCompanyStats()
 	/* Reset infrastructure statistics to zero. */
 	for (Company *c : Company::Iterate()) c->infrastructure = {};
 
-	/* Collect airport count. */
-	for (const Station *st : Station::Iterate()) {
-		if ((st->facilities & FACIL_AIRPORT) && Company::IsValidID(st->owner)) {
-			Company::Get(st->owner)->infrastructure.airport++;
-		}
-	}
-
 	Company *c;
 	for (TileIndex tile = 0; tile < Map::Size(); tile++) {
 		switch (GetTileType(tile)) {
@@ -134,15 +128,15 @@ void AfterLoadCompanyStats()
 					RoadType rt = GetRoadType(tile, rtt);
 					if (rt == INVALID_ROADTYPE) continue;
 					c = Company::GetIfValid(IsRoadDepot(tile) ? GetTileOwner(tile) : GetRoadOwner(tile, rtt));
-					/* A level crossings and depots have two road bits. */
-					if (c != nullptr) c->infrastructure.road[rt] += IsNormalRoad(tile) ? CountBits(GetRoadBits(tile, rtt)) : 2;
+					/* Level crossings have two road bits. */
+					if (c != nullptr) c->infrastructure.road[rt] += (IsNormalRoad(tile) || IsRoadDepot(tile)) ? CountBits(GetRoadBits(tile, rtt)) : 2;
 				}
 				break;
 			}
 
 			case MP_STATION:
 				c = Company::GetIfValid(GetTileOwner(tile));
-				if (c != nullptr && GetStationType(tile) != STATION_AIRPORT && !IsBuoy(tile)) c->infrastructure.station++;
+				if (c != nullptr && !IsBuoy(tile)) c->infrastructure.station++;
 
 				switch (GetStationType(tile)) {
 					case STATION_RAIL:
@@ -162,6 +156,10 @@ void AfterLoadCompanyStats()
 						}
 						break;
 					}
+
+					case STATION_AIRPORT:
+						if (c != nullptr) c->infrastructure.air[GetAirType(tile)]++;
+						break;
 
 					case STATION_DOCK:
 					case STATION_BUOY:

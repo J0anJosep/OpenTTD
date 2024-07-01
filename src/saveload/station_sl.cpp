@@ -384,6 +384,11 @@ public:
 	{
 		Station *st = Station::From(bst);
 
+		/* Convert old flags to new flags. */
+		if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS) && (st->facilities & FACIL_AIRPORT) != 0) {
+			st->airport.flags = HasBit(st->airport.flags, 63) ? AF_CLOSED_MANUAL : AF_NONE;
+		}
+
 		/* Before savegame version 161, persistent storages were not stored in a pool. */
 		if (IsSavegameVersionBefore(SLV_161) && !IsSavegameVersionBefore(SLV_145) && st->facilities & FACIL_AIRPORT) {
 			/* Store the old persistent storage. The GRFID will be added later. */
@@ -610,6 +615,7 @@ public:
 		SLE_CONDVAR(Station, airport.layout,             SLE_UINT8,                 SLV_145, SL_MAX_VERSION),
 		    SLE_VAR(Station, airport.flags,              SLE_UINT64),
 		SLE_CONDVAR(Station, airport.rotation,           SLE_UINT8,                 SLV_145, SL_MAX_VERSION),
+		SLE_CONDREF(Station, airport.hangar,             REF_DEPOT,           SLV_ADD_DEPOTS_TO_HANGARS, SL_MAX_VERSION),
 		SLEG_CONDARR("storage", _old_st_persistent_storage.storage,  SLE_UINT32, 16, SLV_145, SLV_161),
 		SLE_CONDREF(Station, airport.psa,                REF_STORAGE,               SLV_161, SL_MAX_VERSION),
 

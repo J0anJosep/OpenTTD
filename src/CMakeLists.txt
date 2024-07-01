@@ -40,14 +40,20 @@ add_files(
 )
 
 add_files(
+    air.h
+    air.cpp
+    air_type.h
     aircraft.h
     aircraft_cmd.cpp
     aircraft_cmd.h
     aircraft_gui.cpp
+    air_map.h
     airport.cpp
     airport.h
+    airport_cmd.cpp
     airport_cmd.h
     airport_gui.cpp
+    airport_gui.h
     animated_tile.cpp
     animated_tile_func.h
     articulated_vehicles.cpp
@@ -260,6 +266,8 @@ add_files(
     newgrf_airport.h
     newgrf_airporttiles.cpp
     newgrf_airporttiles.h
+    newgrf_airtype.cpp
+    newgrf_airtype.h
     newgrf_animation_base.h
     newgrf_animation_type.h
     newgrf_callbacks.h
@@ -339,9 +347,14 @@ add_files(
     palette_func.h
     pbs.cpp
     pbs.h
+    pbs_air.cpp
+    pbs_air.h
     picker_func.h
     picker_gui.cpp
     picker_gui.h
+    platform_func.h
+    platform_type.h
+    platform.cpp
     progress.cpp
     progress.h
     querystring_gui.h
@@ -501,6 +514,8 @@ add_files(
     train.h
     train_cmd.cpp
     train_cmd.h
+    train_placement.cpp
+    train_placement.h
     train_gui.cpp
     transparency.h
     transparency_gui.cpp

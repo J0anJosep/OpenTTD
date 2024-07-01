@@ -28,6 +28,7 @@
 #include "news_func.h"
 #include "fios.h"
 #include "aircraft.h"
+#include "airport_gui.h"
 #include "roadveh.h"
 #include "train.h"
 #include "ship.h"
@@ -891,6 +892,7 @@ static void MakeNewGameDone()
 
 	InitializeRailGUI();
 	InitializeRoadGUI();
+	InitializeAirportGui();
 
 	if (_settings_client.gui.pause_on_newgame) Command<CMD_PAUSE>::Post(PM_PAUSED_NORMAL, true);
 
