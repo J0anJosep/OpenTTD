@@ -3012,6 +3012,8 @@ STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP                  :{BLACK}Build a p
 STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE                             :{BLACK}Change the airtype of an airport
 STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS                            :{BLACK}Change track graphics
 STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS_TOOLTIP                    :{BLACK}Click over a simple airport tile to change its graphics (experimental; only works on the Drawn tracks airtype)
+STR_TOOLBAR_AIRPORT_TOGGLE_GROUND                              :{BLACK}Toggle ground graphics
+STR_TOOLBAR_AIRPORT_TOGGLE_GROUND_TOOLBAR                      :{BLACK}Click over a simple airport tile to show or hide the airtype ground sprite.
 
 STR_AIRTYPE_NAME_GRAVEL                                         :Gravel airport
 STR_AIRTYPE_NAME_ASPHALT                                        :Asphalt airport

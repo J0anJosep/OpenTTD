@@ -193,6 +193,7 @@ struct BuildAirToolbarWindow : Window {
 
 		_cur_airtype = airtype;
 		const AirTypeInfo *ati = GetAirTypeInfo(airtype);
+		SetWidgetDisabledState(WID_AT_TOGGLE_GROUND, ati->build_on_water);
 		SetWidgetDisabledState(WID_AT_CHANGE_GRAPHICS, ati->build_on_water);
 
 		this->GetWidget<NWidgetCore>(WID_AT_BUILD_TILE)->widget_data = ati->gui_sprites.add_airport_tiles;
@@ -375,6 +376,11 @@ struct BuildAirToolbarWindow : Window {
 				this->last_user_action = widget;
 				break;
 
+			case WID_AT_TOGGLE_GROUND:
+				HandlePlacePushButton(this, widget, SPR_CURSOR_MOUSE, HT_RECT | HT_DIAGONAL);
+				this->last_user_action = widget;
+				break;
+
 			default: break;
 		}
 
@@ -427,6 +433,11 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_CHANGE_GRAPHICS:
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_BUILD_STATION);
+				break;
+
+
+			case WID_AT_TOGGLE_GROUND:
 				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_BUILD_STATION);
 				break;
 
@@ -500,6 +511,10 @@ struct BuildAirToolbarWindow : Window {
 
 			case WID_AT_CHANGE_GRAPHICS:
 				Command<CMD_AIRPORT_CHANGE_GFX>::Post(STR_ERROR_CAN_T_DO_THIS, start_tile, end_tile, _cur_airtype, _selected_track_gfx_index, _ctrl_pressed);
+				break;
+
+			case WID_AT_TOGGLE_GROUND:
+				Command<CMD_AIRPORT_TOGGLE_GROUND>::Post(STR_ERROR_CAN_T_DO_THIS, start_tile, end_tile, _cur_airtype, _ctrl_pressed);
 				break;
 
 			default: NOT_REACHED();
@@ -622,6 +637,8 @@ static constexpr NWidgetPart _nested_air_tile_toolbar_widgets[] = {
 					SetDataTip(0, STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE),
 			NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_AT_CHANGE_GRAPHICS), SetFill(0, 1),
 					SetDataTip(STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS, STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS_TOOLTIP),
+			NWidget(WWT_TEXTBTN, COLOUR_DARK_GREEN, WID_AT_TOGGLE_GROUND), SetFill(0, 1),
+					SetDataTip(STR_TOOLBAR_AIRPORT_TOGGLE_GROUND, STR_TOOLBAR_AIRPORT_TOGGLE_GROUND_TOOLBAR),
 		EndContainer(),
 	EndContainer(),
 };
@@ -634,7 +651,7 @@ static const NWidgetPart _nested_air_nontile_toolbar_widgets[] = {
 	EndContainer(),
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_AIRPORT), SetFill(0, 1), SetMinimalSize(42, 22),
-				SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRCRAFT_BUILD_PRE_AIRPORT_TOOLTIP),
+				SetDataTip(SPR_IMG_AIRPORT, STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP),
 	NWidget(WWT_PANEL, COLOUR_DARK_GREEN), SetMinimalSize(4, 22), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_AT_DEMOLISH), SetFill(0, 1), SetMinimalSize(22, 22), SetDataTip(SPR_IMG_DYNAMITE, STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC),
 	EndContainer(),

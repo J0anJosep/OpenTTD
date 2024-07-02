@@ -225,6 +225,7 @@ enum Commands : uint16_t {
 	CMD_CONVERT_AIRPORT,              ///< change the aiport type (gravel, asphalt, etc.)
 	CMD_BUILD_AIRPORT,                ///< build an airport layout
 	CMD_AIRPORT_CHANGE_GFX,           ///< change the graphics of an airport tile, if possible
+	CMD_AIRPORT_TOGGLE_GROUND,        ///< toggle between showing the specific airtype ground or not, if possible
 
 	CMD_BUILD_DOCK,                   ///< build a dock
 

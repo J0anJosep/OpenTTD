@@ -29,6 +29,7 @@ enum AirportToolbarWidgets : WidgetID {
 	WID_AT_AIRPORT,                   ///< Build a predefined airport.
 	WID_AT_DEMOLISH,                  ///< Demolish button.
 	WID_AT_CHANGE_GRAPHICS,           ///< Change base graphics, if possible.
+	WID_AT_TOGGLE_GROUND,             ///< Toggle airport ground graphics on a tile.
 
 	WID_AT_REMOVE_FIRST = WID_AT_BUILD_TILE,   ///< First an last widgets that work combined with remove widget.
 	WID_AT_REMOVE_LAST = WID_AT_HANGAR_EXTENDED,

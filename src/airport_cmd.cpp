@@ -980,8 +980,10 @@ CommandCost CmdChangeAirType(DoCommandFlag flags, TileIndex tile, AirType air_ty
 	/* Check air type. */
 	if (!ValParamAirType(air_type)) return_cmd_error(STR_ERROR_AIRPORT_INCORRECT_AIRTYPE);
 	if (st->airport.air_type == air_type) return_cmd_error(STR_ERROR_AIRPORT_ALREADY_AIRTYPE);
-	if (st->airport.air_type == AIRTYPE_WATER) return_cmd_error(STR_ERROR_AIRPORT_CAN_T_CONVERT_TO_WATERED);
-	if (air_type == AIRTYPE_WATER) return_cmd_error(STR_ERROR_AIRCRAFT_INCOMPATIBLE_AIR_TYPE);
+
+	const AirTypeInfo *orig_ati = GetAirTypeInfo(st->airport.air_type);
+	const AirTypeInfo *new_ati = GetAirTypeInfo(air_type);
+	if (orig_ati->build_on_water != new_ati->build_on_water) return_cmd_error(STR_ERROR_AIRPORT_CAN_T_CONVERT_WATER);
 	if (st->airport.runways.size() > GetAirTypeInfo(air_type)->max_num_runways) return_cmd_error(STR_ERROR_AIRPORT_TOO_MUCH_RUNWAYS);
 
 	if (!AreHeliportsAvailable(air_type) && !st->airport.heliports.empty()) {
@@ -1174,6 +1176,8 @@ CommandCost CmdAirportChangeTrackGFX(DoCommandFlag flags, TileIndex start_tile, 
 
 	/* Check air type. */
 	if (!ValParamAirType(air_type)) return_cmd_error(STR_ERROR_AIRPORT_INCORRECT_AIRTYPE);
+	const AirTypeInfo *ati = GetAirTypeInfo(air_type);
+	assert(!ati->build_on_water);
 
 	std::unique_ptr<TileIterator> iter;
 	if (diagonal) {
@@ -1201,6 +1205,46 @@ CommandCost CmdAirportChangeTrackGFX(DoCommandFlag flags, TileIndex start_tile, 
 				SetTileAirportGfx(tile, (AirportTiles)(gfx_index - 1));
 				MarkTileDirtyByTile(tile);
 			}
+		}
+	}
+
+	return CommandCost();
+}
+
+CommandCost CmdAirportToggleGround(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, bool diagonal)
+{
+	CommandCost ret = CheckSettingBuildByTile();
+	if (ret.Failed()) return ret;
+
+	/* Check air type. */
+	if (!ValParamAirType(air_type)) return_cmd_error(STR_ERROR_AIRPORT_INCORRECT_AIRTYPE);
+	const AirTypeInfo *ati = GetAirTypeInfo(air_type);
+	assert(!ati->build_on_water);
+
+	std::unique_ptr<TileIterator> iter;
+	if (diagonal) {
+		iter = std::make_unique<DiagonalTileIterator>(start_tile, end_tile);
+	} else {
+		iter = std::make_unique<OrthogonalTileIterator>(start_tile, end_tile);
+	}
+
+	for (; *iter != INVALID_TILE; ++(*iter)) {
+		Tile tile = Tile(*iter);
+		if (!IsAirportTile(tile)) continue;
+		if (air_type != GetAirType(tile)) return_cmd_error(STR_ERROR_AIRPORT_INCORRECT_AIRTYPE);
+
+		if (CheckTileOwnership(tile).Failed()) {
+			/* We don't own it!. */
+			return_cmd_error(STR_ERROR_OWNED_BY);
+		}
+
+		if (flags & DC_EXEC) {
+			if (!HasAirtypeGfx(tile)) continue;
+			SetAirportGroundAndDensity(
+					tile,
+					GetAirportGround(tile) == AG_AIRTYPE ? AG_GRASS : AG_AIRTYPE,
+					0);
+			MarkTileDirtyByTile(tile);
 		}
 	}
 
