@@ -10,9 +10,11 @@ add_files(
     yapf_costrail.hpp
     yapf_destrail.hpp
     yapf_node.hpp
+    yapf_node_air.hpp
     yapf_node_rail.hpp
     yapf_node_road.hpp
     yapf_node_ship.hpp
+    yapf_air.cpp
     yapf_rail.cpp
     yapf_road.cpp
     yapf_ship.cpp

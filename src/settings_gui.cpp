@@ -2042,6 +2042,7 @@ static SettingsContainer &GetSettingsTree()
 				construction->Add(new SettingEntry("gui.link_terraform_toolbar"));
 				construction->Add(new SettingEntry("gui.persistent_buildingtools"));
 				construction->Add(new SettingEntry("gui.default_rail_type"));
+				construction->Add(new SettingEntry("gui.default_air_type"));
 				construction->Add(new SettingEntry("gui.semaphore_build_before"));
 				construction->Add(new SettingEntry("gui.signal_gui_mode"));
 				construction->Add(new SettingEntry("gui.cycle_signal_types"));
@@ -2145,6 +2146,20 @@ static SettingsContainer &GetSettingsTree()
 
 		SettingsPage *limitations = main->Add(new SettingsPage(STR_CONFIG_SETTING_LIMITATIONS));
 		{
+			SettingsPage *depots = limitations->Add(new SettingsPage(STR_CONFIG_SETTING_DEPOTS));
+			{
+				depots->Add(new SettingEntry("depot.depot_spread"));
+				depots->Add(new SettingEntry("depot.distant_join_depots"));
+
+				depots->Add(new SettingEntry("depot.rail_depot_types"));
+				depots->Add(new SettingEntry("depot.road_depot_types"));
+				depots->Add(new SettingEntry("depot.water_depot_types"));
+				depots->Add(new SettingEntry("depot.hangar_types"));
+
+				depots->Add(new SettingEntry("depot.allow_no_comp_railtype_replacements"));
+				depots->Add(new SettingEntry("depot.allow_no_comp_roadtype_replacements"));
+			}
+
 			limitations->Add(new SettingEntry("construction.command_pause_level"));
 			limitations->Add(new SettingEntry("construction.autoslope"));
 			limitations->Add(new SettingEntry("construction.extra_dynamite"));
@@ -2153,6 +2168,7 @@ static SettingsContainer &GetSettingsTree()
 			limitations->Add(new SettingEntry("construction.max_bridge_height"));
 			limitations->Add(new SettingEntry("construction.max_tunnel_length"));
 			limitations->Add(new SettingEntry("station.never_expire_airports"));
+			limitations->Add(new SettingEntry("station.allow_modify_airports"));
 			limitations->Add(new SettingEntry("vehicle.never_expire_vehicles"));
 			limitations->Add(new SettingEntry("vehicle.max_trains"));
 			limitations->Add(new SettingEntry("vehicle.max_roadveh"));

@@ -136,8 +136,8 @@ ScriptTileList_StationType::ScriptTileList_StationType(StationID station_id, Scr
 	if ((station_type & ScriptStation::STATION_TRAIN) != 0)      station_type_value |= (1 << ::STATION_RAIL);
 	if ((station_type & ScriptStation::STATION_TRUCK_STOP) != 0) station_type_value |= (1 << ::STATION_TRUCK);
 	if ((station_type & ScriptStation::STATION_BUS_STOP) != 0)   station_type_value |= (1 << ::STATION_BUS);
-	if ((station_type & ScriptStation::STATION_AIRPORT) != 0)    station_type_value |= (1 << ::STATION_AIRPORT) | (1 << ::STATION_OILRIG);
-	if ((station_type & ScriptStation::STATION_DOCK) != 0)       station_type_value |= (1 << ::STATION_DOCK)    | (1 << ::STATION_OILRIG);
+	if ((station_type & ScriptStation::STATION_AIRPORT) != 0)    station_type_value |= (1 << ::STATION_AIRPORT);
+	if ((station_type & ScriptStation::STATION_DOCK) != 0)       station_type_value |= (1 << ::STATION_DOCK);
 
 	TileArea ta(::TileXY(rect->left, rect->top), rect->Width(), rect->Height());
 	for (TileIndex cur_tile : ta) {

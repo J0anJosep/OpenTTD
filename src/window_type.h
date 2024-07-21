@@ -242,6 +242,12 @@ enum WindowClass {
 	WC_SELECT_STATION,
 
 	/**
+	 * Select depot (when joining depots); %Window numbers:
+	 *   - #Vehicle type = #JoinDepotWidgets
+	 */
+	WC_SELECT_DEPOT,
+
+	/**
 	 * News window; %Window numbers:
 	 *   - 0 = #NewsWidgets
 	 */
@@ -346,7 +352,7 @@ enum WindowClass {
 
 	/**
 	 * Depot view; %Window numbers:
-	 *   - #TileIndex = #DepotWidgets
+	 *   - #DepotID = #DepotWidgets
 	 */
 	WC_VEHICLE_DEPOT,
 
@@ -383,8 +389,8 @@ enum WindowClass {
 
 	/**
 	 * Build vehicle; %Window numbers:
-	 *   - #VehicleType = #BuildVehicleWidgets
-	 *   - #TileIndex = #BuildVehicleWidgets
+	 *   - #DepotID = #BuildVehicleWidgets, for existing depots
+	 *   - #MAX_DEPOTS + VehicleType = #BuildVehicleWidgets, for "Available Trains"...
 	 */
 	WC_BUILD_VEHICLE,
 
@@ -419,8 +425,28 @@ enum WindowClass {
 	 *   - #TRANSPORT_WATER = #BuildDockDepotWidgets
 	 *   - #TRANSPORT_RAIL = #BuildRailDepotWidgets
 	 *   - #TRANSPORT_ROAD = #BuildRoadDepotWidgets
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
 	 */
 	WC_BUILD_DEPOT,
+
+	/**
+	 * Build heliport; %Window numbers:
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
+	 */
+	WC_BUILD_HELIPORT,
+
+	/**
+	 * Build airport infrastructure; %Window numbers:
+	 *   - #TRANSPORT_AIR = #BuildAirportInfrastructureNoCatchmentWidgets
+	 *   - #TRANSPORT_AIR = #BuildAirportInfrastructureWithCatchmentWidgets
+	 */
+	WC_BUILD_AIRPORT_INFRASTRUCTURE,
+
+	/**
+	 * Select gfx for airport track tiles; %Window numbers:
+	 *   - #TRANSPORT_AIR = #BuildHangarHeliportWidgets
+	 */
+	WC_SELECT_TRACK_GFX,
 
 	/**
 	 * Build waypoint; %Window numbers:

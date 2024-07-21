@@ -11,6 +11,33 @@
 #define AIRPORT_CMD_H
 
 #include "command_type.h"
+#include "air.h"
+#include "air_type.h"
+#include "direction_type.h"
+#include "station_type.h"
+#include "track_type.h"
+
+enum AirportTiles : uint8_t;
+
+CommandCost CmdChangeAirportTiles(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, AirportTileType air_tile_type, AirportTiles infra_type, DiagDirection direction, bool adding, bool diagonal);
+CommandCost CmdAddRemoveAirportTiles(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, bool adding, AirType at, StationID station_to_join, bool adjacent);
+CommandCost CmdAddRemoveTracksToAirport(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, bool add, Track track);
+CommandCost CmdChangeAirType(DoCommandFlag flags, TileIndex tile, AirType air_type);
+CommandCost CmdAirportChangeTrackGFX(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, uint8_t gfx_index, bool diagonal);
+CommandCost CmdAirportToggleGround(DoCommandFlag flags, TileIndex start_tile, TileIndex end_tile, AirType air_type, bool diagonal);
+
+CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport_type, uint8_t layout, AirType air_type, DiagDirection rotation, StationID station_to_join, bool allow_adjacent);
+CommandCost CmdOpenCloseAirport(DoCommandFlag flags, StationID station_id);
+
+DEF_CMD_TRAIT(CMD_CHANGE_AIRPORT,        CmdChangeAirportTiles,       CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_ADD_REM_AIRPORT,       CmdAddRemoveAirportTiles,    CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_ADD_REM_TRACKS,        CmdAddRemoveTracksToAirport, CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_CONVERT_AIRPORT,       CmdChangeAirType,            CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_AIRPORT_CHANGE_GFX,    CmdAirportChangeTrackGFX,    CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_AIRPORT_TOGGLE_GROUND, CmdAirportToggleGround,      CMD_AUTO,                CMDT_LANDSCAPE_CONSTRUCTION)
+
+DEF_CMD_TRAIT(CMD_BUILD_AIRPORT,         CmdBuildAirport,             CMD_AUTO | CMD_NO_WATER, CMDT_LANDSCAPE_CONSTRUCTION)
+DEF_CMD_TRAIT(CMD_OPEN_CLOSE_AIRPORT,    CmdOpenCloseAirport,         0,                       CMDT_ROUTE_MANAGEMENT)
 
 CommandCallback CcBuildAirport;
 

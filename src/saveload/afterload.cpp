@@ -11,6 +11,7 @@
 #include "../void_map.h"
 #include "../signs_base.h"
 #include "../depot_base.h"
+#include "../depot_func.h"
 #include "../fios.h"
 #include "../gamelog_internal.h"
 #include "../network/network.h"
@@ -49,6 +50,8 @@
 #include "../newgrf.h"
 #include "../newgrf_station.h"
 #include "../engine_func.h"
+#include "../airport_gui.h"
+#include "../air.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
 #include "../smallmap_gui.h"
@@ -62,6 +65,8 @@
 #include "../timer/timer_game_calendar.h"
 #include "../timer/timer_game_economy.h"
 #include "../timer/timer_game_tick.h"
+#include "../air.h"
+#include "../air_map.h"
 
 #include "saveload_internal.h"
 
@@ -222,6 +227,7 @@ static inline RailType UpdateRailType(RailType rt, RailType min)
 void UpdateAllVirtCoords()
 {
 	UpdateAllStationVirtCoords();
+	UpdateAllDepotVirtCoords();
 	UpdateAllSignVirtCoords();
 	UpdateAllTownVirtCoords();
 	UpdateAllTextEffectVirtCoords();
@@ -276,12 +282,6 @@ static void InitializeWindowsAndCaches()
 			i->psa->tile = i->location.tile;
 		}
 	}
-	for (Station *s : Station::Iterate()) {
-		if (s->airport.psa != nullptr) {
-			s->airport.psa->feature = GSF_AIRPORTS;
-			s->airport.psa->tile = s->airport.tile;
-		}
-	}
 	for (Town *t : Town::Iterate()) {
 		for (auto &it : t->psa_list) {
 			it->feature = GSF_FAKE_TOWNS;
@@ -292,6 +292,10 @@ static void InitializeWindowsAndCaches()
 		if (rv->IsFrontEngine()) {
 			rv->CargoChanged();
 		}
+	}
+
+	for (Depot *dep : Depot::Iterate()) {
+		if (dep->veh_type != VEH_AIRCRAFT) dep->RescanDepotTiles();
 	}
 
 	RecomputePrices();
@@ -641,6 +645,15 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SLV_DEPOTS_ALIGN_RAIL_DEPOT_BITS)) {
+		for (auto t : Map::Iterate()) {
+			if (IsTileType(t, MP_RAILWAY) && GetRailTileType(t) == 3) {
+				/* Change the rail type for depots from old value 3 to new value 2. */
+				SB(t.m5(), 6, 2, RAIL_TILE_DEPOT);
+			}
+		}
+	}
+
 	/* in version 2.1 of the savegame, town owner was unified. */
 	if (IsSavegameVersionBefore(SLV_2, 1)) ConvertTownOwner();
 
@@ -795,6 +808,28 @@ bool AfterLoadGame()
 		_settings_game.linkgraph.recalc_time     *= CalendarTime::SECONDS_PER_DAY;
 	}
 
+	if (IsSavegameVersionBefore(SLV_DEPOT_SPREAD)) {
+		_settings_game.depot.depot_spread = DEF_MAX_DEPOT_SPREAD;
+		_settings_game.depot.distant_join_depots = true;
+	}
+
+	if (IsSavegameVersionBefore(SLV_ALLOW_INCOMPATIBLE_REPLACEMENTS)) {
+		_settings_game.depot.allow_no_comp_railtype_replacements = false;
+		_settings_game.depot.allow_no_comp_roadtype_replacements = false;
+	}
+
+	if (IsSavegameVersionBefore(SLV_EXTENDED_DEPOTS)) {
+		/* Set standard depots as the only available depots. */
+		_settings_game.depot.rail_depot_types = 1;
+		_settings_game.depot.road_depot_types = 1;
+		_settings_game.depot.water_depot_types = 1;
+	}
+
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		_settings_game.station.allow_modify_airports = false;
+		_settings_game.depot.hangar_types = 1;
+	}
+
 	/* Load the sprites */
 	GfxLoadSprites();
 	LoadStringWidthTable();
@@ -878,7 +913,7 @@ bool AfterLoadGame()
 						st = STATION_BUS;
 						SetStationGfx(t, gfx - 71);
 					} else if (gfx == 75) {                 // Oil rig
-						st = STATION_OILRIG;
+						st = STATION_OLD_OILRIG;
 						SetStationGfx(t, gfx - 75);
 					} else if (IsInsideMM(gfx,  76,  82)) { // Dock
 						st = STATION_DOCK;
@@ -954,10 +989,10 @@ bool AfterLoadGame()
 						}
 						break;
 
-					case STATION_OILRIG: {
+					case STATION_OLD_OILRIG: {
 						/* The internal encoding of oil rigs was changed twice.
 						 * It was 3 (till 2.2) and later 5 (till 5.1).
-						 * DeleteOilRig asserts on the correct type, and
+						 * DeleteBuiltInHeliport asserts on the correct type, and
 						 * setting it unconditionally does not hurt.
 						 */
 						Station::GetByTile(t)->airport.type = AT_OILRIG;
@@ -968,7 +1003,7 @@ bool AfterLoadGame()
 						 */
 						TileIndex t1 = TileAddXY(t, 0, 1);
 						if (!IsTileType(t1, MP_INDUSTRY) || GetIndustryGfx(t1) != GFX_OILRIG_1) {
-							DeleteOilRig(t);
+							DeleteOldBuiltInHeliport(t);
 						}
 						break;
 					}
@@ -1434,6 +1469,7 @@ bool AfterLoadGame()
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = GetCompanyRailTypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+		c->avail_airtypes = GetCompanyAirTypes(c->index);
 	}
 
 	AfterLoadStations();
@@ -1802,7 +1838,7 @@ bool AfterLoadGame()
 			switch (GetTileType(t)) {
 				case MP_STATION:
 					switch (GetStationType(t)) {
-						case STATION_OILRIG:
+						case STATION_OLD_OILRIG:
 						case STATION_DOCK:
 						case STATION_BUOY:
 							SetWaterClass(t, (WaterClass)GB(t.m3(), 0, 2));
@@ -1934,7 +1970,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_99)) {
 		for (auto t : Map::Iterate()) {
 			/* Set newly introduced WaterClass of industry tiles */
-			if (IsTileType(t, MP_STATION) && IsOilRig(t)) {
+			if (IsTileType(t, MP_STATION) && GetStationType(t) == STATION_OLD_OILRIG) {
 				SetWaterClassDependingOnSurroundings(t, true);
 			}
 			if (IsTileType(t, MP_INDUSTRY)) {
@@ -2401,9 +2437,27 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_140)) {
 		for (Station *st : Station::Iterate()) {
 			if (st->airport.tile != INVALID_TILE) {
-				st->airport.w = st->airport.GetSpec()->size_x;
-				st->airport.h = st->airport.GetSpec()->size_y;
+				st->airport.w = st->airport.GetSpec()->layouts[0].size_x;
+				st->airport.h = st->airport.GetSpec()->layouts[0].size_y;
 			}
+		}
+	}
+
+	/* Data structure on airport has changed. */
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		for (auto t : Map::Iterate()) {
+			if (!IsTileType(t, MP_STATION)) continue;
+			if (GetStationType(t) == STATION_OLD_OILRIG) {
+				SetStationType(t, STATION_AIRPORT);
+			}
+			if (GetStationType(t) != STATION_AIRPORT) continue;
+			t.m4() = t.m5();
+			t.m5() = 0;
+		}
+		AfterLoadSetAirportTileTypes();
+	} else {
+		for (Station *st : Station::Iterate()) {
+			st->UpdateAirportDataStructure();
 		}
 	}
 
@@ -2423,28 +2477,6 @@ bool AfterLoadGame()
 
 	if (IsSavegameVersionBefore(SLV_142)) {
 		for (Depot *d : Depot::Iterate()) d->build_date = TimerGameCalendar::date;
-	}
-
-	/* In old versions it was possible to remove an airport while a plane was
-	 * taking off or landing. This gives all kind of problems when building
-	 * another airport in the same station so we don't allow that anymore.
-	 * For old savegames with such aircraft we just throw them in the air and
-	 * treat the aircraft like they were flying already. */
-	if (IsSavegameVersionBefore(SLV_146)) {
-		for (Aircraft *v : Aircraft::Iterate()) {
-			if (!v->IsNormalAircraft()) continue;
-			Station *st = GetTargetAirportIfValid(v);
-			if (st == nullptr && v->state != FLYING) {
-				v->state = FLYING;
-				UpdateAircraftCache(v);
-				AircraftNextAirportPos_and_Order(v);
-				/* get aircraft back on running altitude */
-				if ((v->vehstatus & VS_CRASHED) == 0) {
-					GetAircraftFlightLevelBounds(v, &v->z_pos, nullptr);
-					SetAircraftPosition(v, v->x_pos, v->y_pos, GetAircraftFlightLevel(v));
-				}
-			}
-		}
 	}
 
 	/* Move the animation frame to the same location (m7) for all objects. */
@@ -2490,7 +2522,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_149)) {
 		for (auto t : Map::Iterate()) {
 			if (!IsTileType(t, MP_STATION)) continue;
-			if (!IsBuoy(t) && !IsOilRig(t) && !(IsDock(t) && IsTileFlat(t))) {
+			if (!IsBuoy(t) && !IsBuiltInHeliportTile(t) && !(IsDock(t) && IsTileFlat(t))) {
 				SetWaterClass(t, WATER_CLASS_INVALID);
 			}
 		}
@@ -2792,6 +2824,75 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SLV_DEPOTID_IN_HANGAR_ORDERS)) {
+		/* Update go to hangar orders so they store the DepotID instead of StationID. */
+		for (Aircraft *a : Aircraft::Iterate()) {
+			if (!a->IsNormalAircraft()) continue;
+
+			/* Update current order. */
+			if (a->current_order.IsType(OT_GOTO_DEPOT)) {
+				Depot *dep = Station::Get(a->current_order.GetDestination())->airport.hangar;
+				if (dep == nullptr) {
+					/* Aircraft heading to a removed hangar. */
+					a->current_order.MakeDummy();
+				} else {
+					a->current_order.SetDestination(dep->index);
+				}
+			}
+
+			/* Update each aircraft order list once. */
+			if (a->orders == nullptr) continue;
+			if (a->orders->GetFirstSharedVehicle() != a) continue;
+
+			for (Order *order : a->Orders()) {
+				if (!order->IsType(OT_GOTO_DEPOT)) continue;
+				StationID station_id = order->GetDestination();
+				Station *st = Station::Get(station_id);
+				order->SetDestination(st->airport.hangar->index);
+			}
+		}
+	}
+
+	if (IsSavegameVersionBefore(SLV_ADD_MEMBERS_TO_DEPOT_STRUCT)) {
+		for (Depot *depot : Depot::Iterate()) {
+			if (!IsDepotTile(depot->xy) || GetDepotIndex(depot->xy) != depot->index) {
+				/* It can happen there is no depot here anymore (TTO/TTD savegames) */
+				depot->veh_type = VEH_INVALID;
+				depot->owner = INVALID_OWNER;
+				depot->Disuse();
+				delete depot;
+				continue;
+			}
+
+			depot->owner = GetTileOwner(depot->xy);
+			depot->veh_type = GetDepotVehicleType(depot->xy);
+			switch (depot->veh_type) {
+				case VEH_SHIP:
+					depot->AfterAddRemove(TileArea(depot->xy, 2, 2), true);
+					break;
+				case VEH_ROAD:
+				case VEH_TRAIN:
+					depot->AfterAddRemove(TileArea(depot->xy, 1, 1), true);
+					break;
+				case VEH_AIRCRAFT:
+					assert(IsHangarTile(depot->xy));
+					depot->station = Station::GetByTile(depot->xy);
+					break;
+				default:
+					break;
+			}
+		}
+
+		for (auto t : Map::Iterate()) {
+			if (!IsRoadDepotTile(t)) continue;
+			DiagDirection dir = (DiagDirection)GB(t.m5(), 0, 2);
+			SB(t.m5(), 0, 6, 0);
+			RoadBits rb = DiagDirToRoadBits(dir);
+			SetRoadBits(t, rb, HasRoadTypeRoad(t) ? RTT_ROAD : RTT_TRAM);
+			SB(t.m6(), 6, 2, dir);
+		}
+	}
+
 	/* This triggers only when old snow_lines were copied into the snow_line_height. */
 	if (IsSavegameVersionBefore(SLV_164) && _settings_game.game_creation.snow_line_height >= MIN_SNOWLINE_HEIGHT * TILE_HEIGHT) {
 		_settings_game.game_creation.snow_line_height /= TILE_HEIGHT;
@@ -2924,10 +3025,6 @@ bool AfterLoadGame()
 			}
 		}
 	}
-
-	/* In version 2.2 of the savegame, we have new airports, so status of all aircraft is reset.
-	 * This has to be called after all map array updates */
-	if (IsSavegameVersionBefore(SLV_2, 2)) UpdateOldAircraft();
 
 	if (IsSavegameVersionBefore(SLV_188)) {
 		/* Fix articulated road vehicles.
@@ -3088,7 +3185,7 @@ bool AfterLoadGame()
 
 		/* Link oil rigs to their industry and back. */
 		for (Station *st : Station::Iterate()) {
-			if (IsTileType(st->xy, MP_STATION) && IsOilRig(st->xy)) {
+			if (IsBuiltInHeliportTile(st->xy)) {
 				/* Industry tile is always adjacent during construction by TileDiffXY(0, 1) */
 				st->industry = Industry::GetByTile(st->xy + TileDiffXY(0, 1));
 				st->industry->neutral_station = st;
@@ -3116,7 +3213,7 @@ bool AfterLoadGame()
 			}
 			/* Add docks and oilrigs to Station::ship_station. */
 			if (IsTileType(t, MP_STATION)) {
-				if (IsDock(t) || IsOilRig(t)) Station::GetByTile(t)->ship_station.Add(t);
+				if (IsDock(t) || IsBuiltInHeliportTile(t)) Station::GetByTile(t)->ship_station.Add(t);
 			}
 		}
 	}
@@ -3285,6 +3382,59 @@ bool AfterLoadGame()
 		} else {
 			c->freegroups.UseID(g->number);
 		}
+	}
+
+	if (IsSavegameVersionBefore(SLV_MULTITILE_AIRPORTS)) {
+		/* Delete already crashed zeppelins. */
+		DeleteCrashedZeppelins();
+
+		/* We have to redeploy aircraft. */
+		for (Aircraft *v : Aircraft::Iterate()) {
+			if (!v->IsPrimaryVehicle()) continue;
+
+			Aircraft *u = v->Next(); // shadow
+			assert(u != nullptr);
+			v->flags = 0;
+
+			/* Assign dest_tile. */
+			v->dest_tile = 0;
+
+			int z = v->z_pos;
+			if ((v->vehstatus & VS_HIDDEN) != 0) {
+				assert(IsHangarTile(v->tile));
+				/* Keep aircraft in hangars. */
+				v->state = AS_HANGAR;
+				v->dest_tile = v->tile;
+				v->direction = u->direction = DiagDirToDir(GetHangarDirection(v->tile));
+				v->trackdir = u->trackdir = DiagDirToDiagTrackdir(GetHangarDirection(v->tile));
+				v->next_trackdir = INVALID_TRACKDIR;
+				v->wait_counter = 0;
+				v->x_pos = (v->x_pos & ~0xF) + 8;
+				v->y_pos = (v->y_pos & ~0xF) + 8;
+				v->current_order.Free();
+				ProcessOrders(v);
+			} else {
+				if (v->current_order.IsType(OT_LOADING)) {
+					ClrBit(v->vehicle_flags, VF_LOADING_FINISHED);
+					v->LeaveStation();
+				}
+				v->current_order.Free();
+				v->state = AS_FLYING_NO_DEST;
+				v->next_trackdir = INVALID_TRACKDIR;
+				v->trackdir = v->Next()->trackdir = TRACKDIR_X_NE;
+				v->direction = u->direction = DIR_NE;
+				v->x_pos = (v->x_pos & ~0xF) + 8;
+				v->y_pos = (v->y_pos & ~0xF) + 8;
+				v->tile = TileVirtXY(v->x_pos, v->y_pos);
+				GetAircraftFlightLevelBounds(v, nullptr, &z);
+				ProcessOrders(v);
+				AircraftUpdateNextPos(v);
+			}
+
+			SetAircraftPosition(v, v->x_pos, v->y_pos, z);
+		}
+
+		InitializeAirportGui();
 	}
 
 	AfterLoadLabelMaps();

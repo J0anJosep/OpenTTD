@@ -16,6 +16,7 @@
 #include "engine_base.h"
 #include "bridge.h"
 #include "town.h"
+#include "air.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
 #include "fontcache.h"
@@ -51,8 +52,11 @@
 #include "road.h"
 #include "newgrf_roadstop.h"
 
+#include "table/airport_defaults.h"
 #include "table/strings.h"
 #include "table/build_industry.h"
+
+#include <bitset>
 
 #include "safeguards.h"
 
@@ -321,6 +325,7 @@ struct GRFTempEngineData {
 	uint16_t cargo_allowed;
 	uint16_t cargo_disallowed;
 	RailTypeLabel railtypelabel;
+	AirTypeLabel airtypelabel;
 	uint8_t roadtramtype;
 	const GRFFile *defaultcargo_grf; ///< GRF defining the cargo translation table to use if the default cargo is the 'first refittable'.
 	Refittability refittability;     ///< Did the newgrf set any refittability property? If not, default refittability will be applied.
@@ -1766,6 +1771,25 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint engine, int numinfo, int 
 		AircraftVehicleInfo *avi = &e->u.air;
 
 		switch (prop) {
+			case 0x05: { // Air type
+				uint8_t airtype = buf.ReadByte();
+
+				if (airtype < _cur.grffile->airtype_list.size()) {
+					_gted[e->index].airtypelabel = _cur.grffile->airtype_list[airtype];
+					break;
+				}
+
+				switch (airtype) {
+					case 0: _gted[e->index].airtypelabel = AIRTYPE_LABEL_GRAVEL; break;
+					case 1: _gted[e->index].airtypelabel = AIRTYPE_LABEL_ASPHALT; break;
+					case 2: _gted[e->index].airtypelabel = AIRTYPE_LABEL_WATER; break;
+					default:
+						GrfMsg(1, "AircraftVehicleChangeInfo: Invalid air type {} specified, ignoring", airtype);
+						break;
+				}
+				break;
+			}
+
 			case 0x08: { // Sprite ID
 				uint8_t spriteid = buf.ReadByte();
 				uint8_t orig_spriteid = spriteid;
@@ -2715,6 +2739,9 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 		case 0x17: // Tram type translation table; loading during both reservation and activation stage (in case it is selected depending on defined railtypes)
 			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->tramtype_list, "Tram type");
 
+		case 0x18: // Air type translation table; loading during both reservation and activation stage (in case it is selected depending on defined airtypes)
+			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->airtype_list, "Air type");
+
 		default:
 			break;
 	}
@@ -2932,6 +2959,9 @@ static ChangeInfoResult GlobalVarReserveInfo(uint gvid, int numinfo, int prop, B
 
 		case 0x17: // Tram type translation table; loading during both reservation and activation stage (in case it is selected depending on defined tramtypes)
 			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->tramtype_list, "Tram type");
+
+		case 0x18: // Air type translation table; loading during both reservation and activation stage (in case it is selected depending on defined airtypes)
+			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->airtype_list, "Air type");
 
 		default:
 			break;
@@ -3872,6 +3902,49 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 	return ret;
 }
 
+AirType GetConversionAirtype(uint airport)
+{
+	struct AirportTypesConversion {
+		AirportTypes airport_type;
+		AirType air_type;
+	};
+
+	switch (_cur.grffile->grfid) {
+		default:
+			Debug(misc, 0, "Trying to load airports of unknown airtype from grffile with id {}", _cur.grffile->grfid);
+			return AIRTYPE_GRAVEL;
+		case 16860225:
+			return AIRTYPE_WATER;
+		case 19680837: // North Korean Aviation Set: Small asphalt airports
+			return AIRTYPE_ASPHALT;
+		case 5259587: { // OpenGFX+ Airports
+			/* This table indicates how to convert the airports provided in OpenGFX+Airports,
+			* as long as it is the first NewGRF to be applied that modifies airports. */
+			/* The "S" shows which airports have a (close) equivalent in original airports. */
+			AirportTypesConversion opengfx_plus_airports[] = {
+				{ AT_SMALL,          AIRTYPE_GRAVEL  }, // S NEW_AIRPORT_OFFSET +  0 Small gravel
+				{ AT_SMALL,          AIRTYPE_WATER   }, //   NEW_AIRPORT_OFFSET +  1 Small water
+				{ AT_SMALL,          AIRTYPE_ASPHALT }, //   NEW_AIRPORT_OFFSET +  2 Small asphalt
+				{ AT_COMMUTER,       AIRTYPE_GRAVEL  }, //   NEW_AIRPORT_OFFSET +  3 Commuter gravel
+				{ AT_COMMUTER,       AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  4 Commuter asphalt
+				{ AT_LARGE,          AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  5 Large asphalt
+				{ AT_METROPOLITAN,   AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  6 City asphalt
+				{ AT_INTERNATIONAL,  AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  7 International asphalt
+				{ AT_INTERCON,       AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  8 Intercontinental asphalt -- Uses a different and non-rectangular layout.
+				{ AT_HELIPORT,       AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET +  9 Heliport
+				{ AT_HELIDEPOT,      AIRTYPE_GRAVEL  }, //   NEW_AIRPORT_OFFSET + 10 Helidepot gravel
+				{ AT_HELIDEPOT,      AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET + 11 Helidepot asphalt
+				{ AT_HELISTATION,    AIRTYPE_GRAVEL  }, //   NEW_AIRPORT_OFFSET + 12 Helistation gravel
+				{ AT_HELISTATION,    AIRTYPE_ASPHALT }, // S NEW_AIRPORT_OFFSET + 13 Helistation asphalt
+			};
+			const uint num_opengfx_plus_airports = sizeof(opengfx_plus_airports)/sizeof(opengfx_plus_airports[0]);
+
+			if (airport >= num_opengfx_plus_airports) NOT_REACHED();
+			return opengfx_plus_airports[airport].air_type;
+		}
+	}
+}
+
 /**
  * Define properties for airports
  * @param airport Local ID of the airport.
@@ -3889,8 +3962,10 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 		return CIR_INVALID_ID;
 	}
 
-	/* Allocate industry specs if they haven't been allocated already. */
+	/* Allocate airport specs if they haven't been allocated already. */
 	if (_cur.grffile->airportspec.size() < airport + numinfo) _cur.grffile->airportspec.resize(airport + numinfo);
+
+	AirType conversion_airtype = GetConversionAirtype(airport);
 
 	for (int i = 0; i < numinfo; i++) {
 		AirportSpec *as = _cur.grffile->airportspec[airport + i].get();
@@ -3925,6 +4000,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 					as->grf_prop.local_id = airport + i;
 					as->grf_prop.subst_id = subs_id;
 					as->grf_prop.grffile = _cur.grffile;
+					as->airtype = conversion_airtype;
 					/* override the default airport */
 					_airport_mngr.Add(airport + i, _cur.grffile->grfid, subs_id);
 				}
@@ -3932,63 +4008,81 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 			}
 
 			case 0x0A: { // Set airport layout
-				uint8_t num_layouts = buf.ReadByte();
-				buf.ReadDWord(); // Total size of definition, unneeded.
-				uint8_t size_x = 0;
-				uint8_t size_y = 0;
+				if (_cur.grffile->grf_version <= 8) {
+					/* Deal with the only NewGRF that modified airport layouts. */
+					const uint max_airport_tiles = 4096; // 64 * 64, max station spread.
+					[[maybe_unused]] uint num_tiles = as->layouts[0].size_x * as->layouts[0].size_y;
+					assert(num_tiles <= max_airport_tiles);
+					uint8_t num_layouts = buf.ReadByte();
+					std::bitset<max_airport_tiles> defined_tiles;
+					buf.ReadDWord();  // Total size of the definition, unneeded.
 
-				std::vector<AirportTileLayout> layouts;
-				layouts.reserve(num_layouts);
+					as->layouts.resize(1);
+					auto &layout = as->layouts[0];
+					assert(layout.tiles.size() == num_tiles);
 
-				for (uint8_t j = 0; j != num_layouts; ++j) {
-					auto &layout = layouts.emplace_back();
-					layout.rotation = static_cast<Direction>(buf.ReadByte() & 6); // Rotation can only be DIR_NORTH, DIR_EAST, DIR_SOUTH or DIR_WEST.
+					for (uint8_t j = 0; j != num_layouts; ++j) {
+						DiagDirection rotation = (DiagDirection)(buf.ReadByte() / 2); // rotation
 
-					for (;;) {
-						auto &tile = layout.tiles.emplace_back();
-						tile.ti.x = buf.ReadByte();
-						tile.ti.y = buf.ReadByte();
-						if (tile.ti.x == 0 && tile.ti.y == 0x80) {
-							/* Convert terminator to our own. */
-							tile.ti.x = -0x80;
-							tile.ti.y = 0;
-							tile.gfx = 0;
-							break;
-						}
+						for (;;) {
+							uint8_t x = buf.ReadByte(); // Offsets from northermost tile
+							uint8_t y = buf.ReadByte();
 
-						tile.gfx = buf.ReadByte();
+							if (x == 0 && y == 0x80) break;
 
-						if (tile.gfx == 0xFE) {
-							/* Use a new tile from this GRF */
-							int local_tile_id = buf.ReadWord();
-
-							/* Read the ID from the _airporttile_mngr. */
-							uint16_t tempid = _airporttile_mngr.GetID(local_tile_id, _cur.grffile->grfid);
-
-							if (tempid == INVALID_AIRPORTTILE) {
-								GrfMsg(2, "AirportChangeInfo: Attempt to use airport tile {} with airport id {}, not yet defined. Ignoring.", local_tile_id, airport + i);
-							} else {
-								/* Declared as been valid, can be used */
-								tile.gfx = tempid;
+							// Get the corresponding offset for the non-rotated version.
+							switch (rotation) {
+								case 0:
+									break;
+								case 1:
+									Swap(x, y);
+									x = as->layouts[0].size_x - 1 - x;
+									break;
+								case 2:
+									x = as->layouts[0].size_x - 1 - x;
+									y = as->layouts[0].size_y - 1 - y;
+									break;
+								case 3:
+									Swap(x, y);
+									y = as->layouts[0].size_y - 1 - y;
+									break;
+								default:
+									NOT_REACHED();
 							}
-						} else if (tile.gfx == 0xFF) {
-							tile.ti.x = static_cast<int8_t>(GB(tile.ti.x, 0, 8));
-							tile.ti.y = static_cast<int8_t>(GB(tile.ti.y, 0, 8));
-						}
 
-						/* Determine largest size. */
-						if (layout.rotation == DIR_E || layout.rotation == DIR_W) {
-							size_x = std::max<uint8_t>(size_x, tile.ti.y + 1);
-							size_y = std::max<uint8_t>(size_y, tile.ti.x + 1);
-						} else {
-							size_x = std::max<uint8_t>(size_x, tile.ti.x + 1);
-							size_y = std::max<uint8_t>(size_y, tile.ti.y + 1);
+							uint16_t table_index = as->layouts[0].size_x * y + x;
+							assert(table_index < as->layouts[0].size_x * as->layouts[0].size_y);
+
+							// Only keep track of first layout.
+							if (j == 0) defined_tiles[table_index] = true;
+							auto &tile = layout.tiles[table_index];
+
+							tile.gfx[rotation] = (AirportTiles)buf.ReadByte();
+
+							if (tile.gfx[rotation] == 0xFE) { // gfx
+								int local_tile_id = buf.ReadWord(); // use a new tile for this GRFC
+								/* Read the ID from the _airporttile_mngr. */
+								uint16_t tempid = _airporttile_mngr.GetID(local_tile_id, _cur.grffile->grfid);
+
+								if (tempid == INVALID_AIRPORTTILE) {
+									GrfMsg(2, "AirportChangeInfo: Attempt to use airport tile {} with airport id {}, not yet defined. Ignoring.", local_tile_id, airport + i);
+								} else {
+									/* Declared as been valid, can be used */
+									tile.gfx[rotation] = (AirportTiles)tempid;
+								}
+							}
 						}
 					}
+
+					/* Set the empty tiles if any. */
+					for (int i = 0; i < as->layouts[0].size_x * as->layouts[0].size_y; i++) {
+						if (defined_tiles[i]) continue;
+						layout.tiles[i].type = ATT_INVALID;
+					}
+
+				} else {
+					ret = CIR_UNKNOWN;
 				}
-				as->layouts = std::move(layouts);
-				as->size_x = size_x;
-				as->size_y = size_y;
 				break;
 			}
 
@@ -4003,11 +4097,11 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				break;
 
 			case 0x0E:
-				as->catchment = Clamp(buf.ReadByte(), 1, MAX_CATCHMENT);
+				buf.ReadByte(); // Old airport catchment
 				break;
 
 			case 0x0F:
-				as->noise_level = buf.ReadByte();
+				buf.ReadByte(); // Old airport noise
 				break;
 
 			case 0x10:
@@ -4015,8 +4109,16 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				break;
 
 			case 0x11: // Maintenance cost factor
-				as->maintenance_cost = buf.ReadWord();
+				buf.ReadWord();
 				break;
+
+				/*
+				as->num_runways = buf->ReadByte();
+				as->num_aprons = buf->ReadByte();
+				as->num_helipads = buf->ReadByte();
+				as->num_heliports = buf->ReadByte();
+				as->min_runway_length = buf->ReadByte();
+				*/
 
 			default:
 				ret = CIR_UNKNOWN;
@@ -4192,6 +4294,262 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, ByteRea
 
 			case 0x18: // Amount placed on 256^2 map on map creation
 				spec->generate_amount = buf.ReadByte();
+				break;
+
+			default:
+				ret = CIR_UNKNOWN;
+				break;
+		}
+	}
+
+	return ret;
+}
+
+/**
+ * Define properties for airtypes
+ * @param id ID of the airtype.
+ * @param numinfo Number of subsequent IDs to change the property for.
+ * @param prop The property to change.
+ * @param buf The property value.
+ * @return ChangeInfoResult.
+ */
+static ChangeInfoResult AirTypeChangeInfo(uint id, int numinfo, int prop, ByteReader &buf)
+{
+	ChangeInfoResult ret = CIR_SUCCESS;
+
+	extern AirTypeInfo _airtypes[AIRTYPE_END];
+
+	if (id + numinfo > AIRTYPE_END) {
+		GrfMsg(1, "AirTypeChangeInfo: Rail type {} is invalid, max {}, ignoring", id + numinfo, AIRTYPE_END);
+		return CIR_INVALID_ID;
+	}
+
+	for (int i = 0; i < numinfo; i++) {
+		AirType at = _cur.grffile->airtype_map[id + i];
+		if (at == INVALID_AIRTYPE) return CIR_INVALID_ID;
+
+		AirTypeInfo *ati = &_airtypes[at];
+
+		switch (prop) {
+			case 0x08: // Label of air type
+				/* Skipped here as this is loaded during reservation stage. */
+				buf.ReadDWord();
+				break;
+
+			case 0x09: { // Toolbar caption of airtype
+				uint16_t str = buf.ReadWord();
+				AddStringForMapping(str, &ati->strings.toolbar_caption);
+				break;
+			}
+
+			case 0x0A: // Menu text of airtype
+				AddStringForMapping(buf.ReadWord(), &ati->strings.menu_text);
+				break;
+
+			/*case 0x0B: // Build window caption
+				AddStringForMapping(buf->ReadWord(), &ati->strings.build_caption);
+				break;*/
+
+			case 0x0C: // Autoreplace text
+				AddStringForMapping(buf.ReadWord(), &ati->strings.replace_text);
+				break;
+
+			/*case 0x0D: // New locomotive text
+				AddStringForMapping(buf->ReadWord(), &rti->strings.new_loco);
+				break;*/
+
+			case 0x0E: // Compatible airtype list
+			case 0x18: // AirType list required for date introduction
+			case 0x19: // Introduced airtype list
+			{
+				/* Air type compatibility bits are added to the existing bits
+				 * to allow multiple GRFs to modify compatibility with the
+				 * default air types. */
+				int n = buf.ReadByte();
+				for (int j = 0; j != n; j++) {
+					AirTypeLabel label = buf.ReadDWord();
+					AirType resolved_at = GetAirTypeByLabel(BSWAP32(label), false);
+					if (resolved_at != INVALID_AIRTYPE) {
+						switch (prop) {
+							case 0x0E: SetBit(ati->compatible_airtypes, resolved_at);            break;
+							case 0x18: SetBit(ati->introduction_required_airtypes, resolved_at); break;
+							case 0x19: SetBit(ati->introduces_airtypes, resolved_at);            break;
+						}
+					}
+				}
+				break;
+			}
+
+			/*case 0x10: // Rail Type flags
+				rti->flags = (RailTypeFlags)buf->ReadByte();
+				break;*/
+
+			/*case 0x11: // Curve speed advantage
+				rti->curve_speed = buf->ReadByte();
+				break;*/
+
+			case 0x12: // Station graphic
+				ati->fallback_airtype = Clamp(buf.ReadByte(), 0, 2);
+				break;
+
+			case 0x13: // Construction cost factor
+				ati->cost_multiplier = buf.ReadWord();
+				break;
+
+			case 0x14: // Speed limit
+				ati->max_speed = buf.ReadWord();
+				break;
+
+			/*case 0x15: // Acceleration model
+				rti->acceleration_type = Clamp(buf->ReadByte(), 0, 2);
+				break;*/
+
+			case 0x16: // Map colour
+				ati->map_colour = buf.ReadByte();
+				break;
+
+			case 0x17: // Introduction date
+				ati->introduction_date = buf.ReadDWord();
+				break;
+
+			case 0x1A: // Sort order
+				ati->sorting_order = buf.ReadByte();
+				break;
+
+			case 0x1B: // Name of airtype
+				AddStringForMapping(buf.ReadWord(), &ati->strings.name);
+				break;
+
+			case 0x1C: // Maintenance cost factor
+				ati->maintenance_multiplier = buf.ReadWord();
+				break;
+
+			case 0x1D: // Alternate air type label list
+				/* Skipped here as this is loaded during reservation stage. */
+				for (int j = buf.ReadByte(); j != 0; j--) buf.ReadDWord();
+				break;
+
+			case 0x1E: // Catchment radius
+				ati->catchment_radius = buf.ReadByte();
+				break;
+
+			case 0x1F: // Max. runways
+				ati->max_num_runways = buf.ReadByte();
+				break;
+
+			case 0x20: // Min. runway length
+				ati->min_runway_length = buf.ReadByte();
+				break;
+
+			case 0x21: // Base noise level
+				ati->base_noise_level = buf.ReadByte();
+				break;
+
+			case 0x22: // Runway noise level
+				ati->runway_noise_level = buf.ReadByte();
+				break;
+
+			case 0x23: { // Heliport availability
+				uint8_t availability = buf.ReadByte();
+				ati->heliport_availability = HasBit(availability, 0);
+				break;
+			}
+
+			case 0x24: { // Build this airport type on water
+				uint8_t on_water = buf.ReadByte();
+				ati->build_on_water = HasBit(on_water, 0);
+				break;
+			}
+
+			default:
+				ret = CIR_UNKNOWN;
+				break;
+		}
+	}
+
+	return ret;
+}
+
+static ChangeInfoResult AirTypeReserveInfo(uint id, int numinfo, int prop, ByteReader &buf)
+{
+	ChangeInfoResult ret = CIR_SUCCESS;
+
+	extern AirTypeInfo _airtypes[AIRTYPE_END];
+
+	if (id + numinfo > AIRTYPE_END) {
+		GrfMsg(1, "AirTypeReserveInfo: Air type {} is invalid, max {}, ignoring", id + numinfo, AIRTYPE_END);
+		return CIR_INVALID_ID;
+	}
+
+	for (int i = 0; i < numinfo; i++) {
+		switch (prop) {
+			case 0x08: // Label of air type
+			{
+				AirTypeLabel atl = buf.ReadDWord();
+				atl = BSWAP32(atl);
+
+				AirType at = GetAirTypeByLabel(atl, false);
+				if (at == INVALID_AIRTYPE) {
+					/* Set up new air type */
+					at = AllocateAirType(atl);
+				}
+
+				_cur.grffile->airtype_map[id + i] = at;
+				break;
+			}
+
+			case 0x09: // Toolbar caption of airtype
+			case 0x0A: // Menu text
+			//case 0x0B: // Build window caption
+			case 0x0C: // Autoreplace text
+			//case 0x0D: // New loco
+			case 0x13: // Construction cost
+			case 0x14: // Speed limit
+			case 0x1B: // Name of airtype
+			case 0x1C: // Maintenance cost factor
+				buf.ReadWord();
+				break;
+
+			case 0x1D: // Alternate air type label list
+				if (_cur.grffile->airtype_map[id + i] != INVALID_AIRTYPE) {
+					int n = buf.ReadByte();
+					for (int j = 0; j != n; j++) {
+						_airtypes[_cur.grffile->airtype_map[id + i]].alternate_labels.push_back(BSWAP32(buf.ReadDWord()));
+					}
+					break;
+				}
+				GrfMsg(1, "AirTypeReserveInfo: Ignoring property 1D for air type {} because no label was set", id + i);
+				[[fallthrough]];
+
+
+			case 0x0E: // Compatible railtype list
+			//case 0x0F: // Powered railtype list
+			case 0x18: // Railtype list required for date introduction
+			case 0x19: // Introduced railtype list
+				for (int j = buf.ReadByte(); j != 0; j--) buf.ReadDWord();
+				break;
+
+			//case 0x10: // Rail Type flags
+			//case 0x11: // Curve speed advantage
+			case 0x12: // Station graphic
+			//case 0x15: // Acceleration model
+			case 0x16: // Map colour
+			case 0x1A: // Sort order
+				buf.ReadByte();
+				break;
+
+			case 0x17: // Introduction date
+				buf.ReadDWord();
+				break;
+
+			case 0x1E: // Catchment radius
+			case 0x1F: // Max. runways
+			case 0x20: // Min. runway length
+			case 0x21: // Base noise level
+			case 0x22: // Runway noise level
+			case 0x23: // Heliport availability
+			case 0x24: // Build this airport type on water
+				buf.ReadByte();
 				break;
 
 			default:
@@ -4678,7 +5036,7 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 
 				/* Allocate space for this airport tile. */
 				if (tsp == nullptr) {
-					_cur.grffile->airtspec[airtid + i] = std::make_unique<AirportTileSpec>(*AirportTileSpec::Get(subs_id));
+					_cur.grffile->airtspec[airtid + i] = std::make_unique<AirportTileSpec>(*AirportTileSpec::GetAirportTileSpec(subs_id));
 					tsp = _cur.grffile->airtspec[airtid + i].get();
 
 					tsp->enabled = true;
@@ -4702,6 +5060,7 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 					continue;
 				}
 
+				Debug(misc, 0, "Overriding airport tile {} {}", airtid + i, override);
 				_airporttile_mngr.Add(airtid + i, _cur.grffile->grfid, override);
 				break;
 			}
@@ -4925,6 +5284,7 @@ static void FeatureChangeInfo(ByteReader &buf)
 		/* GSF_ROADTYPES */     RoadTypeChangeInfo,
 		/* GSF_TRAMTYPES */     TramTypeChangeInfo,
 		/* GSF_ROADSTOPS */     RoadStopChangeInfo,
+		/* GSF_AIRTYPES */      AirTypeChangeInfo,
 	};
 	static_assert(GSF_END == lengthof(handler));
 
@@ -4999,7 +5359,17 @@ static void ReserveChangeInfo(ByteReader &buf)
 {
 	uint8_t feature  = buf.ReadByte();
 
-	if (feature != GSF_CARGOES && feature != GSF_GLOBALVAR && feature != GSF_RAILTYPES && feature != GSF_ROADTYPES && feature != GSF_TRAMTYPES) return;
+	switch (feature) {
+		case GSF_CARGOES:
+		case GSF_GLOBALVAR:
+		case GSF_RAILTYPES:
+		case GSF_ROADTYPES:
+		case GSF_TRAMTYPES:
+		case GSF_AIRTYPES:
+			break;
+		default:
+			return;
+	}
 
 	uint8_t numprops = buf.ReadByte();
 	uint8_t numinfo  = buf.ReadByte();
@@ -5029,6 +5399,10 @@ static void ReserveChangeInfo(ByteReader &buf)
 
 			case GSF_TRAMTYPES:
 				cir = TramTypeReserveInfo(index, numinfo, prop, buf);
+				break;
+
+			case GSF_AIRTYPES:
+				cir = AirTypeReserveInfo(index, numinfo, prop, buf);
 				break;
 		}
 
@@ -5334,6 +5708,7 @@ static void NewSpriteGroup(ByteReader &buf)
 				case GSF_CARGOES:
 				case GSF_AIRPORTS:
 				case GSF_RAILTYPES:
+				case GSF_AIRTYPES:
 				case GSF_ROADTYPES:
 				case GSF_TRAMTYPES:
 				{
@@ -5949,6 +6324,38 @@ static void RailTypeMapSpriteGroup(ByteReader &buf, uint8_t idcount)
 	buf.ReadWord();
 }
 
+static void AirTypeMapSpriteGroup(ByteReader &buf, uint8_t idcount)
+{
+	std::vector<uint8_t> airtypes;
+	airtypes.reserve(idcount);
+	for (uint i = 0; i < idcount; i++) {
+		uint16_t id = buf.ReadExtendedByte();
+		airtypes.push_back(id < AIRTYPE_END ? _cur.grffile->airtype_map[id] : INVALID_AIRTYPE);
+	}
+
+	uint8_t cidcount = buf.ReadByte();
+	for (uint c = 0; c < cidcount; c++) {
+		uint8_t ctype = buf.ReadByte();
+		uint16_t groupid = buf.ReadWord();
+		if (!IsValidGroupID(groupid, "AirTypeMapSpriteGroup")) continue;
+
+		if (ctype >= RTSG_END) continue;
+
+		extern AirTypeInfo _airtypes[AIRTYPE_END];
+		for (auto &airtype : airtypes) {
+			if (airtype != INVALID_AIRTYPE) {
+				AirTypeInfo *ati = &_airtypes[airtype];
+
+				ati->grffile[ctype] = _cur.grffile;
+				ati->group[ctype] = _cur.spritegroups[groupid];
+			}
+		}
+	}
+
+	/* AirTypes do not use the default group. */
+	buf.ReadWord();
+}
+
 static void RoadTypeMapSpriteGroup(ByteReader &buf, uint8_t idcount, RoadTramType rtt)
 {
 	RoadType *type_map = (rtt == RTT_TRAM) ? _cur.grffile->tramtype_map : _cur.grffile->roadtype_map;
@@ -6199,6 +6606,10 @@ static void FeatureMapSpriteGroup(ByteReader &buf)
 			RoadTypeMapSpriteGroup(buf, idcount, RTT_TRAM);
 			break;
 
+		case GSF_AIRTYPES:
+			AirTypeMapSpriteGroup(buf, idcount);
+			break;
+
 		case GSF_AIRPORTTILES:
 			AirportTileMapSpriteGroup(buf, idcount);
 			return;
@@ -6385,6 +6796,7 @@ static constexpr auto _action5_types = std::to_array<Action5Type>({
 	/* 0x17 */ { A5BLOCK_ALLOW_OFFSET, SPR_RAILTYPE_TUNNEL_BASE,     1, RAILTYPE_TUNNEL_BASE_COUNT,                  "Railtype tunnel base"     },
 	/* 0x18 */ { A5BLOCK_ALLOW_OFFSET, SPR_PALETTE_BASE,             1, PALETTE_SPRITE_COUNT,                        "Palette"                  },
 	/* 0x19 */ { A5BLOCK_ALLOW_OFFSET, SPR_ROAD_WAYPOINTS_BASE,      1, ROAD_WAYPOINTS_SPRITE_COUNT,                 "Road waypoints"           },
+	/* 0x1A */ { A5BLOCK_ALLOW_OFFSET, SPR_AIRTYPE_BASE,             1, AIRTYPE_SPRITE_TOTAL_COUNT,                  "Airtype graphics"         },
 });
 
 /**
@@ -6865,6 +7277,10 @@ static void SkipIf(ByteReader &buf)
 				result = rt != INVALID_ROADTYPE && RoadTypeIsTram(rt);
 				break;
 			}
+			case 0x13: result = GetAirTypeByLabel(BSWAP32(cond_val)) == INVALID_AIRTYPE;
+				break;
+			case 0x14: result = GetAirTypeByLabel(BSWAP32(cond_val)) != INVALID_AIRTYPE;
+				break;
 			default: GrfMsg(1, "SkipIf: Unsupported condition type {:02X}. Ignoring", condtype); return;
 		}
 	} else if (param == 0x88) {
@@ -8767,12 +9183,21 @@ void ResetNewGRFData()
 	/* Copy/reset original road type info data */
 	ResetRoadTypes();
 
+	/* Reset air type information */
+	ResetAirTypes();
+
 	/* Allocate temporary refit/cargo class data */
 	_gted.resize(Engine::GetPoolSize());
 
 	/* Fill rail type label temporary data for default trains */
 	for (const Engine *e : Engine::IterateType(VEH_TRAIN)) {
 		_gted[e->index].railtypelabel = GetRailTypeInfo(e->u.rail.railtype)->label;
+	}
+
+	/* Fill air type label temporary data for default aircraft */
+	for (const Engine *e : Engine::IterateType(VEH_AIRCRAFT)) {
+		assert(e->u.air.airtype < AIRTYPE_END);
+		_gted[e->index].airtypelabel = GetAirTypeInfo(e->u.air.airtype)->label;
 	}
 
 	/* Reset GRM reservations */
@@ -8930,6 +9355,12 @@ GRFFile::GRFFile(const GRFConfig *config)
 	/* Initialise tram type map with default tram types */
 	std::fill(std::begin(this->tramtype_map), std::end(this->tramtype_map), INVALID_ROADTYPE);
 	this->tramtype_map[0] = ROADTYPE_TRAM;
+
+	/* Initialise air type map with default air types */
+	std::fill(std::begin(this->airtype_map), std::end(this->airtype_map), INVALID_AIRTYPE);
+	this->airtype_map[0] = AIRTYPE_GRAVEL;
+	this->airtype_map[1] = AIRTYPE_ASPHALT;
+	this->airtype_map[2] = AIRTYPE_WATER;
 
 	/* Copy the initial parameter list
 	 * 'Uninitialised' parameters are zeroed as that is their default value when dynamically creating them. */
@@ -9505,6 +9936,7 @@ static void FinaliseAirportsArray()
 		for (auto &as : file->airportspec) {
 			if (as != nullptr && as->enabled) {
 				_airport_mngr.SetEntitySpec(as.get());
+				/* Fill some missing data if not provided. */
 			}
 		}
 
@@ -9956,9 +10388,10 @@ static void AfterLoadGRFs()
 	/* Load old tram depot sprites in new position, if no new ones are present */
 	ActivateOldTramDepot();
 
-	/* Set up custom rail types */
+	/* Set up custom rail, road and air types */
 	InitRailTypes();
 	InitRoadTypes();
+	InitAirTypes();
 
 	for (Engine *e : Engine::IterateType(VEH_ROAD)) {
 		if (_gted[e->index].rv_max_speed != 0) {
@@ -10000,6 +10433,16 @@ static void AfterLoadGRFs()
 		} else {
 			e->u.rail.railtype = railtype;
 			e->u.rail.intended_railtype = railtype;
+		}
+	}
+
+	for (Engine *e : Engine::IterateType(VEH_AIRCRAFT)) {
+		AirType airtype = GetAirTypeByLabel(_gted[e->index].airtypelabel);
+		if (airtype == INVALID_AIRTYPE) {
+			/* Air type is not available, so disable this engine */
+			e->info.climates = 0;
+		} else {
+			e->u.air.airtype = airtype;
 		}
 	}
 

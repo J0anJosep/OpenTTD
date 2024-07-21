@@ -278,6 +278,8 @@ STR_TOOLTIP_FILTER_CRITERIA                                     :{BLACK}Select f
 STR_BUTTON_SORT_BY                                              :{BLACK}Sort by
 STR_BUTTON_CATCHMENT                                            :{BLACK}Coverage
 STR_TOOLTIP_CATCHMENT                                           :{BLACK}Toggle coverage area display
+STR_BUTTON_HIGHLIGHT_DEPOT                                      :{BLACK}Highlight
+STR_TOOLTIP_HIGHLIGHT_DEPOT                                     :{BLACK}Toggle highlight on viewport for this depot
 
 STR_TOOLTIP_CLOSE_WINDOW                                        :{BLACK}Close window
 STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS                              :{BLACK}Window title - drag this to move window
@@ -508,9 +510,6 @@ STR_ROAD_MENU_TRAM_CONSTRUCTION                                 :Tramway constru
 
 # Waterways construction menu
 STR_WATERWAYS_MENU_WATERWAYS_CONSTRUCTION                       :Waterways construction
-
-# Aairport construction menu
-STR_AIRCRAFT_MENU_AIRPORT_CONSTRUCTION                          :Airport construction
 
 # Landscaping menu
 STR_LANDSCAPING_MENU_LANDSCAPING                                :Landscaping
@@ -843,7 +842,7 @@ STR_NEWS_TRAIN_CRASH                                            :{BIG_FONT}{BLAC
 STR_NEWS_ROAD_VEHICLE_CRASH_DRIVER                              :{BIG_FONT}{BLACK}Road Vehicle Crash!{}Driver dies in fireball after collision with train
 STR_NEWS_ROAD_VEHICLE_CRASH                                     :{BIG_FONT}{BLACK}Road Vehicle Crash!{}{COMMA} die in fireball after collision with train
 STR_NEWS_AIRCRAFT_CRASH                                         :{BIG_FONT}{BLACK}Plane Crash!{}{COMMA} die in fireball at {STATION}
-STR_NEWS_PLANE_CRASH_OUT_OF_FUEL                                :{BIG_FONT}{BLACK}Plane Crash!{}Aircraft ran out of fuel, {COMMA} die in fireball
+STR_NEWS_AIRCRAFT_CRASH_NO_AIRPORT                              :{BIG_FONT}{BLACK}Aircraft Crash!{}{COMMA} die in fireball
 
 STR_NEWS_DISASTER_ZEPPELIN                                      :{BIG_FONT}{BLACK}Zeppelin disaster at {STATION}!
 STR_NEWS_DISASTER_SMALL_UFO                                     :{BIG_FONT}{BLACK}Road vehicle destroyed in 'UFO' collision!
@@ -899,7 +898,6 @@ STR_NEWS_VEHICLE_HAS_TOO_FEW_ORDERS                             :{WHITE}{VEHICLE
 STR_NEWS_VEHICLE_HAS_VOID_ORDER                                 :{WHITE}{VEHICLE} has a void order
 STR_NEWS_VEHICLE_HAS_DUPLICATE_ENTRY                            :{WHITE}{VEHICLE} has duplicate orders
 STR_NEWS_VEHICLE_HAS_INVALID_ENTRY                              :{WHITE}{VEHICLE} has an invalid station in its orders
-STR_NEWS_PLANE_USES_TOO_SHORT_RUNWAY                            :{WHITE}{VEHICLE} has in its orders an airport whose runway is too short
 
 STR_NEWS_VEHICLE_IS_GETTING_OLD                                 :{WHITE}{VEHICLE} is getting old
 STR_NEWS_VEHICLE_IS_GETTING_VERY_OLD                            :{WHITE}{VEHICLE} is getting very old
@@ -908,7 +906,10 @@ STR_NEWS_TRAIN_IS_STUCK                                         :{WHITE}{VEHICLE
 STR_NEWS_VEHICLE_IS_LOST                                        :{WHITE}{VEHICLE} is lost
 STR_NEWS_VEHICLE_UNPROFITABLE_YEAR                              :{WHITE}{VEHICLE}'s profit last year was {CURRENCY_LONG}
 STR_NEWS_VEHICLE_UNPROFITABLE_PERIOD                            :{WHITE}{VEHICLE}'s profit last period was {CURRENCY_LONG}
+STR_NEWS_VEHICLE_CAN_T_FIND_FREE_DEPOT                          :{WHITE}{VEHICLE} can't find a free depot
+STR_NEWS_VEHICLE_TOO_LONG_FOR_SERVICING                         :{WHITE}{VEHICLE} couldn't service in short platform
 STR_NEWS_AIRCRAFT_DEST_TOO_FAR                                  :{WHITE}{VEHICLE} can't get to the next destination because it is out of range
+STR_NEWS_AIRCRAFT_CAN_T_LAND                                    :{WHITE}{VEHICLE} can't land on airport
 
 STR_NEWS_ORDER_REFIT_FAILED                                     :{WHITE}{VEHICLE} stopped because an ordered refit failed
 STR_NEWS_VEHICLE_AUTORENEW_FAILED                               :{WHITE}Autorenew failed on {VEHICLE}{}{STRING2}
@@ -1448,9 +1449,9 @@ STR_CONFIG_SETTING_PLANE_SPEED_HELPTEXT                         :Set the relativ
 STR_CONFIG_SETTING_PLANE_SPEED_VALUE                            :1 / {COMMA}
 
 STR_CONFIG_SETTING_PLANE_CRASHES                                :Number of plane crashes: {STRING2}
-STR_CONFIG_SETTING_PLANE_CRASHES_HELPTEXT                       :Set the chance of a random aircraft crash happening.{}* Large airplanes always have a risk of crashing when landing on small airports
+STR_CONFIG_SETTING_PLANE_CRASHES_HELPTEXT                       :Set the chance of a random aircraft crash happening.
 ###length 3
-STR_CONFIG_SETTING_PLANE_CRASHES_NONE                           :None*
+STR_CONFIG_SETTING_PLANE_CRASHES_NONE                           :None
 STR_CONFIG_SETTING_PLANE_CRASHES_REDUCED                        :Reduced
 STR_CONFIG_SETTING_PLANE_CRASHES_NORMAL                         :Normal
 
@@ -1462,6 +1463,7 @@ STR_CONFIG_SETTING_STOP_ON_TOWN_ROAD_HELPTEXT                   :Allow construct
 STR_CONFIG_SETTING_STOP_ON_COMPETITOR_ROAD                      :Allow drive-through road stops on roads owned by competitors: {STRING2}
 STR_CONFIG_SETTING_STOP_ON_COMPETITOR_ROAD_HELPTEXT             :Allow construction of drive-through road stops on roads owned by other companies
 STR_CONFIG_SETTING_DYNAMIC_ENGINES_EXISTING_VEHICLES            :{WHITE}Changing this setting is not possible when there are vehicles
+STR_CONFIG_SETTING_REPLACEMENTS_DIFF_TYPE                       :{WHITE}Disabling this setting is not possible during a game
 
 STR_CONFIG_SETTING_INFRASTRUCTURE_MAINTENANCE                   :Infrastructure maintenance: {STRING2}
 STR_CONFIG_SETTING_INFRASTRUCTURE_MAINTENANCE_HELPTEXT          :When enabled, infrastructure causes maintenance costs. The cost grows over-proportional with the network size, thus affecting bigger companies more than smaller ones
@@ -1474,6 +1476,8 @@ STR_CONFIG_SETTING_COMPANY_STARTING_COLOUR_SECONDARY_HELPTEXT   :Choose starting
 
 STR_CONFIG_SETTING_NEVER_EXPIRE_AIRPORTS                        :Airports never expire: {STRING2}
 STR_CONFIG_SETTING_NEVER_EXPIRE_AIRPORTS_HELPTEXT               :Enabling this setting makes each airport type stay available forever after its introduction
+STR_CONFIG_SETTING_ALLOW_CUSTOMIZED_AIRPORTS                    :Allow building customized airports: {STRING2}
+STR_CONFIG_SETTING_ALLOW_CUSTOMIZED_AIRPORTS_HELPTEXT           :Enabling this setting allows each player being able to build customized airports.
 
 STR_CONFIG_SETTING_WARN_LOST_VEHICLE                            :Warn if vehicle is lost: {STRING2}
 STR_CONFIG_SETTING_WARN_LOST_VEHICLE_HELPTEXT                   :Trigger messages about vehicles unable to find a path to their ordered destination
@@ -1615,6 +1619,30 @@ STR_CONFIG_SETTING_SE_FLAT_WORLD_HEIGHT                         :The height leve
 STR_CONFIG_SETTING_EDGES_NOT_EMPTY                              :{WHITE}One or more tiles at the northern edge are not empty
 STR_CONFIG_SETTING_EDGES_NOT_WATER                              :{WHITE}One or more tiles at one of the edges is not water
 
+STR_CONFIG_SETTING_DISTANT_JOIN_DEPOTS                          :Allow to join depot parts not directly adjacent: {STRING2}
+STR_CONFIG_SETTING_DISTANT_JOIN_DEPOTS_HELPTEXT                 :Allow adding parts to a depot without directly touching the existing parts. Needs Ctrl+Click while placing the new parts
+STR_CONFIG_SETTING_DEPOT_SPREAD                                 :Maximum depot spread: {STRING2}
+STR_CONFIG_SETTING_DEPOT_SPREAD_HELPTEXT                        :Maximum area the parts of a single depot may be spread out on
+
+STR_CONFIG_SETTING_RAIL_DEPOT_TYPES                             :Rail depot types: {STRING2}
+STR_CONFIG_SETTING_RAIL_DEPOT_TYPES_HELPTEXT                    :Available rail depot types for construction for human players
+STR_CONFIG_SETTING_ROAD_DEPOT_TYPES                             :Road depot types: {STRING2}
+STR_CONFIG_SETTING_ROAD_DEPOT_TYPES_HELPTEXT                    :Available road depot types for construction for human players
+STR_CONFIG_SETTING_WATER_DEPOT_TYPES                            :Water depot types: {STRING2}
+STR_CONFIG_SETTING_WATER_DEPOT_TYPES_HELPTEXT                   :Available water depot types for construction for human players
+STR_CONFIG_SETTING_HANGAR_TYPES                                 :Hangar types: {STRING2}
+STR_CONFIG_SETTING_HANGAR_TYPES_HELPTEXT                        :Available hangar types for construction for human players
+###length 3
+STR_CONFIG_SETTING_ONLY_STANDARD_DEPOT                          :Standard depots
+STR_CONFIG_SETTING_ONLY_EXTENDED_DEPOT                          :Extended depots
+STR_CONFIG_SETTING_BOTH_DEPOT_TYPES                             :Both depot types
+###next-name-looks-similar
+
+STR_CONFIG_SETTING_REPLACE_INCOMPATIBLE_RAIL                    :Allow replacing rail vehicles with incompatible rail types: {STRING2}
+STR_CONFIG_SETTING_REPLACE_INCOMPATIBLE_RAIL_HELPTEXT           :Allow replacing rail vehicles even if they are not compatible by rail type
+STR_CONFIG_SETTING_REPLACE_INCOMPATIBLE_ROAD                    :Allow replacing road vehicles with incompatible road types: {STRING2}
+STR_CONFIG_SETTING_REPLACE_INCOMPATIBLE_ROAD_HELPTEXT           :Allow replacing road vehicles even if they are not compatible by road type
+
 STR_CONFIG_SETTING_STATION_SPREAD                               :Maximum station spread: {STRING2}
 STR_CONFIG_SETTING_STATION_SPREAD_HELPTEXT                      :Maximum area the parts of a single station may be spread out on. Note that high values will slow the game
 
@@ -1741,6 +1769,8 @@ STR_CONFIG_SETTING_QUICKGOTO_HELPTEXT                           :Pre-select the 
 
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE                            :Default rail type (after new game/game load): {STRING2}
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_HELPTEXT                   :Rail type to select after starting or loading a game. 'first available' selects the oldest type of tracks, 'last available' selects the newest type of tracks, and 'most used' selects the type which is currently most in use
+STR_CONFIG_SETTING_DEFAULT_AIR_TYPE                             :Default air type (after new game/game load): {STRING2}
+STR_CONFIG_SETTING_DEFAULT_AIR_TYPE_HELPTEXT                    :Air type to select after starting or loading a game. 'first available' selects the oldest type of airport, 'last available' selects the newest one, and 'most used' selects the type which is currently most in use
 ###length 3
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_FIRST                      :First available
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_LAST                       :Last available
@@ -2137,6 +2167,7 @@ STR_CONFIG_SETTING_ENVIRONMENT_TREES                            :Trees
 STR_CONFIG_SETTING_AI                                           :Competitors
 STR_CONFIG_SETTING_AI_NPC                                       :Computer players
 STR_CONFIG_SETTING_NETWORK                                      :Network
+STR_CONFIG_SETTING_DEPOTS                                       :Depots
 
 STR_CONFIG_SETTING_REVERSE_AT_SIGNALS                           :Automatic reversing at signals: {STRING2}
 STR_CONFIG_SETTING_REVERSE_AT_SIGNALS_HELPTEXT                  :Allow trains to reverse on a signal, if they waited there a long time
@@ -2753,8 +2784,6 @@ STR_STATION_BUILD_COVERAGE_AREA_OFF_TOOLTIP                     :{BLACK}Don't hi
 STR_STATION_BUILD_COVERAGE_AREA_ON_TOOLTIP                      :{BLACK}Highlight coverage area of proposed site
 STR_STATION_BUILD_ACCEPTS_CARGO                                 :{BLACK}Accepts: {GOLD}{CARGO_LIST}
 STR_STATION_BUILD_SUPPLIES_CARGO                                :{BLACK}Supplies: {GOLD}{CARGO_LIST}
-STR_STATION_BUILD_INFRASTRUCTURE_COST_YEAR                      :{BLACK}Maintenance cost: {GOLD}{CURRENCY_SHORT}/year
-STR_STATION_BUILD_INFRASTRUCTURE_COST_PERIOD                    :{BLACK}Maintenance cost: {GOLD}{CURRENCY_SHORT}/period
 
 # Join station window
 STR_JOIN_STATION_CAPTION                                        :{WHITE}Join station
@@ -2762,6 +2791,11 @@ STR_JOIN_STATION_CREATE_SPLITTED_STATION                        :{YELLOW}Build a
 
 STR_JOIN_WAYPOINT_CAPTION                                       :{WHITE}Join waypoint
 STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT                      :{YELLOW}Build a separate waypoint
+
+# Join depot window
+STR_JOIN_DEPOT_CAPTION                                          :{WHITE}Join depot
+STR_JOIN_DEPOT_CREATE_SPLITTED_DEPOT                            :{YELLOW}Build a separate depot
+STR_DEPOT_LIST_DEPOT                                            :{YELLOW}{DEPOT}
 
 # Generic toolbar
 STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE                       :{BLACK}Disabled as currently no vehicles are available for this infrastructure
@@ -2774,7 +2808,8 @@ STR_RAIL_TOOLBAR_MAGLEV_CONSTRUCTION_CAPTION                    :Maglev Construc
 
 STR_RAIL_TOOLBAR_TOOLTIP_BUILD_RAILROAD_TRACK                   :{BLACK}Build railway track. Ctrl+Click to remove railway track. Also press Shift to show cost estimate only
 STR_RAIL_TOOLBAR_TOOLTIP_BUILD_AUTORAIL                         :{BLACK}Build railway track using the Autorail mode. Ctrl+Click to remove railway track. Also press Shift to show cost estimate only
-STR_RAIL_TOOLBAR_TOOLTIP_BUILD_TRAIN_DEPOT_FOR_BUILDING         :{BLACK}Build train depot (for buying and servicing trains). Also press Shift to show cost estimate only
+STR_RAIL_TOOLBAR_TOOLTIP_BUILD_TRAIN_DEPOT                      :{BLACK}Build standard train depot (for buying and servicing trains). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
+STR_RAIL_TOOLBAR_TOOLTIP_BUILD_EXTENDED_TRAIN_DEPOT             :{BLACK}Build extended train depot (for buying and servicing trains). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
 STR_RAIL_TOOLBAR_TOOLTIP_CONVERT_RAIL_TO_WAYPOINT               :{BLACK}Build waypoint on railway. Ctrl+Click to select another waypoint to join. Also press Shift to show cost estimate only
 STR_RAIL_TOOLBAR_TOOLTIP_BUILD_RAILROAD_STATION                 :{BLACK}Build railway station. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
 STR_RAIL_TOOLBAR_TOOLTIP_BUILD_RAILROAD_SIGNALS                 :{BLACK}Build signal on railway. Ctrl+Click to build the alternate signal style{}Click+Drag to fill the selected section of rail with signals at the chosen spacing. Ctrl+Click+Drag to fill signals up to the next junction, station, or signal. Also press Shift to show cost estimate only
@@ -2885,8 +2920,10 @@ STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_SECTION                     :{BLACK}Build ro
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAMWAY_SECTION                  :{BLACK}Build tramway section. Ctrl+Click to remove tramway section. Also press Shift to show cost estimate only
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOROAD                         :{BLACK}Build road section using the Autoroad mode. Ctrl+Click to remove road section. Also press Shift to show cost estimate only
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOTRAM                         :{BLACK}Build tramway section using the Autotram mode. Ctrl+Click to remove tramway section. Also press Shift to show cost estimate only
-STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT               :{BLACK}Build road vehicle depot (for buying and servicing vehicles). Also press Shift to show cost estimate only
-STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT               :{BLACK}Build tram vehicle depot (for buying and servicing vehicles). Also press Shift to show cost estimate only
+STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT               :{BLACK}Build standard road vehicle depot (for buying and servicing vehicles). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
+STR_ROAD_TOOLBAR_TOOLTIP_BUILD_EXTENDED_ROAD_VEHICLE_DEPOT      :{BLACK}Build extended road vehicle depot (for buying and servicing vehicles). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
+STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT               :{BLACK}Build standard tram vehicle depot (for buying and servicing vehicles). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
+STR_ROAD_TOOLBAR_TOOLTIP_BUILD_EXTENDED_TRAM_VEHICLE_DEPOT      :{BLACK}Build extended tram vehicle depot (for buying and servicing vehicles). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
 STR_ROAD_TOOLBAR_TOOLTIP_CONVERT_ROAD_TO_WAYPOINT               :{BLACK}Build waypoint on road. Ctrl+Click to select another waypoint to join. Also press Shift to show cost estimate only
 STR_ROAD_TOOLBAR_TOOLTIP_CONVERT_TRAM_TO_WAYPOINT               :{BLACK}Build waypoint on tramway. Ctrl+Click to select another waypoint to join. Also press Shift to show cost estimate only
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_BUS_STATION                      :{BLACK}Build bus station. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
@@ -2927,7 +2964,8 @@ STR_WATERWAYS_TOOLBAR_CAPTION                                   :{WHITE}Waterway
 STR_WATERWAYS_TOOLBAR_CAPTION_SE                                :{WHITE}Waterways
 STR_WATERWAYS_TOOLBAR_BUILD_CANALS_TOOLTIP                      :{BLACK}Build canals. Also press Shift to show cost estimate only
 STR_WATERWAYS_TOOLBAR_BUILD_LOCKS_TOOLTIP                       :{BLACK}Build locks. Also press Shift to show cost estimate only
-STR_WATERWAYS_TOOLBAR_BUILD_DEPOT_TOOLTIP                       :{BLACK}Build ship depot (for buying and servicing ships). Also press Shift to show cost estimate only
+STR_WATERWAYS_TOOLBAR_BUILD_DEPOT_TOOLTIP                       :{BLACK}Build standard ship depot (for buying and servicing ships). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
+STR_WATERWAYS_TOOLBAR_BUILD_EXTENDED_DEPOT_TOOLTIP              :{BLACK}Build extended ship depot (for buying and servicing ships). Ctrl+Click to select another depot to join. Also press Shift to show cost estimate only
 STR_WATERWAYS_TOOLBAR_BUILD_DOCK_TOOLTIP                        :{BLACK}Build ship dock. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
 STR_WATERWAYS_TOOLBAR_BUOY_TOOLTIP                              :{BLACK}Place a buoy which can be used as a waypoint. Also press Shift to show cost estimate only
 STR_WATERWAYS_TOOLBAR_BUILD_AQUEDUCT_TOOLTIP                    :{BLACK}Build aqueduct. Also press Shift to show cost estimate only
@@ -2942,8 +2980,67 @@ STR_DEPOT_BUILD_SHIP_ORIENTATION_TOOLTIP                        :{BLACK}Select s
 STR_STATION_BUILD_DOCK_CAPTION                                  :{WHITE}Dock
 
 # Airport toolbar
-STR_TOOLBAR_AIRCRAFT_CAPTION                                    :{WHITE}Airports
-STR_TOOLBAR_AIRCRAFT_BUILD_AIRPORT_TOOLTIP                      :{BLACK}Build airport. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
+STR_TOOLBAR_AIRPORT_GRAVEL_CONSTRUCTION_CAPTION                 :Gravel Airport Construction
+STR_TOOLBAR_AIRPORT_ASPHALT_CONSTRUCTION_CAPTION                :Asphalt Airport Construction
+STR_TOOLBAR_AIRPORT_WATER_CONSTRUCTION_CAPTION                  :Water Airport Construction
+STR_TOOLBAR_AIRPORT_DARK_CONSTRUCTION_CAPTION                   :Darker Airport Construction
+STR_TOOLBAR_AIRPORT_YELLOW_CONSTRUCTION_CAPTION                 :Drawn Tracks Airport Construction
+
+# Airport menu text
+###length 5
+STR_TOOLBAR_AIRPORT_GRAVEL_MENU_TEXT                            :Gravel airport construction
+STR_TOOLBAR_AIRPORT_ASPHALT_MENU_TEXT                           :Asphalt airport construction
+STR_TOOLBAR_AIRPORT_WATER_MENU_TEXT                             :Water airport construction
+STR_TOOLBAR_AIRPORT_DARK_MENU_TEXT                              :Darker airport construction
+STR_TOOLBAR_AIRPORT_YELLOW_MENU_TEXT                            :Drawn tracks airport construction
+###next-name-looks-similar
+
+STR_TOOLBAR_AIRPORT_CAPTION                                    :{WHITE}Airports
+STR_TOOLBAR_AIRPORT_BUILD_AIRPORT_TOOLTIP                      :{BLACK}Build airport. Ctrl+Click to select another station to join. Also press Shift to show cost estimate only
+
+STR_TOOLBAR_AIRPORT_ADD_TILES                                  :{BLACK}Add or remove airport tiles to an airport
+STR_TOOLBAR_AIRPORT_INFRASTRUCTURE_CATCHMENT                   :{BLACK}Define as infrastructure with catchment
+STR_TOOLBAR_AIRPORT_INFRASTRUCTURE_NO_CATCHMENT                :{BLACK}Define as infrastructure without catchment
+STR_TOOLBAR_AIRPORT_SET_TRACKS                                 :{BLACK}Set tracks
+STR_TOOLBAR_AIRPORT_DEFINE_RUNWAY_LANDING                      :{BLACK}Define a runway allowing landing
+STR_TOOLBAR_AIRPORT_DEFINE_RUNWAY_NO_LANDING                   :{BLACK}Define a runway forbidding landing
+STR_TOOLBAR_AIRPORT_BUILD_APRON                                :{BLACK}Build an apron
+STR_TOOLBAR_AIRPORT_BUILD_HELIPAD                              :{BLACK}Build a helipad
+STR_TOOLBAR_AIRPORT_BUILD_HELIPORT                             :{BLACK}Build a heliport
+STR_TOOLBAR_AIRPORT_BUILD_HANGAR_STANDARD                      :{BLACK}Build a standard hangar
+STR_TOOLBAR_AIRPORT_BUILD_HANGAR_EXTENDED                      :{BLACK}Build an extended hangar
+STR_TOOLBAR_AIRPORT_TOGGLE_BUILD_REMOVE                        :{BLACK}Toggle build/remove for airport tiles, infrastructure, aprons and hangars
+STR_TOOLBAR_AIRPORT_BUILD_PRE_AIRPORT_TOOLTIP                  :{BLACK}Build a predefined airport layout. Ctrl enables joining stations. Shift toggles building/showing cost estimate
+STR_TOOLBAR_AIRPORT_CHANGE_AIRTYPE                             :{BLACK}Change the airtype of an airport
+STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS                            :{BLACK}Change track graphics
+STR_TOOLBAR_AIRPORT_ROTATE_GRAPHICS_TOOLTIP                    :{BLACK}Click over a simple airport tile to change its graphics (experimental; only works on the Drawn tracks airtype)
+STR_TOOLBAR_AIRPORT_TOGGLE_GROUND                              :{BLACK}Toggle ground graphics
+STR_TOOLBAR_AIRPORT_TOGGLE_GROUND_TOOLBAR                      :{BLACK}Click over a simple airport tile to show or hide the airtype ground sprite.
+
+STR_AIRTYPE_NAME_GRAVEL                                         :Gravel airport
+STR_AIRTYPE_NAME_ASPHALT                                        :Asphalt airport
+STR_AIRTYPE_NAME_WATER                                          :Water airport
+STR_AIRTYPE_NAME_DARK                                           :Darker airport
+STR_AIRTYPE_NAME_YELLOW                                         :Drawn tracks airport
+
+# Airport infrastructure construction window
+STR_BUILD_AIRPORT_INFRA_NO_CATCH_CAPTION                        :{WHITE}Infrastructure without cargo catchment
+STR_BUILD_AIRPORT_INFRA_WITH_CATCH_CAPTION                      :{WHITE}Infrastructure with cargo catchment
+STR_BUILD_AIRPORT_INFRA_TOOLTIP                                 :{BLACK}Select a piece of infrastructre and its orientation
+
+# Heliport construction window
+STR_BUILD_HELIPORT_CAPTION                                      :{WHITE}Heliport Orientation
+STR_BUILD_HELIPORT_ORIENTATION_TOOLTIP                          :{BLACK}Select heliport orientation
+
+# Hangar construction window
+STR_BUILD_HANGAR_CAPTION                                        :{WHITE}Hangar Orientation
+STR_BUILD_HANGAR_ORIENTATION_TOOLTIP                            :{BLACK}Select hangar orientation
+
+# Select gfx for airport track tiles
+STR_SELECT_GFX_AIRPORT_TRACKS_CAPTION                           :{WHITE}Selection of graphics for track tiles
+STR_SELECT_GFX_AIRPORT_TRACKS_TOOLTIP                           :{BLACK}Select the graphics for airport track tiles and click on airport track tiles.
+STR_SELECT_GFX_AIRPORT_TRACKS_DEFAULT                           :{BLACK}Default
+STR_SELECT_GFX_AIRPORT_TRACKS_DETECT                            :{BLACK}Autodetect sprites
 
 # Airport construction window
 STR_STATION_BUILD_AIRPORT_CAPTION                               :{WHITE}Airport Selection
@@ -2960,11 +3057,19 @@ STR_AIRPORT_INTERCONTINENTAL                                    :Intercontinenta
 STR_AIRPORT_HELIPORT                                            :Heliport
 STR_AIRPORT_HELIDEPOT                                           :Helidepot
 STR_AIRPORT_HELISTATION                                         :Helistation
+STR_AIRPORT_CUSTOM                                              :Customized
 
 STR_AIRPORT_CLASS_SMALL                                         :Small airports
 STR_AIRPORT_CLASS_LARGE                                         :Large airports
 STR_AIRPORT_CLASS_HUB                                           :Hub airports
 STR_AIRPORT_CLASS_HELIPORTS                                     :Helicopter airports
+STR_AIRPORT_CLASS_CUSTOMIZED                                    :Customized airports
+
+###length 4
+STR_AIRPORT_ROTATION_0                                          :Default orientation
+STR_AIRPORT_ROTATION_90                                         :90º rotated
+STR_AIRPORT_ROTATION_180                                        :180º rotated
+STR_AIRPORT_ROTATION_270                                        :270º rotated
 
 STR_STATION_BUILD_NOISE                                         :{BLACK}Noise generated: {GOLD}{COMMA}
 
@@ -3096,6 +3201,7 @@ STR_LAND_AREA_INFORMATION_LANDINFO_INDEX                        :{BLACK}Tile ind
 STR_LAND_AREA_INFORMATION_BUILD_DATE                            :{BLACK}Built/renovated: {LTBLUE}{DATE_LONG}
 STR_LAND_AREA_INFORMATION_STATION_CLASS                         :{BLACK}Station class: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_STATION_TYPE                          :{BLACK}Station type: {LTBLUE}{STRING}
+STR_LANG_AREA_INFORMATION_AIR_TYPE                              :{BLACK}Air type: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORT_CLASS                         :{BLACK}Airport class: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORT_NAME                          :{BLACK}Airport name: {LTBLUE}{STRING}
 STR_LAND_AREA_INFORMATION_AIRPORTTILE_NAME                      :{BLACK}Airport tile name: {LTBLUE}{STRING}
@@ -3140,12 +3246,14 @@ STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_EXIT_NOENTRYSIGNALS         :Railway track w
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_PBSSIGNALS            :Railway track with combo- and path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_COMBO_NOENTRYSIGNALS        :Railway track with combo- and one-way path signals
 STR_LAI_RAIL_DESCRIPTION_TRACK_WITH_PBS_NOENTRYSIGNALS          :Railway track with path and one-way path signals
-STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT                            :Railway train depot
+STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT                            :Standard railway train depot
+STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT_EXTENDED                   :Extended railway train depot
 
 STR_LAI_ROAD_DESCRIPTION_ROAD                                   :Road
 STR_LAI_ROAD_DESCRIPTION_ROAD_WITH_STREETLIGHTS                 :Road with street lights
 STR_LAI_ROAD_DESCRIPTION_TREE_LINED_ROAD                        :Tree-lined road
-STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT                     :Road vehicle depot
+STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT                     :Standard road vehicle depot
+STR_LAI_ROAD_DESCRIPTION_ROAD_VEHICLE_DEPOT_EXTENDED            :Extended road vehicle depot
 STR_LAI_ROAD_DESCRIPTION_ROAD_RAIL_LEVEL_CROSSING               :Road/rail level crossing
 STR_LAI_ROAD_DESCRIPTION_TRAMWAY                                :Tramway
 
@@ -3157,20 +3265,36 @@ STR_LAI_TREE_NAME_RAINFOREST                                    :Rainforest
 STR_LAI_TREE_NAME_CACTUS_PLANTS                                 :Cactus plants
 
 STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION                    :Railway station
-STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Aircraft hangar
-STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Airport
 STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA                  :Lorry station
 STR_LAI_STATION_DESCRIPTION_BUS_STATION                         :Bus station
 STR_LAI_STATION_DESCRIPTION_SHIP_DOCK                           :Ship dock
 STR_LAI_STATION_DESCRIPTION_BUOY                                :Buoy
 STR_LAI_STATION_DESCRIPTION_WAYPOINT                            :Waypoint
+STR_LAI_STATION_DESCRIPTION_AIRPORT                             :Airport
+STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITH_CATCHMENT   :Airport infrastructure with cargo catchment
+STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITHOUT_CATCHMENT:Airport infrastructure with no cargo catchment
+STR_LAI_STATION_DESCRIPTION_AIR_PLAIN                           :Airport tile for tracks
+STR_LAI_STATION_DESCRIPTION_AIR_WAITING_POINT                   :Airport waiting point
+###length 4
+STR_LAI_STATION_DESCRIPTION_AIR_TERMINAL                        :Terminal
+STR_LAI_STATION_DESCRIPTION_AIR_HELIPAD                         :Helipad
+STR_LAI_STATION_DESCRIPTION_AIR_HELIPORT                        :Heliport
+STR_LAI_STATION_DESCRIPTION_AIR_BUILTIN_HELIPORT                :Built-in heliport
+###next-name-looks-similar
+STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR                     :Standard aircraft hangar
+STR_LAI_STATION_DESCRIPTION_AIRCRAFT_EXTENDED_HANGAR            :Extended aircraft hangar
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_MIDDLE                   :Middle runway tile
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_END                      :Runway end
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_NO_LANDING         :Runway start only for takeoffs
+STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_LANDING            :Runway start for landing
 
 STR_LAI_WATER_DESCRIPTION_WATER                                 :Water
 STR_LAI_WATER_DESCRIPTION_CANAL                                 :Canal
 STR_LAI_WATER_DESCRIPTION_LOCK                                  :Lock
 STR_LAI_WATER_DESCRIPTION_RIVER                                 :River
 STR_LAI_WATER_DESCRIPTION_COAST_OR_RIVERBANK                    :Coast or riverbank
-STR_LAI_WATER_DESCRIPTION_SHIP_DEPOT                            :Ship depot
+STR_LAI_WATER_DESCRIPTION_SHIP_DEPOT                            :Standard ship depot
+STR_LAI_WATER_DESCRIPTION_SHIP_DEPOT_EXTENDED                   :Extended ship depot
 
 # Industries come directly from their industry names
 
@@ -3497,6 +3621,7 @@ STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT                            :{STRING1} at {H
 STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_OBJECT                     :Object
 STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_RAIL_TYPE                  :Rail type
 STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_ROAD_TYPE                  :Road type
+STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_AIR_TYPE                   :Air type
 
 STR_NEWGRF_INSPECT_QUERY_CAPTION                                :{WHITE}NewGRF variable 60+x parameter (hexadecimal)
 
@@ -3908,7 +4033,7 @@ STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL                            :{WHITE}{COMMA} 
 STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD                            :{WHITE}{COMMA} road piece{P "" s}
 STR_COMPANY_VIEW_INFRASTRUCTURE_WATER                           :{WHITE}{COMMA} water tile{P "" s}
 STR_COMPANY_VIEW_INFRASTRUCTURE_STATION                         :{WHITE}{COMMA} station tile{P "" s}
-STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT                         :{WHITE}{COMMA} airport{P "" s}
+STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT                         :{WHITE}{COMMA} airport tile{P "" s}
 STR_COMPANY_VIEW_INFRASTRUCTURE_NONE                            :{WHITE}None
 
 STR_COMPANY_VIEW_BUILD_HQ_BUTTON                                :{BLACK}Build HQ
@@ -3950,9 +4075,9 @@ STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT                      :{GOLD}Water til
 STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS                          :{WHITE}Canals
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT                    :{GOLD}Stations:
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS                        :{WHITE}Station tiles
-STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS                        :{WHITE}Airports
-STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL_YEAR                      :{WHITE}{CURRENCY_LONG}/year
-STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL_PERIOD                    :{WHITE}{CURRENCY_LONG}/period
+STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL_YEAR                      :{WHITE}{1:CURRENCY_LONG}/year ({0:COMMA})
+STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL_PERIOD                    :{WHITE}{1:CURRENCY_LONG}/period ({0:COMMA})
+STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORT_SECT                    :{GOLD}Airport pieces:
 
 # Industry directory
 STR_INDUSTRY_DIRECTORY_CAPTION                                  :{WHITE}Industries ({COMMA} of {COMMA})
@@ -4328,6 +4453,7 @@ STR_REPLACE_ENGINES                                             :Engines
 STR_REPLACE_WAGONS                                              :Wagons
 STR_REPLACE_ALL_RAILTYPE                                        :All rail vehicles
 STR_REPLACE_ALL_ROADTYPE                                        :All road vehicles
+STR_REPLACE_ALL_AIRTYPE                                         :All aircraft vehicles
 
 ###length 2
 STR_REPLACE_HELP_RAILTYPE                                       :{BLACK}Choose the rail type you want to replace engines for
@@ -4342,6 +4468,12 @@ STR_REPLACE_MAGLEV_VEHICLES                                     :Maglev Vehicles
 
 STR_REPLACE_ROAD_VEHICLES                                       :Road Vehicles
 STR_REPLACE_TRAM_VEHICLES                                       :Tramway Vehicles
+
+STR_REPLACE_AIRCRAFT_GRAVEL_VEHICLES                            :Gravel aircraft
+STR_REPLACE_AIRCRAFT_ASPHALT_VEHICLES                           :Asphalt aircraft
+STR_REPLACE_AIRCRAFT_WATER_VEHICLES                             :Water aircraft
+STR_REPLACE_AIRCRAFT_DARK_VEHICLES                              :Dark aircraft
+STR_REPLACE_AIRCRAFT_YELLOW_VEHICLES                            :Drawn tracks aircraft
 
 STR_REPLACE_REMOVE_WAGON                                        :{BLACK}Wagon removal ({STRING1}): {ORANGE}{STRING}
 STR_REPLACE_REMOVE_WAGON_HELP                                   :{BLACK}Make autoreplace keep the length of a train the same by removing wagons (starting at the front), if replacing the engine would make the train longer
@@ -4402,11 +4534,13 @@ STR_VEHICLE_STATUS_LOADING_UNLOADING                            :{LTBLUE}Loading
 STR_VEHICLE_STATUS_LEAVING                                      :{LTBLUE}Leaving
 STR_VEHICLE_STATUS_WAITING_UNBUNCHING                           :{LTBLUE}Waiting to unbunch
 STR_VEHICLE_STATUS_CRASHED                                      :{RED}Crashed!
+STR_VEHICLE_STATUS_FALLING                                      :{RED}Falling!
 STR_VEHICLE_STATUS_BROKEN_DOWN                                  :{RED}Broken down
 STR_VEHICLE_STATUS_STOPPED                                      :{RED}Stopped
 STR_VEHICLE_STATUS_TRAIN_STOPPING_VEL                           :{RED}{VELOCITY} - Stopping
 STR_VEHICLE_STATUS_TRAIN_NO_POWER                               :{RED}No power
 STR_VEHICLE_STATUS_TRAIN_STUCK                                  :{ORANGE}Waiting for free path
+STR_VEHICLE_STATUS_SERVICING                                    :{LTBLUE}Servicing vehicle
 STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR                             :{ORANGE}Too far to next destination
 
 STR_VEHICLE_STATUS_HEADING_FOR_STATION_VEL                      :{LTBLUE}{1:VELOCITY} - Heading for {0:STATION}
@@ -4894,6 +5028,8 @@ STR_PERCENT_DOWN_SMALL                                          :{TINY_FONT}{WHI
 STR_PERCENT_DOWN                                                :{WHITE}{NUM}%{DOWN_ARROW}
 STR_PERCENT_UP_DOWN_SMALL                                       :{TINY_FONT}{WHITE}{NUM}%{UP_ARROW}{DOWN_ARROW}
 STR_PERCENT_UP_DOWN                                             :{WHITE}{NUM}%{UP_ARROW}{DOWN_ARROW}
+STR_SERVICING_INDICATOR_SMALL                                   :{TINY_FONT}{LTBLUE}Servicing ({NUM}{NBSP}%)
+STR_SERVICING_INDICATOR                                         :{LTBLUE}Servicing ({NUM}{NBSP}%)
 STR_PERCENT_NONE_SMALL                                          :{TINY_FONT}{WHITE}{NUM}%
 STR_PERCENT_NONE                                                :{WHITE}{NUM}%
 
@@ -5074,6 +5210,28 @@ STR_ERROR_DRIVE_THROUGH_DIRECTION                               :{WHITE}... road
 STR_ERROR_DRIVE_THROUGH_CORNER                                  :{WHITE}... drive through stops can't have corners
 STR_ERROR_DRIVE_THROUGH_JUNCTION                                :{WHITE}... drive through stops can't have junctions
 
+STR_ERROR_AIRPORT_DISABLED_BY_TILE                              :{WHITE}... setting about building by tile is disabled.
+STR_ERROR_AIRPORT_INCORRECT_AIRTYPE                             :{WHITE}... airport has a different air type.
+STR_ERROR_AIRPORT_ALREADY_AIRTYPE                               :{WHITE}... airport has this air type already.
+STR_ERROR_AIRPORT_CAN_T_CONVERT_WATER                           :{WHITE}... can't convert between water and non-water airtypes.
+STR_ERROR_AIRPORT_CAN_T_CONVERT_HELIPORT                        :{WHITE}... can't convert heliport to another airtype.
+STR_ERROR_AIRPORT_CAN_T_BUILD_HELIPORT                          :{WHITE}... can't build heliport with this airtype.
+STR_ERROR_AIRPORT_TOO_MUCH_RUNWAYS                              :{WHITE}... exceeding maximum number of runways for this air type.
+STR_ERROR_AIRPORT_NOT_SAME_LEVEL                                :{WHITE}... not at the same level.
+STR_ERROR_AIRPORT_PLAIN_WATER                                   :{WHITE}... must be built on water and plain terrain.
+STR_ERROR_AIRPORT_INVALID_AIR_TYPE                              :{WHITE}... tile has a different air type.
+STR_ERROR_AIRPORT_CAN_T_HAVE_TRACKS                             :{WHITE}... tile can't have tracks.
+STR_ERROR_AIRPORT_NO_COMPATIBLE_NEIGHBOURS                      :{WHITE}... can't add track. New track must be compatible with neighbour tiles.
+STR_ERROR_AIRPORT_CAN_T_ADD_TRACK_HANGAR                        :{WHITE}... hangars can only have tracks on x or y axis. revise
+STR_ERROR_AIRPORT_RUNWAY_TOO_SHORT                              :{WHITE}... runway too short.
+STR_ERROR_AIRPORT_RUNWAY_INCOMPLETE                             :{WHITE}... not all runway is on the same airport station.
+STR_ERROR_AIRPORT_RUNWAY_CAN_T_BUILD_OVER                       :{WHITE}... it is not possible to build the runway over those tiles.
+STR_ERROR_AIRPORT_PRESENT_AIRCRAFT                              :{WHITE}... aircraft present in the airport.
+
+STR_ERROR_AIRPORT_RUNWAY_OVERLAP                                :{WHITE}... runway overlaps other runways.
+STR_ERROR_AIRPORT_RUNWAY_CAN_T_REMOVE                           :{WHITE}... remove runways correctly.
+STR_ERROR_AIRPORT_REMOVE_RUNWAYS_FIRST                          :{WHITE}... must remove runways first.
+
 # Station destruction related errors
 STR_ERROR_CAN_T_REMOVE_PART_OF_STATION                          :{WHITE}Can't remove part of station...
 STR_ERROR_MUST_REMOVE_RAILWAY_STATION_FIRST                     :{WHITE}Must remove railway station first
@@ -5110,10 +5268,18 @@ STR_ERROR_BUOY_IS_IN_USE                                        :{WHITE}... buoy
 
 # Depot related errors
 STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT                               :{WHITE}Can't build train depot here...
+STR_ERROR_CAN_T_REMOVE_TRAIN_DEPOT                              :{WHITE}Can't remove train depot here...
 STR_ERROR_CAN_T_BUILD_ROAD_DEPOT                                :{WHITE}Can't build road vehicle depot here...
 STR_ERROR_CAN_T_BUILD_TRAM_DEPOT                                :{WHITE}Can't build tram vehicle depot here...
 STR_ERROR_CAN_T_BUILD_SHIP_DEPOT                                :{WHITE}Can't build ship depot here...
 
+STR_ERROR_ADJOINS_MORE_THAN_ONE_EXISTING_DEPOT                  :{WHITE}... adjoins more than one existing depot
+STR_ERROR_DEPOT_TYPE_NOT_AVAILABLE                              :{WHITE}... depot type not available
+STR_ERROR_DEPOT_EXTENDING_PLATFORMS                             :{WHITE}Extending already reserved depot platforms
+STR_ERROR_DEPOT_EXTENDED_RAIL_DEPOT_IS_NOT_FREE                 :{WHITE}Extended rail depot has a reserved tile and can't be converted
+
+STR_ERROR_CAN_T_START_STOP_VEHICLES                             :{WHITE}Can't start at least one vehicle in the depot...
+STR_ERROR_CAN_T_REPLACE_VEHICLES                                :{WHITE}Can't replace vehicles in the depot...
 STR_ERROR_CAN_T_RENAME_DEPOT                                    :{WHITE}Can't rename depot...
 
 STR_ERROR_TRAIN_MUST_BE_STOPPED_INSIDE_DEPOT                    :{WHITE}... must be stopped inside a depot
@@ -5123,6 +5289,7 @@ STR_ERROR_AIRCRAFT_MUST_BE_STOPPED_INSIDE_HANGAR                :{WHITE}... must
 
 STR_ERROR_TRAINS_CAN_ONLY_BE_ALTERED_INSIDE_A_DEPOT             :{WHITE}Trains can only be altered when stopped inside a depot
 STR_ERROR_TRAIN_TOO_LONG                                        :{WHITE}Train too long
+STR_ERROR_INCOMPATIBLE_RAILTYPES_WITH_DEPOT                     :{WHITE}Train chain is incompatible with any tile of this depot
 STR_ERROR_CAN_T_REVERSE_DIRECTION_RAIL_VEHICLE                  :{WHITE}Can't reverse direction of vehicle...
 STR_ERROR_CAN_T_REVERSE_DIRECTION_RAIL_VEHICLE_MULTIPLE_UNITS   :{WHITE}... consists of multiple units
 STR_ERROR_INCOMPATIBLE_RAIL_TYPES                               :Incompatible rail types
@@ -5131,8 +5298,19 @@ STR_ERROR_CAN_T_MOVE_VEHICLE                                    :{WHITE}Can't mo
 STR_ERROR_REAR_ENGINE_FOLLOW_FRONT                              :{WHITE}The rear engine will always follow its front counterpart
 STR_ERROR_UNABLE_TO_FIND_ROUTE_TO                               :{WHITE}Unable to find route to local depot
 STR_ERROR_UNABLE_TO_FIND_LOCAL_DEPOT                            :{WHITE}Unable to find local depot
+STR_ERROR_UNABLE_TO_FIND_APPROPRIATE_DEPOT_TILE                 :{WHITE}Unable to find appropriate depot tile
 
+STR_ERROR_DEPOT_TOO_SPREAD_OUT                                  :{WHITE}... depot too spread out
 STR_ERROR_DEPOT_WRONG_DEPOT_TYPE                                :Wrong depot type
+STR_ERROR_CAN_T_START_PLATFORM_TYPE                             :{WHITE}{VEHICLE} can't be started because there is no compatible platform in the depot for this type of train
+STR_ERROR_CAN_T_START_PLATFORM_LONG                             :{WHITE}{VEHICLE} can't be started because compatible platforms are not long enough
+STR_ERROR_DEPOT_FULL_DEPOT                                      :There is no free depot compatible with this type of vehicle
+###length 5
+STR_ADVICE_PLATFORM_TYPE                                        :{WHITE}{VEHICLE} can't leave depot because there is no compatible platform for this type of train
+STR_ADVICE_PLATFORM_LONG                                        :{WHITE}{VEHICLE} can't leave depot because compatible platforms are not long enough
+STR_ADVICE_VEHICLE_HAS_NO_POWER                                 :{WHITE}{VEHICLE} can't leave depot because it has no power in any tile of the depot
+STR_ADVICE_PLATFORM_FREE_PLATFORM                               :{WHITE}{VEHICLE} can't leave depot because compatible platforms are occupied
+STR_ADVICE_PLATFORM_SIGNALS                                     :{WHITE}{VEHICLE} can't leave depot because the segments of the compatible free platforms are occupied. Check the signaling of those segments.
 
 # Depot unbunching related errors
 STR_ERROR_UNBUNCHING_ONLY_ONE_ALLOWED                           :{WHITE}... can only have one unbunching order
@@ -5297,6 +5475,8 @@ STR_ERROR_TOO_MANY_VEHICLES_IN_GAME                             :{WHITE}Too many
 STR_ERROR_CAN_T_CHANGE_SERVICING                                :{WHITE}Can't change servicing interval...
 
 STR_ERROR_VEHICLE_IS_DESTROYED                                  :{WHITE}... vehicle is destroyed
+STR_ERROR_NO_FREE_DEPOT                                         :{WHITE}... there is no free depot
+STR_ERROR_NO_FREE_HANGAR                                        :{WHITE}... there is no free hangar
 
 STR_ERROR_CAN_T_CLONE_VEHICLE_LIST                              :{WHITE}... not all vehicles are identical
 
@@ -5314,6 +5494,7 @@ STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_YET_EXPLANATION           :{WHITE}Start a 
 STR_ERROR_CAN_T_MAKE_TRAIN_PASS_SIGNAL                          :{WHITE}Can't make train pass signal at danger...
 STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN                         :{WHITE}Can't reverse direction of train...
 STR_ERROR_TRAIN_START_NO_POWER                                  :Train has no power
+STR_ERROR_ROAD_VEHICLE_START_NO_POWER                           :Road vehicle has no power
 
 STR_ERROR_CAN_T_MAKE_ROAD_VEHICLE_TURN                          :{WHITE}Can't make road vehicle turn around...
 
@@ -5824,6 +6005,9 @@ STR_VIEWPORT_STATION_TINY                                       :{TINY_FONT}{STA
 
 STR_VIEWPORT_WAYPOINT                                           :{WAYPOINT}
 STR_VIEWPORT_WAYPOINT_TINY                                      :{TINY_FONT}{WAYPOINT}
+
+STR_VIEWPORT_DEPOT                                              :{DEPOT}
+STR_VIEWPORT_DEPOT_TINY                                         :{TINY_FONT}{DEPOT}
 
 # Simple strings to get specific types of data
 STR_COMPANY_NAME                                                :{COMPANY}

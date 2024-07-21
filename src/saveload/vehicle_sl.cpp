@@ -159,61 +159,6 @@ void ConvertOldMultiheadToNew()
 	}
 }
 
-
-/** need to be called to load aircraft from old version */
-void UpdateOldAircraft()
-{
-	/* set airport_flags to 0 for all airports just to be sure */
-	for (Station *st : Station::Iterate()) {
-		st->airport.flags = 0; // reset airport
-	}
-
-	for (Aircraft *a : Aircraft::Iterate()) {
-		/* airplane has another vehicle with subtype 4 (shadow), helicopter also has 3 (rotor)
-		 * skip those */
-		if (a->IsNormalAircraft()) {
-			/* airplane in terminal stopped doesn't hurt anyone, so goto next */
-			if ((a->vehstatus & VS_STOPPED) && a->state == 0) {
-				a->state = HANGAR;
-				continue;
-			}
-
-			AircraftLeaveHangar(a, a->direction); // make airplane visible if it was in a depot for example
-			a->vehstatus &= ~VS_STOPPED; // make airplane moving
-			UpdateAircraftCache(a);
-			a->cur_speed = a->vcache.cached_max_speed; // so aircraft don't have zero speed while in air
-			if (!a->current_order.IsType(OT_GOTO_STATION) && !a->current_order.IsType(OT_GOTO_DEPOT)) {
-				/* reset current order so aircraft doesn't have invalid "station-only" order */
-				a->current_order.MakeDummy();
-			}
-			a->state = FLYING;
-			AircraftNextAirportPos_and_Order(a); // move it to the entry point of the airport
-			GetNewVehiclePosResult gp = GetNewVehiclePos(a);
-			a->tile = 0; // aircraft in air is tile=0
-
-			/* correct speed of helicopter-rotors */
-			if (a->subtype == AIR_HELICOPTER) a->Next()->Next()->cur_speed = 32;
-
-			/* set new position x,y,z */
-			GetAircraftFlightLevelBounds(a, &a->z_pos, nullptr);
-			SetAircraftPosition(a, gp.x, gp.y, GetAircraftFlightLevel(a));
-		}
-	}
-
-	/* Clear aircraft from loading vehicles, if we bumped them into the air. */
-	for (Station *st : Station::Iterate()) {
-		for (auto iter = st->loading_vehicles.begin(); iter != st->loading_vehicles.end(); /* nothing */) {
-			Vehicle *v = *iter;
-			if (v->type == VEH_AIRCRAFT && !v->current_order.IsType(OT_LOADING)) {
-				iter = st->loading_vehicles.erase(iter);
-				delete v->cargo_payment;
-			} else {
-				++iter;
-			}
-		}
-	}
-}
-
 /**
  * Check all vehicles to ensure their engine type is valid
  * for the currently loaded NewGRFs (that includes none...)
@@ -665,6 +610,7 @@ public:
 		    SLE_VAR(Vehicle, progress,              SLE_UINT8),
 
 		    SLE_VAR(Vehicle, vehstatus,             SLE_UINT8),
+		SLE_CONDVAR(Vehicle, wait_counter,          SLE_UINT16,              SLV_EXTENDED_DEPOTS, SL_MAX_VERSION),
 		SLE_CONDVAR(Vehicle, last_station_visited,  SLE_FILE_U8  | SLE_VAR_U16,   SL_MIN_VERSION,   SLV_5),
 		SLE_CONDVAR(Vehicle, last_station_visited,  SLE_UINT16,                   SLV_5, SL_MAX_VERSION),
 		SLE_CONDVAR(Vehicle, last_loading_station,  SLE_UINT16,                 SLV_182, SL_MAX_VERSION),
@@ -793,7 +739,7 @@ public:
 
 		 SLE_CONDVAR(Train, flags,               SLE_FILE_U8  | SLE_VAR_U16,   SLV_2,  SLV_100),
 		 SLE_CONDVAR(Train, flags,               SLE_UINT16,                 SLV_100, SL_MAX_VERSION),
-		 SLE_CONDVAR(Train, wait_counter,        SLE_UINT16,                 SLV_136, SL_MAX_VERSION),
+		 SLE_CONDVAR(Train, wait_counter,        SLE_UINT16,                 SLV_136, SLV_EXTENDED_DEPOTS),
 		 SLE_CONDVAR(Train, gv_flags,            SLE_UINT16,                 SLV_139, SL_MAX_VERSION),
 	};
 	inline const static SaveLoadCompatTable compat_description = _vehicle_train_sl_compat;
@@ -882,24 +828,34 @@ public:
 	}
 };
 
+uint8_t _old_state;
+uint8_t _pos;
+StationID _targetairport;
+
 class SlVehicleAircraft : public DefaultSaveLoadHandler<SlVehicleAircraft, Vehicle> {
 public:
 	inline static const SaveLoad description[] = {
 		 SLEG_STRUCT("common", SlVehicleCommon),
+		 SLE_CONDVAR(Aircraft, trackdir,              SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, state,                 SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_trackdir,         SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_pos.x,            SLE_UINT32,                   SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_pos.y,            SLE_UINT32,                   SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, next_pos.pos,          SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
 		     SLE_VAR(Aircraft, crashed_counter,       SLE_UINT16),
-		     SLE_VAR(Aircraft, pos,                   SLE_UINT8),
-
+		SLEG_CONDVAR("aircraft_pos", _pos,            SLE_UINT8,                    SL_MIN_VERSION, SLV_MULTITILE_AIRPORTS),
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_FILE_U8  | SLE_VAR_U16,   SL_MIN_VERSION, SLV_5),
 		 SLE_CONDVAR(Aircraft, targetairport,         SLE_UINT16,                   SLV_5, SL_MAX_VERSION),
 
-		     SLE_VAR(Aircraft, state,                 SLE_UINT8),
-
-		 SLE_CONDVAR(Aircraft, previous_pos,          SLE_UINT8,                    SLV_2, SL_MAX_VERSION),
+		SLEG_CONDVAR("old_state", _old_state,         SLE_UINT8,                    SL_MIN_VERSION, SLV_MULTITILE_AIRPORTS),
+		SLEG_CONDVAR("previous_pos", _pos,            SLE_UINT8,                    SLV_2, SLV_MULTITILE_AIRPORTS),
 		 SLE_CONDVAR(Aircraft, last_direction,        SLE_UINT8,                    SLV_2, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, number_consecutive_turns, SLE_UINT8,                 SLV_2, SL_MAX_VERSION),
 
 		 SLE_CONDVAR(Aircraft, turn_counter,          SLE_UINT8,                  SLV_136, SL_MAX_VERSION),
 		 SLE_CONDVAR(Aircraft, flags,                 SLE_UINT8,                  SLV_167, SL_MAX_VERSION),
+	   SLE_CONDDEQUE(Aircraft, path.td,               SLE_UINT8,                    SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
+	   SLE_CONDDEQUE(Aircraft, path.tile,             SLE_UINT32,                   SLV_MULTITILE_AIRPORTS, SL_MAX_VERSION),
 	};
 	inline const static SaveLoadCompatTable compat_description = _vehicle_aircraft_sl_compat;
 
@@ -1072,6 +1028,7 @@ struct VEHSChunkHandler : ChunkHandler {
 				default: SlErrorCorrupt("Invalid vehicle type");
 			}
 
+			if (IsSavegameVersionBefore(SLV_EXTENDED_DEPOTS)) assert(v->type == VEH_TRAIN || v->wait_counter == 0);
 			SlObject(v, slt);
 
 			if (_cargo_count != 0 && IsCompanyBuildableVehicleType(v) && CargoPacket::CanAllocateItem()) {

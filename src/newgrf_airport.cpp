@@ -15,8 +15,16 @@
 #include "station_base.h"
 #include "newgrf_class_func.h"
 #include "town.h"
+#include "air.h"
+#include "table/airport_defaults.h"
 
 #include "safeguards.h"
+
+uint8_t AirportSpec::GetAirportNoise(AirType airtype) const
+{
+	const AirTypeInfo *ati = GetAirTypeInfo(airtype);
+	return this->num_aprons + this->num_helipads + this->num_heliports + this->num_runways * ati->runway_noise_level + ati->base_noise_level;
+}
 
 /**
  * Reset airport classes to their default state.
@@ -30,6 +38,7 @@ template <>
 	AirportClass::Get(AirportClass::Allocate('LARG'))->name = STR_AIRPORT_CLASS_LARGE;
 	AirportClass::Get(AirportClass::Allocate('HUB_'))->name = STR_AIRPORT_CLASS_HUB;
 	AirportClass::Get(AirportClass::Allocate('HELI'))->name = STR_AIRPORT_CLASS_HELIPORTS;
+	AirportClass::Get(AirportClass::Allocate('CUST'))->name = STR_AIRPORT_CLASS_CUSTOMIZED;
 }
 
 template <>
@@ -78,28 +87,54 @@ AirportSpec AirportSpec::specs[NUM_AIRPORTS]; ///< Airport specifications.
 	return &AirportSpec::specs[type];
 }
 
-/** Check whether this airport is available to build. */
-bool AirportSpec::IsAvailable() const
+/**
+ * Check whether this airport is available to build.
+ * @param airtype the airtype to check for, or INVALID_AIRTYPE
+ *                to check against default airtype for this airport spec
+ * @return whether this airport spec is available.
+ */
+bool AirportSpec::IsAvailable(AirType air_type) const
 {
 	if (!this->enabled) return false;
 	if (TimerGameCalendar::year < this->min_year) return false;
+
+	if (air_type != INVALID_AIRTYPE) {
+		const AirTypeInfo *ati = GetAirTypeInfo(air_type);
+		assert(ati != nullptr);
+		if (ati->max_num_runways < this->num_runways) return false;
+		if (this->num_runways > 0 && ati->min_runway_length > this->min_runway_length) return false;
+
+		if (!GetAirTypeInfo(air_type)->heliport_availability) {
+			/* Check at least one layout doesn't have any heliport. */
+			bool all_have_heliport = true;
+			for (uint layout_num = 0; all_have_heliport && layout_num < this->layouts.size(); layout_num++) {
+				bool has_heliport = false;
+				uint num_tiles = this->layouts[layout_num].size_x * this->layouts[layout_num].size_y;
+				for (uint tile_num = 0; (tile_num < num_tiles) && !has_heliport; tile_num++) {
+					if (this->layouts[layout_num].tiles[tile_num].type == ATT_APRON_HELIPORT) has_heliport = true;
+				}
+				if (!has_heliport) all_have_heliport = false;
+			}
+			if (all_have_heliport) return false;
+		}
+	}
+
 	if (_settings_game.station.never_expire_airports) return true;
 	return TimerGameCalendar::year <= this->max_year;
 }
 
 /**
  * Check if the airport would be within the map bounds at the given tile.
- * @param table Selected layout table. This affects airport rotation, and therefore dimensions.
+ * @param rotation Selected rotation. This affects airport rotation, and therefore dimensions.
  * @param tile Top corner of the airport.
  * @return true iff the airport would be within the map bounds at the given tile.
  */
-bool AirportSpec::IsWithinMapBounds(uint8_t table, TileIndex tile) const
+bool AirportSpec::IsWithinMapBounds(uint8_t rotation, TileIndex tile, uint8_t layout) const
 {
-	if (table >= this->layouts.size()) return false;
+	uint8_t w = this->layouts[layout].size_x;
+	uint8_t h = this->layouts[layout].size_y;
 
-	uint8_t w = this->size_x;
-	uint8_t h = this->size_y;
-	if (this->layouts[table].rotation == DIR_E || this->layouts[table].rotation == DIR_W) Swap(w, h);
+	if (rotation % 2 != 0) Swap(w, h);
 
 	return TileX(tile) + w < Map::SizeX() &&
 		TileY(tile) + h < Map::SizeY();
@@ -276,6 +311,9 @@ StringID GetAirportTextCallback(const AirportSpec *as, uint8_t layout, uint16_t 
 	AirportResolverObject object(INVALID_TILE, nullptr, as, layout, (CallbackID)callback);
 	uint16_t cb_res = object.ResolveCallback();
 	if (cb_res == CALLBACK_FAILED || cb_res == 0x400) return STR_UNDEFINED;
+
+	// Old GRF files that provided airport layouts, provided now unneeded rotated layouts.
+	if (callback == CBID_AIRPORT_LAYOUT_NAME && as->grf_prop.grffile->grf_version <= 8) return STR_UNDEFINED;
 	if (cb_res > 0x400) {
 		ErrorUnknownCallbackResult(as->grf_prop.grffile->grfid, callback, cb_res);
 		return STR_UNDEFINED;

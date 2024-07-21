@@ -18,6 +18,9 @@
 #include "../tunnelbridge_map.h"
 #include "../depot_map.h"
 #include "pathfinder_func.h"
+#include "../platform_func.h"
+#include "../air_map.h"
+#include "../air.h"
 
 /**
  * Track follower helper template class (can serve pathfinders and vehicle
@@ -46,7 +49,8 @@ struct CFollowTrackT
 	bool                m_is_tunnel;     ///< last turn passed tunnel
 	bool                m_is_bridge;     ///< last turn passed bridge ramp
 	bool                m_is_station;    ///< last turn passed station
-	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
+	bool                m_is_extended_depot;  ///< last turn passed depot
+	int                 m_tiles_skipped; ///< number of skipped tunnel, depot or station tiles
 	ErrorCode           m_err;
 	RailTypes           m_railtypes;
 
@@ -57,7 +61,7 @@ struct CFollowTrackT
 
 	inline CFollowTrackT(Owner o, RailTypes railtype_override = INVALID_RAILTYPES)
 	{
-		assert(IsRailTT());
+		assert(IsRailTT() || IsAirTT());
 		m_veh = nullptr;
 		Init(o, railtype_override);
 	}
@@ -80,7 +84,7 @@ struct CFollowTrackT
 		m_new_tile = INVALID_TILE;
 		m_new_td_bits = TRACKDIR_BIT_NONE;
 		m_exitdir = INVALID_DIAGDIR;
-		m_is_station = m_is_bridge = m_is_tunnel = false;
+		m_is_station = m_is_bridge = m_is_tunnel = m_is_extended_depot = false;
 		m_tiles_skipped = 0;
 		m_err = EC_NONE;
 		m_railtypes = railtype_override;
@@ -89,6 +93,7 @@ struct CFollowTrackT
 	debug_inline static TransportType TT() { return Ttr_type_; }
 	debug_inline static bool IsWaterTT() { return TT() == TRANSPORT_WATER; }
 	debug_inline static bool IsRailTT() { return TT() == TRANSPORT_RAIL; }
+	debug_inline static bool IsAirTT() { return TT() == TRANSPORT_AIR; }
 	inline bool IsTram() { return IsRoadTT() && RoadTypeIsTram(RoadVehicle::From(m_veh)->roadtype); }
 	debug_inline static bool IsRoadTT() { return TT() == TRANSPORT_ROAD; }
 	inline static bool Allow90degTurns() { return T90deg_turns_allowed_; }
@@ -99,7 +104,7 @@ struct CFollowTrackT
 	{
 		assert(IsTram()); // this function shouldn't be called in other cases
 
-		if (IsNormalRoadTile(tile)) {
+		if (IsNormalRoadTile(tile) || IsExtendedRoadDepotTile(tile)) {
 			RoadBits rb = GetRoadBits(tile, RTT_TRAM);
 			switch (rb) {
 				case ROAD_NW: return DIAGDIR_NW;
@@ -123,17 +128,21 @@ struct CFollowTrackT
 		m_err = EC_NONE;
 
 		assert([&]() {
+			if (IsAirTT()) return true;
 			if (IsTram() && GetSingleTramBit(m_old_tile) != INVALID_DIAGDIR) return true; // Skip the check for single tram bits
 			const uint sub_mode = (IsRoadTT() && m_veh != nullptr) ? (this->IsTram() ? RTT_TRAM : RTT_ROAD) : 0;
 			const TrackdirBits old_tile_valid_dirs = TrackStatusToTrackdirBits(GetTileTrackStatus(m_old_tile, TT(), sub_mode));
 			return (old_tile_valid_dirs & TrackdirToTrackdirBits(m_old_td)) != TRACKDIR_BIT_NONE;
 		}());
 
+		assert(!IsAirTT() || (GetTileTrackStatus(m_old_tile, TT(), 0) != 0));
+
 		m_exitdir = TrackdirToExitdir(m_old_td);
 		if (ForcedReverse()) return true;
 		if (!CanExitOldTile()) return false;
 		FollowTileExit();
 		if (!QueryNewTileTrackStatus()) return TryReverse();
+		if (IsAirTT() && !CanEnterNewTile()) return false;
 		m_new_td_bits &= DiagdirReachesTrackdirs(m_exitdir);
 		if (m_new_td_bits == TRACKDIR_BIT_NONE || !CanEnterNewTile()) {
 			/* In case we can't enter the next tile, but are
@@ -170,11 +179,11 @@ struct CFollowTrackT
 	{
 		if (!DoTrackMasking()) return true;
 
-		if (m_is_station) {
-			/* Check skipped station tiles as well. */
+		if (m_is_station || m_is_extended_depot) {
+			/* Check skipped station and depot tiles as well. */
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			for (TileIndex tile = m_new_tile - diff * m_tiles_skipped; tile != m_new_tile; tile += diff) {
-				if (HasStationReservation(tile)) {
+				if ((m_is_station && HasStationReservation(tile)) || (m_is_extended_depot && HasDepotReservation(tile))) {
 					m_new_td_bits = TRACKDIR_BIT_NONE;
 					m_err = EC_RESERVED;
 					return false;
@@ -200,7 +209,7 @@ protected:
 	/** Follow the m_exitdir from m_old_tile and fill m_new_tile and m_tiles_skipped */
 	inline void FollowTileExit()
 	{
-		m_is_station = m_is_bridge = m_is_tunnel = false;
+		m_is_station = m_is_bridge = m_is_tunnel = m_is_extended_depot = false;
 		m_tiles_skipped = 0;
 
 		/* extra handling for tunnels and bridges in our direction */
@@ -224,9 +233,13 @@ protected:
 		/* normal or station tile, do one step */
 		m_new_tile = TileAddByDiagDir(m_old_tile, m_exitdir);
 
-		/* special handling for stations */
-		if (IsRailTT() && HasStationTileRail(m_new_tile)) {
-			m_is_station = true;
+		/* special handling for stations and multi-tile depots */
+		if (IsRailTT()) {
+			if (HasStationTileRail(m_new_tile)) {
+				m_is_station = true;
+			} else if (IsExtendedRailDepotTile(m_new_tile)) {
+				m_is_extended_depot = true;
+			}
 		} else if (IsRoadTT() && IsStationRoadStopTile(m_new_tile)) {
 			m_is_station = true;
 		}
@@ -235,8 +248,14 @@ protected:
 	/** stores track status (available trackdirs) for the new tile into m_new_td_bits */
 	inline bool QueryNewTileTrackStatus()
 	{
+		if (IsAirTT()) {
+			if (!IsAirportTile(m_new_tile) ||
+					!MayHaveAirTracks(m_new_tile)) return false;
+			m_new_td_bits = TrackBitsToTrackdirBits(GetAirportTileTracks(m_new_tile));
+			return m_new_td_bits != TRACKDIR_BIT_NONE;
+		}
 		if (IsRailTT() && IsPlainRailTile(m_new_tile)) {
-			m_new_td_bits = (TrackdirBits)(GetTrackBits(m_new_tile) * 0x101);
+			m_new_td_bits = TrackBitsToTrackdirBits(GetTrackBits(m_new_tile));
 		} else if (IsRoadTT()) {
 			m_new_td_bits = GetTrackdirBitsForRoad(m_new_tile, this->IsTram() ? RTT_TRAM : RTT_ROAD);
 		} else {
@@ -248,6 +267,20 @@ protected:
 	/** return true if we can leave m_old_tile in m_exitdir */
 	inline bool CanExitOldTile()
 	{
+		/* hangar can be left at one direction */
+		if (IsAirTT()) {
+			if (IsHangarTile(m_old_tile)) {
+				DiagDirection exitdir = GetHangarDirection(m_old_tile);
+				if (exitdir != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			} else if (IsHeliportTile(m_old_tile)) {
+					m_err = EC_NO_WAY;
+					return false;
+			}
+		}
+
 		/* road stop can be left at one direction only unless it's a drive-through stop */
 		if (IsRoadTT() && IsBayRoadStopTile(m_old_tile)) {
 			DiagDirection exitdir = GetRoadStopDir(m_old_tile);
@@ -266,20 +299,36 @@ protected:
 			}
 		}
 
-		/* road depots can be also left in one direction only */
+		/* road depots can be also left in one direction sometimes */
 		if (IsRoadTT() && IsDepotTypeTile(m_old_tile, TT())) {
-			DiagDirection exitdir = GetRoadDepotDirection(m_old_tile);
-			if (exitdir != m_exitdir) {
+			RoadTramType rtt = IsTram() ? RTT_TRAM : RTT_ROAD;
+			RoadBits rb = GetRoadBits(m_old_tile, rtt);
+			if ((rb & DiagDirToRoadBits(m_exitdir)) == ROAD_NONE) {
 				m_err = EC_NO_WAY;
 				return false;
 			}
 		}
+
 		return true;
 	}
 
 	/** return true if we can enter m_new_tile from m_exitdir */
 	inline bool CanEnterNewTile()
 	{
+		if (IsAirTT()) {
+			if (GetStationIndex(m_old_tile) != GetStationIndex(m_new_tile)) return false;
+			if (IsHangarTile(m_new_tile)) {
+				DiagDirection exitdir = GetHangarDirection(m_new_tile);
+				if (ReverseDiagDir(exitdir) != m_exitdir) {
+					m_err = EC_NO_WAY;
+					return false;
+				}
+			} else if (IsHeliportTile(m_new_tile)) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
+		}
+
 		if (IsRoadTT() && IsBayRoadStopTile(m_new_tile)) {
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
 			DiagDirection exitdir = GetRoadStopDir(m_new_tile);
@@ -300,18 +349,19 @@ protected:
 
 		/* road and rail depots can also be entered from one direction only */
 		if (IsRoadTT() && IsDepotTypeTile(m_new_tile, TT())) {
-			DiagDirection exitdir = GetRoadDepotDirection(m_new_tile);
-			if (ReverseDiagDir(exitdir) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
-			}
 			/* don't try to enter other company's depots */
 			if (GetTileOwner(m_new_tile) != m_veh_owner) {
 				m_err = EC_OWNER;
 				return false;
 			}
+			RoadTramType rtt = IsTram() ? RTT_TRAM : RTT_ROAD;
+			RoadBits rb = GetRoadBits(m_new_tile, rtt);
+			if ((rb & DiagDirToRoadBits(ReverseDiagDir(m_exitdir))) == ROAD_NONE) {
+				m_err = EC_NO_WAY;
+				return false;
+			}
 		}
-		if (IsRailTT() && IsDepotTypeTile(m_new_tile, TT())) {
+		if (IsRailTT() && IsStandardRailDepotTile(m_new_tile)) {
 			DiagDirection exitdir = GetRailDepotDirection(m_new_tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
 				m_err = EC_NO_WAY;
@@ -368,14 +418,14 @@ protected:
 			}
 		}
 
-		/* special handling for rail stations - get to the end of platform */
-		if (IsRailTT() && m_is_station) {
-			/* entered railway station
-			 * get platform length */
-			uint length = BaseStation::GetByTile(m_new_tile)->GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td));
-			/* how big step we must do to get to the last platform tile? */
-			m_tiles_skipped = length - 1;
-			/* move to the platform end */
+		/* special handling for rail platforms - get to the end of platform */
+		if (IsRailTT() && (m_is_station || m_is_extended_depot)) {
+			/* Entered a platform. */
+			assert(HasStationTileRail(m_new_tile) || IsExtendedRailDepotTile(m_new_tile));
+			/* How big step we must do to get to the last platform tile? */
+			m_tiles_skipped = GetPlatformLength(m_new_tile, TrackdirToExitdir(m_old_td)) - 1;
+			/* Move to the platform end. */
+
 			TileIndexDiff diff = TileOffsByDiagDir(m_exitdir);
 			diff *= m_tiles_skipped;
 			m_new_tile = TileAdd(m_new_tile, diff);
@@ -390,14 +440,29 @@ protected:
 	{
 		/* rail and road depots cause reversing */
 		if (!IsWaterTT() && IsDepotTypeTile(m_old_tile, TT())) {
-			DiagDirection exitdir = IsRailTT() ? GetRailDepotDirection(m_old_tile) : GetRoadDepotDirection(m_old_tile);
+			DiagDirection exitdir;
+			switch (TT()) {
+				case TRANSPORT_AIR:
+					return false;
+				case TRANSPORT_RAIL:
+					if (IsExtendedRailDepot(m_old_tile)) return false;
+					exitdir = GetRailDepotDirection(m_old_tile);
+					break;
+				case TRANSPORT_ROAD: {
+					if (GetRoadBits(m_old_tile, IsTram() ? RTT_TRAM : RTT_ROAD) !=  DiagDirToRoadBits(m_exitdir)) return false;
+					exitdir = ReverseDiagDir(m_exitdir);
+					break;
+				}
+				default: NOT_REACHED();
+			}
+
 			if (exitdir != m_exitdir) {
 				/* reverse */
 				m_new_tile = m_old_tile;
 				m_new_td_bits = TrackdirToTrackdirBits(ReverseTrackdir(m_old_td));
-				m_exitdir = exitdir;
+				m_exitdir = IsAirTT() ? ReverseDiagDir(m_exitdir) : exitdir;
 				m_tiles_skipped = 0;
-				m_is_tunnel = m_is_bridge = m_is_station = false;
+				m_is_tunnel = m_is_bridge = m_is_station = m_is_extended_depot = false;
 				return true;
 			}
 		}
@@ -460,6 +525,10 @@ public:
 			uint16_t road_speed = GetRoadTypeInfo(GetRoadType(m_old_tile, GetRoadTramType(RoadVehicle::From(m_veh)->roadtype)))->max_speed;
 			if (road_speed > 0) max_speed = std::min<int>(max_speed, road_speed);
 		}
+		if (IsAirTT()) {
+			uint16_t air_speed = GetAirTypeInfo(GetAirType(m_old_tile))->max_speed;
+			if (air_speed > 0) max_speed = std::min(max_speed, (int)air_speed);
+		}
 
 		/* if min speed was requested, return it */
 		if (pmin_speed != nullptr) *pmin_speed = min_speed;
@@ -470,6 +539,7 @@ public:
 typedef CFollowTrackT<TRANSPORT_WATER, Ship,        true > CFollowTrackWater;
 typedef CFollowTrackT<TRANSPORT_ROAD,  RoadVehicle, true > CFollowTrackRoad;
 typedef CFollowTrackT<TRANSPORT_RAIL,  Train,       true > CFollowTrackRail;
+typedef CFollowTrackT<TRANSPORT_AIR,   Aircraft,    true > CFollowTrackAirport;
 
 typedef CFollowTrackT<TRANSPORT_RAIL,  Train,       false> CFollowTrackRailNo90;
 

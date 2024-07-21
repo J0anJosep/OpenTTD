@@ -32,6 +32,7 @@
 #include "timer/timer.h"
 #include "timer/timer_game_tick.h"
 #include "timer/timer_game_calendar.h"
+#include "air.h"
 
 #include "table/strings.h"
 #include "table/engines.h"
@@ -778,6 +779,7 @@ void StartupEngines()
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = GetCompanyRailTypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+		c->avail_airtypes = GetCompanyAirTypes(c->index);
 	}
 
 	/* Invalidate any open purchase lists */
@@ -798,10 +800,22 @@ static void EnableEngineForCompany(EngineID eid, CompanyID company)
 	Company *c = Company::Get(company);
 
 	SetBit(e->company_avail, company);
-	if (e->type == VEH_TRAIN) {
-		c->avail_railtypes = GetCompanyRailTypes(c->index);
-	} else if (e->type == VEH_ROAD) {
-		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+	switch (e->type) {
+		case VEH_TRAIN:
+			c->avail_railtypes = GetCompanyRailTypes(c->index);
+			break;
+
+		case VEH_ROAD:
+			c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+			break;
+
+		case VEH_AIRCRAFT:
+			assert(e->u.air.airtype < AIRTYPE_END);
+			c->avail_airtypes = GetCompanyAirTypes(c->index);
+			break;
+
+		default:
+			break;
 	}
 
 	if (company == _local_company) {
@@ -830,6 +844,8 @@ static void DisableEngineForCompany(EngineID eid, CompanyID company)
 		c->avail_railtypes = GetCompanyRailTypes(c->index);
 	} else if (e->type == VEH_ROAD) {
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+	} else if (e->type == VEH_AIRCRAFT) {
+		c->avail_airtypes = GetCompanyAirTypes(c->index);
 	}
 
 	if (company == _local_company) {
@@ -928,6 +944,7 @@ static IntervalTimer<TimerGameCalendar> _calendar_engines_daily({TimerGameCalend
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = AddDateIntroducedRailTypes(c->avail_railtypes, TimerGameCalendar::date);
 		c->avail_roadtypes = AddDateIntroducedRoadTypes(c->avail_roadtypes, TimerGameCalendar::date);
+		c->avail_airtypes = AddDateIntroducedAirTypes(c->avail_airtypes, TimerGameCalendar::date);
 	}
 
 	if (TimerGameCalendar::year >= _year_engine_aging_stops) return;
@@ -1086,6 +1103,10 @@ static void NewVehicleAvailable(Engine *e)
 		/* maybe make another road type available */
 		assert(e->u.road.roadtype < ROADTYPE_END);
 		for (Company *c : Company::Iterate()) c->avail_roadtypes = AddDateIntroducedRoadTypes(c->avail_roadtypes | GetRoadTypeInfo(e->u.road.roadtype)->introduces_roadtypes, TimerGameCalendar::date);
+	} else if (e->type == VEH_AIRCRAFT) {
+		/* maybe make another air type available */
+		assert(e->u.air.airtype < AIRTYPE_END);
+		for (Company *c : Company::Iterate()) c->avail_airtypes = AddDateIntroducedAirTypes(c->avail_airtypes | GetAirTypeInfo(e->u.air.airtype)->introduces_airtypes, TimerGameCalendar::date);
 	}
 
 	/* Only broadcast event if AIs are able to build this vehicle type. */
@@ -1236,15 +1257,28 @@ bool IsEngineBuildable(EngineID engine, VehicleType type, CompanyID company)
 
 	if (!e->IsEnabled()) return false;
 
-	if (type == VEH_TRAIN && company != OWNER_DEITY) {
-		/* Check if the rail type is available to this company */
-		const Company *c = Company::Get(company);
-		if (((GetRailTypeInfo(e->u.rail.railtype))->compatible_railtypes & c->avail_railtypes) == 0) return false;
-	}
-	if (type == VEH_ROAD && company != OWNER_DEITY) {
-		/* Check if the road type is available to this company */
-		const Company *c = Company::Get(company);
-		if ((GetRoadTypeInfo(e->u.road.roadtype)->powered_roadtypes & c->avail_roadtypes) == ROADTYPES_NONE) return false;
+	if (company == OWNER_DEITY) return true;
+
+	const Company *c = Company::Get(company);
+
+	switch (type) {
+		case VEH_TRAIN:
+			/* Check if the rail type is available to this company. */
+			if (((GetRailTypeInfo(e->u.rail.railtype))->compatible_railtypes & c->avail_railtypes) == RAILTYPES_NONE) return false;
+			break;
+
+		case VEH_AIRCRAFT:
+			/* Check whether the air type is available to this company. */
+			if (((GetAirTypeInfo(e->u.air.airtype))->compatible_airtypes & c->avail_airtypes) == AIRTYPES_NONE) return false;
+			break;
+
+		case VEH_ROAD:
+			/* Check if the road type is available to this company. */
+			if ((GetRoadTypeInfo(e->u.road.roadtype)->powered_roadtypes & c->avail_roadtypes) == ROADTYPES_NONE) return false;
+			break;
+
+		default:
+			break;
 	}
 
 	return true;

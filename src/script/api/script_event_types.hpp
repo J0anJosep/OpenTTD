@@ -849,6 +849,39 @@ private:
 };
 
 /**
+ * Event AircraftNoLandDest, indicating the aircraft cannot land on an airport.
+ * This event can be triggered when the aircraft is flying towards an airport and
+ * cannot find a tile for landing.
+ * @api ai
+ */
+class ScriptEventAircraftNoLandDest : public ScriptEvent {
+public:
+	/**
+	 * @param vehicle_id The aircraft that cannot land.
+	 */
+	ScriptEventAircraftNoLandDest(VehicleID vehicle_id) :
+	ScriptEvent(ET_AIRCRAFT_CAN_T_LAND),
+	vehicle_id(vehicle_id)
+	{}
+
+	/**
+	 * Convert an ScriptEvent to the real instance.
+	 * @param instance The instance to convert.
+	 * @return The converted instance.
+	 */
+	static ScriptEventAircraftNoLandDest *Convert(ScriptEvent *instance) { return (ScriptEventAircraftNoLandDest *)instance; }
+
+	/**
+	 * Get the VehicleID of the aircraft that cannot land.
+	 * @return The VehicleID of the aircraft that cannot land.
+	 */
+	VehicleID GetVehicleID() { return this->vehicle_id; }
+
+private:
+	VehicleID vehicle_id; ///< The vehicle aircraft that cannot land.
+};
+
+/**
  * Event AircraftDestTooFar, indicating the next destination of an aircraft is too far away.
  * This event can be triggered when the current order of an aircraft changes, usually either when
  * loading is done or when switched manually.

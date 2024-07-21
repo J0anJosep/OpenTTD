@@ -40,6 +40,7 @@ bool IsValidImageIndex(uint8_t image_index);
 typedef Vehicle *VehicleFromPosProc(Vehicle *v, void *data);
 
 void VehicleServiceInDepot(Vehicle *v);
+void VehicleServiceInExtendedDepot(Vehicle *v);
 uint CountVehiclesInChain(const Vehicle *v);
 void FindVehicleOnPos(TileIndex tile, void *data, VehicleFromPosProc *proc);
 void FindVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc);
@@ -164,13 +165,16 @@ inline StringID GetCmdSendToDepotMsg(const BaseVehicle *v)
 }
 
 CommandCost EnsureNoVehicleOnGround(TileIndex tile);
+CommandCost EnsureNoVisibleVehicleOnGround(TileIndex tile);
 CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits);
+CommandCost EnsureFreeHangar(TileIndex tile);
 
 bool CanVehicleUseStation(EngineID engine_type, const struct Station *st);
 bool CanVehicleUseStation(const Vehicle *v, const struct Station *st);
 StringID GetVehicleCannotUseStationReason(const Vehicle *v, const Station *st);
 
 void ReleaseDisasterVehicle(VehicleID vehicle);
+void DeleteCrashedZeppelins();
 
 typedef std::vector<VehicleID> VehicleSet;
 void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8_t num_vehicles);

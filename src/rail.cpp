@@ -73,11 +73,24 @@ extern const TrackBits _track_crosses_tracks[] = {
 	TRACK_BIT_HORZ  // TRACK_RIGHT
 };
 
+/* Maps a trackdir to the (4-way) direction the tile was entered from to follow
+ * that trackdir */
+extern const DiagDirection _trackdir_to_entrydir[TRACKDIR_END] = {
+	DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_SE, DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_SW, INVALID_DIAGDIR, INVALID_DIAGDIR,
+	DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_NE, DIAGDIR_NW,
+};
+
 /* Maps a trackdir to the (4-way) direction the tile is exited when following
  * that trackdir */
 extern const DiagDirection _trackdir_to_exitdir[TRACKDIR_END] = {
 	DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_SW, DIAGDIR_SE, DIAGDIR_NE, DIAGDIR_NE,
 	DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_NW, DIAGDIR_SW, DIAGDIR_NW, DIAGDIR_NE,
+};
+
+/* Maps a trackdir to the corresponding 8-way direction */
+extern const Direction _trackdir_to_direction[TRACKDIR_END] = {
+	DIR_NE, DIR_SE, DIR_E, DIR_E, DIR_S, DIR_S, INVALID_DIR, INVALID_DIR,
+	DIR_SW, DIR_NW, DIR_W, DIR_W, DIR_N, DIR_N, INVALID_DIR, INVALID_DIR,
 };
 
 extern const Trackdir _track_exitdir_to_trackdir[][DIAGDIR_END] = {

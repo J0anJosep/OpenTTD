@@ -8,7 +8,6 @@
 /** @file station_cmd.cpp Handling of station tiles. */
 
 #include "stdafx.h"
-#include "aircraft.h"
 #include "bridge_map.h"
 #include "vehiclelist_func.h"
 #include "viewport_func.h"
@@ -27,6 +26,7 @@
 #include "pathfinder/yapf/yapf_cache.h"
 #include "road_internal.h" /* For drawing catenary/checking road removal */
 #include "autoslope.h"
+#include "air.h"
 #include "water.h"
 #include "strings_internal.h"
 #include "clear_func.h"
@@ -48,7 +48,6 @@
 #include "core/random_func.hpp"
 #include "core/container_func.hpp"
 #include "company_base.h"
-#include "table/airporttile_ids.h"
 #include "newgrf_airporttiles.h"
 #include "order_backup.h"
 #include "newgrf_house.h"
@@ -67,10 +66,16 @@
 #include "timer/timer_game_tick.h"
 #include "cheat_type.h"
 #include "road_func.h"
+#include "depot_base.h"
+#include "platform_func.h"
+#include "tilehighlight_type.h"
+#include "air_map.h"
 
 #include "widgets/station_widget.h"
 
 #include "table/strings.h"
+#include "table/autorail.h"
+#include "table/clear_land.h"
 
 #include <bitset>
 
@@ -82,29 +87,6 @@
  *       Lazy creation on first usage results in a data race between the CDist threads.
  */
 /* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
-
-/**
- * Check whether the given tile is a hangar.
- * @param t the tile to of whether it is a hangar.
- * @pre IsTileType(t, MP_STATION)
- * @return true if and only if the tile is a hangar.
- */
-bool IsHangar(Tile t)
-{
-	assert(IsTileType(t, MP_STATION));
-
-	/* If the tile isn't an airport there's no chance it's a hangar. */
-	if (!IsAirport(t)) return false;
-
-	const Station *st = Station::GetByTile(t);
-	const AirportSpec *as = st->airport.GetSpec();
-
-	for (const auto &depot : as->depots) {
-		if (st->airport.GetRotatedTileFromOffset(depot.ti) == TileIndex(t)) return true;
-	}
-
-	return false;
-}
 
 /**
  * Look for a station owned by the given company around the given tile area.
@@ -212,15 +194,6 @@ static bool CMSATree(TileIndex tile)
 
 #define M(x) ((x) - STR_SV_STNAME)
 
-enum StationNaming {
-	STATIONNAMING_RAIL,
-	STATIONNAMING_ROAD,
-	STATIONNAMING_AIRPORT,
-	STATIONNAMING_OILRIG,
-	STATIONNAMING_DOCK,
-	STATIONNAMING_HELIPORT,
-};
-
 /** Information to handle station action 0 property 24 correctly */
 struct StationNameInformation {
 	uint32_t free_names; ///< Current bitset of free names (we can remove names).
@@ -251,7 +224,7 @@ static bool FindNearIndustryName(TileIndex tile, void *user_data)
 	return !sni->indtypes[indtype];
 }
 
-static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class)
+StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class)
 {
 	static const uint32_t _gen_station_name_bits[] = {
 		0,                                       // STATIONNAMING_RAIL
@@ -428,7 +401,6 @@ void Station::GetTileArea(TileArea *ta, StationType type) const
 			return;
 
 		case STATION_DOCK:
-		case STATION_OILRIG:
 			*ta = this->docking_station;
 			return;
 
@@ -698,7 +670,7 @@ static void UpdateStationSignCoord(BaseStation *st)
  * @param name_class Station naming class to use to generate the new station's name
  * @return Command error that occurred, if any
  */
-static CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reuse, TileArea area, StationNaming name_class)
+CommandCost BuildStationPart(Station **st, DoCommandFlag flags, bool reuse, TileArea area, StationNaming name_class)
 {
 	/* Find a deleted station close to us */
 	if (*st == nullptr && reuse) *st = GetClosestDeletedStation(area.tile);
@@ -838,30 +810,6 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 		allowed_z = flat_z;
 	} else if (allowed_z != flat_z) {
 		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
-	}
-
-	return cost;
-}
-
-/**
- * Checks if an airport can be built at the given location and clear the area.
- * @param tile_iter Airport tile iterator.
- * @param flags Operation to perform.
- * @return The cost in case of success, or an error code if it failed.
- */
-static CommandCost CheckFlatLandAirport(AirportTileTableIterator tile_iter, DoCommandFlag flags)
-{
-	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int allowed_z = -1;
-
-	for (; tile_iter != INVALID_TILE; ++tile_iter) {
-		CommandCost ret = CheckBuildableTile(tile_iter, 0, allowed_z, true);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
-
-		ret = Command<CMD_LANDSCAPE_CLEAR>::Do(flags, tile_iter);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
 	}
 
 	return cost;
@@ -1200,6 +1148,20 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
 }
 
 /**
+ * Find a nearby airport that joins this station.
+ * @param existing_station an existing station we build over
+ * @param station_to_join the station to join to
+ * @param adjacent whether adjacent stations are allowed
+ * @param ta the area of the newly build station
+ * @param st 'return' pointer for the found station
+ * @return command cost with the error or 'okay'
+ */
+CommandCost FindJoiningAirport(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, Station **st)
+{
+	return FindJoiningBaseStation<Station, STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST>(existing_station, station_to_join, adjacent, ta, st, [](const Station *) -> bool { return true; });
+}
+
+/**
  * Find a nearby station that joins this station.
  * @param existing_station an existing station we build over
  * @param station_to_join the station to join to
@@ -1208,7 +1170,7 @@ CommandCost FindJoiningBaseStation(StationID existing_station, StationID station
  * @param st 'return' pointer for the found station
  * @return command cost with the error or 'okay'
  */
-static CommandCost FindJoiningStation(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, Station **st)
+CommandCost FindJoiningStation(StationID existing_station, StationID station_to_join, bool adjacent, TileArea ta, Station **st)
 {
 	return FindJoiningBaseStation<Station, STR_ERROR_MUST_REMOVE_RAILWAY_STATION_FIRST>(existing_station, station_to_join, adjacent, ta, st, [](const Station *) -> bool { return true; });
 }
@@ -1239,9 +1201,10 @@ CommandCost FindJoiningWaypoint(StationID existing_waypoint, StationID waypoint_
 static void FreeTrainReservation(Train *v)
 {
 	FreeTrainTrackReservation(v);
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), false);
+	if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), false);
 	v = v->Last();
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), false);
+	if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), false);
+
 }
 
 /**
@@ -1250,10 +1213,10 @@ static void FreeTrainReservation(Train *v)
  */
 static void RestoreTrainReservation(Train *v)
 {
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
+	if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(v->GetVehicleTrackdir()), true);
 	TryPathReserve(v, true, true);
 	v = v->Last();
-	if (IsRailStationTile(v->tile)) SetRailStationPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), true);
+	if (IsPlatformTile(v->tile)) SetPlatformReservation(v->tile, TrackdirToExitdir(ReverseTrackdir(v->GetVehicleTrackdir())), true);
 }
 
 /**
@@ -1521,21 +1484,21 @@ CommandCost CmdBuildRailStation(DoCommandFlag flags, TileIndex tile_org, RailTyp
 			TileIndex platform_end = tile;
 
 			/* We can only account for tiles that are reachable from this tile, so ignore primarily blocked tiles while finding the platform begin and end. */
-			for (TileIndex next_tile = platform_begin - tile_offset; IsCompatibleTrainStationTile(next_tile, platform_begin); next_tile -= tile_offset) {
+			for (TileIndex next_tile = platform_begin - tile_offset; IsCompatiblePlatformTile(next_tile, platform_begin); next_tile -= tile_offset) {
 				platform_begin = next_tile;
 			}
-			for (TileIndex next_tile = platform_end + tile_offset; IsCompatibleTrainStationTile(next_tile, platform_end); next_tile += tile_offset) {
+			for (TileIndex next_tile = platform_end + tile_offset; IsCompatiblePlatformTile(next_tile, platform_end); next_tile += tile_offset) {
 				platform_end = next_tile;
 			}
 
 			/* If there is at least on reservation on the platform, we reserve the whole platform. */
 			bool reservation = false;
 			for (TileIndex t = platform_begin; !reservation && t <= platform_end; t += tile_offset) {
-				reservation = HasStationReservation(t);
+				reservation = HasPlatformReservation(t);
 			}
 
 			if (reservation) {
-				SetRailStationPlatformReservation(platform_begin, dir, true);
+				SetPlatformReservation(platform_begin, dir, true);
 			}
 		}
 
@@ -2413,346 +2376,6 @@ CommandCost CmdRemoveFromRoadWaypoint(DoCommandFlag flags, TileIndex start, Tile
 }
 
 /**
- * Get a possible noise reduction factor based on distance from town center.
- * The further you get, the less noise you generate.
- * So all those folks at city council can now happily slee...  work in their offices
- * @param as airport information
- * @param distance minimum distance between town and airport
- * @return the noise that will be generated, according to distance
- */
-uint8_t GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance)
-{
-	/* 0 cannot be accounted, and 1 is the lowest that can be reduced from town.
-	 * So no need to go any further*/
-	if (as->noise_level < 2) return as->noise_level;
-
-	/* The steps for measuring noise reduction are based on the "magical" (and arbitrary) 8 base distance
-	 * adding the town_council_tolerance 4 times, as a way to graduate, depending of the tolerance.
-	 * Basically, it says that the less tolerant a town is, the bigger the distance before
-	 * an actual decrease can be granted */
-	uint8_t town_tolerance_distance = 8 + (_settings_game.difficulty.town_council_tolerance * 4);
-
-	/* now, we want to have the distance segmented using the distance judged bareable by town
-	 * This will give us the coefficient of reduction the distance provides. */
-	uint noise_reduction = distance / town_tolerance_distance;
-
-	/* If the noise reduction equals the airport noise itself, don't give it for free.
-	 * Otherwise, simply reduce the airport's level. */
-	return noise_reduction >= as->noise_level ? 1 : as->noise_level - noise_reduction;
-}
-
-/**
- * Finds the town nearest to given airport. Based on minimal manhattan distance to any airport's tile.
- * If two towns have the same distance, town with lower index is returned.
- * @param as airport's description
- * @param rotation airport's rotation
- * @param tile origin tile (top corner of the airport)
- * @param it An iterator over all airport tiles (consumed)
- * @param[out] mindist Minimum distance to town
- * @return nearest town to airport
- */
-Town *AirportGetNearestTown(const AirportSpec *as, Direction rotation, TileIndex tile, TileIterator &&it, uint &mindist)
-{
-	assert(Town::GetNumItems() > 0);
-
-	Town *nearest = nullptr;
-
-	auto width = as->size_x;
-	auto height = as->size_y;
-	if (rotation == DIR_E || rotation == DIR_W) std::swap(width, height);
-
-	uint perimeter_min_x = TileX(tile);
-	uint perimeter_min_y = TileY(tile);
-	uint perimeter_max_x = perimeter_min_x + width - 1;
-	uint perimeter_max_y = perimeter_min_y + height - 1;
-
-	mindist = UINT_MAX - 1; // prevent overflow
-
-	for (TileIndex cur_tile = *it; cur_tile != INVALID_TILE; cur_tile = ++it) {
-		assert(IsInsideBS(TileX(cur_tile), perimeter_min_x, width));
-		assert(IsInsideBS(TileY(cur_tile), perimeter_min_y, height));
-		if (TileX(cur_tile) == perimeter_min_x || TileX(cur_tile) == perimeter_max_x || TileY(cur_tile) == perimeter_min_y || TileY(cur_tile) == perimeter_max_y) {
-			Town *t = CalcClosestTownFromTile(cur_tile, mindist + 1);
-			if (t == nullptr) continue;
-
-			uint dist = DistanceManhattan(t->xy, cur_tile);
-			if (dist == mindist && t->index < nearest->index) nearest = t;
-			if (dist < mindist) {
-				nearest = t;
-				mindist = dist;
-			}
-		}
-	}
-
-	return nearest;
-}
-
-/**
- * Finds the town nearest to given existing airport. Based on minimal manhattan distance to any airport's tile.
- * If two towns have the same distance, town with lower index is returned.
- * @param station existing station with airport
- * @param[out] mindist Minimum distance to town
- * @return nearest town to airport
- */
-static Town *AirportGetNearestTown(const Station *st, uint &mindist)
-{
-	return AirportGetNearestTown(st->airport.GetSpec(), st->airport.rotation, st->airport.tile, AirportTileIterator(st), mindist);
-}
-
-
-/** Recalculate the noise generated by the airports of each town */
-void UpdateAirportsNoise()
-{
-	for (Town *t : Town::Iterate()) t->noise_reached = 0;
-
-	for (const Station *st : Station::Iterate()) {
-		if (st->airport.tile != INVALID_TILE && st->airport.type != AT_OILRIG) {
-			uint dist;
-			Town *nearest = AirportGetNearestTown(st, dist);
-			nearest->noise_reached += GetAirportNoiseLevelForDistance(st->airport.GetSpec(), dist);
-		}
-	}
-}
-
-/**
- * Place an Airport.
- * @param flags operation to perform
- * @param tile tile where airport will be built
- * @param airport_type airport type, @see airport.h
- * @param layout airport layout
- * @param station_to_join station ID to join (NEW_STATION if build new one)
- * @param allow_adjacent allow airports directly adjacent to other airports.
- * @return the cost of this operation or an error
- */
-CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport_type, uint8_t layout, StationID station_to_join, bool allow_adjacent)
-{
-	bool reuse = (station_to_join != NEW_STATION);
-	if (!reuse) station_to_join = INVALID_STATION;
-	bool distant_join = (station_to_join != INVALID_STATION);
-
-	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
-
-	if (airport_type >= NUM_AIRPORTS) return CMD_ERROR;
-
-	CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
-	if (ret.Failed()) return ret;
-
-	/* Check if a valid, buildable airport was chosen for construction */
-	const AirportSpec *as = AirportSpec::Get(airport_type);
-	if (!as->IsAvailable() || layout >= as->layouts.size()) return CMD_ERROR;
-	if (!as->IsWithinMapBounds(layout, tile)) return CMD_ERROR;
-
-	Direction rotation = as->layouts[layout].rotation;
-	int w = as->size_x;
-	int h = as->size_y;
-	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
-	TileArea airport_area = TileArea(tile, w, h);
-
-	if (w > _settings_game.station.station_spread || h > _settings_game.station.station_spread) {
-		return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
-	}
-
-	AirportTileTableIterator tile_iter(as->layouts[layout].tiles.data(), tile);
-	CommandCost cost = CheckFlatLandAirport(tile_iter, flags);
-	if (cost.Failed()) return cost;
-
-	/* The noise level is the noise from the airport and reduce it to account for the distance to the town center. */
-	uint dist;
-	Town *nearest = AirportGetNearestTown(as, rotation, tile, std::move(tile_iter), dist);
-	uint newnoise_level = GetAirportNoiseLevelForDistance(as, dist);
-
-	/* Check if local auth would allow a new airport */
-	StringID authority_refuse_message = STR_NULL;
-	Town *authority_refuse_town = nullptr;
-
-	if (_settings_game.economy.station_noise_level) {
-		/* do not allow to build a new airport if this raise the town noise over the maximum allowed by town */
-		if ((nearest->noise_reached + newnoise_level) > nearest->MaxTownNoise()) {
-			authority_refuse_message = STR_ERROR_LOCAL_AUTHORITY_REFUSES_NOISE;
-			authority_refuse_town = nearest;
-		}
-	} else if (_settings_game.difficulty.town_council_tolerance != TOWN_COUNCIL_PERMISSIVE) {
-		Town *t = ClosestTownFromTile(tile, UINT_MAX);
-		uint num = 0;
-		for (const Station *st : Station::Iterate()) {
-			if (st->town == t && (st->facilities & FACIL_AIRPORT) && st->airport.type != AT_OILRIG) num++;
-		}
-		if (num >= 2) {
-			authority_refuse_message = STR_ERROR_LOCAL_AUTHORITY_REFUSES_AIRPORT;
-			authority_refuse_town = t;
-		}
-	}
-
-	if (authority_refuse_message != STR_NULL) {
-		SetDParam(0, authority_refuse_town->index);
-		return_cmd_error(authority_refuse_message);
-	}
-
-	Station *st = nullptr;
-	ret = FindJoiningStation(INVALID_STATION, station_to_join, allow_adjacent, airport_area, &st);
-	if (ret.Failed()) return ret;
-
-	/* Distant join */
-	if (st == nullptr && distant_join) st = Station::GetIfValid(station_to_join);
-
-	ret = BuildStationPart(&st, flags, reuse, airport_area, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
-	if (ret.Failed()) return ret;
-
-	if (st != nullptr && st->airport.tile != INVALID_TILE) {
-		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_AIRPORT);
-	}
-
-	for (AirportTileTableIterator iter(as->layouts[layout].tiles.data(), tile); iter != INVALID_TILE; ++iter) {
-		cost.AddCost(_price[PR_BUILD_STATION_AIRPORT]);
-	}
-
-	if (flags & DC_EXEC) {
-		/* Always add the noise, so there will be no need to recalculate when option toggles */
-		nearest->noise_reached += newnoise_level;
-
-		st->AddFacility(FACIL_AIRPORT, tile);
-		st->airport.type = airport_type;
-		st->airport.layout = layout;
-		st->airport.flags = 0;
-		st->airport.rotation = rotation;
-
-		st->rect.BeforeAddRect(tile, w, h, StationRect::ADD_TRY);
-
-		for (AirportTileTableIterator iter(as->layouts[layout].tiles.data(), tile); iter != INVALID_TILE; ++iter) {
-			Tile t(iter);
-			MakeAirport(t, st->owner, st->index, iter.GetStationGfx(), WATER_CLASS_INVALID);
-			SetStationTileRandomBits(t, GB(Random(), 0, 4));
-			st->airport.Add(iter);
-
-			if (AirportTileSpec::Get(GetTranslatedAirportTileID(iter.GetStationGfx()))->animation.status != ANIM_STATUS_NO_ANIMATION) AddAnimatedTile(t);
-		}
-
-		/* Only call the animation trigger after all tiles have been built */
-		for (AirportTileTableIterator iter(as->layouts[layout].tiles.data(), tile); iter != INVALID_TILE; ++iter) {
-			AirportTileAnimationTrigger(st, iter, AAT_BUILT);
-		}
-
-		UpdateAirplanesOnNewStation(st);
-
-		Company::Get(st->owner)->infrastructure.airport++;
-
-		st->AfterStationTileSetChange(true, STATION_AIRPORT);
-		InvalidateWindowData(WC_STATION_VIEW, st->index, -1);
-
-		if (_settings_game.economy.station_noise_level) {
-			SetWindowDirty(WC_TOWN_VIEW, nearest->index);
-		}
-	}
-
-	return cost;
-}
-
-/**
- * Remove an airport
- * @param tile TileIndex been queried
- * @param flags operation to perform
- * @return cost or failure of operation
- */
-static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
-{
-	Station *st = Station::GetByTile(tile);
-
-	if (_current_company != OWNER_WATER) {
-		CommandCost ret = CheckOwnership(st->owner);
-		if (ret.Failed()) return ret;
-	}
-
-	tile = st->airport.tile;
-
-	CommandCost cost(EXPENSES_CONSTRUCTION);
-
-	for (const Aircraft *a : Aircraft::Iterate()) {
-		if (!a->IsNormalAircraft()) continue;
-		if (a->targetairport == st->index && a->state != FLYING) {
-			return_cmd_error(STR_ERROR_AIRCRAFT_IN_THE_WAY);
-		}
-	}
-
-	if (flags & DC_EXEC) {
-		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-			TileIndex tile_cur = st->airport.GetHangarTile(i);
-			OrderBackup::Reset(tile_cur, false);
-			CloseWindowById(WC_VEHICLE_DEPOT, tile_cur);
-		}
-
-		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
-		 * And as for construction, always remove it, even if the setting is not set, in order to avoid the
-		 * need of recalculation */
-		uint dist;
-		Town *nearest = AirportGetNearestTown(st, dist);
-		nearest->noise_reached -= GetAirportNoiseLevelForDistance(st->airport.GetSpec(), dist);
-
-		if (_settings_game.economy.station_noise_level) {
-			SetWindowDirty(WC_TOWN_VIEW, nearest->index);
-		}
-	}
-
-	for (TileIndex tile_cur : st->airport) {
-		if (!st->TileBelongsToAirport(tile_cur)) continue;
-
-		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
-		if (ret.Failed()) return ret;
-
-		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
-
-		if (flags & DC_EXEC) {
-			DeleteAnimatedTile(tile_cur);
-			DoClearSquare(tile_cur);
-			DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur.base());
-		}
-	}
-
-	if (flags & DC_EXEC) {
-		/* Clear the persistent storage. */
-		delete st->airport.psa;
-
-		st->rect.AfterRemoveRect(st, st->airport);
-
-		st->airport.Clear();
-		st->facilities &= ~FACIL_AIRPORT;
-		SetWindowClassesDirty(WC_VEHICLE_ORDERS);
-
-		InvalidateWindowData(WC_STATION_VIEW, st->index, -1);
-
-		Company::Get(st->owner)->infrastructure.airport--;
-
-		st->AfterStationTileSetChange(false, STATION_AIRPORT);
-
-		DeleteNewGRFInspectWindow(GSF_AIRPORTS, st->index);
-	}
-
-	return cost;
-}
-
-/**
- * Open/close an airport to incoming aircraft.
- * @param flags Operation to perform.
- * @param station_id Station ID of the airport.
- * @return the cost of this operation or an error
- */
-CommandCost CmdOpenCloseAirport(DoCommandFlag flags, StationID station_id)
-{
-	if (!Station::IsValidID(station_id)) return CMD_ERROR;
-	Station *st = Station::Get(station_id);
-
-	if (!(st->facilities & FACIL_AIRPORT) || st->owner == OWNER_NONE) return CMD_ERROR;
-
-	CommandCost ret = CheckOwnership(st->owner);
-	if (ret.Failed()) return ret;
-
-	if (flags & DC_EXEC) {
-		st->airport.flags ^= AIRPORT_CLOSED_block;
-		SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_CLOSE_AIRPORT);
-	}
-	return CommandCost();
-}
-
-/**
  * Tests whether the company's vehicles have this station in orders
  * @param station station ID
  * @param include_company If true only check vehicles of \a company, if false only check vehicles of other companies
@@ -3078,8 +2701,281 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 	return true;
 }
 
+/**
+ * Draw the reserved airport tracks of a tile if setting show reserved tracks is enabled
+ * @param t the tile
+ */
+void DrawAirportTracks(const TileInfo *ti)
+{
+	assert(IsAirportTile(ti->tile));
+
+	if (!MayHaveAirTracks(ti->tile)) return;
+
+	if (IsRunwayStart(ti->tile))
+	{
+		PaletteID palette = IsLandingTypeTile(ti->tile) ? PALETTE_SEL_TILE_BLUE : PALETTE_SEL_TILE_RED;
+		extern const uint8_t _slope_to_sprite_offset[32];
+		DrawSelectionSprite(SPR_SELECT_TILE + _slope_to_sprite_offset[ti->tileh], palette, ti,
+				7, FOUNDATION_PART_NORMAL);
+	}
+
+	TrackBits trackbits = GetAirportTileTracks(ti->tile);
+	TrackBits reserved = GetReservedAirportTracks(ti->tile);
+	TrackBits runway_tracks = (IsRunway(ti->tile) && GetReservationAsRunway(ti->tile)) ?
+			GetRunwayTracks(ti->tile) : TRACK_BIT_NONE;
+	Slope autorail_tileh = RemoveHalftileSlope(ti->tileh);
+
+	/* No tracks: return */
+	if ((trackbits | runway_tracks) == TRACK_BIT_NONE) return;
+
+	/* Draw unreserved normal tracks. */
+	for (Track track : SetTrackBitIterator(trackbits)) {
+		TrackBits tracks = TrackToTrackBits(track);
+		if (((reserved | runway_tracks) & tracks) != 0) continue;
+
+		int offset = abs(_AutorailTilehSprite[autorail_tileh][track]);
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + offset, PALETTE_CRASH, 0, 0, TILE_HEIGHT);
+	}
+
+	/* Draw reserved tracks and runways. */
+	for (Track track : SetTrackBitIterator(reserved | runway_tracks)) {
+		TrackBits tracks = TrackToTrackBits(track);
+		int offset = abs(_AutorailTilehSprite[autorail_tileh][track]);
+		PaletteID palette = (runway_tracks & tracks) != 0 ? PALETTE_SEL_TILE_RED : PALETTE_SEL_TILE_BLUE;
+		DrawGroundSpriteAt(SPR_AUTORAIL_BASE + offset, palette, 0, 0, TILE_HEIGHT);
+	}
+}
+
+static void DrawAirportFences(TileInfo *ti)
+{
+	assert(IsAirportTile(ti->tile));
+	StationID st_id = GetStationIndex(ti->tile);
+	static const uint8_t x_off_air_fence[4] = {0, 0, TILE_SIZE, 0};
+	static const uint8_t y_off_air_fence[4] = {0, TILE_SIZE, 0, 0};
+
+	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
+	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
+		TileIndex neighbour = TileAddByDiagDir(ti->tile, dir);
+		if (IsValidTile(neighbour) && (IsAirportTileOfStation(neighbour, st_id) || IsTileType(neighbour, MP_OBJECT))) continue;
+		AddSortableSpriteToDraw(SPR_TRACK_FENCE_FLAT_Y - (dir % 2), palette,
+		ti->x + x_off_air_fence[dir], ti->y + y_off_air_fence[dir], (dir % 2) ? 16 : 1, (dir % 2) ? 1 : 16, 4, ti->z);
+	}
+}
+
+uint8_t GetAirOffset(TileIndex tile) {
+	assert(IsAirportTile(tile));
+
+	AirportTileType att = GetAirportTileType(tile);
+	switch (att) {
+		default:
+			NOT_REACHED();
+		case ATT_RUNWAY_MIDDLE: {
+			return GetPlainRunwayDirections(tile);
+		}
+		case ATT_RUNWAY_END:
+		case ATT_RUNWAY_START_NO_LANDING:
+		case ATT_RUNWAY_START_ALLOW_LANDING: {
+			uint8_t offset = AIRPORT_SPRITES_OFFSET_RUNWAYS_START;
+			if (att == ATT_RUNWAY_END) offset = AIRPORT_SPRITES_OFFSET_RUNWAYS_END;
+			if (att == ATT_RUNWAY_START_NO_LANDING) offset += AIRPORT_SPRITES_OFFSET_RUNWAYS_DONT_ALLOW_LANDING;
+			return offset + GetRunwayExtremeDirection(tile);
+		}
+		case ATT_APRON_NORMAL:
+		case ATT_APRON_HELIPAD:
+		case ATT_APRON_HELIPORT:
+		case ATT_APRON_BUILTIN_HELIPORT:
+			return GetApronType(tile);
+	}
+}
+
+static inline void DrawAirportGround(TileInfo *ti, const AirTypeInfo *ati, PaletteID palette)
+{
+	if (IsTileOnWater(ti->tile)) {
+		DrawWaterClassGround(ti);
+		return;
+	}
+
+	switch (GetAirportGround(ti->tile)) {
+		case AG_GRASS:
+			DrawClearLandTile(ti, GetAirportGroundDensity(ti->tile));
+			break;
+		case AG_DESERT:
+		case AG_SNOW:
+			DrawGroundSprite(_clear_land_sprites_snow_desert[GetAirportGroundDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+			break;
+		case AG_AIRTYPE: {
+			SpriteID image = ati->base_sprites.ground[0];
+			DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+			break;
+		}
+	}
+}
+
+/**
+ * Draw an airport tile.
+ * @param ti TileInfo of the tile to draw.
+ */
+static void DrawTile_Airport(TileInfo *ti)
+{
+	assert(IsAirportTile(ti->tile));
+
+	const AirTypeInfo *ati = GetAirTypeInfo(GetAirType(ti->tile));
+	const DrawTileSprites *t = nullptr;
+	int32_t total_offset = 0;
+	Owner owner = GetTileOwner(ti->tile);
+	PaletteID palette = Company::IsValidID(owner) ? COMPANY_SPRITE_COLOUR(owner) : PALETTE_TO_GREY;
+
+	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
+	DrawAirportGround(ti, ati, palette);
+
+	SpriteID image = 0;
+	if (IsRunway(ti->tile)) image = ati->base_sprites.runways[GetAirOffset(ti->tile)];
+	if (IsSimpleTrack(ti->tile)) {
+		uint8_t index = GetTileAirportGfx(ti->tile);
+		assert(index <= 21);
+		if (index == 0) {
+			if (GetAirportGround(ti->tile) != AG_AIRTYPE) {
+				TrackBits tracks = GetAirportTileTracks(ti->tile);
+				if ((tracks & TRACK_BIT_CROSS) != TRACK_BIT_NONE ||
+						(tracks & TRACK_BIT_HORZ) == TRACK_BIT_HORZ ||
+						(tracks & TRACK_BIT_VERT) == TRACK_BIT_VERT) {
+					image = ati->base_sprites.ground[0];
+				} else {
+					if (tracks & TRACK_BIT_LEFT) {
+						image = ati->base_sprites.ground[1];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					if (tracks & TRACK_BIT_RIGHT) {
+						image = ati->base_sprites.ground[2];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					if (tracks & TRACK_BIT_UPPER) {
+						image = ati->base_sprites.ground[3];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					if (tracks & TRACK_BIT_LOWER) {
+						image = ati->base_sprites.ground[4];
+						DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+					}
+					image = 0;
+				}
+			}
+		} else {
+			image = ati->base_sprites.ground[index - 1];
+		}
+	}
+
+	/* Draw ground. */
+	if (image != 0) DrawGroundSprite(image, GroundSpritePaletteTransform(image, PAL_NONE, palette));
+
+	/* Get the data of the sprites to draw, if any. */
+	AirportTileType att = GetAirportTileType(ti->tile);
+	switch (att) {
+		case ATT_SIMPLE_TRACK:
+		case ATT_RUNWAY_MIDDLE:
+		case ATT_RUNWAY_START_ALLOW_LANDING:
+		case ATT_RUNWAY_START_NO_LANDING:
+		case ATT_RUNWAY_END:
+			t = nullptr;
+			break;
+
+		case ATT_HANGAR_EXTENDED:
+		case ATT_HANGAR_STANDARD: {
+			total_offset = ati->base_sprites.ground[0];
+			uint tile_sprites_offset = GetHangarDirection(ti->tile);
+			t = &_airtype_display_datas_hangars[tile_sprites_offset + (HasAirportGroundSnow(ti->tile) ? 4 : 0)];
+			break;
+		}
+
+		case ATT_APRON_NORMAL:
+		case ATT_APRON_HELIPAD:
+			total_offset = ati->base_sprites.ground[0];
+			t = &_airtype_display_datas_aprons[GetApronType(ti->tile)];
+			break;
+
+		case ATT_APRON_HELIPORT:
+			total_offset = ati->base_sprites.ground[0] + GetAirportTileRotation(ti->tile) + (HasAirportGroundSnow(ti->tile) ? 4 : 0);
+			t = &_airtype_display_datas_aprons[GetApronType(ti->tile)];
+			break;
+
+
+		case ATT_INFRASTRUCTURE_NO_CATCH: {
+			total_offset = 0;
+			AirportTiles at = GetTileAirportGfx(ti->tile);
+			DiagDirection dir = GetAirportTileRotation(ti->tile);
+			switch (at) {
+				case ATTG_NO_CATCH_FLAG:
+					t = &_airtype_display_datas_flags[dir][GetAnimationFrame(ti->tile)];
+					break;
+				case ATTG_NO_CATCH_RADAR:
+					t = &_airtype_display_datas_radar[GetAnimationFrame(ti->tile)];
+					break;
+				case ATTG_NO_CATCH_TOWER:
+					total_offset = ati->base_sprites.ground[0] + (HasAirportGroundSnow(ti->tile) ? 4 : 0);
+					t = &_airtype_display_datas_tower[dir];
+					break;
+				case ATTG_NO_CATCH_TRANSMITTER:
+					total_offset = ati->base_sprites.ground[0] + (HasAirportGroundSnow(ti->tile) ? 4 : 0);
+					t = &_airtype_display_datas_transmitter[dir];
+					break;
+
+				case ATTG_NO_CATCH_EMPTY:
+				case ATTG_NO_CATCH_PIER:
+					total_offset = ati->base_sprites.ground[0];
+					t = &_airtype_display_datas[at * 4 + dir];
+					break;
+				default:
+					NOT_REACHED();
+			}
+			break;
+		}
+
+		case ATT_INFRASTRUCTURE_WITH_CATCH: {
+			total_offset = ati->base_sprites.ground[0];
+			AirportTiles at = GetTileAirportGfx(ti->tile);
+			DiagDirection dir = GetAirportTileRotation(ti->tile);
+			switch (at) {
+				default:
+					NOT_REACHED();
+				case ATTG_WITH_CATCH_BUILDING_1:
+				case ATTG_WITH_CATCH_BUILDING_2:
+				case ATTG_WITH_CATCH_BUILDING_3:
+				case ATTG_WITH_CATCH_BUILDING_FLAT:
+				case ATTG_WITH_CATCH_BUILDING_TERMINAL:
+					if (HasAirportGroundSnow(ti->tile)) total_offset += 20;
+					t = &_airtype_display_datas[at * 4 + dir];
+					break;
+			}
+			break;
+		}
+
+		case ATT_WAITING_POINT:
+			NOT_REACHED();
+		case ATT_APRON_BUILTIN_HELIPORT:
+			t = nullptr;
+			break;
+
+		default:
+			NOT_REACHED();
+	}
+
+	if (t != nullptr) DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, 0, palette);
+
+	if (_show_airport_tracks) DrawAirportTracks(ti);
+
+	if (IsApron(ti->tile) && IsBuiltInHeliportTile(ti->tile)) return;
+
+	DrawAirportFences(ti);
+}
+
+
 static void DrawTile_Station(TileInfo *ti)
 {
+	if (IsAirportTile(ti->tile) && HasAirtypeGfx(ti->tile)) {
+		DrawTile_Airport(ti);
+		return;
+	}
+
 	const NewGRFSpriteLayout *layout = nullptr;
 	DrawTileSprites tmp_rail_layout;
 	const DrawTileSprites *t = nullptr;
@@ -3090,6 +2986,7 @@ static void DrawTile_Station(TileInfo *ti)
 	BaseStation *st = nullptr;
 	const StationSpec *statspec = nullptr;
 	uint tile_layout = 0;
+	StationGfx gfx;
 
 	if (HasStationRail(ti->tile)) {
 		rti = GetRailTypeInfo(GetRailType(ti->tile));
@@ -3122,12 +3019,12 @@ static void DrawTile_Station(TileInfo *ti)
 		total_offset = 0;
 	}
 
-	StationGfx gfx = GetStationGfx(ti->tile);
 	if (IsAirport(ti->tile)) {
-		gfx = GetAirportGfx(ti->tile);
+		gfx = GetTranslatedAirportTileID(GetTileAirportGfx(ti->tile));
 		if (gfx >= NEW_AIRPORTTILE_OFFSET) {
-			const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
+			const AirportTileSpec *ats = AirportTileSpec::GetAirportTileSpec(gfx);
 			if (ats->grf_prop.spritegroup[0] != nullptr && DrawNewAirportTile(ti, Station::GetByTile(ti->tile), ats)) {
+				if (_show_airport_tracks) DrawAirportTracks(ti);
 				return;
 			}
 			/* No sprite group (or no valid one) found, meaning no graphics associated.
@@ -3152,6 +3049,8 @@ static void DrawTile_Station(TileInfo *ti)
 				t = &_station_display_datas_airport_flag_grass_fence_ne_2[GetAnimationFrame(ti->tile)];
 				break;
 		}
+	} else {
+		gfx = GetStationGfx(ti->tile);
 	}
 
 	Owner owner = GetTileOwner(ti->tile);
@@ -3242,7 +3141,7 @@ draw_default_foundation:
 		DrawWaterClassGround(ti);
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
+	} else if (IsDock(ti->tile) || (IsBuiltInHeliportTile(ti->tile) && IsTileOnWater(ti->tile))) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
 		} else {
@@ -3387,6 +3286,8 @@ draw_default_foundation:
 		total_offset = 0;
 	}
 
+	if (_show_airport_tracks && IsAirport(ti->tile)) DrawAirportTracks(ti);
+
 	DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, relocation, palette);
 }
 
@@ -3515,7 +3416,6 @@ void FillTileDescAirport(TileIndex tile, TileDesc *td)
 	td->airport_name = as->name;
 
 	const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
-	td->airport_tile_name = ats->name;
 
 	if (as->grf_prop.grffile != nullptr) {
 		const GRFConfig *gc = GetGRFConfig(as->grf_prop.grffile->grfid);
@@ -3523,6 +3423,51 @@ void FillTileDescAirport(TileIndex tile, TileDesc *td)
 	} else if (ats->grf_prop.grffile != nullptr) {
 		const GRFConfig *gc = GetGRFConfig(ats->grf_prop.grffile->grfid);
 		td->grf = gc->GetName();
+	}
+
+	const AirTypeInfo *ati = GetAirTypeInfo(GetAirType(tile));
+	td->airtype = ati->strings.name;
+
+	AirportTileType att = GetAirportTileType(tile);
+	switch (att) {
+		case ATT_INFRASTRUCTURE_WITH_CATCH:
+			td->airport_tile_name =  STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITH_CATCHMENT;
+			break;
+		case ATT_INFRASTRUCTURE_NO_CATCH:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_INFRASTRUCTURE_WITHOUT_CATCHMENT;
+			break;
+		case ATT_SIMPLE_TRACK:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_PLAIN;
+			break;
+		case ATT_APRON_NORMAL:
+		case ATT_APRON_HELIPAD:
+		case ATT_APRON_HELIPORT:
+		case ATT_APRON_BUILTIN_HELIPORT:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_TERMINAL + att - ATT_APRON_NORMAL;
+			break;
+		case ATT_HANGAR_STANDARD:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR;
+			break;
+		case ATT_HANGAR_EXTENDED:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIRCRAFT_EXTENDED_HANGAR;
+			break;
+		case ATT_RUNWAY_MIDDLE:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_MIDDLE;
+			break;
+		case ATT_RUNWAY_END:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_END;
+			break;
+		case ATT_RUNWAY_START_ALLOW_LANDING:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_LANDING;
+			break;
+		case ATT_RUNWAY_START_NO_LANDING:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_RUNWAY_START_NO_LANDING;
+			break;
+		case ATT_WAITING_POINT:
+			td->airport_tile_name = STR_LAI_STATION_DESCRIPTION_AIR_WAITING_POINT;
+			break;
+
+		default: NOT_REACHED();
 	}
 }
 
@@ -3540,18 +3485,11 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 		default: NOT_REACHED();
 		case STATION_RAIL:     str = STR_LAI_STATION_DESCRIPTION_RAILROAD_STATION; break;
 		case STATION_AIRPORT:
-			str = (IsHangar(tile) ? STR_LAI_STATION_DESCRIPTION_AIRCRAFT_HANGAR : STR_LAI_STATION_DESCRIPTION_AIRPORT);
+			str = IsBuiltInHeliportTile(tile) ? STR_INDUSTRY_NAME_OIL_RIG :
+					STR_LAI_STATION_DESCRIPTION_AIRPORT;
 			break;
 		case STATION_TRUCK:    str = STR_LAI_STATION_DESCRIPTION_TRUCK_LOADING_AREA; break;
 		case STATION_BUS:      str = STR_LAI_STATION_DESCRIPTION_BUS_STATION; break;
-		case STATION_OILRIG: {
-			const Industry *i = Station::GetByTile(tile)->industry;
-			const IndustrySpec *is = GetIndustrySpec(i->type);
-			td->owner[0] = i->owner;
-			str = is->name;
-			if (is->grf_prop.grffile != nullptr) td->grf = GetGRFConfig(is->grf_prop.grffile->grfid)->GetName();
-			break;
-		}
 		case STATION_DOCK:     str = STR_LAI_STATION_DESCRIPTION_SHIP_DOCK; break;
 		case STATION_BUOY:     str = STR_LAI_STATION_DESCRIPTION_BUOY; break;
 		case STATION_WAYPOINT: str = STR_LAI_STATION_DESCRIPTION_WAYPOINT; break;
@@ -3599,6 +3537,10 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 			}
 			break;
 
+		case TRANSPORT_AIR:
+			if (IsAirportTile(tile) && MayHaveAirTracks(tile)) trackbits = GetAirportTileTracks(tile);
+			break;
+
 		default:
 			break;
 	}
@@ -3606,6 +3548,83 @@ static TrackStatus GetTileTrackStatus_Station(TileIndex tile, TransportType mode
 	return CombineTrackStatus(TrackBitsToTrackdirBits(trackbits), TRACKDIR_BIT_NONE);
 }
 
+/** Convert to or from snowy tiles. */
+static void TileLoopAirportAlps(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	int k = GetTileZ(tile) - GetSnowLine() + 1;
+
+	AirportGround airport_ground = GetAirportGround(tile);
+	switch (airport_ground) {
+		case AG_AIRTYPE:
+		case AG_SNOW:
+			break;
+		default:
+			/* Below the snow line, do nothing if no snow. */
+			/* At or above the snow line, make snow tile if needed. */
+			if (k >= 0) {
+				SetAirportGroundAndDensity(tile, AG_SNOW, 0);
+				MarkTileDirtyByTile(tile);
+			}
+			return;
+	}
+
+	/* Update snow density. */
+	uint current_density = GetAirportGroundDensity(tile);
+	uint req_density = (k < 0) ? 0u : std::min<uint>(k, 3u);
+
+	if (current_density == req_density) {
+		/* Density at the required level. */
+		if (k >= 0 || airport_ground == AG_AIRTYPE) return;
+		SetAirportGroundAndDensity(tile, AG_GRASS, 3);
+	} else {
+		AddAirportGroundDensity(tile, current_density < req_density ? 1 : -1);
+	}
+	MarkTileDirtyByTile(tile);
+}
+
+/**
+ * Tests if at least one surrounding tile is non-desert
+ * @param tile tile to check
+ * @return does this tile have at least one non-desert tile around?
+ */
+static inline bool AirportNeighbourIsNormal(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+
+	for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
+		TileIndex t = tile + TileOffsByDiagDir(dir);
+		if (!IsValidTile(t)) continue;
+		if (GetTropicZone(t) != TROPICZONE_DESERT) return true;
+		if (HasTileWaterClass(t) && GetWaterClass(t) == WATER_CLASS_SEA) return true;
+	}
+	return false;
+}
+
+static void TileLoopAirportDesert(TileIndex tile)
+{
+	assert(IsAirportTile(tile));
+	/* Current desert level - 0 if it is not desert */
+	uint current = 0;
+	if (GetAirportGround(tile) == AG_DESERT) current = GetAirportGroundDensity(tile);
+
+	/* Expected desert level - 0 if it shouldn't be desert */
+	uint expected = 0;
+	if (GetTropicZone(tile) == TROPICZONE_DESERT) {
+		expected = AirportNeighbourIsNormal(tile) ? 1 : 3;
+	}
+
+	if (current == expected) return;
+
+	if (expected == 0) {
+		SetAirportGroundAndDensity(tile, AG_GRASS, 3);
+	} else {
+		/* Transition from clear to desert is not smooth (after clearing desert tile) */
+		SetAirportGroundAndDensity(tile, AG_DESERT, expected);
+	}
+
+	MarkTileDirtyByTile(tile);
+}
 
 static void TileLoop_Station(TileIndex tile)
 {
@@ -3613,6 +3632,33 @@ static void TileLoop_Station(TileIndex tile)
 	 * hardcoded.....not good */
 	switch (GetStationType(tile)) {
 		case STATION_AIRPORT:
+			if (IsTileOnWater(tile)) {
+				TileLoop_Water(tile);
+			} else {
+				switch (_settings_game.game_creation.landscape) {
+					case LT_TROPIC: TileLoopAirportDesert(tile); break;
+					case LT_ARCTIC: TileLoopAirportAlps(tile);   break;
+				}
+
+				switch (GetAirportGround(tile)) {
+					case AG_GRASS:
+						if (GetAirportGroundDensity(tile) == 3) return;
+
+						if (GetAirportGroundCounter(tile) < 7) {
+							AddAirportGroundCounter(tile, 1);
+						} else {
+							SetAirportGroundCounter(tile, 0);
+							AddAirportGroundDensity(tile, 1);
+							MarkTileDirtyByTile(tile);
+						}
+						break;
+					case AG_SNOW:
+					case AG_DESERT:
+					case AG_AIRTYPE:
+					default:
+						break;
+				}
+			}
 			AirportTileAnimationTrigger(Station::GetByTile(tile), tile, AAT_TILELOOP);
 			break;
 
@@ -3620,7 +3666,6 @@ static void TileLoop_Station(TileIndex tile)
 			if (!IsTileFlat(tile)) break; // only handle water part
 			[[fallthrough]];
 
-		case STATION_OILRIG: //(station part)
 		case STATION_BUOY:
 			TileLoop_Water(tile);
 			break;
@@ -3691,9 +3736,9 @@ static bool ClickTile_Station(TileIndex tile)
 
 	if (bst->facilities & FACIL_WAYPOINT) {
 		ShowWaypointWindow(Waypoint::From(bst));
-	} else if (IsHangar(tile)) {
-		const Station *st = Station::From(bst);
-		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
+	} else if (IsHangarTile(tile)) {
+		assert(Station::From(bst)->airport.HasHangar());
+		ShowDepotWindow(Station::From(bst)->airport.hangar->index);
 	} else {
 		ShowStationViewWindow(bst->index);
 	}
@@ -3781,7 +3826,17 @@ void TriggerWatchedCargoCallbacks(Station *st)
 static bool StationHandleBigTick(BaseStation *st)
 {
 	if (!st->IsInUse()) {
-		if (++st->delete_ctr >= 8) delete st;
+		if (++st->delete_ctr >= 8) {
+			if (Station::IsExpected(st)) {
+				Station *s = Station::From(st);
+				if (s->airport.hangar != nullptr) {
+					delete s->airport.hangar;
+					s->airport.hangar = nullptr;
+				}
+			}
+
+			delete st;
+		}
 		return false;
 	}
 
@@ -4499,69 +4554,6 @@ void UpdateStationDockingTiles(Station *st)
 	}
 }
 
-void BuildOilRig(TileIndex tile)
-{
-	if (!Station::CanAllocateItem()) {
-		Debug(misc, 0, "Can't allocate station for oilrig at 0x{:X}, reverting to oilrig only", tile);
-		return;
-	}
-
-	Station *st = new Station(tile);
-	_station_kdtree.Insert(st->index);
-	st->town = ClosestTownFromTile(tile, UINT_MAX);
-
-	st->string_id = GenerateStationName(st, tile, STATIONNAMING_OILRIG);
-
-	assert(IsTileType(tile, MP_INDUSTRY));
-	/* Mark industry as associated both ways */
-	st->industry = Industry::GetByTile(tile);
-	st->industry->neutral_station = st;
-	DeleteAnimatedTile(tile);
-	MakeOilrig(tile, st->index, GetWaterClass(tile));
-
-	st->owner = OWNER_NONE;
-	st->airport.type = AT_OILRIG;
-	st->airport.Add(tile);
-	st->ship_station.Add(tile);
-	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
-	st->build_date = TimerGameCalendar::date;
-	UpdateStationDockingTiles(st);
-
-	st->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);
-
-	st->UpdateVirtCoord();
-
-	/* An industry tile has now been replaced with a station tile, this may change the overlap between station catchments and industry tiles.
-	 * Recalculate the station catchment for all stations currently in the industry's nearby list.
-	 * Clear the industry's station nearby list first because Station::RecomputeCatchment cannot remove nearby industries in this case. */
-	if (_settings_game.station.serve_neutral_industries) {
-		StationList nearby = std::move(st->industry->stations_near);
-		st->industry->stations_near.clear();
-		for (Station *near : nearby) {
-			near->RecomputeCatchment(true);
-			UpdateStationAcceptance(near, true);
-		}
-	}
-
-	st->RecomputeCatchment();
-	UpdateStationAcceptance(st, false);
-}
-
-void DeleteOilRig(TileIndex tile)
-{
-	Station *st = Station::GetByTile(tile);
-
-	MakeWaterKeepingClass(tile, OWNER_NONE);
-
-	/* The oil rig station is not supposed to be shared with anything else */
-	assert(st->facilities == (FACIL_AIRPORT | FACIL_DOCK) && st->airport.type == AT_OILRIG);
-	if (st->industry != nullptr && st->industry->neutral_station == st) {
-		/* Don't leave dangling neutral station pointer */
-		st->industry->neutral_station = nullptr;
-	}
-	delete st;
-}
-
 static void ChangeTileOwner_Station(TileIndex tile, Owner old_owner, Owner new_owner)
 {
 	if (IsAnyRoadStopTile(tile)) {
@@ -4597,6 +4589,11 @@ static void ChangeTileOwner_Station(TileIndex tile, Owner old_owner, Owner new_o
 					old_company->infrastructure.rail[GetRailType(tile)]--;
 					new_company->infrastructure.rail[GetRailType(tile)]++;
 				}
+				break;
+
+			case STATION_AIRPORT:
+				old_company->infrastructure.air[GetAirType(tile)]--;
+				new_company->infrastructure.air[GetAirType(tile)]++;
 				break;
 
 			case STATION_BUS:
@@ -4684,6 +4681,9 @@ static CommandCost CanRemoveRoadWithStop(TileIndex tile, DoCommandFlag flags)
 	return CommandCost();
 }
 
+extern CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags);
+extern CommandCost ClearAirportTile(TileIndex tile, DoCommandFlag flags);
+
 /**
  * Clear a single tile of a station.
  * @param tile The tile to clear.
@@ -4703,16 +4703,20 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags)
 			case STATION_ROADWAYPOINT: return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			case STATION_BUOY:     return_cmd_error(STR_ERROR_BUOY_IN_THE_WAY);
 			case STATION_DOCK:     return_cmd_error(STR_ERROR_MUST_DEMOLISH_DOCK_FIRST);
-			case STATION_OILRIG:
-				SetDParam(1, STR_INDUSTRY_NAME_OIL_RIG);
-				return_cmd_error(STR_ERROR_GENERIC_OBJECT_IN_THE_WAY);
 		}
 	}
 
 	switch (GetStationType(tile)) {
 		case STATION_RAIL:     return RemoveRailStation(tile, flags);
 		case STATION_WAYPOINT: return RemoveRailWaypoint(tile, flags);
-		case STATION_AIRPORT:  return RemoveAirport(tile, flags);
+		case STATION_AIRPORT: // airport can be built on water
+			if (_current_company == OWNER_WATER && IsTileOnWater(tile)) break;
+			if (_settings_game.station.allow_modify_airports) {
+				return ClearAirportTile(tile, flags);
+			} else {
+				return RemoveAirport(tile, flags);
+			}
+			break;
 		case STATION_TRUCK:    [[fallthrough]];
 		case STATION_BUS:
 			if (IsDriveThroughStopTile(tile)) {

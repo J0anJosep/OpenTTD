@@ -158,6 +158,7 @@ struct GUISettings {
 	uint8_t  advanced_vehicle_list;            ///< use the "advanced" vehicle list
 	uint8_t  loading_indicators;               ///< show loading indicators
 	uint8_t  default_rail_type;                ///< the default rail type for the rail GUI
+	uint8_t  default_air_type;                 ///< the default air type for the rail GUI
 	uint8_t  toolbar_pos;                      ///< position of toolbars, 0=left, 1=center, 2=right
 	uint8_t  statusbar_pos;                    ///< position of statusbar, 0=left, 1=center, 2=right
 	uint8_t  window_snap_radius;               ///< windows snap at each other if closer than this
@@ -567,7 +568,28 @@ struct StationSettings {
 	bool   adjacent_stations;                ///< allow stations to be built directly adjacent to other stations
 	bool   distant_join_stations;            ///< allow to join non-adjacent stations
 	bool   never_expire_airports;            ///< never expire airports
+	bool   allow_modify_airports;            ///< allow change the layout of airports
 	uint8_t station_spread;                  ///< amount a station may spread
+};
+
+enum DepotTypes : uint8_t {
+	ONLY_STANDARD_DEPOT_TYPE = 1,
+	ONLY_EXTENDED_DEPOT_TYPE = 2,
+	BOTH_DEPOT_TYPES         = 3,
+};
+
+/** Settings related to depots. */
+struct DepotSettings {
+	uint8_t depot_spread;            ///< amount a depot may spread
+	bool    distant_join_depots;     ///< allow to join non-adjacent depots
+
+	uint8_t rail_depot_types;        ///< allowed rail depot types for contruction
+	uint8_t road_depot_types;        ///< allowed road depot types for contruction
+	uint8_t water_depot_types;       ///< allowed water depot types for contruction
+	uint8_t hangar_types;            ///< allowed hangar types for contruction
+
+	bool    allow_no_comp_railtype_replacements;  ///< allow replacing rail vehicles even if rail type is not compatible
+	bool    allow_no_comp_roadtype_replacements;  ///< allow replacing road vehicles even if road type is not compatible
 };
 
 /** Default settings for vehicles. */
@@ -603,6 +625,7 @@ struct GameSettings {
 	EconomySettings      economy;            ///< settings to change the economy
 	LinkGraphSettings    linkgraph;          ///< settings for link graph calculations
 	StationSettings      station;            ///< settings related to station management
+	DepotSettings        depot;              ///< settings related to depot management
 	LocaleSettings       locale;             ///< settings related to used currency/unit system in the current game
 };
 

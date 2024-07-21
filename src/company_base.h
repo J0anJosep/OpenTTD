@@ -32,10 +32,10 @@ struct CompanyEconomyEntry {
 struct CompanyInfrastructure {
 	std::array<uint32_t, RAILTYPE_END> rail{}; ///< Count of company owned track bits for each rail type.
 	std::array<uint32_t, ROADTYPE_END> road{}; ///< Count of company owned track bits for each road type.
+	std::array<uint32_t, AIRTYPE_END>  air{};  ///< Count of company owned airport tiles for each air type.
 	uint32_t signal;             ///< Count of company owned signals.
 	uint32_t water;              ///< Count of company owned track bits for canals.
 	uint32_t station;            ///< Count of company owned station tiles.
-	uint32_t airport;            ///< Count of company owned airports.
 
 	auto operator<=>(const CompanyInfrastructure &) const = default;
 
@@ -43,6 +43,12 @@ struct CompanyInfrastructure {
 	uint32_t GetRailTotal() const
 	{
 		return std::accumulate(std::begin(this->rail), std::end(this->rail), 0U);
+	}
+
+	/** Get total sum of all owned airport tiles. */
+	uint32_t GetAirTotal() const
+	{
+		return std::accumulate(std::begin(this->air), std::end(this->air), 0U);
 	}
 
 	uint32_t GetRoadTotal() const;
@@ -133,6 +139,7 @@ struct Company : CompanyProperties, CompanyPool::PoolItem<&_company_pool> {
 	Company(uint16_t name_1 = 0, bool is_ai = false);
 	~Company();
 
+	AirTypes avail_airtypes;           ///< Air types available to the company.
 	RailTypes avail_railtypes;         ///< Rail types available to this company.
 	RoadTypes avail_roadtypes;         ///< Road types available to this company.
 
